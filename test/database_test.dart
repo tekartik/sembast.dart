@@ -90,6 +90,19 @@ main() {
         });
       });
 
+      test('put_update', () {
+        return db.put("hi", 1).then((_) {
+          return db.put("ho", 1).then((_) {
+            return db.get(1).then((String value) {
+              expect(value, "ho");
+              return db.count().then((int count) {
+                expect(count, 1);
+              });
+            });
+          });
+        });
+      });
+
       test('put_delete', () {
         return db.put("hi", 1).then((_) {
           return db.delete(1).then((key) {
@@ -115,6 +128,21 @@ main() {
         });
       });
 
+      test('put_update_close_get', () {
+        return db.put("hi", 1).then((_) {
+          return db.put("ho", 1).then((_) {
+            return db.reOpen().then((_) {
+              return db.get(1).then((String value) {
+                expect(value, "ho");
+                return db.count().then((int count) {
+                  expect(count, 1);
+                });
+              });
+            });
+          });
+        });
+      });
+      
       test('put_delete_close_get', () {
         return db.put("hi", 1).then((_) {
           return db.delete(1).then((key) {

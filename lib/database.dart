@@ -118,6 +118,7 @@ class _Record {
 
 class _Store {
   String name;
+  _Store(this.name);
   Map<dynamic, _Record> records = new Map();
 }
 
@@ -193,7 +194,7 @@ class Database {
     int value = _mainStore.records.length;
     return new Future.value(value);
   }
-  
+
   Future delete(var key) {
     _Record record = _mainStore.records[key];
     if (record == null) {
@@ -210,6 +211,10 @@ class Database {
         return key;
       });
     }
+  }
+
+  bool _hasRecord(_Store store, var key) {
+    return store.records.containsKey(key);
   }
 
   _loadRecord(_Store store, _Record record) {
@@ -229,6 +234,21 @@ class Database {
     return open(path);
   }
 
+  _Store _getStore(String storeName) {
+    _Store store;
+    if (storeName == null) {
+      store = _mainStore;
+    } else {
+      store = _stores[storeName];
+      if (store == null) {
+        _Store store = new _Store(storeName);
+        _stores[storeName] = store;
+      }
+
+    }
+    return store;
+  }
+  
   Future open(String path, [int version]) {
     if (_opened) {
       return new Future.value();
@@ -251,7 +271,8 @@ class Database {
     }).then((_) {
       file = new File(path);
 
-      mainStore = new _Store();
+      _mainStore = new _Store("_main");
+      bool needCompact = false;
       return file.openRead().transform(UTF8.decoder).transform(new LineSplitter()).forEach((String line) {
         // everything is JSON
         Map map = JSON.decode(line);
@@ -263,7 +284,12 @@ class Database {
         } else if (_Record.isMapRecord(map)) {
           // record?
           _Record record = new _Record.fromMap(map);
-          _loadRecord(mainStore, record);
+          _Store store = _getStore(record.store);
+
+          if (_hasRecord(store, record.key)) {
+            needCompact = true;
+          }
+          _loadRecord(store, record);
 
         }
 
@@ -283,10 +309,13 @@ class Database {
 
           sink.writeln(JSON.encode(meta.toMap()));
           return sink.close();
+        } else {
+          if (needCompact) {
+            //TODO rewrite
+          }
         }
       });
     }).then((_) {
-      _mainStore = mainStore;
       _file = file;
       _path = path;
       _meta = meta;
