@@ -37,7 +37,10 @@ class Record {
   _Record _record;
 
   get key => _record.key;
-  String get store => _record.store;
+  Store get store => _record.store;
+  
+  Record();
+  
   @override
   String toString() {
     return _record.toString();
@@ -67,14 +70,13 @@ _encodeValue(var value) {
 }
 
 class _Record {
-  String store;
+  Store store;
   var key;
-  int rev;
   var value;
   bool deleted;
 
-  _Record.fromMap(Map map) {
-    store = map[_store_name];
+  _Record._fromMap(Database db, Map map) {
+    store = db.getStore(map[_store_name]);
     key = map[_record_key];
     value = map[_record_value];
     deleted = map[_record_deleted] == true;
@@ -85,7 +87,7 @@ class _Record {
     return (key != null);
   }
 
-  _Record(this.store, this.key, this.rev, this.value, this.deleted);
+  _Record(this.store, this.key, this.value, this.deleted);
 
   Map _toBaseMap() {
     Map map = {};
@@ -95,7 +97,7 @@ class _Record {
       map[_record_deleted] = true;
     }
     if (store != null) {
-      map[_store_name] = store;
+      map[_store_name] = store.name;
     }
     return map;
   }
@@ -116,9 +118,67 @@ class _Record {
   }
 }
 
-class _Store {
-  String name;
-  _Store(this.name);
+class Store {
+  final Database database;
+  final _StoreImpl _store;
+  String get name => _store.name;
+  Store._(this.database, this._store);
+  Map<dynamic, _Record> get _records => _store.records;
+  
+  Future put(var value, [var key]) {
+     return database.inTransaction(() {
+       if (value is Map) {
+
+       }
+       _Record _record = new _Record(null, _encodeKey(key), _encodeValue(value), false);
+
+
+       IOSink sink = database._file.openWrite(mode: FileMode.APPEND);
+
+       // writable record
+       sink.writeln(JSON.encode(_record.toMap()));
+       return sink.close().then((_) {
+         // save in memory
+         _records[key] = _record;
+         return key;
+       });
+     });
+
+   }
+  
+  Future get(var key) {
+     _Record record = _records[key];
+     var value = record == null ? null : record.value;
+     return new Future.value(value);
+   }
+  
+  Future<int> count() {
+     int value = _records.length;
+     return new Future.value(value);
+   }
+  
+  Future delete(var key) {
+    _Record record = _records[key];
+    if (record == null) {
+      return new Future.value(null);
+    } else {
+      IOSink sink = database._file.openWrite(mode: FileMode.APPEND);
+
+      // write deleted record
+      record.deleted = true;
+      sink.writeln(JSON.encode(record.toMap()));
+      return sink.close().then((_) {
+        // save in memory
+        _records.remove(key);
+        return key;
+      });
+    }
+  }
+}
+
+class _StoreImpl {
+  final String name;
+  _StoreImpl._(this.name);
   Map<dynamic, _Record> records = new Map();
 }
 
@@ -134,8 +194,10 @@ class Database {
   bool _opened = false;
   File _file;
 
-  _Store _mainStore;
-  Map<String, _Store> _stores;
+  Store get mainStore => _mainStore;
+  
+  Store _mainStore;
+  Map<String, Store> _stores = new Map();
 
   /**
    * only valid before open
@@ -159,27 +221,8 @@ class Database {
     return new Future.value();
   }
 
-
-
   Future put(var value, [var key]) {
-    return inTransaction(() {
-      if (value is Map) {
-
-      }
-      _Record _record = new _Record(null, _encodeKey(key), ++_rev, _encodeValue(value), false);
-
-
-      IOSink sink = _file.openWrite(mode: FileMode.APPEND);
-
-      // writable record
-      sink.writeln(JSON.encode(_record.toMap()));
-      return sink.close().then((_) {
-        // save in memory
-        _mainStore.records[key] = _record;
-        return key;
-      });
-    });
-
+    return _mainStore.put(value, key);
   }
 
   Completer currentTransactionCompleter;
@@ -201,43 +244,26 @@ class Database {
   }
 
   Future get(var key) {
-    _Record record = _mainStore.records[key];
-    var value = record == null ? null : record.value;
-    return new Future.value(value);
+    return _mainStore.get(key);
   }
 
   Future<int> count() {
-    int value = _mainStore.records.length;
-    return new Future.value(value);
+    return _mainStore.count();
   }
-
+  
   Future delete(var key) {
-    _Record record = _mainStore.records[key];
-    if (record == null) {
-      return new Future.value(null);
-    } else {
-      IOSink sink = _file.openWrite(mode: FileMode.APPEND);
-
-      // write deleted record
-      record.deleted = true;
-      sink.writeln(JSON.encode(record.toMap()));
-      return sink.close().then((_) {
-        // save in memory
-        _mainStore.records.remove(key);
-        return key;
-      });
-    }
+    return _mainStore.delete(key);
   }
 
-  bool _hasRecord(_Store store, var key) {
-    return store.records.containsKey(key);
+  bool _hasRecord(_Record record) {
+    return record.store._records.containsKey(record.key);
   }
 
-  _loadRecord(_Store store, _Record record) {
+  _loadRecord(_Record record) {
     if (record.deleted) {
-      store.records.remove(record.key);
+      record.store._records.remove(record.key);
     } else {
-      store.records[record.key] = record;
+      record.store._records[record.key] = record;
     }
   }
 
@@ -250,14 +276,14 @@ class Database {
     return open(path);
   }
 
-  _Store _getStore(String storeName) {
-    _Store store;
+  Store getStore(String storeName) {
+    Store store;
     if (storeName == null) {
       store = _mainStore;
     } else {
       store = _stores[storeName];
       if (store == null) {
-        _Store store = new _Store(storeName);
+        store = new Store._(this, new _StoreImpl._(storeName));
         _stores[storeName] = store;
       }
 
@@ -271,7 +297,7 @@ class Database {
     }
     _Meta meta;
     File file;
-    _Store mainStore;
+    _StoreImpl mainStore;
     return FileSystemEntity.isFile(path).then((isFile) {
       if (!isFile) {
         return new File(path).create(recursive: true).then((File file) {
@@ -287,7 +313,7 @@ class Database {
     }).then((_) {
       file = new File(path);
 
-      _mainStore = new _Store("_main");
+      _mainStore = new Store._(this, new _StoreImpl._("_main"));
       bool needCompact = false;
       return file.openRead().transform(UTF8.decoder).transform(new LineSplitter()).forEach((String line) {
         // everything is JSON
@@ -299,13 +325,11 @@ class Database {
           meta = new _Meta.fromMap(map);
         } else if (_Record.isMapRecord(map)) {
           // record?
-          _Record record = new _Record.fromMap(map);
-          _Store store = _getStore(record.store);
-
-          if (_hasRecord(store, record.key)) {
+          _Record record = new _Record._fromMap(this, map);
+          if (_hasRecord(record)) {
             needCompact = true;
           }
-          _loadRecord(store, record);
+          _loadRecord(record);
 
         }
 

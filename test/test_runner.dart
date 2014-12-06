@@ -5,6 +5,7 @@ import 'database_perf_test.dart' as database_perf_test;
 import 'database_test.dart' as database_test;
 import 'crud_test.dart' as crud_test;
 import 'record_test.dart' as record_test;
+import 'store_test.dart' as store_test;
 
 
 void main() {
@@ -16,5 +17,6 @@ void defineTests() {
   database_test.defineTests();
   crud_test.defineTests();
   record_test.defineTests();
+  store_test.defineTests();
 
 }
