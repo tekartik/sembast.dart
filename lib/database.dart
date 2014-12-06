@@ -39,24 +39,68 @@ class Field {
 }
 
 class Record {
-  _RecordImpl _recordImpl;
 
-  get key => _recordImpl.key;
-  get value => _recordImpl.value;
-  bool get deleted => _recordImpl.deleted == true;
-  Store get store => _recordImpl.store;
-  operator [](var field) => _recordImpl[field];
+  get key => _key;
+  get value => _value;
+  bool get deleted => _deleted == true;
+  Store get store => _store;
 
-  Record(Store store, var value, [var key]) {
-    _recordImpl = new _RecordImpl(store, key, value);
+  Store _store;
+  var _key;
+  var _value;
+  bool _deleted;
+
+  operator [](var field) {
+    if (field == _record_value) {
+      return value;
+    }
+    return value[field];
+  }
+
+  Record._fromMap(Database db, Map map) {
+    _store = db.getStore(map[_store_name]);
+    _key = map[_record_key];
+    _value = map[_record_value];
+    _deleted = map[_record_deleted] == true;
+  }
+
+  static bool isMapRecord(Map map) {
+    var key = map[_record_key];
+    return (key != null);
+  }
+
+  Record._(this._store, this._key, this._value, [this._deleted]);
+
+  Map _toBaseMap() {
+    Map map = {};
+    map[_record_key] = key;
+
+    if (deleted == true) {
+      map[_record_deleted] = true;
+    }
+    if (store != null && store.name != _main_store) {
+      map[_store_name] = store.name;
+    }
+    return map;
+  }
+
+  Map _toMap() {
+
+    Map map = _toBaseMap();
+    map[_record_value] = value;
+    return map;
+
 
   }
-  Record._(this._recordImpl);
+
 
   @override
   String toString() {
-    return _recordImpl.toString();
+    return _toMap().toString();
   }
+
+  Record(this._store, this._value, [this._key]);
+
 
   @override
   int get hashCode => key == null ? 0 : key.hashCode;
@@ -91,61 +135,6 @@ _encodeValue(var value) {
   throw "value ${value} not supported${value != null ? 'type:${value.runtimeType}' : ''}";
 }
 
-class _RecordImpl {
-  Store store;
-  var key;
-  var value;
-  bool deleted;
-
-  operator [](var field) {
-    if (field == _record_value) {
-      return value;
-    }
-    return value[field];
-  }
-
-  _RecordImpl._fromMap(Database db, Map map) {
-    store = db.getStore(map[_store_name]);
-    key = map[_record_key];
-    value = map[_record_value];
-    deleted = map[_record_deleted] == true;
-  }
-
-  static bool isMapRecord(Map map) {
-    var key = map[_record_key];
-    return (key != null);
-  }
-
-  _RecordImpl(this.store, this.key, this.value, [this.deleted]);
-
-  Map _toBaseMap() {
-    Map map = {};
-    map[_record_key] = key;
-
-    if (deleted == true) {
-      map[_record_deleted] = true;
-    }
-    if (store != null && store.name != _main_store) {
-      map[_store_name] = store.name;
-    }
-    return map;
-  }
-
-  Map toMap() {
-
-    Map map = _toBaseMap();
-    map[_record_value] = value;
-    return map;
-
-
-  }
-
-
-  @override
-  String toString() {
-    return toMap().toString();
-  }
-}
 
 class CompositeFilter extends Filter {
   bool isAnd; // if false it is OR
@@ -160,10 +149,10 @@ class CompositeFilter extends Filter {
         isAnd = false;
 
   @override
-  bool match(_RecordImpl recordImpl) {
+  bool match(Record record) {
 
     for (Filter filter in filters) {
-      if (filter.match(recordImpl)) {
+      if (filter.match(record)) {
         if (isOr) {
           return true;
         }
@@ -196,22 +185,22 @@ class FilterPredicate extends Filter {
   var value;
   FilterPredicate(this.field, this.operation, this.value) : super._();
 
-  bool match(_RecordImpl recordImpl) {
+  bool match(Record record) {
     switch (operation) {
       case FilterOperation.EQUAL:
-        return recordImpl[field] == value;
+        return record[field] == value;
       case FilterOperation.NOT_EQUAL:
-        return recordImpl[field] != value;
+        return record[field] != value;
       case FilterOperation.LESS_THAN:
-        return Comparable.compare(recordImpl[field], value) < 0;
+        return Comparable.compare(record[field], value) < 0;
       case FilterOperation.LESS_THAN_OR_EQUAL:
-        return Comparable.compare(recordImpl[field], value) <= 0;
+        return Comparable.compare(record[field], value) <= 0;
       case FilterOperation.GREATER_THAN:
-        return Comparable.compare(recordImpl[field], value) > 0;
+        return Comparable.compare(record[field], value) > 0;
       case FilterOperation.GREATER_THAN_OR_EQUAL:
-        return Comparable.compare(recordImpl[field], value) >= 0;
+        return Comparable.compare(record[field], value) >= 0;
       case FilterOperation.IN:
-        return (value as List).contains(recordImpl[field]);
+        return (value as List).contains(record[field]);
       default:
         throw "${this} not supported";
     }
@@ -223,7 +212,7 @@ class SortOrder {
   final String field;
 
   SortOrder(this.field, bool ascending) : ascending = ascending == true;
-  int compare(_RecordImpl record1, _RecordImpl record2) {
+  int compare(Record record1, Record record2) {
     var value1 = record1[field];
     var value2 = record2[field];
     if (value1 == null) {
@@ -236,7 +225,7 @@ class SortOrder {
 }
 
 abstract class Filter {
-  bool match(_RecordImpl recordImpl);
+  bool match(Record record);
 
   Filter._();
   factory Filter.equal(String field, value) {
@@ -251,13 +240,13 @@ abstract class Filter {
 class Finder {
   Filter filter;
   SortOrder sortOrder;
-  bool match(_RecordImpl recordImpl) {
+  bool match(Record record) {
     if (filter != null) {
-      return filter.match(recordImpl);
+      return filter.match(record);
     }
     return true;
   }
-  int compare(_RecordImpl record1, _RecordImpl record2) {
+  int compare(Record record1, Record record2) {
     if (sortOrder != null) {
       return sortOrder.compare(record1, record2);
     }
@@ -266,14 +255,14 @@ class Finder {
 }
 class Store {
   final Database database;
-  final _StoreImpl _store;
-  String get name => _store.name;
-  Store._(this.database, this._store);
-  Map<dynamic, _RecordImpl> get _records => _store.records;
+  final String name;
+  Map<dynamic, Record> _records = new Map();
+
+  Store._(this.database, this.name);
 
   Future put(var value, [var key]) {
     return database.inTransaction(() {
-      _RecordImpl record = new _RecordImpl(null, _encodeKey(key), _encodeValue(value), false);
+      Record record = new Record._(null, _encodeKey(key), _encodeValue(value), false);
 
       return _putRecord(record).then((_) {
         return key;
@@ -285,9 +274,9 @@ class Store {
   Future<List<Record>> findRecords(Finder finder) {
     return inTransaction(() {
       List<Record> result = [];
-      _records.values.forEach((_RecordImpl recordImpl) {
-        if (finder.match(recordImpl)) {
-          result.add(new Record._(recordImpl));
+      _records.values.forEach((Record record) {
+        if (finder.match(record)) {
+          result.add(record);
         }
       });
       // sort
@@ -304,7 +293,7 @@ class Store {
   }
   Future<Record> putRecord(Record record) {
     return database.inTransaction(() {
-      return _putRecord(record._recordImpl).then((_) {
+      return _putRecord(record).then((_) {
         return record;
       });
     });
@@ -317,19 +306,8 @@ class Store {
     });
   }
 
-  Future<_RecordImpl> _putRecord(_RecordImpl record) {
-
-    IOSink sink = database._file.openWrite(mode: FileMode.APPEND);
-
-    // writable record
-    sink.writeln(JSON.encode(record.toMap()));
-    return sink.close().then((_) {
-      // save in memory
-      _records[record.key] = record;
-      return record;
-    });
-
-
+  Future<Record> _putRecord(Record record) {
+    return _putRecords([record]);
   }
 
   Future _putRecords(List<Record> records) {
@@ -338,12 +316,19 @@ class Store {
 
     // writable record
     for (Record record in records) {
-      sink.writeln(JSON.encode(record._recordImpl.toMap()));
+      sink.writeln(JSON.encode(record._toMap()));
     }
     return sink.close().then((_) {
       // save in memory
       for (Record record in records) {
-        _records[record.key] = record._recordImpl;
+        // remove deleted
+        if (record.deleted) {
+          _records.remove(record.key);
+        } else {
+          // add inserted/updated
+          _records[record.key] = record;
+        }
+
       }
       return records;
     });
@@ -352,47 +337,43 @@ class Store {
   }
 
   Future<Record> getRecord(var key) {
-    _RecordImpl record = _records[key];
-    if (record == null) {
-      return null;
-    }
-    return new Future.value(new Record._(record));
+    return inTransaction(() {
+      return _records[key];
+    });
   }
 
   Future get(var key) {
-    _RecordImpl record = _records[key];
-    var value = record == null ? null : record.value;
-    return new Future.value(value);
+    return getRecord(key).then((Record record) {
+      if (record != null) {
+        return record.value;
+      }
+      return null;
+    });
   }
 
   Future<int> count() {
-    int value = _records.length;
-    return new Future.value(value);
+    return inTransaction(() {
+      return _records.length;
+    });
   }
 
   Future delete(var key) {
-    _RecordImpl record = _records[key];
-    if (record == null) {
-      return new Future.value(null);
-    } else {
-      IOSink sink = database._file.openWrite(mode: FileMode.APPEND);
-
-      // write deleted record
-      record.deleted = true;
-      sink.writeln(JSON.encode(record.toMap()));
-      return sink.close().then((_) {
-        // save in memory
-        _records.remove(key);
-        return key;
-      });
-    }
+    return inTransaction(() {
+      Record record = _records[key];
+      if (record == null) {
+        return null;
+      } else {
+        record._deleted = true;
+        return _putRecord(record).then((_) {
+          return key;
+        });
+      }
+    });
   }
-}
 
-class _StoreImpl {
-  final String name;
-  _StoreImpl._(this.name);
-  Map<dynamic, _RecordImpl> records = new Map();
+  bool _has(var key) {
+    return _records.containsKey(key);
+  }
 }
 
 class Database {
@@ -473,11 +454,11 @@ class Database {
     return _mainStore.delete(key);
   }
 
-  bool _hasRecord(_RecordImpl record) {
-    return record.store._records.containsKey(record.key);
+  bool _hasRecord(Record record) {
+    return record.store._has(record.key);
   }
 
-  _loadRecord(_RecordImpl record) {
+  _loadRecord(Record record) {
     if (record.deleted) {
       record.store._records.remove(record.key);
     } else {
@@ -501,7 +482,7 @@ class Database {
     } else {
       store = _stores[storeName];
       if (store == null) {
-        store = new Store._(this, new _StoreImpl._(storeName));
+        store = new Store._(this, storeName);
         _stores[storeName] = store;
       }
 
@@ -515,7 +496,6 @@ class Database {
     }
     _Meta meta;
     File file;
-    _StoreImpl mainStore;
     return FileSystemEntity.isFile(path).then((isFile) {
       if (!isFile) {
         return new File(path).create(recursive: true).then((File file) {
@@ -531,7 +511,7 @@ class Database {
     }).then((_) {
       file = new File(path);
 
-      _mainStore = new Store._(this, new _StoreImpl._(_main_store));
+      _mainStore = new Store._(this, _main_store);
       bool needCompact = false;
       return file.openRead().transform(UTF8.decoder).transform(new LineSplitter()).forEach((String line) {
         // everything is JSON
@@ -541,9 +521,9 @@ class Database {
         if (_Meta.isMapMeta(map)) {
           // meta?
           meta = new _Meta.fromMap(map);
-        } else if (_RecordImpl.isMapRecord(map)) {
+        } else if (Record.isMapRecord(map)) {
           // record?
-          _RecordImpl record = new _RecordImpl._fromMap(this, map);
+          Record record = new Record._fromMap(this, map);
           if (_hasRecord(record)) {
             needCompact = true;
           }
