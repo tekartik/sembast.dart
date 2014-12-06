@@ -19,7 +19,7 @@ main() {
 
       setUp(() {
         db = new Database();
-        return Database.delete(dbPath);
+        return Database.deleteDatabase(dbPath);
       });
 
       tearDown(() {
@@ -58,7 +58,7 @@ main() {
 
       setUp(() {
         db = new Database();
-        return Database.delete(dbPath).then((_) {
+        return Database.deleteDatabase(dbPath).then((_) {
           return db.open(dbPath, 1);
         });
       });
@@ -68,7 +68,9 @@ main() {
       });
 
       test('put', () {
-        return db.put("hi", 1);
+        return db.put("hi", 1).then((int key) {
+          expect(key, 1);
+        });
       });
 
       test('get none', () {
@@ -81,6 +83,23 @@ main() {
         return db.put("hi", 1).then((_) {
           return db.get(1).then((String value) {
             expect(value, "hi");
+            return db.count().then((int count) {
+              expect(count, 1);
+            });
+          });
+        });
+      });
+
+      test('put_delete', () {
+        return db.put("hi", 1).then((_) {
+          return db.delete(1).then((key) {
+            expect(key, 1);
+            return db.get(1).then((value) {
+              expect(value, isNull);
+              return db.count().then((int count) {
+                expect(count, 0);
+              });
+            });
           });
         });
       });
@@ -90,6 +109,22 @@ main() {
           return db.reOpen().then((_) {
             return db.get(1).then((String value) {
               expect(value, "hi");
+
+            });
+          });
+        });
+      });
+
+      test('put_delete_close_get', () {
+        return db.put("hi", 1).then((_) {
+          return db.delete(1).then((key) {
+            return db.reOpen().then((_) {
+              return db.get(1).then((value) {
+                expect(value, isNull);
+                return db.count().then((int count) {
+                  expect(count, 0);
+                });
+              });
             });
           });
         });

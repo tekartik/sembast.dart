@@ -6,9 +6,10 @@ import 'dart:convert';
 import 'package:tekartik_core/dev_utils.dart';
 
 const String _db_version = "version";
-const String _record_key = "_key";
-const String _store_key = "_store";
-const String _record_value = "_value"; // only for simple type where the key is not a string
+const String _record_key = "key";
+const String _store_name = "store";
+const String _record_value = "value"; // only for simple type where the key is not a string
+const String _record_deleted = "deleted"; // boolean
 
 class _Meta {
 
@@ -34,6 +35,9 @@ class _Meta {
 
 class Record {
   _Record _record;
+
+  get key => _record.key;
+  String get store => _record.store;
   @override
   String toString() {
     return _record.toString();
@@ -63,69 +67,48 @@ _encodeValue(var value) {
 }
 
 class _Record {
+  String store;
   var key;
   int rev;
   var value;
+  bool deleted;
 
   _Record.fromMap(Map map) {
+    store = map[_store_name];
     key = map[_record_key];
-
-    // It is a simple key/value object
-    // if the key is null or if there is only 1 value
-    // to handle the case when key is not null
-    if ((key == null) || (map.length == 1)) {
-      key = map.keys.first;
-      value = map.values.first;
-    } else {
-      var value = map[_record_value];
-      if (value != null) {
-        this.value = value;
-      } else {
-        this.value = new Map();
-        map.forEach((k, v) {
-          this.value[k] = v;
-        });
-      }
-    }
+    value = map[_record_value];
+    deleted = map[_record_deleted] == true;
   }
 
-  static bool _isSimpleRecord(key, map) {
-    return (key == null) || (map.length == 1);
-  }
   static bool isMapRecord(Map map) {
     var key = map[_record_key];
-    if (key == null) {
-      return map.length == 1;
-    }
-    return true;
+    return (key != null);
   }
 
-  _Record(this.key, this.rev, this.value) {
-    
+  _Record(this.store, this.key, this.rev, this.value, this.deleted);
+
+  Map _toBaseMap() {
+    Map map = {};
+    map[_record_key] = key;
+
+    if (deleted) {
+      map[_record_deleted] = true;
+    }
+    if (store != null) {
+      map[_store_name] = store;
+    }
+    return map;
   }
+
   Map toMap() {
 
-    if (value is Map) {
-      // put the key in
-      value[_record_key] = key;
-      return value;
-    } else if (!(key is String)) {
-      Map map = {
-        _record_key: key,
-        _record_value: value
-      };
-      return map;
-
-    } else {
-
-      Map map = {
-        key: value
-      };
-      return map;
-    }
+    Map map = _toBaseMap();
+    map[_record_value] = value;
+    return map;
 
 
   }
+
 
   @override
   String toString() {
@@ -156,7 +139,7 @@ class Database {
   /**
    * only valid before open
    */
-  static Future delete(String path) {
+  static Future deleteDatabase(String path) {
     return new File(path).exists().then((exists) {
       return new File(path).delete(recursive: true).catchError((_) {
       });
@@ -179,13 +162,13 @@ class Database {
 
   Future put(var value, [var key]) {
     if (value is Map) {
-      
+
     }
-    _Record _record = new _Record(_encodeKey(key), ++_rev, _encodeValue(value));
+    _Record _record = new _Record(null, _encodeKey(key), ++_rev, _encodeValue(value), false);
 
 
     IOSink sink = _file.openWrite(mode: FileMode.APPEND);
-    
+
     // writable record
     sink.writeln(JSON.encode(_record.toMap()));
     return sink.close().then((_) {
@@ -199,15 +182,42 @@ class Database {
   Future inTransaction(Future action()) {
     return action();
   }
-  
+
   Future get(var key) {
     _Record record = _mainStore.records[key];
     var value = record == null ? null : record.value;
     return new Future.value(value);
   }
 
+  Future<int> count() {
+    int value = _mainStore.records.length;
+    return new Future.value(value);
+  }
+  
+  Future delete(var key) {
+    _Record record = _mainStore.records[key];
+    if (record == null) {
+      return new Future.value(null);
+    } else {
+      IOSink sink = _file.openWrite(mode: FileMode.APPEND);
+
+      // write deleted record
+      record.deleted = true;
+      sink.writeln(JSON.encode(record.toMap()));
+      return sink.close().then((_) {
+        // save in memory
+        _mainStore.records.remove(key);
+        return key;
+      });
+    }
+  }
+
   _loadRecord(_Store store, _Record record) {
-    store.records[record.key] = record;
+    if (record.deleted) {
+      store.records.remove(record.key);
+    } else {
+      store.records[record.key] = record;
+    }
   }
 
   /**
