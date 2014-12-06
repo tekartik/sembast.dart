@@ -1,0 +1,8 @@
+name:  tekartik_iodb
+description:  A simple io database
+dependencies:
+  tekartik_io_tools:
+    git: git://github.com/alextekartik/tekartik_io_tools.dart
+dev_dependencies:
+  tekartik_test:
+    git: git://github.com/alextekartik/tekartik_test.dart
