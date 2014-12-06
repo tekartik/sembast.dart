@@ -244,6 +244,10 @@ class SortOrder {
 
   SortOrder(this.field, bool ascending) : ascending = ascending == true;
   int compare(Record record1, Record record2) {
+    int result = compareAscending(record1, record2);
+    return ascending ? result : -result;
+  }
+  int compareAscending(Record record1, Record record2) {
     var value1 = record1[field];
     var value2 = record2[field];
     if (value1 == null) {
@@ -334,10 +338,10 @@ class Store {
         }
       });
       // sort
-//      result.sort((Record record1, record2) {
-//        return finder.compare(record1, record2);
-//
-//      });
+      result.sort((Record record1, record2) {
+        return finder.compare(record1, record2);
+
+      });
       return result;
     });
   }

@@ -154,5 +154,24 @@ void defineTests() {
         });
       });
     });
+
+    test('sort', () {
+      Finder finder = new Finder();
+      finder.sortOrder = new SortOrder(Field.VALUE, true);
+      return store.findRecords(finder).then((List<Record> records) {
+        expect(records.length, 3);
+        expect(records[0], record3);
+        expect(records[1], record1);
+        expect(records[2], record2);
+      }).then((_) {
+        finder.sortOrder = new SortOrder(Field.VALUE, false);
+        return store.findRecords(finder).then((List<Record> records) {
+          expect(records.length, 3);
+          expect(records[0], record2);
+          expect(records[1], record1);
+          expect(records[2], record3);
+        });
+      });
+    });
   });
 }
