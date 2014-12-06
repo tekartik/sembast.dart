@@ -329,12 +329,17 @@ class Finder {
 class Store {
   final Database database;
   final String name;
+  // for key generation
+  int _lastIntKey = 0;
   Map<dynamic, Record> _records = new Map();
 
   Store._(this.database, this.name);
 
   Future put(var value, [var key]) {
     return database.inTransaction(() {
+      if (key == null) {
+        key = ++_lastIntKey;
+      }
       Record record = new Record._(null, _encodeKey(key), _encodeValue(value), false);
 
       return _putRecord(record).then((_) {
@@ -359,6 +364,17 @@ class Store {
       });
       return result;
     });
+  }
+
+  _setRecord(Record record) {
+    var key = record.key;
+    _records[key] = record;
+    // update for auto increment
+    if (key is int) {
+      if (key > _lastIntKey) {
+        _lastIntKey = key;
+      }
+    }
   }
 
   Future inTransaction(Future action()) {
@@ -399,7 +415,7 @@ class Store {
           _records.remove(record.key);
         } else {
           // add inserted/updated
-          _records[record.key] = record;
+          _setRecord(record);
         }
 
       }
@@ -535,7 +551,7 @@ class Database {
     if (record.deleted) {
       record.store._records.remove(record.key);
     } else {
-      record.store._records[record.key] = record;
+      record.store._setRecord(record);
     }
   }
 

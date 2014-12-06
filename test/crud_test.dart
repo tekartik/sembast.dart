@@ -37,6 +37,12 @@ void defineTests() {
       });
     });
 
+    test('put_nokey', () {
+      return db.put("hi").then((int key) {
+        expect(key, 1);
+      });
+    });
+
     test('get none', () {
       return db.get(1).then((value) {
         expect(value, isNull);
@@ -89,6 +95,17 @@ void defineTests() {
 
           });
         });
+      });
+    });
+
+    test('put_nokey_close_put', () {
+      return db.put("hi").then((int key) {
+        return db.reOpen().then((_) {
+          return db.put("hi").then((int key) {
+            expect(key, 2);
+          });
+        });
+
       });
     });
 
