@@ -11,6 +11,7 @@ const String _store_name = "store";
 const String _record_value = "value"; // only for simple type where the key is not a string
 const String _record_deleted = "deleted"; // boolean
 
+const String _main_store = "_main"; // main store name;
 class _Meta {
 
   int version;
@@ -56,11 +57,11 @@ class Record {
   String toString() {
     return _recordImpl.toString();
   }
-  
+
   @override
   int get hashCode => key == null ? 0 : key.hashCode;
-  
-  operator == (o) {
+
+  operator ==(o) {
     if (o is Record) {
       return key == null ? false : (key == o.key);
     }
@@ -124,7 +125,7 @@ class _RecordImpl {
     if (deleted == true) {
       map[_record_deleted] = true;
     }
-    if (store != null) {
+    if (store != null && store.name != _main_store) {
       map[_store_name] = store.name;
     }
     return map;
@@ -146,10 +147,46 @@ class _RecordImpl {
   }
 }
 
+class CompositeFilter extends Filter {
+  bool isAnd; // if false it is OR
+  bool get isOr => !isAnd;
+  List<Filter> filters;
+
+  CompositeFilter.or(this.filters)
+      : super._(),
+        isAnd = false;
+  CompositeFilter.and(this.filters)
+      : super._(),
+        isAnd = false;
+
+  @override
+  bool match(_RecordImpl recordImpl) {
+
+    for (Filter filter in filters) {
+      if (filter.match(recordImpl)) {
+        if (isOr) {
+          return true;
+        }
+      } else {
+        if (isAnd) {
+          return false;
+        }
+      }
+    }
+    // if isOr, nothing has matches so far
+    return isAnd;
+  }
+}
 class FilterOperation {
   final int value;
   const FilterOperation._(this.value);
-  static const FilterOperation EQUALS = const FilterOperation._(1);
+  static const FilterOperation EQUAL = const FilterOperation._(1);
+  static const FilterOperation NOT_EQUAL = const FilterOperation._(2);
+  static const FilterOperation LESS_THAN = const FilterOperation._(3);
+  static const FilterOperation LESS_THAN_OR_EQUAL = const FilterOperation._(4);
+  static const FilterOperation GREATER_THAN = const FilterOperation._(5);
+  static const FilterOperation GREATER_THAN_OR_EQUAL = const FilterOperation._(6);
+  static const FilterOperation IN = const FilterOperation._(7);
 
 }
 
@@ -157,18 +194,27 @@ class FilterPredicate extends Filter {
   String field;
   FilterOperation operation;
   var value;
-  FilterPredicate(this.field, this.operation, this.value);
+  FilterPredicate(this.field, this.operation, this.value) : super._();
 
   bool match(_RecordImpl recordImpl) {
     switch (operation) {
-      case FilterOperation.EQUALS:
+      case FilterOperation.EQUAL:
         return recordImpl[field] == value;
-
+      case FilterOperation.NOT_EQUAL:
+        return recordImpl[field] != value;
+      case FilterOperation.LESS_THAN:
+        return Comparable.compare(recordImpl[field], value) < 0;
+      case FilterOperation.LESS_THAN_OR_EQUAL:
+        return Comparable.compare(recordImpl[field], value) <= 0;
+      case FilterOperation.GREATER_THAN:
+        return Comparable.compare(recordImpl[field], value) > 0;
+      case FilterOperation.GREATER_THAN_OR_EQUAL:
+        return Comparable.compare(recordImpl[field], value) >= 0;
+      case FilterOperation.IN:
+        return (value as List).contains(recordImpl[field]);
       default:
         throw "${this} not supported";
     }
-
-
   }
 }
 
@@ -176,22 +222,46 @@ class SortOrder {
   final bool ascending;
   final String field;
 
-  SortOrder(this.field, bool ascending) : ascending = ascending == true {
-
+  SortOrder(this.field, bool ascending) : ascending = ascending == true;
+  int compare(_RecordImpl record1, _RecordImpl record2) {
+    var value1 = record1[field];
+    var value2 = record2[field];
+    if (value1 == null) {
+      return -1;
+    } else if (value2 == null) {
+      return 1;
+    }
+    return value1.compareTo(value2);
   }
 }
+
 abstract class Filter {
   bool match(_RecordImpl recordImpl);
+
+  Filter._();
+  factory Filter.equal(String field, value) {
+    return new FilterPredicate(field, FilterOperation.EQUAL, value);
+  }
+  factory Filter.inList(String field, List value) {
+    return new FilterPredicate(field, FilterOperation.IN, value);
+  }
 
 }
 
 class Finder {
   Filter filter;
+  SortOrder sortOrder;
   bool match(_RecordImpl recordImpl) {
     if (filter != null) {
       return filter.match(recordImpl);
     }
     return true;
+  }
+  int compare(_RecordImpl record1, _RecordImpl record2) {
+    if (sortOrder != null) {
+      return sortOrder.compare(record1, record2);
+    }
+    return 0;
   }
 }
 class Store {
@@ -220,6 +290,11 @@ class Store {
           result.add(new Record._(recordImpl));
         }
       });
+      // sort
+//      result.sort((Record record1, record2) {
+//        return finder.compare(record1, record2);
+//
+//      });
       return result;
     });
   }
@@ -375,7 +450,7 @@ class Database {
       });
     }
     Completer actionCompleter = currentTransactionCompleter;
-    
+
     return new Future.sync(action).then((result) {
       actionCompleter.complete();
       return result;
@@ -456,7 +531,7 @@ class Database {
     }).then((_) {
       file = new File(path);
 
-      _mainStore = new Store._(this, new _StoreImpl._("_main"));
+      _mainStore = new Store._(this, new _StoreImpl._(_main_store));
       bool needCompact = false;
       return file.openRead().transform(UTF8.decoder).transform(new LineSplitter()).forEach((String line) {
         // everything is JSON
