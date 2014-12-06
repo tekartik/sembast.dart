@@ -34,8 +34,12 @@ class _Meta {
   }
 }
 
+/**
+ * Special field access
+ */
 class Field {
-  static String VALUE = _record_value;
+  static String VALUE = "_value";
+  static String KEY = "_key";
 }
 
 class Record {
@@ -51,8 +55,10 @@ class Record {
   bool _deleted;
 
   operator [](var field) {
-    if (field == _record_value) {
+    if (field == Field.VALUE) {
       return value;
+    } else if (field == Field.KEY) {
+      return key;
     }
     return value[field];
   }
@@ -292,7 +298,10 @@ abstract class Filter {
 
 class Finder {
   Filter filter;
-  SortOrder sortOrder;
+  List<SortOrder> sortOrders;
+  set sortOrder(SortOrder sortOrder) {
+    sortOrders = [sortOrder];
+  }
   bool match(Record record) {
     if (filter != null) {
       return filter.match(record);
@@ -300,15 +309,21 @@ class Finder {
     return true;
   }
   int compare(Record record1, Record record2) {
-    if (sortOrder != null) {
-      return sortOrder.compare(record1, record2);
+    int result = 0;
+    for (SortOrder order in sortOrders) {
+      result = order.compare(record1, record2);
+      // stop as soon as they differ
+      if (result != 0) {
+        break;
+      }
     }
-    return 0;
+
+    return result;
   }
 
   @override
   String toString() {
-    return "filter: ${filter}, sort: ${sortOrder}";
+    return "filter: ${filter}, sort: ${sortOrders}";
   }
 }
 class Store {
