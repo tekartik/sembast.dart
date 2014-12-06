@@ -1,4 +1,4 @@
-library test_utils_test;
+library tekartik_iodb.database_test;
 
 // basically same as the io runner but with extra output
 import 'package:tekartik_test/test_config_io.dart';
@@ -8,9 +8,13 @@ import 'package:tekartik_io_tools/platform_utils.dart';
 import 'package:path/path.dart';
 
 
-
-main() {
+void main() {
   useVMConfiguration();
+  defineTests();
+}
+
+void defineTests() {
+  
   group('database', () {
 
     String dbPath = join(scriptDirPath, "tmp", "test.db");
@@ -184,5 +188,6 @@ main() {
 
     });
 
+   
   });
 }

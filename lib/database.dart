@@ -162,26 +162,42 @@ class Database {
 
 
   Future put(var value, [var key]) {
-    if (value is Map) {
+    return inTransaction(() {
+      if (value is Map) {
 
-    }
-    _Record _record = new _Record(null, _encodeKey(key), ++_rev, _encodeValue(value), false);
+      }
+      _Record _record = new _Record(null, _encodeKey(key), ++_rev, _encodeValue(value), false);
 
 
-    IOSink sink = _file.openWrite(mode: FileMode.APPEND);
+      IOSink sink = _file.openWrite(mode: FileMode.APPEND);
 
-    // writable record
-    sink.writeln(JSON.encode(_record.toMap()));
-    return sink.close().then((_) {
-      // save in memory
-      _mainStore.records[key] = _record;
-      return key;
+      // writable record
+      sink.writeln(JSON.encode(_record.toMap()));
+      return sink.close().then((_) {
+        // save in memory
+        _mainStore.records[key] = _record;
+        return key;
+      });
     });
 
   }
 
+  Completer currentTransactionCompleter;
+
   Future inTransaction(Future action()) {
-    return action();
+
+    if ((currentTransactionCompleter == null) || (currentTransactionCompleter.isCompleted)) {
+      currentTransactionCompleter = new Completer();
+    } else {
+      return currentTransactionCompleter.future.then((_) {
+        return inTransaction(action);
+      });
+    }
+    Completer actionCompleter = currentTransactionCompleter;
+    return action().then((result) {
+      actionCompleter.complete();
+      return result;
+    });
   }
 
   Future get(var key) {
@@ -248,7 +264,7 @@ class Database {
     }
     return store;
   }
-  
+
   Future open(String path, [int version]) {
     if (_opened) {
       return new Future.value();
