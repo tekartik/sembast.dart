@@ -73,20 +73,20 @@ void defineTests() {
 
     test('equal', () {
       Finder finder = new Finder();
-      finder.filter = new FilterPredicate(Field.VALUE, FilterOperation.EQUAL, "hi");
+      finder.filter = new Filter.equal(Field.VALUE, "hi");
       return store.findRecords(finder).then((List<Record> records) {
         expect(records.length, 1);
         expect(records[0], record1);
       }).then((_) {
         Finder finder = new Finder();
-        finder.filter = new FilterPredicate(Field.VALUE, FilterOperation.EQUAL, "ho");
+        finder.filter = new Filter.equal(Field.VALUE, "ho");
         return store.findRecords(finder).then((List<Record> records) {
           expect(records.length, 1);
           expect(records[0], record2);
         });
       }).then((_) {
         Finder finder = new Finder();
-        finder.filter = new FilterPredicate(Field.VALUE, FilterOperation.EQUAL, "hum");
+        finder.filter = new Filter.equal(Field.VALUE, "hum");
         return store.findRecords(finder).then((List<Record> records) {
           expect(records.length, 0);
         });
@@ -97,41 +97,41 @@ void defineTests() {
 
     test('less_greater', () {
       Finder finder = new Finder();
-      finder.filter = new FilterPredicate(Field.VALUE, FilterOperation.LESS_THAN, "hi");
+      finder.filter = new Filter.lessThan(Field.VALUE, "hi");
       return store.findRecords(finder).then((List<Record> records) {
         expect(records.length, 1);
         expect(records[0], record3);
       }).then((_) {
         Finder finder = new Finder();
-        finder.filter = new FilterPredicate(Field.VALUE, FilterOperation.GREATER_THAN, "hi");
+        finder.filter = new Filter.greaterThan(Field.VALUE, "hi");
         return store.findRecords(finder).then((List<Record> records) {
           expect(records.length, 1);
           expect(records[0], record2);
         });
       }).then((_) {
         Finder finder = new Finder();
-        finder.filter = new FilterPredicate(Field.VALUE, FilterOperation.GREATER_THAN, "hum");
+        finder.filter = new Filter.greaterThan(Field.VALUE, "hum");
         return store.findRecords(finder).then((List<Record> records) {
           expect(records.length, 0);
         });
 
       }).then((_) {
         Finder finder = new Finder();
-        finder.filter = new FilterPredicate(Field.VALUE, FilterOperation.GREATER_THAN_OR_EQUAL, "ho");
+        finder.filter = new Filter.greaterThanOrEquals(Field.VALUE, "ho");
         return store.findRecords(finder).then((List<Record> records) {
           expect(records.length, 1);
           expect(records[0], record2);
         });
       }).then((_) {
         Finder finder = new Finder();
-        finder.filter = new FilterPredicate(Field.VALUE, FilterOperation.LESS_THAN_OR_EQUAL, "ha");
+        finder.filter = new Filter.lessThanOrEquals(Field.VALUE, "ha");
         return store.findRecords(finder).then((List<Record> records) {
           expect(records.length, 1);
           expect(records[0], record3);
         });
       }).then((_) {
         Finder finder = new Finder();
-        finder.filter = new FilterPredicate(Field.VALUE, FilterOperation.IN, ["ho"]);
+        finder.filter = new Filter.inList(Field.VALUE, ["ho"]);
         return store.findRecords(finder).then((List<Record> records) {
           expect(records.length, 1);
           expect(records[0], record2);
@@ -139,20 +139,20 @@ void defineTests() {
       });
     });
 
-//    solo_test('composite', () {
-//      Finder finder = new Finder();
-//      finder.filter = new CompositeFilter.and([new FilterPredicate(Field.VALUE, FilterOperation.LESS_THAN, "ho")]);
-//      return store.findRecords(finder).then((List<Record> records) {
-//        expect(records.length, 1);
-//        expect(records[0], record3);
-//      }).then((_) {
-//        Finder finder = new Finder();
-//        finder.filter = new FilterPredicate(Field.VALUE, FilterOperation.GREATER_THAN, "hi");
-//        return store.findRecords(finder).then((List<Record> records) {
-//          expect(records.length, 1);
-//          expect(records[0], record2);
-//        });
-//      });
-//    });
+    test('composite', () {
+      Finder finder = new Finder();
+      finder.filter = new Filter.and([new Filter.lessThan(Field.VALUE, "ho"), new Filter.greaterThan(Field.VALUE, "ha")]);
+      return store.findRecords(finder).then((List<Record> records) {
+        expect(records.length, 1);
+        expect(records[0], record1);
+      }).then((_) {
+        Finder finder = new Finder();
+        finder.filter = new Filter.or([new Filter.lessThan(Field.VALUE, "hi"), new Filter.greaterThan(Field.VALUE, "hum")]);
+        return store.findRecords(finder).then((List<Record> records) {
+          expect(records.length, 1);
+          expect(records[0], record3);
+        });
+      });
+    });
   });
 }

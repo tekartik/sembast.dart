@@ -136,17 +136,17 @@ _encodeValue(var value) {
 }
 
 
-class CompositeFilter extends Filter {
+class _CompositeFilter extends Filter {
   bool isAnd; // if false it is OR
   bool get isOr => !isAnd;
   List<Filter> filters;
 
-  CompositeFilter.or(this.filters)
+  _CompositeFilter.or(this.filters)
       : super._(),
         isAnd = false;
-  CompositeFilter.and(this.filters)
+  _CompositeFilter.and(this.filters)
       : super._(),
-        isAnd = false;
+        isAnd = true;
 
   @override
   bool match(Record record) {
@@ -165,45 +165,76 @@ class CompositeFilter extends Filter {
     // if isOr, nothing has matches so far
     return isAnd;
   }
+
+  @override
+  String toString() {
+    return filters.join(' ${isAnd ? "AND" : "OR" } ');
+  }
 }
-class FilterOperation {
+class _FilterOperation {
   final int value;
-  const FilterOperation._(this.value);
-  static const FilterOperation EQUAL = const FilterOperation._(1);
-  static const FilterOperation NOT_EQUAL = const FilterOperation._(2);
-  static const FilterOperation LESS_THAN = const FilterOperation._(3);
-  static const FilterOperation LESS_THAN_OR_EQUAL = const FilterOperation._(4);
-  static const FilterOperation GREATER_THAN = const FilterOperation._(5);
-  static const FilterOperation GREATER_THAN_OR_EQUAL = const FilterOperation._(6);
-  static const FilterOperation IN = const FilterOperation._(7);
+  const _FilterOperation._(this.value);
+  static const _FilterOperation EQUAL = const _FilterOperation._(1);
+  static const _FilterOperation NOT_EQUAL = const _FilterOperation._(2);
+  static const _FilterOperation LESS_THAN = const _FilterOperation._(3);
+  static const _FilterOperation LESS_THAN_OR_EQUAL = const _FilterOperation._(4);
+  static const _FilterOperation GREATER_THAN = const _FilterOperation._(5);
+  static const _FilterOperation GREATER_THAN_OR_EQUAL = const _FilterOperation._(6);
+  static const _FilterOperation IN = const _FilterOperation._(7);
+  @override
+  String toString() {
+    switch (this) {
+      case _FilterOperation.EQUAL:
+        return "=";
+      case _FilterOperation.NOT_EQUAL:
+        return "!=";
+      case _FilterOperation.LESS_THAN:
+        return "<";
+      case _FilterOperation.LESS_THAN_OR_EQUAL:
+        return "<=";
+      case _FilterOperation.GREATER_THAN:
+        return ">";
+      case _FilterOperation.GREATER_THAN_OR_EQUAL:
+        return ">=";
+      case _FilterOperation.IN:
+        return "IN";
+      default:
+        throw "${this} not supported";
+    }
+  }
 
 }
 
-class FilterPredicate extends Filter {
+class _FilterPredicate extends Filter {
   String field;
-  FilterOperation operation;
+  _FilterOperation operation;
   var value;
-  FilterPredicate(this.field, this.operation, this.value) : super._();
+  _FilterPredicate(this.field, this.operation, this.value) : super._();
 
   bool match(Record record) {
     switch (operation) {
-      case FilterOperation.EQUAL:
+      case _FilterOperation.EQUAL:
         return record[field] == value;
-      case FilterOperation.NOT_EQUAL:
+      case _FilterOperation.NOT_EQUAL:
         return record[field] != value;
-      case FilterOperation.LESS_THAN:
+      case _FilterOperation.LESS_THAN:
         return Comparable.compare(record[field], value) < 0;
-      case FilterOperation.LESS_THAN_OR_EQUAL:
+      case _FilterOperation.LESS_THAN_OR_EQUAL:
         return Comparable.compare(record[field], value) <= 0;
-      case FilterOperation.GREATER_THAN:
+      case _FilterOperation.GREATER_THAN:
         return Comparable.compare(record[field], value) > 0;
-      case FilterOperation.GREATER_THAN_OR_EQUAL:
+      case _FilterOperation.GREATER_THAN_OR_EQUAL:
         return Comparable.compare(record[field], value) >= 0;
-      case FilterOperation.IN:
+      case _FilterOperation.IN:
         return (value as List).contains(record[field]);
       default:
         throw "${this} not supported";
     }
+  }
+
+  @override
+  String toString() {
+    return "${field} ${operation} ${value}";
   }
 }
 
@@ -229,11 +260,29 @@ abstract class Filter {
 
   Filter._();
   factory Filter.equal(String field, value) {
-    return new FilterPredicate(field, FilterOperation.EQUAL, value);
+    return new _FilterPredicate(field, _FilterOperation.EQUAL, value);
+  }
+  factory Filter.notEqual(String field, value) {
+    return new _FilterPredicate(field, _FilterOperation.NOT_EQUAL, value);
+  }
+  factory Filter.lessThan(String field, value) {
+    return new _FilterPredicate(field, _FilterOperation.LESS_THAN, value);
+  }
+  factory Filter.lessThanOrEquals(String field, value) {
+    return new _FilterPredicate(field, _FilterOperation.LESS_THAN_OR_EQUAL, value);
+  }
+  factory Filter.greaterThan(String field, value) {
+    return new _FilterPredicate(field, _FilterOperation.GREATER_THAN, value);
+  }
+  factory Filter.greaterThanOrEquals(String field, value) {
+    return new _FilterPredicate(field, _FilterOperation.GREATER_THAN_OR_EQUAL, value);
   }
   factory Filter.inList(String field, List value) {
-    return new FilterPredicate(field, FilterOperation.IN, value);
+    return new _FilterPredicate(field, _FilterOperation.IN, value);
   }
+
+  factory Filter.or(List<Filter> filters) => new _CompositeFilter.or(filters);
+  factory Filter.and(List<Filter> filters) => new _CompositeFilter.and(filters);
 
 }
 
@@ -251,6 +300,11 @@ class Finder {
       return sortOrder.compare(record1, record2);
     }
     return 0;
+  }
+
+  @override
+  String toString() {
+    return "filter: ${filter}, sort: ${sortOrder}";
   }
 }
 class Store {
