@@ -5,28 +5,40 @@ import 'dart:io';
 import 'dart:convert';
 import 'package:tekartik_core/dev_utils.dart';
 
+const String _db_version = "version";
+const String _record_key = "_key";
+const String _store_key = "_store";
+const String _record_value = "_value"; // only for simple type where the key is not a string
+
 class _Meta {
 
   int version;
 
   _Meta.fromMap(Map map) {
-    version = map["version"];
+    version = map[_db_version];
   }
 
   static bool isMapMeta(Map map) {
-    return map["version"] != null;
+    return map[_db_version] != null;
   }
 
   _Meta(this.version);
 
   Map toMap() {
     var map = {
-      "version": version
+      _db_version: version
     };
     return map;
   }
 }
 
+class Record {
+  _Record _record;
+  @override
+  String toString() {
+    return _record.toString();
+  }
+}
 _encodeKey(var key) {
   if (key is String) {
     return key;
@@ -55,24 +67,69 @@ class _Record {
   int rev;
   var value;
 
-  _Record.fromMap(Map json) {
-    key = json["key"];
-    rev = json["rev"];
-    value = json["value"];
+  _Record.fromMap(Map map) {
+    key = map[_record_key];
+
+    // It is a simple key/value object
+    // if the key is null or if there is only 1 value
+    // to handle the case when key is not null
+    if ((key == null) || (map.length == 1)) {
+      key = map.keys.first;
+      value = map.values.first;
+    } else {
+      var value = map[_record_value];
+      if (value != null) {
+        this.value = value;
+      } else {
+        this.value = new Map();
+        map.forEach((k, v) {
+          this.value[k] = v;
+        });
+      }
+    }
   }
 
+  static bool _isSimpleRecord(key, map) {
+    return (key == null) || (map.length == 1);
+  }
   static bool isMapRecord(Map map) {
-    return map["key"] != null;
+    var key = map[_record_key];
+    if (key == null) {
+      return map.length == 1;
+    }
+    return true;
   }
 
-  _Record(this.key, this.rev, this.value);
+  _Record(this.key, this.rev, this.value) {
+    
+  }
   Map toMap() {
-    Map map = {
-      "key": _encodeKey(key),
-      "rev": rev,
-      "value": _encodeValue(value)
-    };
-    return map;
+
+    if (value is Map) {
+      // put the key in
+      value[_record_key] = key;
+      return value;
+    } else if (!(key is String)) {
+      Map map = {
+        _record_key: key,
+        _record_value: value
+      };
+      return map;
+
+    } else {
+
+      Map map = {
+        key: value
+      };
+      return map;
+    }
+
+
+  }
+
+  @override
+  String toString() {
+    return toMap().toString();
   }
 }
 
@@ -94,6 +151,7 @@ class Database {
   File _file;
 
   _Store _mainStore;
+  Map<String, _Store> _stores;
 
   /**
    * only valid before open
@@ -120,10 +178,15 @@ class Database {
 
 
   Future put(var value, [var key]) {
+    if (value is Map) {
+      
+    }
     _Record _record = new _Record(_encodeKey(key), ++_rev, _encodeValue(value));
 
 
     IOSink sink = _file.openWrite(mode: FileMode.APPEND);
+    
+    // writable record
     sink.writeln(JSON.encode(_record.toMap()));
     return sink.close().then((_) {
       // save in memory
@@ -133,6 +196,10 @@ class Database {
 
   }
 
+  Future inTransaction(Future action()) {
+    return action();
+  }
+  
   Future get(var key) {
     _Record record = _mainStore.records[key];
     var value = record == null ? null : record.value;

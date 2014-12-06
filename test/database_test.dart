@@ -95,6 +95,29 @@ main() {
         });
       });
 
+      test('put_close_get_key_string', () {
+        return db.put("hi", "1").then((_) {
+          return db.reOpen().then((_) {
+            return db.get("1").then((String value) {
+              expect(value, "hi");
+            });
+          });
+        });
+      });
+
+      test('put_close_get_map', () {
+        Map info = {
+          "info": 12
+        };
+        return db.put(info, 1).then((_) {
+          return db.reOpen().then((_) {
+            return db.get(1).then((Map infoRead) {
+              expect(infoRead, info);
+            });
+          });
+        });
+      });
+
 
     });
 
