@@ -31,10 +31,50 @@ void defineTests() {
       db.close();
     });
 
-//    test('put', () {
-//      return db.put("hi", 1).then((int key) {
-//        expect(key, 1);
-//      });
-//    });
+    test('put/get', () {
+      Store store = db.mainStore;
+      Record record = new Record(store, "hi", 1);
+      return store.putRecord(record).then((Record record) {
+        expect(record.key, 1);
+        expect(record.value, "hi");
+        expect(record.deleted, false);
+        expect(record.store, store);
+      }).then((_) {
+        return store.getRecord(1).then((Record record) {
+          expect(record.key, 1);
+          expect(record.value, "hi");
+          expect(record.deleted, false);
+          expect(record.store, store);
+        });
+      });
+    });
+
+    test('find_equals', () {
+      Store store = db.mainStore;
+      Record record1 = new Record(store, "hi", 1);
+      Record record2 = new Record(store, "ho", 2);
+      return store.putRecords([record1, record2]).then((_) {
+
+        Finder finder = new Finder();
+        finder.filter = new FilterPredicate(Field.VALUE, FilterOperation.EQUALS, "hi");
+        store.findRecords(finder).then((List<Record> records) {
+          expect(records.length, 1);
+          expect(records[0], record1);
+        });
+      }).then((_) {
+        Finder finder = new Finder();
+        finder.filter = new FilterPredicate(Field.VALUE, FilterOperation.EQUALS, "ho");
+        store.findRecords(finder).then((List<Record> records) {
+          expect(records.length, 1);
+          expect(records[0], record2);
+        });
+      }).then((_) {
+        Finder finder = new Finder();
+        finder.filter = new FilterPredicate(Field.VALUE, FilterOperation.EQUALS, "hum");
+        store.findRecords(finder).then((List<Record> records) {
+          expect(records.length, 0);
+        });
+      });
+    });
   });
 }

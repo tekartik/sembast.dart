@@ -33,17 +33,38 @@ class _Meta {
   }
 }
 
-class Record {
-  _Record _record;
+class Field {
+  static String VALUE = _record_value;
+}
 
-  get key => _record.key;
-  Store get store => _record.store;
-  
-  Record();
-  
+class Record {
+  _RecordImpl _recordImpl;
+
+  get key => _recordImpl.key;
+  get value => _recordImpl.value;
+  bool get deleted => _recordImpl.deleted == true;
+  Store get store => _recordImpl.store;
+  operator [](var field) => _recordImpl[field];
+
+  Record(Store store, var value, [var key]) {
+    _recordImpl = new _RecordImpl(store, key, value);
+
+  }
+  Record._(this._recordImpl);
+
   @override
   String toString() {
-    return _record.toString();
+    return _recordImpl.toString();
+  }
+  
+  @override
+  int get hashCode => key == null ? 0 : key.hashCode;
+  
+  operator == (o) {
+    if (o is Record) {
+      return key == null ? false : (key == o.key);
+    }
+    return false;
   }
 }
 _encodeKey(var key) {
@@ -69,13 +90,20 @@ _encodeValue(var value) {
   throw "value ${value} not supported${value != null ? 'type:${value.runtimeType}' : ''}";
 }
 
-class _Record {
+class _RecordImpl {
   Store store;
   var key;
   var value;
   bool deleted;
 
-  _Record._fromMap(Database db, Map map) {
+  operator [](var field) {
+    if (field == _record_value) {
+      return value;
+    }
+    return value[field];
+  }
+
+  _RecordImpl._fromMap(Database db, Map map) {
     store = db.getStore(map[_store_name]);
     key = map[_record_key];
     value = map[_record_value];
@@ -87,13 +115,13 @@ class _Record {
     return (key != null);
   }
 
-  _Record(this.store, this.key, this.value, this.deleted);
+  _RecordImpl(this.store, this.key, this.value, [this.deleted]);
 
   Map _toBaseMap() {
     Map map = {};
     map[_record_key] = key;
 
-    if (deleted) {
+    if (deleted == true) {
       map[_record_deleted] = true;
     }
     if (store != null) {
@@ -118,47 +146,157 @@ class _Record {
   }
 }
 
+class FilterOperation {
+  final int value;
+  const FilterOperation._(this.value);
+  static const FilterOperation EQUALS = const FilterOperation._(1);
+
+}
+
+class FilterPredicate extends Filter {
+  String field;
+  FilterOperation operation;
+  var value;
+  FilterPredicate(this.field, this.operation, this.value);
+
+  bool match(_RecordImpl recordImpl) {
+    switch (operation) {
+      case FilterOperation.EQUALS:
+        return recordImpl[field] == value;
+
+      default:
+        throw "${this} not supported";
+    }
+
+
+  }
+}
+
+class SortOrder {
+  final bool ascending;
+  final String field;
+
+  SortOrder(this.field, bool ascending) : ascending = ascending == true {
+
+  }
+}
+abstract class Filter {
+  bool match(_RecordImpl recordImpl);
+
+}
+
+class Finder {
+  Filter filter;
+  bool match(_RecordImpl recordImpl) {
+    if (filter != null) {
+      return filter.match(recordImpl);
+    }
+    return true;
+  }
+}
 class Store {
   final Database database;
   final _StoreImpl _store;
   String get name => _store.name;
   Store._(this.database, this._store);
-  Map<dynamic, _Record> get _records => _store.records;
-  
+  Map<dynamic, _RecordImpl> get _records => _store.records;
+
   Future put(var value, [var key]) {
-     return database.inTransaction(() {
-       if (value is Map) {
+    return database.inTransaction(() {
+      _RecordImpl record = new _RecordImpl(null, _encodeKey(key), _encodeValue(value), false);
 
-       }
-       _Record _record = new _Record(null, _encodeKey(key), _encodeValue(value), false);
+      return _putRecord(record).then((_) {
+        return key;
+      });
+    });
+
+  }
+
+  Future<List<Record>> findRecords(Finder finder) {
+    return inTransaction(() {
+      List<Record> result = [];
+      _records.values.forEach((_RecordImpl recordImpl) {
+        if (finder.match(recordImpl)) {
+          result.add(new Record._(recordImpl));
+        }
+      });
+      return result;
+    });
+  }
+
+  Future inTransaction(Future action()) {
+    return database.inTransaction(action);
+  }
+  Future<Record> putRecord(Record record) {
+    return database.inTransaction(() {
+      return _putRecord(record._recordImpl).then((_) {
+        return record;
+      });
+    });
+  }
+
+  Future putRecords(List<Record> records) {
+    return inTransaction(() {
+
+      return _putRecords(records);
+    });
+  }
+
+  Future<_RecordImpl> _putRecord(_RecordImpl record) {
+
+    IOSink sink = database._file.openWrite(mode: FileMode.APPEND);
+
+    // writable record
+    sink.writeln(JSON.encode(record.toMap()));
+    return sink.close().then((_) {
+      // save in memory
+      _records[record.key] = record;
+      return record;
+    });
 
 
-       IOSink sink = database._file.openWrite(mode: FileMode.APPEND);
+  }
 
-       // writable record
-       sink.writeln(JSON.encode(_record.toMap()));
-       return sink.close().then((_) {
-         // save in memory
-         _records[key] = _record;
-         return key;
-       });
-     });
+  Future _putRecords(List<Record> records) {
 
-   }
-  
+    IOSink sink = database._file.openWrite(mode: FileMode.APPEND);
+
+    // writable record
+    for (Record record in records) {
+      sink.writeln(JSON.encode(record._recordImpl.toMap()));
+    }
+    return sink.close().then((_) {
+      // save in memory
+      for (Record record in records) {
+        _records[record.key] = record._recordImpl;
+      }
+      return records;
+    });
+
+
+  }
+
+  Future<Record> getRecord(var key) {
+    _RecordImpl record = _records[key];
+    if (record == null) {
+      return null;
+    }
+    return new Future.value(new Record._(record));
+  }
+
   Future get(var key) {
-     _Record record = _records[key];
-     var value = record == null ? null : record.value;
-     return new Future.value(value);
-   }
-  
+    _RecordImpl record = _records[key];
+    var value = record == null ? null : record.value;
+    return new Future.value(value);
+  }
+
   Future<int> count() {
-     int value = _records.length;
-     return new Future.value(value);
-   }
-  
+    int value = _records.length;
+    return new Future.value(value);
+  }
+
   Future delete(var key) {
-    _Record record = _records[key];
+    _RecordImpl record = _records[key];
     if (record == null) {
       return new Future.value(null);
     } else {
@@ -179,7 +317,7 @@ class Store {
 class _StoreImpl {
   final String name;
   _StoreImpl._(this.name);
-  Map<dynamic, _Record> records = new Map();
+  Map<dynamic, _RecordImpl> records = new Map();
 }
 
 class Database {
@@ -195,7 +333,7 @@ class Database {
   File _file;
 
   Store get mainStore => _mainStore;
-  
+
   Store _mainStore;
   Map<String, Store> _stores = new Map();
 
@@ -237,10 +375,15 @@ class Database {
       });
     }
     Completer actionCompleter = currentTransactionCompleter;
-    return action().then((result) {
+    
+    return new Future.sync(action).then((result) {
       actionCompleter.complete();
       return result;
     });
+  }
+
+  Future<Record> putRecord(Record record) {
+    return record.store.put(record);
   }
 
   Future get(var key) {
@@ -250,16 +393,16 @@ class Database {
   Future<int> count() {
     return _mainStore.count();
   }
-  
+
   Future delete(var key) {
     return _mainStore.delete(key);
   }
 
-  bool _hasRecord(_Record record) {
+  bool _hasRecord(_RecordImpl record) {
     return record.store._records.containsKey(record.key);
   }
 
-  _loadRecord(_Record record) {
+  _loadRecord(_RecordImpl record) {
     if (record.deleted) {
       record.store._records.remove(record.key);
     } else {
@@ -323,9 +466,9 @@ class Database {
         if (_Meta.isMapMeta(map)) {
           // meta?
           meta = new _Meta.fromMap(map);
-        } else if (_Record.isMapRecord(map)) {
+        } else if (_RecordImpl.isMapRecord(map)) {
           // record?
-          _Record record = new _Record._fromMap(this, map);
+          _RecordImpl record = new _RecordImpl._fromMap(this, map);
           if (_hasRecord(record)) {
             needCompact = true;
           }
