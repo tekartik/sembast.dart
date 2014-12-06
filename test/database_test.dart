@@ -67,8 +67,32 @@ main() {
         db.close();
       });
 
-      test('insert', () {
-        //return db.open();
+      test('put', () {
+        return db.put("hi", 1);
+      });
+
+      test('get none', () {
+        return db.get(1).then((value) {
+          expect(value, isNull);
+        });
+      });
+
+      test('put_get', () {
+        return db.put("hi", 1).then((_) {
+          return db.get(1).then((String value) {
+            expect(value, "hi");
+          });
+        });
+      });
+
+      test('put_close_get', () {
+        return db.put("hi", 1).then((_) {
+          return db.reOpen().then((_) {
+            return db.get(1).then((String value) {
+              expect(value, "hi");
+            });
+          });
+        });
       });
 
 
