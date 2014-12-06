@@ -3,7 +3,7 @@ library tekartik_iodb.database;
 import 'dart:async';
 import 'dart:io';
 import 'dart:convert';
-import 'package:tekartik_core/dev_utils.dart';
+//import 'package:tekartik_core/dev_utils.dart';
 
 const String _db_version = "version";
 const String _record_key = "key";
