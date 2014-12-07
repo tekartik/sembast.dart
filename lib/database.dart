@@ -348,7 +348,7 @@ class Store {
       Record record = new Record._(this, key, value, false);
 
       _putRecord(record);
-      return key;
+      return record.key;
     });
 
   }
