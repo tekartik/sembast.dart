@@ -60,22 +60,55 @@ void defineTests() {
       expect(record["bool"], true);
     });
 
-    test('put/get', () {
+    test('put/delete multiple', () {
       Store store = db.mainStore;
-      Record record = new Record(store, "hi", 1);
-      return store.putRecord(record).then((Record record) {
-        expect(record.key, 1);
-        expect(record.value, "hi");
-        expect(record.deleted, false);
-        expect(record.store, store);
+      Record record1 = new Record(store, "hi", 1);
+      Record record2 = new Record(store, "ho", 2);
+      Record record3 = new Record(store, "ha", 3);
+      return store.putRecords([record1, record2, record3]).then((List<Record> inserted) {
+        expect(inserted.length, 3);
+        expect(inserted[0].key, 1);
+
+        return store.getRecords([1, 4, 3]).then((List<Record> got) {
+          expect(got.length, 2);
+          expect(got[0].key, 1);
+          expect(got[1].key, 3);
+        });
       }).then((_) {
-        return store.getRecord(1).then((Record record) {
+        return store.deleteAll([1, 4, 2]).then((List keys) {
+          expect(keys, [1, 2]);
+          return store.count().then((count) {
+            expect(count, 1);
+          });
+        });
+      });
+    });
+
+    test('put/get/delete', () {
+      Store store = db.mainStore;
+      Record record = new Record(store, "hi");
+      return store.putRecord(record).then((Record insertedRecord) {
+        expect(record.key, null);
+        expect(insertedRecord.key, 1);
+        expect(insertedRecord.value, "hi");
+        expect(insertedRecord.deleted, false);
+        expect(insertedRecord.store, store);
+        return store.getRecord(insertedRecord.key).then((Record record) {
           expect(record.key, 1);
           expect(record.value, "hi");
           expect(record.deleted, false);
           expect(record.store, store);
+
+          return store.delete(record.key).then((_) {
+            // must not have changed
+            expect(record.key, 1);
+            expect(record.value, "hi");
+            expect(record.deleted, false);
+            expect(record.store, store);
+          });
         });
       });
+
     });
 
   });

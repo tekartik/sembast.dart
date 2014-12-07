@@ -70,6 +70,10 @@ class Record {
     _deleted = map[_record_deleted] == true;
   }
 
+  Record _clone() {
+    return new Record._(_store, _key, _value, _deleted);
+  }
+
   static bool isMapRecord(Map map) {
     var key = map[_record_key];
     return (key != null);
@@ -341,10 +345,7 @@ class Store {
 
   Future put(var value, [var key]) {
     return database.inTransaction(() {
-      if (key == null) {
-        key = ++_lastIntKey;
-      }
-      Record record = new Record._(this, _encodeKey(key), _encodeValue(value), false);
+      Record record = new Record._(this, key, value, false);
 
       _putRecord(record);
       return key;
@@ -394,23 +395,27 @@ class Store {
   }
   Future<Record> putRecord(Record record) {
     return database.inTransaction(() {
-      _putRecord(record);
-      return record;
+      return _putRecord(record._clone());
     });
   }
 
-  Future putRecords(List<Record> records) {
+  Future<List<Record>> putRecords(List<Record> records) {
     return inTransaction(() {
 
-      return _putRecords(records);
+      List<Record> clones = [];
+      for (Record record in records) {
+        clones.add(record._clone());
+      }
+      return _putRecords(clones);
     });
   }
 
-  void _putRecord(Record record) {
-    _putRecords([record]);
+  Record _putRecord(Record record) {
+    return _putRecords([record]).first;
   }
 
-  void _putRecords(List<Record> records) {
+  // record must have been clone before
+  List<Record> _putRecords(List<Record> records) {
 
     if (_txnRecords == null) {
       _txnRecords = new Map();
@@ -418,16 +423,22 @@ class Store {
 
     // temp records
     for (Record record in records) {
+      // auto-gen key if needed
+      if (record.key == null) {
+        record._key = ++record.store._lastIntKey;
+      }
+
       _txnRecords[record.key] = record;
+      ;
     }
+    return records;
 
 
 
   }
 
 
-
-  Future<Record> getRecord(var key) {
+  Record _getRecord(var key) {
     var record;
 
     // look in current transaction
@@ -440,7 +451,32 @@ class Store {
     if (record == null) {
       record = _records[key];
     }
+    return record;
+  }
+
+  Future<Record> getRecord(var key) {
+    Record record = _getRecord(key);
+    if (record != null) {
+      if (record.deleted) {
+        record = null;
+      }
+    }
     return new Future.value(record);
+  }
+  
+  Future<List<Record>> getRecords(List keys) {
+    List<Record> records = [];
+  
+    for (var key in keys) {
+      Record record = _getRecord(key);
+      if (record != null) {
+        if (!record.deleted) {
+          records.add(record);;
+        }
+      }
+      
+    }
+    return new Future.value(records);
   }
 
   Future get(var key) {
@@ -460,14 +496,38 @@ class Store {
 
   Future delete(var key) {
     return inTransaction(() {
-      Record record = _records[key];
+      Record record = _getRecord(key);
       if (record == null) {
         return null;
       } else {
-        record._deleted = true;
-        _putRecord(record);
+        // clone to keep the existing as is
+        Record clone = record._clone();
+        clone._deleted = true;
+        _putRecord(clone);
         return key;
       }
+    });
+  }
+
+  /// return the list of deleted keys
+  Future deleteAll(List keys) {
+    return inTransaction(() {
+      List<Record> updates = [];
+      List updatedKeys = [];
+      for (var key in keys) {
+        Record record = _getRecord(key);
+        if (record != null) {
+          Record clone = record._clone();
+          clone._deleted = true;
+          updates.add(clone);
+          updatedKeys.add(key);
+        }
+      }
+
+      if (updates.isNotEmpty) {
+        _putRecords(updates);
+      }
+      return updatedKeys;
     });
   }
 
@@ -478,6 +538,11 @@ class Store {
   void _rollback() {
     // clear map;
     _txnRecords = null;
+  }
+
+  @override
+  String toString() {
+    return "${name}";
   }
 }
 

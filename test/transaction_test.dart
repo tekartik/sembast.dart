@@ -88,6 +88,31 @@ void defineTests() {
       });
     });
 
+    test('delete and rollback', () {
+      return db.put("hi", 1).then((_) {
+        return db.inTransaction(() {
+          return db.delete(1).then((_) {
+            // still here
+            return db.get(1).then((String value) {
+              expect(value, null);
+            }).then((_) {
+              db.rollback();
+              return db.get(1).then((String value) {
+                expect(value, "hi");
+              });
+            });
+          });
+        }).then((_) {
+          // put something else to make sure the txn has been cleaned
+          return db.put("ho", 2).then((_) {
+            return db.get(1).then((String value) {
+              expect(value, "hi");
+            });
+          });
+        });
+      });
+    });
+
     test('put and throw', () {
       return db.inTransaction(() {
         return db.put("hi", 1).then((_) {

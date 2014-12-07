@@ -43,6 +43,22 @@ void defineTests() {
       });
     });
 
+    test('put/read in transaction $putCount', () {
+      return db.inTransaction(() {
+        List<Future> futures = [];
+        for (int i = 0; i < putCount; i++) {
+          futures.add(db.put("value $i", i));
+
+        }
+        return Future.wait(futures);
+      }).then((_) {
+        return db.count().then((int count) {
+          expect(count, putCount);
+
+        });
+      });
+    });
+
 
   });
 }
