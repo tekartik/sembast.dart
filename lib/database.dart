@@ -302,11 +302,14 @@ abstract class Filter {
 
 class Finder {
   Filter filter;
-  List<SortOrder> sortOrders;
+  List<SortOrder> sortOrders = [];
   set sortOrder(SortOrder sortOrder) {
     sortOrders = [sortOrder];
   }
   bool match(Record record) {
+    if (record.deleted) {
+      return false;
+    }
     if (filter != null) {
       return filter.match(record);
     }
@@ -356,11 +359,30 @@ class Store {
   Future<List<Record>> findRecords(Finder finder) {
     return inTransaction(() {
       List<Record> result = [];
+
+      // handle record in transaction first
+      if (_inTransaction && _txnRecords != null) {
+        _txnRecords.values.forEach((Record record) {
+          if (finder.match(record)) {
+            result.add(record);
+          }
+        });
+      }
+
+      // then the regular unless already in transaction
       _records.values.forEach((Record record) {
+
+        if (_inTransaction && _txnRecords != null) {
+          if (_txnRecords.keys.contains(record.key)) {
+            // already handled
+            return;
+          }
+        }
         if (finder.match(record)) {
           result.add(record);
         }
       });
+
       // sort
       result.sort((Record record1, record2) {
         return finder.compare(record1, record2);
@@ -463,18 +485,19 @@ class Store {
     }
     return new Future.value(record);
   }
-  
+
   Future<List<Record>> getRecords(List keys) {
     List<Record> records = [];
-  
+
     for (var key in keys) {
       Record record = _getRecord(key);
       if (record != null) {
         if (!record.deleted) {
-          records.add(record);;
+          records.add(record);
+          ;
         }
       }
-      
+
     }
     return new Future.value(records);
   }

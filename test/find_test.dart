@@ -60,6 +60,51 @@ void defineTests() {
       });
     });
 
+    test('in_transaction', () {
+      return db.inTransaction(() {
+        Finder finder = new Finder();
+        finder.filter = new Filter.equal(Field.VALUE, "hi");
+        return store.findRecords(finder).then((List<Record> records) {
+          expect(records.length, 1);
+          expect(records[0], record1);
+        }).then((_) {
+
+          Record record = new Record(store, "he", 4);
+
+          return store.putRecord(record).then((_) {
+            finder.filter = new Filter.equal(Field.VALUE, "he");
+            return store.findRecords(finder).then((List<Record> records) {
+              expect(records.length, 1);
+              expect(records[0], record);
+            });
+          });
+        }).then((_) {
+          // delete ho
+          return store.delete(2).then((_) {
+            finder.filter = new Filter.equal(Field.VALUE, "ho");
+            return store.findRecords(finder).then((List<Record> records) {
+              expect(records.length, 0);
+            });
+          });
+        });
+      });
+    });
+
+    test('delete_in_transaction', () {
+      return db.inTransaction(() {
+        Finder finder = new Finder();
+
+        // delete ho
+        return store.delete(2).then((_) {
+          finder.filter = new Filter.equal(Field.VALUE, "ho");
+          return store.findRecords(finder).then((List<Record> records) {
+            expect(records.length, 0);
+          });
+        });
+
+      });
+    });
+
 
 
     test('less_greater', () {
