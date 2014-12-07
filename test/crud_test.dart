@@ -40,6 +40,9 @@ void defineTests() {
     test('put_nokey', () {
       return db.put("hi").then((int key) {
         expect(key, 1);
+        return db.put("hi").then((int key) {
+          expect(key, 2);
+        });
       });
     });
 

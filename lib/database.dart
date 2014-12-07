@@ -331,7 +331,11 @@ class Store {
   final String name;
   // for key generation
   int _lastIntKey = 0;
+
   Map<dynamic, Record> _records = new Map();
+  Map<dynamic, Record> _txnRecords;
+
+  bool get _inTransaction => database._inTransaction;
 
   Store._(this.database, this.name);
 
@@ -340,11 +344,10 @@ class Store {
       if (key == null) {
         key = ++_lastIntKey;
       }
-      Record record = new Record._(null, _encodeKey(key), _encodeValue(value), false);
+      Record record = new Record._(this, _encodeKey(key), _encodeValue(value), false);
 
-      return _putRecord(record).then((_) {
-        return key;
-      });
+      _putRecord(record);
+      return key;
     });
 
   }
@@ -366,9 +369,18 @@ class Store {
     });
   }
 
-  _setRecord(Record record) {
+  _setRecordInMemory(Record record) {
+    if (record.deleted) {
+      record.store._records.remove(record.key);
+    } else {
+      record.store._records[record.key] = record;
+    }
+  }
+
+
+  _loadRecord(Record record) {
     var key = record.key;
-    _records[key] = record;
+    _setRecordInMemory(record);
     // update for auto increment
     if (key is int) {
       if (key > _lastIntKey) {
@@ -382,9 +394,8 @@ class Store {
   }
   Future<Record> putRecord(Record record) {
     return database.inTransaction(() {
-      return _putRecord(record).then((_) {
-        return record;
-      });
+      _putRecord(record);
+      return record;
     });
   }
 
@@ -395,40 +406,41 @@ class Store {
     });
   }
 
-  Future<Record> _putRecord(Record record) {
-    return _putRecords([record]);
+  void _putRecord(Record record) {
+    _putRecords([record]);
   }
 
-  Future _putRecords(List<Record> records) {
+  void _putRecords(List<Record> records) {
 
-    IOSink sink = database._file.openWrite(mode: FileMode.APPEND);
-
-    // writable record
-    for (Record record in records) {
-      sink.writeln(JSON.encode(record._toMap()));
+    if (_txnRecords == null) {
+      _txnRecords = new Map();
     }
-    return sink.close().then((_) {
-      // save in memory
-      for (Record record in records) {
-        // remove deleted
-        if (record.deleted) {
-          _records.remove(record.key);
-        } else {
-          // add inserted/updated
-          _setRecord(record);
-        }
 
-      }
-      return records;
-    });
+    // temp records
+    for (Record record in records) {
+      _txnRecords[record.key] = record;
+    }
+
 
 
   }
+
+
 
   Future<Record> getRecord(var key) {
-    return inTransaction(() {
-      return _records[key];
-    });
+    var record;
+
+    // look in current transaction
+    if (_inTransaction) {
+      if (_txnRecords != null) {
+        record = _txnRecords[key];
+      }
+    }
+
+    if (record == null) {
+      record = _records[key];
+    }
+    return new Future.value(record);
   }
 
   Future get(var key) {
@@ -453,15 +465,19 @@ class Store {
         return null;
       } else {
         record._deleted = true;
-        return _putRecord(record).then((_) {
-          return key;
-        });
+        _putRecord(record);
+        return key;
       }
     });
   }
 
   bool _has(var key) {
     return _records.containsKey(key);
+  }
+
+  void _rollback() {
+    // clear map;
+    _txnRecords = null;
   }
 }
 
@@ -481,6 +497,8 @@ class Database {
 
   Store _mainStore;
   Map<String, Store> _stores = new Map();
+
+  Iterable<Store> get stores => _stores.values;
 
   /**
    * only valid before open
@@ -508,23 +526,120 @@ class Database {
     return _mainStore.put(value, key);
   }
 
-  Completer currentTransactionCompleter;
+  void _clearTxnData() {
+// remove temp data in all store
+    for (Store store in stores) {
+      store._rollback();
+    }
+  }
+  void rollback() {
+    // only valid in a transaction
+    if (!_inTransaction) {
+      throw new Exception("not in transaction");
+    }
+    _clearTxnData();
+
+  }
+
+  Completer _txnRootCompleter;
+  Completer _txnChildCompleter;
+
+  bool get _inTransaction => Zone.current[_zoneRootKey] == true;
+  // for transaction
+  static const _zoneRootKey = "tekartik.iodb";
+  static const _zoneChildKey = "tekartik.iodb.child";
 
   Future inTransaction(Future action()) {
 
-    if ((currentTransactionCompleter == null) || (currentTransactionCompleter.isCompleted)) {
-      currentTransactionCompleter = new Completer();
+    //devPrint("z: ${Zone.current[_zoneRootKey]}");
+    //devPrint("z: ${Zone.current[_zoneChildKey]}");
+
+    // not in transaction yet
+    if (!_inTransaction) {
+      if ((_txnRootCompleter == null) || (_txnRootCompleter.isCompleted)) {
+        _txnRootCompleter = new Completer();
+      } else {
+        return _txnRootCompleter.future.then((_) {
+          return inTransaction(action);
+        });
+      }
+
+      Completer actionCompleter = _txnRootCompleter;
+
+      return runZoned(() {
+        // execute and commit
+        return new Future.sync(action).then((result) {
+          return new Future.sync(_commit).then((_) {
+            return result;
+          });
+
+        });
+      }, zoneValues: {
+        _zoneRootKey: true
+      }).whenComplete(() {
+        _clearTxnData();
+        actionCompleter.complete();
+      });
     } else {
-      return currentTransactionCompleter.future.then((_) {
-        return inTransaction(action);
+      // in child transaction
+      // no commit yet
+      if ((_txnChildCompleter == null) || (_txnChildCompleter.isCompleted)) {
+        _txnChildCompleter = new Completer();
+      } else {
+        return _txnChildCompleter.future.then((_) {
+          return inTransaction(action);
+        });
+      }
+
+      Completer actionCompleter = _txnChildCompleter;
+
+      return runZoned(() {
+        return new Future.sync(action);
+      }, zoneValues: {
+        _zoneChildKey: true
+      }).whenComplete(() {
+        actionCompleter.complete();
+
+      });
+
+    }
+
+
+  }
+
+  _setRecordInMemory(Record record) {
+    record.store._setRecordInMemory(record);
+  }
+  _loadRecord(Record record) {
+    record.store._loadRecord(record);
+  }
+// future or not
+  _commit() {
+
+    List<Record> txnRecords = [];
+    for (Store store in stores) {
+      if (store._txnRecords != null) {
+
+        txnRecords.addAll(store._txnRecords.values);
+      }
+    }
+    if (txnRecords.isNotEmpty) {
+      IOSink sink = _file.openWrite(mode: FileMode.APPEND);
+
+      // writable record
+      for (Record record in txnRecords) {
+        sink.writeln(JSON.encode(record._toMap()));
+      }
+      return sink.close().then((_) {
+        // save in memory
+        for (Record record in txnRecords) {
+          _setRecordInMemory(record);
+        }
       });
     }
-    Completer actionCompleter = currentTransactionCompleter;
 
-    return new Future.sync(action).then((result) {
-      actionCompleter.complete();
-      return result;
-    });
+
+
   }
 
   Future<Record> putRecord(Record record) {
@@ -547,13 +662,6 @@ class Database {
     return record.store._has(record.key);
   }
 
-  _loadRecord(Record record) {
-    if (record.deleted) {
-      record.store._records.remove(record.key);
-    } else {
-      record.store._setRecord(record);
-    }
-  }
 
   /**
    * reload from file system
@@ -601,6 +709,8 @@ class Database {
       file = new File(path);
 
       _mainStore = new Store._(this, _main_store);
+      _stores[_main_store] = _mainStore;
+
       bool needCompact = false;
       return file.openRead().transform(UTF8.decoder).transform(new LineSplitter()).forEach((String line) {
         // everything is JSON

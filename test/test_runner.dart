@@ -7,7 +7,7 @@ import 'crud_test.dart' as crud_test;
 import 'record_test.dart' as record_test;
 import 'find_test.dart' as find_test;
 import 'store_test.dart' as store_test;
-
+import 'transaction_test.dart' as transaction_test;
 
 void main() {
   useVMConfiguration();
@@ -20,5 +20,6 @@ void defineTests() {
   record_test.defineTests();
   store_test.defineTests();
   find_test.defineTests();
+  transaction_test.defineTests();
 
 }
