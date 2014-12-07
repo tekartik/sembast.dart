@@ -3,6 +3,50 @@ library tekartik_iodb.database;
 import 'dart:async';
 import 'dart:io';
 import 'dart:convert';
+
+typedef void OnVersionChangedFunction(Database db, int oldVersion, int newVersion);
+
+///
+/// The modes in which a Database can be opened.
+///
+class DatabaseMode {
+  /// The default mode
+  /// The database is created if not found
+  /// This is the default
+  static const CREATE = const DatabaseMode._internal(0);
+  /// The mode for opening an existing database
+  static const EXISTING = const DatabaseMode._internal(1);
+  /// The mode for emptying the existing content if any
+  static const EMPTY = const DatabaseMode._internal(2);
+  final int _mode;
+
+  const DatabaseMode._internal(this._mode);
+}
+
+abstract class DatabaseFactory {
+  ///
+  /// Open a new of existing database
+  ///
+  /// [path] is the location of the database
+  /// [version] is the version expected, if not null and if the existing version is different, onVersionChanged is called
+  /// [mode] is [DatabaseMode.CREATE] by default
+  ///
+  Future<Database> openDatabase(String path, {int version, OnVersionChangedFunction onVersionChanged, DatabaseMode mode});
+
+  Future deleteDatabase(String path);
+}
+
+class DatabaseException implements Exception {
+
+  static int BAD_PARAM = 0;
+  final int _code;
+  final String _messsage;
+  int get code => _code;
+  String get message => _messsage;
+  DatabaseException.badParam(this._messsage) : _code = BAD_PARAM;
+
+  String toString() => "[${_code}] ${_messsage}";
+}
 //import 'package:tekartik_core/dev_utils.dart';
 
 const String _db_version = "version";
@@ -591,11 +635,16 @@ class Database {
   /**
    * only valid before open
    */
+  //TODO @deprecated
   static Future deleteDatabase(String path) {
     return new File(path).exists().then((exists) {
       return new File(path).delete(recursive: true).catchError((_) {
       });
     });
+  }
+
+  Database.withSettings(this._path) {
+
   }
 
   Database();
@@ -777,9 +826,15 @@ class Database {
 
   Future open(String path, [int version]) {
     if (_opened) {
+      if (path != _path) {
+        throw new DatabaseException.badParam("existing path ${_path} differ from open path ${path}");
+      }
       return new Future.value();
     }
+
+    //_path = path;
     _Meta meta;
+
     File file;
     return FileSystemEntity.isFile(path).then((isFile) {
       if (!isFile) {
@@ -825,9 +880,9 @@ class Database {
           // no version yet
 
           // if no version asked this is a read-only view only
-          if (version == null) {
-            throw "not a database";
-          }
+//          if (version == null) {
+//            throw "not a database";
+//          }
           meta = new _Meta(version);
           IOSink sink = file.openWrite(mode: FileMode.WRITE);
 
@@ -850,6 +905,7 @@ class Database {
       if (version == null) {
 
       }
+      return this;
     }).catchError((e, st) {
       //devPrint("$e $st");
       throw e;

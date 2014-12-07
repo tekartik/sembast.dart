@@ -2,6 +2,7 @@ library tekartik_iodb.database_test;
 
 // basically same as the io runner but with extra output
 import 'package:tekartik_test/test_config_io.dart';
+import 'package:tekartik_iodb/database_memory.dart';
 import 'package:tekartik_iodb/database.dart';
 import 'package:tekartik_io_tools/platform_utils.dart';
 import 'package:path/path.dart';
@@ -9,11 +10,11 @@ import 'package:path/path.dart';
 
 void main() {
   useVMConfiguration();
-  defineTests();
+  defineTests(memoryDatabaseFactory);
 }
 
-void defineTests() {
-  
+void defineTests(DatabaseFactory factory) {
+
   group('database', () {
 
     String dbPath = join(scriptDirPath, "tmp", "test.db");
@@ -21,35 +22,40 @@ void defineTests() {
       Database db;
 
       setUp(() {
-        db = new Database();
-        return Database.deleteDatabase(dbPath);
-      });
+        return factory.deleteDatabase(dbPath).then((_) {
 
-      tearDown(() {
-        db.close();
-      });
-
-      test('open_no_version', () {
-        return db.open(dbPath).then((_) {
-          fail("should fail");
-        }).catchError((_) {
-          // opk
         });
       });
 
-      test('open', () {
-        return db.open(dbPath, 1).then((_) {
+      tearDown(() {
+        if (db != null) {
+          db.close();
+        }
+      });
+
+      test('open_no_version', () {
+        return factory.openDatabase(dbPath).then((Database db) {
+          expect(db.version, null);
           expect(db.path, dbPath);
+          db.close();
+        });
+      });
+
+      test('open_version', () {
+        return factory.openDatabase(dbPath, version: 1).then((Database db) {
           expect(db.version, 1);
+          expect(db.path, dbPath);
+          db.close();
         });
       });
 
       test('open_then_open_no_version', () {
-        return db.open(dbPath, 1).then((_) {
-          db.close();
-          return db.open(dbPath).then((_) {
+        return factory.openDatabase(dbPath, version: 1).then((Database db) {
+
+          return db.reOpen().then((Database db) {
             expect(db.path, dbPath);
             expect(db.version, 1);
+            db.close();
           });
         });
       });
