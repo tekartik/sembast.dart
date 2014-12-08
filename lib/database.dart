@@ -1,7 +1,6 @@
 library tekartik_iodb.database;
 
 import 'dart:async';
-import 'dart:io';
 import 'dart:convert';
 
 typedef void OnVersionChangedFunction(Database db, int oldVersion, int newVersion);
@@ -34,10 +33,25 @@ abstract class DatabaseFactory {
   Future<Database> openDatabase(String path, {int version, OnVersionChangedFunction onVersionChanged, DatabaseMode mode});
 
   Future deleteDatabase(String path);
-  
+
   //Stream<String> getData(String path);
 }
 
+/// Storage implementation
+abstract class DatabaseStorage {
+  String get path;
+  bool get supported;
+  DatabaseStorage();
+
+  Future delete();
+  Future findOrCreate();
+
+  Stream<String> readLines();
+  Future appendLines(List<String> lines);
+  Future appendLine(String line) => appendLines([line]);
+}
+
+/// Exceptions
 class DatabaseException implements Exception {
 
   static int BAD_PARAM = 0;
@@ -49,6 +63,7 @@ class DatabaseException implements Exception {
 
   String toString() => "[${_code}] ${_messsage}";
 }
+
 //import 'package:tekartik_core/dev_utils.dart';
 
 const String _db_version = "version";
@@ -617,17 +632,16 @@ class Store {
 
 class Database {
 
-  final DatabaseFactory factory;
-  
-  String _path;
+  final DatabaseStorage _storage;
+
+  String get path => _storage.path;
+
   int _rev = 0;
 
   _Meta _meta;
-  String get path => _path;
   int get version => _meta.version;
 
   bool _opened = false;
-  File _file;
 
   Store get mainStore => _mainStore;
 
@@ -636,18 +650,7 @@ class Database {
 
   Iterable<Store> get stores => _stores.values;
 
-  /**
-   * only valid before open
-   */
-  //TODO @deprecated
-  static Future deleteDatabase(String path) {
-    return new File(path).exists().then((exists) {
-      return new File(path).delete(recursive: true).catchError((_) {
-      });
-    });
-  }
-
-  Database([this.factory, this._path]);
+  Database([this._storage]);
 
   Future onUpgrade(int oldVersion, int newVersion) {
     // default is to clear everything
@@ -750,7 +753,8 @@ class Database {
   _loadRecord(Record record) {
     record.store._loadRecord(record);
   }
-// future or not
+
+  // future or not
   _commit() {
 
     List<Record> txnRecords = [];
@@ -760,23 +764,28 @@ class Database {
         txnRecords.addAll(store._txnRecords.values);
       }
     }
-    if (txnRecords.isNotEmpty) {
-      IOSink sink = _file.openWrite(mode: FileMode.APPEND);
 
-      // writable record
+    // end of commit
+    _saveInMemory() {
       for (Record record in txnRecords) {
-        sink.writeln(JSON.encode(record._toMap()));
+        _setRecordInMemory(record);
       }
-      return sink.close().then((_) {
-        // save in memory
-        for (Record record in txnRecords) {
-          _setRecordInMemory(record);
-        }
-      });
     }
+    if (_storage.supported) {
+      if (txnRecords.isNotEmpty) {
+        List<String> lines = [];
 
-
-
+        // writable record
+        for (Record record in txnRecords) {
+          lines.add(JSON.encode(record._toMap()));
+        }
+        return _storage.appendLines(lines).then((_) {
+          _saveInMemory();
+        });
+      }
+    } else {
+      _saveInMemory();
+    }
   }
 
   Future<Record> putRecord(Record record) {
@@ -804,9 +813,24 @@ class Database {
    * reload from file system
    */
   Future reOpen() {
-    String path = this.path;
     close();
-    return open(path);
+    return open();
+  }
+
+  void _checkMainStore() {
+    if (_mainStore == null) {
+      _addStore(null);
+    }
+  }
+  Store _addStore(String storeName) {
+
+    if (storeName == null) {
+      return _mainStore = _addStore(_main_store);
+    } else {
+      Store store = new Store._(this, storeName);
+      _stores[storeName] = store;
+      return store;
+    }
   }
 
   Store getStore(String storeName) {
@@ -816,8 +840,7 @@ class Database {
     } else {
       store = _stores[storeName];
       if (store == null) {
-        store = new Store._(this, storeName);
-        _stores[storeName] = store;
+        store = _addStore(storeName);
       }
 
     }
@@ -832,100 +855,114 @@ class Database {
 //        }
 //    factory.loadLines(_path).
 //  }
-  Future open(String path, [int version]) {
+  Future open({int version, OnVersionChangedFunction onVersionChanged, DatabaseMode mode}) {
     if (_opened) {
-      if (path != _path) {
-        throw new DatabaseException.badParam("existing path ${_path} differ from open path ${path}");
+      if (path != this.path) {
+        throw new DatabaseException.badParam("existing path ${this.path} differ from open path ${path}");
       }
       return new Future.value();
     }
+    return runZoned(() {
 
-    //_path = path;
-    _Meta meta;
 
-    File file;
-    return FileSystemEntity.isFile(path).then((isFile) {
-      if (!isFile) {
-        return new File(path).create(recursive: true).then((File file) {
+      _Meta meta;
 
-        }).catchError((e) {
-          return FileSystemEntity.isFile(path).then((isFile) {
-            if (!isFile) {
-              throw e;
-            }
-          });
+      Future _handleVersionChange(int oldVersion, int newVersion) {
+
+        if (newVersion != null) {
+          //TODO
+        }
+
+        meta = new _Meta(newVersion == null ? oldVersion : newVersion);
+
+        if (_storage.supported) {
+          return _storage.appendLine(JSON.encode(meta.toMap()));
+        } else {
+          return new Future.value();
+        }
+      }
+
+      Future _openDone() {
+        // make sure mainStore is created
+        _checkMainStore();
+
+        // Make version 1 by default
+        if (meta == null) {
+          meta = new _Meta(1);
+        }
+
+        // no specific version requested or same
+        if ((version == null) || (meta.version == version)) {
+          _meta = meta;
+          return new Future.value(this);
+        }
+
+        // mark it opened
+        _opened = true;
+
+        return _handleVersionChange(meta.version, version).then((_) {
+          _meta = meta;
+          return this;
         });
       }
-    }).then((_) {
-      file = new File(path);
 
-      _mainStore = new Store._(this, _main_store);
-      _stores[_main_store] = _mainStore;
-
-      bool needCompact = false;
-      return file.openRead().transform(UTF8.decoder).transform(new LineSplitter()).forEach((String line) {
-        // everything is JSON
-        Map map = JSON.decode(line);
+      //_path = path;
 
 
-        if (_Meta.isMapMeta(map)) {
-          // meta?
-          meta = new _Meta.fromMap(map);
-        } else if (Record.isMapRecord(map)) {
-          // record?
-          Record record = new Record._fromMap(this, map);
-          if (_hasRecord(record)) {
-            needCompact = true;
-          }
-          _loadRecord(record);
+      if (_storage.supported) {
+        // empty stores
+        _mainStore = null;
+        _stores = new Map();
+        _checkMainStore();
 
-        }
+        return _storage.findOrCreate().then((_) {
 
+//          _mainStore = new Store._(this, _main_store);
+//          _stores[_main_store] = _mainStore;
 
-      }).then((_) {
-        if (meta == null) {
-          // devError("$e $st");
-          // no version yet
-
-          // if no version asked this is a read-only view only
-//          if (version == null) {
-//            throw "not a database";
-//          }
-          meta = new _Meta(version);
-          IOSink sink = file.openWrite(mode: FileMode.WRITE);
+          bool needCompact = false;
 
 
-          sink.writeln(JSON.encode(meta.toMap()));
-          return sink.close();
-        } else {
-          if (needCompact) {
-            //TODO rewrite
-          }
-        }
-      });
-    }).then((_) {
-      _file = file;
-      _path = path;
-      _meta = meta;
-      _opened = true;
+          return _storage.readLines().forEach((String line) {
+            // evesrything is JSON
+            Map map = JSON.decode(line);
 
-      // upgrade?
-      if (version == null) {
 
+            if (_Meta.isMapMeta(map)) {
+              // meta?
+              meta = new _Meta.fromMap(map);
+            } else if (Record.isMapRecord(map)) {
+              // record?
+              Record record = new Record._fromMap(this, map);
+              if (_hasRecord(record)) {
+                needCompact = true;
+              }
+              _loadRecord(record);
+
+            }
+
+
+          });
+        }).then((_) => _openDone());
+      } else {
+        // ensure main store exists
+        // but do not erase previous data
+        _checkMainStore();
+        meta = _meta;
+        return _openDone();
       }
-      return this;
     }).catchError((e, st) {
       //devPrint("$e $st");
       throw e;
     });
-
   }
+
+
 
   void close() {
     _opened = false;
-    _mainStore = null;
-    _path = null;
-    _meta = null;
+    //_mainStore = null;
+    //_meta = null;
     // return new Future.value();
   }
 }

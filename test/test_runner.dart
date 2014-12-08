@@ -24,12 +24,12 @@ void main() {
 
 }
 void defineTests(DatabaseFactory factory) {
-  database_perf_test.defineTests();
+  database_perf_test.defineTests(factory);
   database_test.defineTests(factory);
-  crud_test.defineTests();
-  record_test.defineTests();
-  store_test.defineTests();
-  find_test.defineTests();
-  transaction_test.defineTests();
+  crud_test.defineTests(factory);
+  record_test.defineTests(factory);
+  store_test.defineTests(factory);
+  find_test.defineTests(factory);
+  transaction_test.defineTests(factory);
 
 }

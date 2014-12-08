@@ -6,7 +6,12 @@ import 'package:tekartik_iodb/database_memory.dart';
 import 'package:tekartik_iodb/database.dart';
 import 'package:tekartik_io_tools/platform_utils.dart';
 import 'package:path/path.dart';
+import 'test_common.dart' as common;
+import 'dart:async';
 
+Future<Database> setupForTest(DatabaseFactory factory) {
+  return common.setupForTest(factory, join(scriptDirPath, "tmp", "test.db"));
+}
 
 void main() {
   useVMConfiguration();
@@ -35,7 +40,7 @@ void defineTests(DatabaseFactory factory) {
 
       test('open_no_version', () {
         return factory.openDatabase(dbPath).then((Database db) {
-          expect(db.version, null);
+          expect(db.version, 1);
           expect(db.path, dbPath);
           db.close();
         });

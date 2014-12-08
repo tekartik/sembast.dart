@@ -1,27 +1,76 @@
 library tekartik_iodb.database_io;
 
-import 'dart:io';
 import 'dart:async';
+import 'dart:io';
+import 'dart:convert';
 
 import 'database.dart';
 
-/// In memory implementation
-class IoDatabaseFactory implements DatabaseFactory {
-  @override
-  Future<Database> openDatabase(String path, {int version, OnVersionChangedFunction onVersionChanged, DatabaseMode mode}) {
-    Database db = new Database(this, path);
-    return db.open(path, version);
+class _IoDatabaseStorage extends DatabaseStorage {
+  final File file;
 
-  }
+  _IoDatabaseStorage(String path) : file = new File(path);
 
   @override
-  Future deleteDatabase(String path) {
+  bool get supported => true;
+
+  @override
+  String get path => file.path;
+
+  @override
+  Future delete() {
     return new File(path).exists().then((exists) {
       return new File(path).delete(recursive: true).catchError((_) {
       });
     });
   }
-  
+
+  @override
+  Future findOrCreate() {
+    return FileSystemEntity.isFile(path).then((isFile) {
+      if (!isFile) {
+        return file.create(recursive: true).then((File file) {
+
+        }).catchError((e) {
+          return FileSystemEntity.isFile(path).then((isFile) {
+            if (!isFile) {
+              throw e;
+            }
+          });
+        });
+      }
+    });
+  }
+
+  Stream<String> readLines() {
+    return file.openRead().transform(UTF8.decoder).transform(new LineSplitter());
+  }
+
+  Future appendLines(List<String> lines) {
+    IOSink sink = file.openWrite(mode: FileMode.APPEND);
+
+    lines.forEach((String line) {
+      sink.writeln(line);
+    });
+
+    return sink.close();
+  }
+
+}
+/// In memory implementation
+class IoDatabaseFactory implements DatabaseFactory {
+  @override
+  Future<Database> openDatabase(String path, {int version, OnVersionChangedFunction onVersionChanged, DatabaseMode mode}) {
+    Database db = new Database(new _IoDatabaseStorage(path));
+    return db.open(version: version, onVersionChanged: onVersionChanged, mode: mode);
+
+  }
+
+  @override
+  Future deleteDatabase(String path) {
+    return new _IoDatabaseStorage(path).delete();
+  }
+
 //  Stream<String> getData(String path) {
 //    File file = new File(path);
 //
@@ -43,7 +92,4 @@ final IoDatabaseFactory ioDatabaseFactory = new IoDatabaseFactory();
 /// if [empty] is true, the existing database
 Future<Database> openIoDatabase(String path, {int version, OnVersionChangedFunction onVersionChanged, DatabaseMode mode: DatabaseMode.CREATE}) {
   return ioDatabaseFactory.openDatabase(path, version: version, onVersionChanged: onVersionChanged, mode: mode);
-}
-
-class _IoDatabase extends Database {
 }

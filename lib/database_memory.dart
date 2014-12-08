@@ -1,7 +1,6 @@
 library tekartik_iodb.database_memory;
 
 import 'dart:async';
-
 import 'database.dart';
 //import 'package:tekartik_core/dev_utils.dart';
 
@@ -9,7 +8,7 @@ import 'database.dart';
 class MemoryDatabaseFactory implements DatabaseFactory {
   @override
   Future<Database> openDatabase(String path, {int version, OnVersionChangedFunction onVersionChanged, DatabaseMode mode}) {
-    _MemoryDatabase db;
+    Database db;
     if (path == null) {
       db = _defaultDatabase;
     } else {
@@ -17,18 +16,17 @@ class MemoryDatabaseFactory implements DatabaseFactory {
     }
 
     if (db == null) {
-      db = new _MemoryDatabase(path);
+      db = new Database(new _MemoryDatabaseStorage(path));
 
     }
 
-    return db._open(version, onVersionChanged, mode).then((_MemoryDatabase db) {
+    return db.open(version: version, onVersionChanged: onVersionChanged, mode: mode).then((Database db) {
       if (path == null) {
         _defaultDatabase = db;
       } else {
         _databases[path] = db;
       }
       return db;
-
     });
 
   }
@@ -59,37 +57,24 @@ Future<Database> openMemoryDatabase() {
   return memoryDatabaseFactory.openDatabase(null);
 }
 
-class _MemoryDatabase extends Database {
+class _MemoryDatabaseStorage extends DatabaseStorage {
+  static Database _defaultDatabase;
+  static Map<String, Database> _databases = new Map();
 
-  String _path;
-  int _version;
-
-  @override
-  int get version => _version;
-
-  @override
-  String get path => _path;
+  String path;
+  _MemoryDatabaseStorage(this.path);
 
   @override
-  Future<_MemoryDatabase> reOpen() {
-    return new Future.value(this);
-  }
+  bool get supported => false;
 
-  bool _opened = false;
-  _MemoryDatabase(this._path);
+  @override
+  Future delete() => null;
 
-  Future<_MemoryDatabase> _open(int version, OnVersionChangedFunction onVersionChanged, DatabaseMode mode) {
-    if (_opened) {
-//        if (path != _path) {
-//          throw new DatabaseException.badParam("existing path ${_path} differ from open path ${path}");
-//        }
-      return new Future.value(this);
-    } else {
-      //devPrint("todo");
-      _version = version;
-      return new Future.value(this);
-    }
+  @override
+  Future findOrCreate() => null;
 
+  Stream<String> readLines() => null;
 
-  }
+  @override
+  Future appendLines(List<String> lines) => null;
 }
