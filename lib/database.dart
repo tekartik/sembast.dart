@@ -3,7 +3,8 @@ library tekartik_iodb.database;
 import 'dart:async';
 import 'dart:convert';
 
-typedef void OnVersionChangedFunction(Database db, int oldVersion, int newVersion);
+/// can return a future or not
+typedef OnVersionChangedFunction(Database db, int oldVersion, int newVersion);
 
 ///
 /// The modes in which a Database can be opened.
@@ -92,6 +93,11 @@ class _Meta {
       _db_version: version
     };
     return map;
+  }
+
+  @override
+  String toString() {
+    return toMap().toString();
   }
 }
 
@@ -867,43 +873,65 @@ class Database {
 
       _Meta meta;
 
-      Future _handleVersionChange(int oldVersion, int newVersion) {
-
-        if (newVersion != null) {
-          //TODO
+      Future _handleVersionChanged(int oldVersion, int newVersion) {
+        var result;
+        if (onVersionChanged != null) {
+          result = onVersionChanged(this, oldVersion, newVersion);
         }
 
-        meta = new _Meta(newVersion == null ? oldVersion : newVersion);
+        return new Future.value(result).then((_) {
+          meta = new _Meta(newVersion);
 
-        if (_storage.supported) {
-          return _storage.appendLine(JSON.encode(meta.toMap()));
-        } else {
-          return new Future.value();
-        }
+          if (_storage.supported) {
+            return _storage.appendLine(JSON.encode(meta.toMap()));
+          }
+        });
       }
 
       Future _openDone() {
         // make sure mainStore is created
         _checkMainStore();
 
-        // Make version 1 by default
+        // Set current meta
+        // so that it is an old value during onVersionChanged
         if (meta == null) {
-          meta = new _Meta(1);
+          meta = new _Meta(0);
         }
-
-        // no specific version requested or same
-        if ((version == null) || (meta.version == version)) {
+        if (_meta == null) {
           _meta = meta;
-          return new Future.value(this);
+        }
+        
+        bool needVersionChanged = false;
+
+        int oldVersion = meta.version;
+        
+        if (oldVersion == 0) {
+          needVersionChanged = true;
+
+          // Make version 1 by default
+          if (version == null) {
+            version = 1;
+          }
+          meta = new _Meta(version);
+        } else {
+          // no specific version requested or same
+          if ((version != null) && (version != oldVersion)) {
+            needVersionChanged = true;
+          }
         }
 
         // mark it opened
         _opened = true;
 
-        return _handleVersionChange(meta.version, version).then((_) {
+        if (needVersionChanged) {
+          return _handleVersionChanged(oldVersion, version).then((_) {
+            _meta = meta;
+            return this;
+          });
+        } else {
           _meta = meta;
-          return this;
-        });
+          return new Future.value(this);
+        }
       }
 
       //_path = path;
