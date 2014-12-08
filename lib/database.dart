@@ -34,6 +34,8 @@ abstract class DatabaseFactory {
   Future<Database> openDatabase(String path, {int version, OnVersionChangedFunction onVersionChanged, DatabaseMode mode});
 
   Future deleteDatabase(String path);
+  
+  //Stream<String> getData(String path);
 }
 
 class DatabaseException implements Exception {
@@ -615,6 +617,8 @@ class Store {
 
 class Database {
 
+  final DatabaseFactory factory;
+  
   String _path;
   int _rev = 0;
 
@@ -643,11 +647,7 @@ class Database {
     });
   }
 
-  Database.withSettings(this._path) {
-
-  }
-
-  Database();
+  Database([this.factory, this._path]);
 
   Future onUpgrade(int oldVersion, int newVersion) {
     // default is to clear everything
@@ -824,6 +824,14 @@ class Database {
     return store;
   }
 
+//  Future open2({int version}) {
+//    if (_opened) {
+//          // TODO check version
+//          //  throw new DatabaseException.badParam("existing path ${_path} differ from open path ${path}");
+//          return new Future.value();
+//        }
+//    factory.loadLines(_path).
+//  }
   Future open(String path, [int version]) {
     if (_opened) {
       if (path != _path) {

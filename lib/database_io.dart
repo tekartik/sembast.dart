@@ -9,7 +9,7 @@ import 'database.dart';
 class IoDatabaseFactory implements DatabaseFactory {
   @override
   Future<Database> openDatabase(String path, {int version, OnVersionChangedFunction onVersionChanged, DatabaseMode mode}) {
-    Database db = new _IoDatabase();
+    Database db = new Database(this, path);
     return db.open(path, version);
 
   }
@@ -21,6 +21,16 @@ class IoDatabaseFactory implements DatabaseFactory {
       });
     });
   }
+  
+//  Stream<String> getData(String path) {
+//    File file = new File(path);
+//
+//          _mainStore = new Store._(this, _main_store);
+//          _stores[_main_store] = _mainStore;
+//
+//          bool needCompact = false;
+//          return file.openRead().transform(UTF8.decoder).transform(new LineSplitter())
+//  }
 }
 
 final IoDatabaseFactory ioDatabaseFactory = new IoDatabaseFactory();
