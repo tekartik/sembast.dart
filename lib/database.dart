@@ -818,9 +818,9 @@ class Database {
   /**
    * reload from file system
    */
-  Future reOpen() {
+  Future reOpen({int version, OnVersionChangedFunction onVersionChanged, DatabaseMode mode}) {
     close();
-    return open();
+    return open(version: version, onVersionChanged: onVersionChanged, mode: mode);
   }
 
   void _checkMainStore() {
@@ -900,11 +900,11 @@ class Database {
         if (_meta == null) {
           _meta = meta;
         }
-        
+
         bool needVersionChanged = false;
 
         int oldVersion = meta.version;
-        
+
         if (oldVersion == 0) {
           needVersionChanged = true;
 

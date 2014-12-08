@@ -82,7 +82,7 @@ void defineTests(DatabaseFactory factory) {
         }
       });
 
-      solo_test('open_no_version', () {
+      test('open_no_version', () {
         // save to make sure we've been through
         int _oldVersion;
         int _newVersion;
@@ -91,7 +91,7 @@ void defineTests(DatabaseFactory factory) {
           _oldVersion = oldVersion;
           _newVersion = newVersion;
         }
-        
+
         return factory.openDatabase(dbPath, onVersionChanged: _onVersionChanged).then((Database db) {
           expect(_oldVersion, 0);
           expect(_newVersion, 1);
@@ -102,19 +102,59 @@ void defineTests(DatabaseFactory factory) {
       });
 
       test('open_version', () {
-        return factory.openDatabase(dbPath, version: 1).then((Database db) {
+        // save to make sure we've been through
+        int _oldVersion;
+        int _newVersion;
+        _onVersionChanged(Database db, int oldVersion, int newVersion) {
+          expect(db.version, oldVersion);
+          _oldVersion = oldVersion;
+          _newVersion = newVersion;
+        }
+        return factory.openDatabase(dbPath, version: 1, onVersionChanged: _onVersionChanged).then((Database db) {
+          expect(_oldVersion, 0);
+          expect(_newVersion, 1);
           expect(db.version, 1);
           expect(db.path, dbPath);
           db.close();
         });
       });
 
-      test('open_then_open_no_version', () {
+      test('open_then_open_no_version_or_same_version', () {
         return factory.openDatabase(dbPath, version: 1).then((Database db) {
 
-          return db.reOpen().then((Database db) {
+          _onVersionChanged(Database db, int oldVersion, int newVersion) {
+            fail("not changed");
+          }
+          return db.reOpen(onVersionChanged: _onVersionChanged).then((Database db) {
             expect(db.path, dbPath);
             expect(db.version, 1);
+            db.close();
+          }).then((_) {
+            return db.reOpen(version: 1, onVersionChanged: _onVersionChanged).then((Database db) {
+              expect(db.path, dbPath);
+              expect(db.version, 1);
+              db.close();
+            });
+          });
+        });
+      });
+
+      test('open_then_open_new_version', () {
+        return factory.openDatabase(dbPath, version: 1).then((Database db) {
+
+// save to make sure we've been through
+          int _oldVersion;
+          int _newVersion;
+          _onVersionChanged(Database db, int oldVersion, int newVersion) {
+            expect(db.version, oldVersion);
+            _oldVersion = oldVersion;
+            _newVersion = newVersion;
+          }
+          return db.reOpen(version: 2, onVersionChanged: _onVersionChanged).then((Database db) {
+            expect(_oldVersion, 1);
+            expect(_newVersion, 2);
+            expect(db.path, dbPath);
+            expect(db.version, 2);
             db.close();
           });
         });
