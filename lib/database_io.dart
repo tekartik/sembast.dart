@@ -70,6 +70,8 @@ class IoDatabaseFactory implements DatabaseFactory {
   Future deleteDatabase(String path) {
     return new _IoDatabaseStorage(path).delete();
   }
+  
+  bool get persistent => true;
 
 //  Stream<String> getData(String path) {
 //    File file = new File(path);

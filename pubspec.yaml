@@ -4,3 +4,4 @@ dependencies:
 dev_dependencies:
   tekartik_test:
     git: git://github.com/alextekartik/tekartik_test.dart
+  idb_shim: any

@@ -46,6 +46,8 @@ class MemoryDatabaseFactory implements DatabaseFactory {
 
   Database _defaultDatabase;
   Map<String, Database> _databases = new Map();
+  
+  bool get persistent => false;
 }
 
 final MemoryDatabaseFactory memoryDatabaseFactory = new MemoryDatabaseFactory._();

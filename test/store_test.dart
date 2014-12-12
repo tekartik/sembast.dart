@@ -14,18 +14,51 @@ void main() {
 void defineTests(DatabaseFactory factory) {
 
   group('store', () {
- 
+
     Database db;
 
-        setUp(() {
-          return setupForTest(factory).then((Database database) {
-            db = database;
-          });
-        });
+    setUp(() {
+      return setupForTest(factory).then((Database database) {
+        db = database;
+      });
+    });
 
 
     tearDown(() {
       db.close();
+    });
+
+    test('clear', () {
+      Store store = db.getStore("test");
+      return store.put("hi", 1).then((int key) {
+        return store.clear();
+      }).then((_) {
+        return store.get(1).then((value) {
+          expect(value, null);
+        });
+      });
+
+    });
+
+    test('delete', () {
+      Store store = db.getStore("test");
+      return db.deleteStore("test").then((_) {
+        expect(db.findStore("test"), isNull);
+      });
+
+    });
+
+    test('delete_main', () {
+      Store store = db.getStore(null);
+      return db.deleteStore(null).then((_) {
+        expect(db.findStore(null), db.mainStore);
+        expect(db.stores, [db.mainStore]);
+        return db.deleteStore(db.mainStore.name).then((_) {
+          expect(db.findStore(null), db.mainStore);
+          expect(db.stores, [db.mainStore]);
+        });
+      });
+
     });
 
     test('put/get', () {

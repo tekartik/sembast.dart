@@ -24,6 +24,9 @@ class DatabaseMode {
 }
 
 abstract class DatabaseFactory {
+
+  bool get persistent;
+
   ///
   /// Open a new of existing database
   ///
@@ -600,24 +603,24 @@ class Store {
   }
 
   /// return the list of deleted keys
-  Future deleteAll(List keys) {
+  Future deleteAll(Iterable keys) {
     return inTransaction(() {
       List<Record> updates = [];
-      List updatedKeys = [];
+      List deletedKeys = [];
       for (var key in keys) {
         Record record = _getRecord(key);
         if (record != null) {
           Record clone = record._clone();
           clone._deleted = true;
           updates.add(clone);
-          updatedKeys.add(key);
+          deletedKeys.add(key);
         }
       }
 
       if (updates.isNotEmpty) {
         _putRecords(updates);
       }
-      return updatedKeys;
+      return deletedKeys;
     });
   }
 
@@ -633,6 +636,11 @@ class Store {
   @override
   String toString() {
     return "${name}";
+  }
+
+  Future clear() {
+    Iterable keys = _records.keys;
+    return deleteAll(keys);
   }
 }
 
@@ -839,6 +847,22 @@ class Database {
     }
   }
 
+  ///
+  /// find existing store
+  ///
+  Store findStore(String storeName) {
+    Store store;
+    if (storeName == null) {
+      store = _mainStore;
+    } else {
+      store = _stores[storeName];
+    }
+    return store;
+  }
+
+  ///
+  /// get or create a store
+  ///
   Store getStore(String storeName) {
     Store store;
     if (storeName == null) {
@@ -853,14 +877,20 @@ class Database {
     return store;
   }
 
-//  Future open2({int version}) {
-//    if (_opened) {
-//          // TODO check version
-//          //  throw new DatabaseException.badParam("existing path ${_path} differ from open path ${path}");
-//          return new Future.value();
-//        }
-//    factory.loadLines(_path).
-//  }
+  Future deleteStore(String storeName) {
+    Store store = findStore(storeName);
+    if (store == null) {
+      return new Future.value();
+    } else {
+      return store.clear().then((_) {
+        // do not delete main
+        if (store != mainStore) {
+          _stores.remove(storeName);
+        }
+      });
+    }
+  }
+
   Future open({int version, OnVersionChangedFunction onVersionChanged, DatabaseMode mode}) {
     if (_opened) {
       if (path != this.path) {
@@ -992,5 +1022,14 @@ class Database {
     //_mainStore = null;
     //_meta = null;
     // return new Future.value();
+  }
+
+  @override
+  String toString() {
+    return {
+      "path": path,
+      "version": version,
+      "stores": _stores
+    }.toString();
   }
 }
