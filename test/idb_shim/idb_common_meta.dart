@@ -6,27 +6,35 @@ class IdbTransactionMeta {
 
 class IdbDatabaseMeta {
   IdbTransactionMeta _versionChangeTransaction;
+  List<IdbObjectStoreMeta> versionChangeStores; // store modified during onUpgradeNeeded
   Map<String, IdbObjectStoreMeta> _stores = new Map();
 
   IdbTransactionMeta get versionChangeTransaction => _versionChangeTransaction;
-  
+
   onUpgradeNeeded(action()) {
+    
+    versionChangeStores = [];
     _versionChangeTransaction = new IdbTransactionMeta();
     var result = action();
     _versionChangeTransaction = null;
+    versionChangeStores = null;
     return result;
   }
   createObjectStore(IdbObjectStoreMeta store) {
     if (versionChangeTransaction == null) {
       throw new StateError("cannot create objectStore outside of a versionChangedEvent");
     }
-    _stores[store.name] = store;
+    versionChangeStores.add(store);
+    addObjectStore(store);
   }
 
+  addObjectStore(IdbObjectStoreMeta store) {
+    _stores[store.name] = store;
+  }
+  
   Iterable<String> get objectStoreNames => _stores.keys;
-
-
 }
+
 class IdbIndexMeta {
   final IdbObjectStoreMeta storeMeta;
   final String name;

@@ -29,10 +29,10 @@ class _IodbVersionChangeEvent extends VersionChangeEvent {
 }
 
 class _EmbsioTransaction extends Transaction {
-  
+
   final IdbTransactionMeta meta;
   _EmbsioTransaction(_IodbDatabase database, this.meta) : super(database);
-  
+
   // TODO: implement completed
   @override
   Future<Database> get completed => null;
@@ -123,8 +123,15 @@ class _IodbObjectStore extends ObjectStore {
   @override
   get keyPath => meta.keyPath;
 }
+
+///
+/// meta format
+/// {"key":"version","value":1}
+/// {"key":"stores","value":["test_store"]}
+/// {"key":"store_test_store","value":{"name":"test_store","keyPath":"my_key","autoIncrement":true}}
+
 class _IodbDatabase extends Database {
-  
+
   _EmbsioTransaction versionChangeTransaction;
   final IdbDatabaseMeta meta = new IdbDatabaseMeta();
   final String _name;
@@ -140,26 +147,84 @@ class _IodbDatabase extends Database {
   Future open(int newVersion, void onUpgradeNeeded(VersionChangeEvent event)) {
     int previousVersion;
     _open() {
-      return iodbFactory.openDatabase(join(factory._path, _name), mode: iodb.DatabaseMode.EXISTING).then((iodb.Database db) {
-        previousVersion = db.version;
-      }).catchError((iodb.DatabaseException e, st) {
-        if (e.code == iodb.DatabaseException.DATABASE_NOT_FOUND) {
-          previousVersion = null;
-          return iodbFactory.openDatabase(join(factory._path, _name)).then((iodb.Database db) {
-            this.db = db;
+      return iodbFactory.openDatabase(join(factory._path, _name), version: 1).then((iodb.Database db) {
+
+        return db.inTransaction(() {
+
+          return db.mainStore.get("version").then((int version) {
+            previousVersion = version;
+          }).then((_) {
+            // read meta
+            return db.mainStore.getRecord("stores").then((iodb.Record record) {
+              if (record != null) {
+                List<String> storeNames = record.value;
+                List<String> keys = [];
+                storeNames.forEach((String storeName) {
+                  keys.add("store_${storeName}");
+                });
+                return db.mainStore.getRecords(keys).then((List<iodb.Record> records) {
+                  records.forEach((iodb.Record record) {
+                    Map map = record.value;
+                    IdbObjectStoreMeta store = new IdbObjectStoreMeta(map["name"], map["keyPath"], map["autoIncrement"]);
+                    meta.addObjectStore(store);
+
+
+                  });
+                });
+              }
+
+            });
           });
-        }
-        print(st);
-        throw e;
+        }).then((_) => db);
+
+
+
       });
     }
 
-    return _open().then((_) {
+    return _open().then((db) {
       if (newVersion != previousVersion) {
+        List<IdbObjectStoreMeta> changedStores;
+
         meta.onUpgradeNeeded(() {
           versionChangeTransaction = new _EmbsioTransaction(this, meta.versionChangeTransaction);
           onUpgradeNeeded(new _IodbVersionChangeEvent(this, previousVersion, newVersion));
+          changedStores = meta.versionChangeStores;
         });
+
+
+        return db.inTransaction(() {
+
+          return db.put(newVersion, "version").then((_) {
+            if (changedStores.isNotEmpty) {
+              return db.put(new List.from(objectStoreNames), "stores");
+            }
+          }).then((_) {
+// write changes
+            List<Future> futures = [];
+
+            changedStores.forEach((IdbObjectStoreMeta storeMeta) {
+              Map storeMap = {
+                "name": storeMeta.name
+              };
+              if (storeMeta.keyPath != null) {
+                storeMap["keyPath"] = storeMeta.keyPath;
+              }
+
+              if (storeMeta.autoIncrement) {
+                storeMap["autoIncrement"] = storeMeta.autoIncrement;
+              }
+              ;
+
+              futures.add(db.put(storeMap, "store_${storeMeta.name}"));
+            });
+
+            return Future.wait(futures);
+
+          });
+
+        });
+
       }
     });
 
@@ -191,7 +256,7 @@ class _IodbDatabase extends Database {
   @override
   Iterable<String> get objectStoreNames {
     return meta.objectStoreNames;
-   }
+  }
 
   // TODO: implement onVersionChange
   @override

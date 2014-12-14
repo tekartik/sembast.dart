@@ -794,7 +794,17 @@ class Database {
 
         // writable record
         for (Record record in txnRecords) {
-          lines.add(JSON.encode(record._toMap()));
+          Map map = record._toMap();
+          var encoded;
+          try {
+            encoded = JSON.encode(map);
+          } catch (e, st) {
+            print(map);
+            print(e);
+            print(st);
+            rethrow;
+          }
+          lines.add(encoded);
         }
         return _storage.appendLines(lines).then((_) {
           _saveInMemory();
