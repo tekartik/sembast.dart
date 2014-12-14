@@ -233,6 +233,9 @@ class _CompositeFilter extends Filter {
 
   @override
   bool match(Record record) {
+    if (!super.match(record)) {
+      return false;
+    }
 
     for (Filter filter in filters) {
       if (filter.match(record)) {
@@ -254,6 +257,8 @@ class _CompositeFilter extends Filter {
     return filters.join(' ${isAnd ? "AND" : "OR" } ');
   }
 }
+
+
 class _FilterOperation {
   final int value;
   const _FilterOperation._(this.value);
@@ -288,13 +293,31 @@ class _FilterOperation {
 
 }
 
+class _ByKeyFilter extends Filter {
+  var key;
+
+  _ByKeyFilter(this.key) : super._();
+  @override
+  bool match(Record record) {
+    if (!super.match(record)) {
+      return false;
+    }
+    return record.key == key;
+  }
+}
+
 class _FilterPredicate extends Filter {
   String field;
   _FilterOperation operation;
   var value;
   _FilterPredicate(this.field, this.operation, this.value) : super._();
 
+  @override
   bool match(Record record) {
+    if (!super.match(record)) {
+      return false;
+    }
+
     switch (operation) {
       case _FilterOperation.EQUAL:
         return record[field] == value;
@@ -343,7 +366,12 @@ class SortOrder {
 }
 
 abstract class Filter {
-  bool match(Record record);
+  bool match(Record record) {
+    if (record.deleted) {
+      return false;
+    }
+    return true;
+  }
 
   Filter._();
   factory Filter.equal(String field, value) {
@@ -370,6 +398,7 @@ abstract class Filter {
 
   factory Filter.or(List<Filter> filters) => new _CompositeFilter.or(filters);
   factory Filter.and(List<Filter> filters) => new _CompositeFilter.and(filters);
+  factory Filter.byKey(key) => new _ByKeyFilter(key);
 
 }
 
@@ -379,15 +408,15 @@ class Finder {
   set sortOrder(SortOrder sortOrder) {
     sortOrders = [sortOrder];
   }
-  bool match(Record record) {
-    if (record.deleted) {
-      return false;
-    }
-    if (filter != null) {
-      return filter.match(record);
-    }
-    return true;
-  }
+//  bool match(Record record) {
+//    if (record.deleted) {
+//      return false;
+//    }
+//    if (filter != null) {
+//      return filter.match(record);
+//    }
+//    return true;
+//  }
   int compare(Record record1, Record record2) {
     int result = 0;
     for (SortOrder order in sortOrders) {
@@ -429,32 +458,43 @@ class Store {
 
   }
 
-  Future<List<Record>> findRecords(Finder finder) {
-    return inTransaction(() {
-      List<Record> result = [];
-
-      // handle record in transaction first
-      if (_inTransaction && _txnRecords != null) {
-        _txnRecords.values.forEach((Record record) {
-          if (finder.match(record)) {
-            result.add(record);
-          }
-        });
-      }
-
-      // then the regular unless already in transaction
-      _records.values.forEach((Record record) {
-
-        if (_inTransaction && _txnRecords != null) {
-          if (_txnRecords.keys.contains(record.key)) {
-            // already handled
-            return;
-          }
-        }
-        if (finder.match(record)) {
-          result.add(record);
+  _forEachRecords(Filter filter, void action(Record record)) {
+// handle record in transaction first
+    if (_inTransaction && _txnRecords != null) {
+      _txnRecords.values.forEach((Record record) {
+        if (filter.match(record)) {
+          action(record);
         }
       });
+    }
+
+    // then the regular unless already in transaction
+    _records.values.forEach((Record record) {
+
+      if (_inTransaction && _txnRecords != null) {
+        if (_txnRecords.keys.contains(record.key)) {
+          // already handled
+          return;
+        }
+      }
+      if (filter.match(record)) {
+        action(record);
+      }
+    });
+  }
+  Future<List<Record>> findRecords(Finder finder) {
+    return inTransaction(() {
+      List<Record> result;
+
+      if (finder.filter == null) {
+        result = new List.from(_records.values);
+      } else {
+        result = [];
+
+        _forEachRecords(finder.filter, (Record record) {
+          result.add(record);
+        });
+      }
 
       // sort
       result.sort((Record record1, record2) {
@@ -518,9 +558,16 @@ class Store {
 
     // temp records
     for (Record record in records) {
+      Store store = record.store;
+
       // auto-gen key if needed
       if (record.key == null) {
-        record._key = ++record.store._lastIntKey;
+        record._key = ++store._lastIntKey;
+      } else {
+        // update last int key in case auto gen is needed again
+        if (record._key is int && record.key > store._lastIntKey) {
+          store._lastIntKey = record.key;
+        }
       }
 
       _txnRecords[record.key] = record;
@@ -584,9 +631,17 @@ class Store {
     });
   }
 
-  Future<int> count() {
+  Future<int> count([Filter filter]) {
     return inTransaction(() {
-      return _records.length;
+      if (filter == null) {
+        return _records.length;
+      } else {
+        int count = 0;
+        _forEachRecords(filter, (Record record) {
+          count++;
+        });
+        return count;
+      }
     });
   }
 

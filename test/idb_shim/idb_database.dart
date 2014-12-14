@@ -106,22 +106,83 @@ class _IodbObjectStore extends ObjectStore {
   iodb.Database get iodbDatabase => database.db;
   iodb.Store iodbStore;
 
-  _IodbObjectStore(this.transaction, this.meta);
+  _IodbObjectStore(this.transaction, this.meta) {
+    iodbStore = iodbDatabase.getStore(name);
+  }
+
+  Future inWritableTransaction(Future computation()) {
+    if (transaction.meta.mode != IDB_MODE_READ_WRITE) {
+      return new Future.error(new DatabaseReadOnlyError());
+    }
+    return inTransaction(computation);
+  }
+
+  Future inTransaction(Future computation()) {
+    return computation();
+  }
+
 
   @override
   Future add(value, [key]) {
-    throw 'not implemented yet';
+    return inWritableTransaction(() {
+      return iodbStore.inTransaction(() {
+        if (key != null) {
+          return iodbStore.get(key).then((existingValue) {
+            if (existingValue != null) {
+              throw new DatabaseError('Key ${key} already exists in the object store');
+            }
+            return iodbStore.put(value, key);
+          });
+        } else {
+          return iodbStore.put(value, key);
+        }
+      });
+    });
   }
 
 
   @override
   Future clear() {
-    throw 'not implemented yet';
+    return inWritableTransaction(() {
+      return iodbStore.clear();
+    });
   }
 
+  iodb.Filter _keyOrRangeFilter([key_OR_range]) {
+    if (key_OR_range == null) {
+      return null;
+    } else if (key_OR_range is KeyRange) {
+      KeyRange range = key_OR_range;
+      iodb.Filter lowerFilter;
+      iodb.Filter upperFilter;
+      List<iodb.Filter> filters = [];
+      if (range.lower != null) {
+        if (range.lowerOpen == true) {
+          lowerFilter = new iodb.Filter.greaterThan(iodb.Field.KEY, range.lower);
+        } else {
+          lowerFilter = new iodb.Filter.greaterThanOrEquals(iodb.Field.KEY, range.lower);
+        }
+        filters.add(lowerFilter);
+      }
+      if (range.upper != null) {
+        if (range.upperOpen == true) {
+          upperFilter = new iodb.Filter.lessThan(iodb.Field.KEY, range.upper);
+        } else {
+          upperFilter = new iodb.Filter.lessThanOrEquals(iodb.Field.KEY, range.upper);
+        }
+        filters.add(upperFilter);
+      }
+      return new iodb.Filter.and(filters);
+
+    } else {
+      return new iodb.Filter.byKey(key_OR_range);
+    }
+  }
   @override
   Future<int> count([key_OR_range]) {
-    throw 'not implemented yet';
+    return inTransaction(() {
+      return iodbStore.count(_keyOrRangeFilter(key_OR_range));
+    });
   }
 
   @override
@@ -133,12 +194,16 @@ class _IodbObjectStore extends ObjectStore {
 
   @override
   Future delete(key) {
-    throw 'not implemented yet';
+    return inWritableTransaction(() {
+      return iodbStore.delete(key);
+    });
   }
 
   @override
   Future getObject(key) {
-    throw 'not implemented yet';
+    return inTransaction(() {
+      return iodbStore.get(key);
+    });
   }
 
   @override
@@ -160,7 +225,9 @@ class _IodbObjectStore extends ObjectStore {
 
   @override
   Future put(value, [key]) {
-    throw 'not implemented yet';
+    return inWritableTransaction(() {
+      return iodbStore.put(value, key);
+    });
   }
 
   @override
@@ -194,7 +261,7 @@ class _IodbDatabase extends Database {
     int previousVersion;
     _open() {
       return iodbFactory.openDatabase(join(factory._path, _name), version: 1).then((iodb.Database db) {
-
+        this.db = db;
         return db.inTransaction(() {
 
           return db.mainStore.get("version").then((int version) {
@@ -263,7 +330,6 @@ class _IodbDatabase extends Database {
         }).then((_) {
           // considered as opened
           meta.version = newVersion;
-          this.db = db;
         });
 
       }

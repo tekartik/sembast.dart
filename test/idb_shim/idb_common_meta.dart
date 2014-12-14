@@ -1,6 +1,7 @@
 library tekartik_iodb.idb_meta;
 
 import 'package:idb_shim/idb_client.dart';
+import 'dart:async';
 
 class IdbTransactionMeta {
   String mode;
@@ -142,6 +143,8 @@ class IdbObjectStoreMeta {
   String toString() {
     return toDebugMap().toString();
   }
+  
+ 
 }
 
 class IdbIndexMeta {
