@@ -47,11 +47,33 @@ void defineTests(DatabaseFactory factory) {
         });
       });
 
+      test('open_existing_no_version', () {
+        return factory.openDatabase(dbPath, mode: DatabaseMode.EXISTING).then((Database db) {
+          fail("should fail");
+        }).catchError((DatabaseException e) {
+          expect(e.code, DatabaseException.DATABASE_NOT_FOUND);
+        });
+      });
+
       test('open_version', () {
         return factory.openDatabase(dbPath, version: 1).then((Database db) {
           expect(db.version, 1);
           expect(db.path, dbPath);
           db.close();
+        });
+      });
+
+      test('open_twice_no_close', () {
+        return factory.openDatabase(dbPath, version: 1).then((Database db) {
+          expect(db.version, 1);
+          expect(db.path, dbPath);
+          return factory.openDatabase(dbPath, version: 1).then((Database db2) {
+            // behavior is unexpected from now...
+            expect(db.version, 1);
+            expect(db.path, dbPath);
+            db2.close();
+          });
+
         });
       });
 

@@ -26,6 +26,11 @@ class _IoDatabaseStorage extends DatabaseStorage {
   }
 
   @override
+  Future<bool> find() {
+    return FileSystemEntity.isFile(path);
+  }
+  
+  @override
   Future findOrCreate() {
     return FileSystemEntity.isFile(path).then((isFile) {
       if (!isFile) {
@@ -70,7 +75,7 @@ class IoDatabaseFactory implements DatabaseFactory {
   Future deleteDatabase(String path) {
     return new _IoDatabaseStorage(path).delete();
   }
-  
+
   bool get persistent => true;
 
 //  Stream<String> getData(String path) {

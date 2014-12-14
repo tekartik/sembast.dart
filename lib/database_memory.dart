@@ -16,7 +16,7 @@ class MemoryDatabaseFactory implements DatabaseFactory {
     }
 
     if (db == null) {
-      db = new Database(new _MemoryDatabaseStorage(path));
+      db = new Database(new _MemoryDatabaseStorage(this, path));
 
     }
 
@@ -46,7 +46,7 @@ class MemoryDatabaseFactory implements DatabaseFactory {
 
   Database _defaultDatabase;
   Map<String, Database> _databases = new Map();
-  
+
   bool get persistent => false;
 }
 
@@ -60,20 +60,24 @@ Future<Database> openMemoryDatabase() {
 }
 
 class _MemoryDatabaseStorage extends DatabaseStorage {
-  static Database _defaultDatabase;
-  static Map<String, Database> _databases = new Map();
 
-  String path;
-  _MemoryDatabaseStorage(this.path);
+  final MemoryDatabaseFactory factory;
+  final String path;
+  _MemoryDatabaseStorage(this.factory, this.path);
+
+  @override
+  Future<bool> find() {
+    return new Future.value(factory._databases[path] != null);
+  }
+
+  @override
+  Future findOrCreate() => new Future.value();
 
   @override
   bool get supported => false;
 
   @override
   Future delete() => null;
-
-  @override
-  Future findOrCreate() => null;
 
   Stream<String> readLines() => null;
 

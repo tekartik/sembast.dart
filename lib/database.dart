@@ -48,6 +48,7 @@ abstract class DatabaseStorage {
   DatabaseStorage();
 
   Future delete();
+  Future<bool> find();
   Future findOrCreate();
 
   Stream<String> readLines();
@@ -59,13 +60,15 @@ abstract class DatabaseStorage {
 class DatabaseException implements Exception {
 
   static int BAD_PARAM = 0;
+  static int DATABASE_NOT_FOUND = 1;
   final int _code;
-  final String _messsage;
+  final String _message;
   int get code => _code;
-  String get message => _messsage;
-  DatabaseException.badParam(this._messsage) : _code = BAD_PARAM;
+  String get message => _message;
+  DatabaseException.badParam(this._message) : _code = BAD_PARAM;
+  DatabaseException.databaseNotFound(this._message) : _code = DATABASE_NOT_FOUND;
 
-  String toString() => "[${_code}] ${_messsage}";
+  String toString() => "[${_code}] ${_message}";
 }
 
 //import 'package:tekartik_core/dev_utils.dart';
@@ -896,7 +899,7 @@ class Database {
       if (path != this.path) {
         throw new DatabaseException.badParam("existing path ${this.path} differ from open path ${path}");
       }
-      return new Future.value();
+      return new Future.value(this);
     }
     return runZoned(() {
 
@@ -965,15 +968,27 @@ class Database {
       }
 
       //_path = path;
+      Future _findOrCreate() {
+        if (mode == DatabaseMode.EXISTING) {
+          return _storage.find().then((bool found) {
+            if (!found) {
+              throw new DatabaseException.databaseNotFound("Database (open existing only) ${path} not found");
+            }
+          });
+        } else {
+          return _storage.findOrCreate();
+        }
+      }
+
+      return _findOrCreate().then((_) {
+        if (_storage.supported) {
+          // empty stores
+          _mainStore = null;
+          _stores = new Map();
+          _checkMainStore();
 
 
-      if (_storage.supported) {
-        // empty stores
-        _mainStore = null;
-        _stores = new Map();
-        _checkMainStore();
 
-        return _storage.findOrCreate().then((_) {
 
 //          _mainStore = new Store._(this, _main_store);
 //          _stores[_main_store] = _mainStore;
@@ -1000,15 +1015,15 @@ class Database {
             }
 
 
-          });
-        }).then((_) => _openDone());
-      } else {
-        // ensure main store exists
-        // but do not erase previous data
-        _checkMainStore();
-        meta = _meta;
-        return _openDone();
-      }
+          }).then((_) => _openDone());
+        } else {
+          // ensure main store exists
+          // but do not erase previous data
+          _checkMainStore();
+          meta = _meta;
+          return _openDone();
+        }
+      });
     }).catchError((e, st) {
       //devPrint("$e $st");
       throw e;

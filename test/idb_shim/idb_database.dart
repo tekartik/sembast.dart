@@ -2,46 +2,55 @@ library tekartik_iodb.idb_database;
 
 import 'package:idb_shim/idb_client_memory.dart';
 import 'package:idb_shim/idb_client.dart';
-import '../database.dart' as iodb;
+import 'package:tekartik_iodb/database.dart' as iodb;
 import 'dart:async';
 import 'package:path/path.dart';
+import 'idb_common_meta.dart';
 
 const IDB_IODB_DATABASE_MEMORY = "iodb";
 
-//class _IodbVersionChangeEvent extends VersionChangeEvent {
-//
-//  int oldVersion;
-//  int newVersion;
-//  Request request;
-//  Object get target => request;
-//  Database get database => transaction.database;
-//  /**
-//     * added for convenience
-//     */
-//  Transaction get transaction => request.transaction;
-//
-//  _IodbVersionChangeEvent(_IodbDatabase database, this.oldVersion, this.newVersion) {
-//
-//    // special transaction
-//    _MemoryTransaction versionChangeTransaction = new _MemoryTransaction(database, IDB_MODE_READ_WRITE);
-//    request = new OpenDBRequest(database, versionChangeTransaction);
-//  }
-//}
+class _IodbVersionChangeEvent extends VersionChangeEvent {
 
+  int oldVersion;
+  int newVersion;
+  Request request;
+  Object get target => request;
+  Database get database => transaction.database;
+  /**
+     * added for convenience
+     */
+  _EmbsioTransaction get transaction => request.transaction;
+
+  _IodbVersionChangeEvent(_IodbDatabase database, this.oldVersion, this.newVersion) {
+
+    // special transaction
+    request = new OpenDBRequest(database, database.versionChangeTransaction);
+  }
+}
+
+class _EmbsioTransaction extends Transaction {
+  
+  final IdbTransactionMeta meta;
+  _EmbsioTransaction(_IodbDatabase database, this.meta) : super(database);
+  
+  // TODO: implement completed
+  @override
+  Future<Database> get completed => null;
+
+  @override
+  ObjectStore objectStore(String name) {
+    // TODO: implement objectStore
+  }
+}
 class _IodbObjectStore extends ObjectStore {
 
-  final _IodbDatabase database;
+  final IdbObjectStoreMeta meta;
+  final _EmbsioTransaction transaction;
+  _IodbDatabase get database => transaction.database;
   iodb.Database get iodbDatabase => database.db;
   iodb.Store iodbStore;
 
-  @override
-  final keyPath;
-
-  @override
-  final bool autoIncrement;
-  _IodbObjectStore(this.database, String name, this.keyPath, this.autoIncrement) {
-    iodbStore = iodbDatabase.getStore(name);
-  }
+  _IodbObjectStore(this.transaction, this.meta);
 
   @override
   Future add(value, [key]) {
@@ -105,8 +114,19 @@ class _IodbObjectStore extends ObjectStore {
     // TODO: implement put
     return null;
   }
+
+  // TODO: implement autoIncrement
+  @override
+  bool get autoIncrement => meta.autoIncrement;
+
+  // TODO: implement keyPath
+  @override
+  get keyPath => meta.keyPath;
 }
 class _IodbDatabase extends Database {
+  
+  _EmbsioTransaction versionChangeTransaction;
+  final IdbDatabaseMeta meta = new IdbDatabaseMeta();
   final String _name;
   iodb.Database db;
 
@@ -121,22 +141,25 @@ class _IodbDatabase extends Database {
     int previousVersion;
     _open() {
       return iodbFactory.openDatabase(join(factory._path, _name), mode: iodb.DatabaseMode.EXISTING).then((iodb.Database db) {
-        if (db != null) {
-          previousVersion = db.version;
-        } else {
-          return iodbFactory.openDatabase(join(factory._path, _name), mode: iodb.DatabaseMode.EXISTING).then((iodb.Database db) {
+        previousVersion = db.version;
+      }).catchError((iodb.DatabaseException e, st) {
+        if (e.code == iodb.DatabaseException.DATABASE_NOT_FOUND) {
+          previousVersion = null;
+          return iodbFactory.openDatabase(join(factory._path, _name)).then((iodb.Database db) {
             this.db = db;
           });
-
         }
+        print(st);
+        throw e;
       });
     }
 
     return _open().then((_) {
       if (newVersion != previousVersion) {
-//return new Future.sync(() {
-//  onUpgradeNeeded(new VersionChangeEvent())
-//});
+        meta.onUpgradeNeeded(() {
+          versionChangeTransaction = new _EmbsioTransaction(this, meta.versionChangeTransaction);
+          onUpgradeNeeded(new _IodbVersionChangeEvent(this, previousVersion, newVersion));
+        });
       }
     });
 
@@ -150,7 +173,9 @@ class _IodbDatabase extends Database {
 
   @override
   ObjectStore createObjectStore(String name, {String keyPath, bool autoIncrement}) {
-    return new _IodbObjectStore(this, name, keyPath, autoIncrement);
+    IdbObjectStoreMeta storeMeta = new IdbObjectStoreMeta(name, keyPath, autoIncrement);
+    meta.createObjectStore(storeMeta);
+    return new _IodbObjectStore(versionChangeTransaction, storeMeta);
   }
 
   @override
@@ -165,14 +190,8 @@ class _IodbDatabase extends Database {
   // TODO: implement objectStoreNames
   @override
   Iterable<String> get objectStoreNames {
-    List<String> names = [];
-    db.stores.forEach((iodb.Store store) {
-      if (store.name != db.mainStore.name) {
-        names.add(store.name);
-      }
-    });
-    return names;
-  }
+    return meta.objectStoreNames;
+   }
 
   // TODO: implement onVersionChange
   @override
