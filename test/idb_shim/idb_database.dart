@@ -45,7 +45,6 @@ class _EmbsioTransaction extends Transaction {
   final IdbTransactionMeta meta;
   _EmbsioTransaction(_IodbDatabase database, this.meta) : super(database);
 
-  // TODO: implement completed
   @override
   Future<Database> get completed => completer == null ? new Future.value(database) : completer.future;
 
@@ -53,6 +52,51 @@ class _EmbsioTransaction extends Transaction {
   ObjectStore objectStore(String name) {
     return new _IodbObjectStore(this, database.meta.getObjectStore(name));
   }
+}
+
+class _EmbsioIndex extends Index {
+
+  final _IodbObjectStore store;
+  final IdbIndexMeta meta;
+
+  _EmbsioIndex(this.store, this.meta);
+
+  @override
+  Future<int> count([key_OR_range]) {
+    throw 'not implemented yet';
+  }
+
+  @override
+  Future get(key) {
+    throw 'not implemented yet';
+  }
+
+  @override
+  Future getKey(key) {
+    throw 'not implemented yet';
+  }
+
+  @override
+  get keyPath => meta.keyPath;
+
+  @override
+  bool get multiEntry => meta.multiEntry;
+
+  @override
+  String get name => meta.name;
+
+  @override
+  Stream<CursorWithValue> openCursor({key, KeyRange range, String direction, bool autoAdvance}) {
+    throw 'not implemented yet';
+  }
+
+  @override
+  Stream<Cursor> openKeyCursor({key, KeyRange range, String direction, bool autoAdvance}) {
+    throw 'not implemented yet';
+  }
+
+  @override
+  bool get unique => meta.unique;
 }
 class _IodbObjectStore extends ObjectStore {
 
@@ -66,72 +110,62 @@ class _IodbObjectStore extends ObjectStore {
 
   @override
   Future add(value, [key]) {
-    // TODO: implement add
-    return null;
+    throw 'not implemented yet';
   }
 
 
   @override
   Future clear() {
-    // TODO: implement clear
-    return null;
+    throw 'not implemented yet';
   }
 
   @override
   Future<int> count([key_OR_range]) {
-    // TODO: implement count
-    return null;
+    throw 'not implemented yet';
   }
 
   @override
   Index createIndex(String name, keyPath, {bool unique, bool multiEntry}) {
-    // TODO: implement createIndex
-    return null;
+    IdbIndexMeta indexMeta = new IdbIndexMeta(name, keyPath, unique, multiEntry);
+    meta.createIndex(indexMeta);
+    return new _EmbsioIndex(this, indexMeta);
   }
 
   @override
   Future delete(key) {
-    // TODO: implement delete
-    return null;
+    throw 'not implemented yet';
   }
 
   @override
   Future getObject(key) {
-    // TODO: implement getObject
-    return null;
+    throw 'not implemented yet';
   }
 
   @override
   Index index(String name) {
-    // TODO: implement index
-    return null;
+    IdbIndexMeta indexMeta = meta.index(name);
+    return new _EmbsioIndex(this, indexMeta);
   }
 
-  // TODO: implement indexNames
   @override
-  List<String> get indexNames => null;
+  List<String> get indexNames => new List.from(meta.indexNames, growable: false);
 
-  // TODO: implement name
   @override
-  String get name => null;
+  String get name => meta.name;
 
   @override
   Stream<CursorWithValue> openCursor({key, KeyRange range, String direction, bool autoAdvance}) {
-    // TODO: implement openCursor
-    return null;
+    throw 'not implemented yet';
   }
 
   @override
   Future put(value, [key]) {
-    // TODO: implement put
-    return null;
+    throw 'not implemented yet';
   }
 
-  // TODO: implement autoIncrement
   @override
   bool get autoIncrement => meta.autoIncrement;
 
-  // TODO: implement keyPath
   @override
   get keyPath => meta.keyPath;
 }
@@ -177,7 +211,7 @@ class _IodbDatabase extends Database {
                 return db.mainStore.getRecords(keys).then((List<iodb.Record> records) {
                   records.forEach((iodb.Record record) {
                     Map map = record.value;
-                    IdbObjectStoreMeta store = new IdbObjectStoreMeta(map["name"], map["keyPath"], map["autoIncrement"]);
+                    IdbObjectStoreMeta store = new IdbObjectStoreMeta.fromMap(meta, map);
                     meta.addObjectStore(store);
 
 
@@ -196,7 +230,7 @@ class _IodbDatabase extends Database {
 
     return _open().then((db) {
       if (newVersion != previousVersion) {
-        List<IdbObjectStoreMeta> changedStores;
+        Set<IdbObjectStoreMeta> changedStores;
 
         meta.onUpgradeNeeded(() {
           versionChangeTransaction = new _EmbsioTransaction(this, meta.versionChangeTransaction);
@@ -240,34 +274,33 @@ class _IodbDatabase extends Database {
 
   @override
   void close() {
-    // TODO: implement close
+    db.close();
   }
 
   @override
   ObjectStore createObjectStore(String name, {String keyPath, bool autoIncrement}) {
-    IdbObjectStoreMeta storeMeta = new IdbObjectStoreMeta(name, keyPath, autoIncrement);
+    IdbObjectStoreMeta storeMeta = new IdbObjectStoreMeta(meta, name, keyPath, autoIncrement);
     meta.createObjectStore(storeMeta);
     return new _IodbObjectStore(versionChangeTransaction, storeMeta);
   }
 
   @override
   void deleteObjectStore(String name) {
-    throw 'not implemented';
+    throw 'not implemented yet';
   }
 
-  // TODO: implement name
   @override
   String get name => _name;
 
-  // TODO: implement objectStoreNames
   @override
   Iterable<String> get objectStoreNames {
     return meta.objectStoreNames;
   }
 
-  // TODO: implement onVersionChange
   @override
-  Stream<VersionChangeEvent> get onVersionChange => null;
+  Stream<VersionChangeEvent> get onVersionChange {
+    throw 'not implemented yet';
+  }
 
   @override
   Transaction transaction(storeName_OR_storeNames, String mode) {
@@ -281,9 +314,8 @@ class _IodbDatabase extends Database {
     return new _EmbsioTransaction(this, txnMeta);
   }
 
-  // TODO: implement version
   @override
-  int get version => db.version;
+  int get version => meta.version;
 
   Map toDebugMap() {
     Map map;

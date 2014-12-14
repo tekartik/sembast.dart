@@ -11,14 +11,14 @@ class IdbTransactionMeta {
 class IdbDatabaseMeta {
   int version;
   IdbTransactionMeta _versionChangeTransaction;
-  List<IdbObjectStoreMeta> versionChangeStores; // store modified during onUpgradeNeeded
+  Set<IdbObjectStoreMeta> versionChangeStores; // store modified during onUpgradeNeeded
   Map<String, IdbObjectStoreMeta> _stores = new Map();
 
   IdbTransactionMeta get versionChangeTransaction => _versionChangeTransaction;
 
   onUpgradeNeeded(action()) {
 
-    versionChangeStores = [];
+    versionChangeStores = new Set();
     _versionChangeTransaction = new IdbTransactionMeta(null, IDB_MODE_READ_WRITE);
     var result = action();
     _versionChangeTransaction = null;
@@ -55,7 +55,7 @@ class IdbDatabaseMeta {
       // assume null - it will complain otherwise
       return new IdbTransactionMeta(storeName_OR_storeNames, mode);
     }
-      
+
   }
 
   addObjectStore(IdbObjectStoreMeta store) {
@@ -82,43 +82,46 @@ class IdbDatabaseMeta {
   }
 }
 
-class IdbIndexMeta {
-  final IdbObjectStoreMeta storeMeta;
-  final String name;
-  final String keyPath;
-  final bool unique;
-  final bool multiEntry;
-  IdbIndexMeta(this.storeMeta, this.name, this.keyPath, bool unique, bool multiEntry)
-      : multiEntry = (multiEntry == true),
-        unique = (unique == true);
-
-
-  @override
-  String toString() {
-    return "index $name on $keyPath unique ${unique} multi ${multiEntry}";
-  }
-
-}
-
-
 // meta data is loaded only once
 class IdbObjectStoreMeta {
 
+  final IdbDatabaseMeta databaseMeta;
   final String name;
   final String keyPath;
   final bool autoIncrement;
 
-  Map<String, IdbIndexMeta> indecies = new Map();
+  Map<String, IdbIndexMeta> _indecies = new Map();
 
-  Iterable<String> get indexNames => indecies.keys;
+  Iterable<String> get indexNames => _indecies.keys;
 
-  IdbObjectStoreMeta(this.name, this.keyPath, bool autoIncrement) : autoIncrement = (autoIncrement == true);
+  IdbIndexMeta index(String name) {
+    IdbIndexMeta indexMeta = _indecies[name];
+    if (indexMeta == null) {
+      throw new ArgumentError("index $name not found");
+    }
+    return indexMeta;
+  }
 
-  IdbObjectStoreMeta.fromMap(Map<String, Object> map) //
-      : this(map["name"], //
+  createIndex(IdbIndexMeta index) {
+    if (databaseMeta.versionChangeTransaction == null) {
+      throw new StateError("cannot create index outside of a versionChangedEvent");
+    }
+    databaseMeta.versionChangeStores.add(this);
+    addIndex(index);
+  }
+
+  IdbObjectStoreMeta(this.databaseMeta, this.name, this.keyPath, bool autoIncrement) : autoIncrement = (autoIncrement == true);
+
+  IdbObjectStoreMeta.fromMap(IdbDatabaseMeta databaseMeta, Map<String, Object> map) //
+      : this(databaseMeta, //
+      map["name"], //
       map["keyPath"], //
       map["autoIncrement"]);
 
+  addIndex(IdbIndexMeta index) {
+    _indecies[index.name] = index;
+   }
+  
   Map toDebugMap() {
     return toMap();
   }
@@ -131,6 +134,45 @@ class IdbObjectStoreMeta {
     }
     if (autoIncrement) {
       map["autoIncrement"] = autoIncrement;
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return toDebugMap().toString();
+  }
+}
+
+class IdbIndexMeta {
+  final String name;
+  final String keyPath;
+  final bool unique;
+  final bool multiEntry;
+  IdbIndexMeta(this.name, this.keyPath, bool unique, bool multiEntry)
+      : multiEntry = (multiEntry == true),
+        unique = (unique == true);
+
+
+  IdbIndexMeta.fromMap(Map<String, Object> map) //
+      : this(map["name"], //
+      map["keyPath"], //
+      map["unique"], //
+      map["multiEntry"]);
+
+  Map toDebugMap() {
+    return toMap();
+  }
+  Map<String, Object> toMap() {
+    Map map = {
+      "name": name,
+      "keyPath": keyPath
+    };
+    if (unique) {
+      map["unique"] = unique;
+    }
+    if (multiEntry) {
+      map["multiEntry"] = multiEntry;
     }
     return map;
   }
