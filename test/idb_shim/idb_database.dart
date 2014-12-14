@@ -11,8 +11,8 @@ const IDB_IODB_DATABASE_MEMORY = "iodb";
 
 class _IodbVersionChangeEvent extends VersionChangeEvent {
 
-  int oldVersion;
-  int newVersion;
+  final int oldVersion;
+  final int newVersion;
   Request request;
   Object get target => request;
   Database get database => transaction.database;
@@ -21,25 +21,37 @@ class _IodbVersionChangeEvent extends VersionChangeEvent {
      */
   _EmbsioTransaction get transaction => request.transaction;
 
-  _IodbVersionChangeEvent(_IodbDatabase database, this.oldVersion, this.newVersion) {
+  _IodbVersionChangeEvent(_IodbDatabase database, int oldVersion, this.newVersion) //
+      : oldVersion = oldVersion == null ? 0 : oldVersion {
 
-    // special transaction
+    // handle = too to catch programatical errors
+    if (this.oldVersion >= newVersion) {
+      throw new StateError("cannot downgrade from ${oldVersion} to $newVersion");
+    }
     request = new OpenDBRequest(database, database.versionChangeTransaction);
+  }
+  @override
+  String toString() {
+    return "${oldVersion} => ${newVersion}";
   }
 }
 
 class _EmbsioTransaction extends Transaction {
+
+  Completer completer;
+  @override
+  _IodbDatabase get database => super.database;
 
   final IdbTransactionMeta meta;
   _EmbsioTransaction(_IodbDatabase database, this.meta) : super(database);
 
   // TODO: implement completed
   @override
-  Future<Database> get completed => null;
+  Future<Database> get completed => completer == null ? new Future.value(database) : completer.future;
 
   @override
   ObjectStore objectStore(String name) {
-    // TODO: implement objectStore
+    return new _IodbObjectStore(this, database.meta.getObjectStore(name));
   }
 }
 class _IodbObjectStore extends ObjectStore {
@@ -188,7 +200,10 @@ class _IodbDatabase extends Database {
 
         meta.onUpgradeNeeded(() {
           versionChangeTransaction = new _EmbsioTransaction(this, meta.versionChangeTransaction);
-          onUpgradeNeeded(new _IodbVersionChangeEvent(this, previousVersion, newVersion));
+          // could be null when opening an empty database
+          if (onUpgradeNeeded != null) {
+            onUpgradeNeeded(new _IodbVersionChangeEvent(this, previousVersion, newVersion));
+          }
           changedStores = meta.versionChangeStores;
         });
 
@@ -204,25 +219,17 @@ class _IodbDatabase extends Database {
             List<Future> futures = [];
 
             changedStores.forEach((IdbObjectStoreMeta storeMeta) {
-              Map storeMap = {
-                "name": storeMeta.name
-              };
-              if (storeMeta.keyPath != null) {
-                storeMap["keyPath"] = storeMeta.keyPath;
-              }
-
-              if (storeMeta.autoIncrement) {
-                storeMap["autoIncrement"] = storeMeta.autoIncrement;
-              }
-              ;
-
-              futures.add(db.put(storeMap, "store_${storeMeta.name}"));
+              futures.add(db.put(storeMeta.toMap(), "store_${storeMeta.name}"));
             });
 
             return Future.wait(futures);
 
           });
 
+        }).then((_) {
+          // considered as opened
+          meta.version = newVersion;
+          this.db = db;
         });
 
       }
@@ -264,17 +271,37 @@ class _IodbDatabase extends Database {
 
   @override
   Transaction transaction(storeName_OR_storeNames, String mode) {
-    // TODO: implement transaction
+    IdbTransactionMeta txnMeta = meta.transaction(storeName_OR_storeNames, mode);
+    return new _EmbsioTransaction(this, txnMeta);
   }
 
   @override
   Transaction transactionList(List<String> storeNames, String mode) {
-    // TODO: implement transactionList
+    IdbTransactionMeta txnMeta = meta.transaction(storeNames, mode);
+    return new _EmbsioTransaction(this, txnMeta);
   }
 
   // TODO: implement version
   @override
   int get version => db.version;
+
+  Map toDebugMap() {
+    Map map;
+    if (meta != null) {
+      map = meta.toDebugMap();
+    } else {
+      map = {};
+    }
+
+    if (db != null) {
+      map["db"] = db.toDebugMap();
+    }
+    return map;
+  }
+
+  String toString() {
+    return toDebugMap().toString();
+  }
 }
 class IdbDatabaseFactory extends IdbFactory {
 

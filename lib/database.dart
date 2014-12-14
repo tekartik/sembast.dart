@@ -1049,12 +1049,16 @@ class Database {
     // return new Future.value();
   }
 
-  @override
-  String toString() {
+  Map toDebugMap() {
     return {
       "path": path,
       "version": version,
       "stores": _stores
-    }.toString();
+    };
+  }
+
+  @override
+  String toString() {
+    return toDebugMap().toString();
   }
 }
