@@ -107,14 +107,29 @@ class _Meta {
   }
 }
 
-/**
- * Special field access
- */
+///
+/// Database transaction
+///
+class Transaction {
+
+  final int id;
+  Completer _completer = new Completer.sync();
+  Transaction._(this.id);
+
+  Future get completed => _completer.future;
+}
+
+///
+/// Special field access
+///
 class Field {
   static String VALUE = "_value";
   static String KEY = "_key";
 }
 
+///
+/// Records
+///
 class Record {
 
   get key => _key;
@@ -315,6 +330,11 @@ class _ByKeyFilter extends Filter {
     }
     return record.key == key;
   }
+
+  @override
+  String toString() {
+    return "${Field.KEY} = ${key}";
+  }
 }
 
 class _FilterPredicate extends Filter {
@@ -415,6 +435,10 @@ abstract class Filter {
 
 class Finder {
   Filter filter;
+  int offset;
+  int limit;
+
+  Finder({this.filter, this.sortOrders, this.limit, this.offset});
   List<SortOrder> sortOrders = [];
   set sortOrder(SortOrder sortOrder) {
     sortOrders = [sortOrder];
@@ -430,15 +454,23 @@ class Finder {
 //  }
   int compare(Record record1, Record record2) {
     int result = 0;
-    for (SortOrder order in sortOrders) {
-      result = order.compare(record1, record2);
-      // stop as soon as they differ
-      if (result != 0) {
-        break;
+    if (sortOrders != null) {
+      for (SortOrder order in sortOrders) {
+        result = order.compare(record1, record2);
+        // stop as soon as they differ
+        if (result != 0) {
+          break;
+        }
       }
     }
 
     return result;
+  }
+
+  Finder clone({int limit}) {
+    return new Finder(filter: filter, sortOrders: sortOrders, //
+    limit: limit == null ? this.limit : limit, //
+    offset: offset);
   }
 
   @override
@@ -493,6 +525,19 @@ class Store {
       }
     });
   }
+
+  Future<Record> findRecord(Finder finder) {
+    if (finder.limit != 1) {
+      finder = finder.clone(limit: 1);
+    }
+    return findRecords(finder).then((List<Record> records) {
+      if (records.isNotEmpty) {
+        return records.first;
+      }
+      return null;
+    });
+  }
+
   Future<List<Record>> findRecords(Finder finder) {
     return inTransaction(() {
       List<Record> result;
@@ -722,7 +767,10 @@ class Database {
 
   String get path => _storage.path;
 
-  int _rev = 0;
+  //int _rev = 0;
+  // incremental for each transaction
+  int _txnId = 0;
+  Map<int, Transaction> _transactions = new Map();
 
   _Meta _meta;
   int get version => _meta.version;
@@ -770,12 +818,25 @@ class Database {
   Completer _txnRootCompleter;
   Completer _txnChildCompleter;
 
-  bool get _inTransaction => Zone.current[_zoneRootKey] == true;
-  // for transaction
-  static const _zoneRootKey = "tekartik.iodb";
-  static const _zoneChildKey = "tekartik.iodb.child";
+  int get _currentZoneTxnId => Zone.current[_zoneTransactionKey];
+  bool get _inTransaction => _currentZoneTxnId != null;
+  ///
+  /// get the current zone transaction
+  ///
+  Transaction get transaction {
+    int txnId = _currentZoneTxnId;
+    if (txnId == null) {
+      return null;
+    } else {
+      return _transactions[_currentZoneTxnId];
+    }
+  }
 
-  Future inTransaction(Future action()) {
+  // for transaction
+  static const _zoneTransactionKey = "sembast.txn"; // transaction key
+  static const _zoneChildKey = "sembast.txn.child"; // bool
+
+  Future inTransaction(action()) {
 
     //devPrint("z: ${Zone.current[_zoneRootKey]}");
     //devPrint("z: ${Zone.current[_zoneChildKey]}");
@@ -792,20 +853,40 @@ class Database {
 
       Completer actionCompleter = _txnRootCompleter;
 
-      return runZoned(() {
+      Transaction txn = new Transaction._(++_txnId);
+      _transactions[txn.id] = txn;
+
+      var result;
+      var err;
+      runZoned(() {
         // execute and commit
-        return new Future.sync(action).then((result) {
+        return new Future.sync(action).then((_result) {
           return new Future.sync(_commit).then((_) {
-            return result;
+            result = _result;
           });
 
         });
       }, zoneValues: {
-        _zoneRootKey: true
-      }).whenComplete(() {
+        _zoneTransactionKey: txn.id
+      }, onError: (e) {
+        //txn._completer.completeError(e);
+        err = e;
+        //return new Future.error(e);
+        _transactions.remove(txn.id);
         _clearTxnData();
-        actionCompleter.complete();
+        actionCompleter.complete(err);
+        txn._completer.complete();
+
+      }).whenComplete(() {
+        _transactions.remove(txn.id);
+        _clearTxnData();
+        actionCompleter.complete(result);
+        txn._completer.complete();
+
+
       });
+      return actionCompleter.future;
+
     } else {
       // in child transaction
       // no commit yet

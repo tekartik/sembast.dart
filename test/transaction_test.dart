@@ -115,7 +115,7 @@ void defineTests(DatabaseFactory factory) {
       });
     });
 
-    test('put and throw', () {
+   test('put and throw', () {
       return db.inTransaction(() {
         return db.put("hi", 1).then((_) {
           // still here

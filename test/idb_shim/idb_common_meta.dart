@@ -91,6 +91,8 @@ class IdbObjectStoreMeta {
   final String keyPath;
   final bool autoIncrement;
 
+  Iterable<IdbIndexMeta> get indecies => _indecies.values; 
+  
   Map<String, IdbIndexMeta> _indecies = new Map();
 
   Iterable<String> get indexNames => _indecies.keys;

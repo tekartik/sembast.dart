@@ -1,8 +1,8 @@
-library tekartik_iodb.idb_database;
+library sembast.idb_database;
 
 import 'package:idb_shim/idb_client_memory.dart';
 import 'package:idb_shim/idb_client.dart';
-import 'package:tekartik_iodb/database.dart' as sdb;
+import 'package:sembast/database.dart' as sdb;
 import 'dart:async';
 import 'package:path/path.dart';
 import 'idb_common_meta.dart';
@@ -38,7 +38,7 @@ class _SdbVersionChangeEvent extends VersionChangeEvent {
 
 class _SdbTransaction extends Transaction {
 
-  Completer completer;
+  Future _completed;
   @override
   _SdbDatabase get database => super.database;
 
@@ -46,12 +46,17 @@ class _SdbTransaction extends Transaction {
   _SdbTransaction(_SdbDatabase database, this.meta) : super(database);
 
   @override
-  Future<Database> get completed => completer == null ? new Future.value(database) : completer.future;
+  Future<Database> get completed => _completed == null ? new Future.value(database) : _completed;
 
   @override
   ObjectStore objectStore(String name) {
     return new _SdbObjectStore(this, database.meta.getObjectStore(name));
   }
+  
+//  @override
+//  String toString() {
+//    return
+//  }
 }
 
 class _SdbIndex extends Index {
@@ -61,21 +66,47 @@ class _SdbIndex extends Index {
 
   _SdbIndex(this.store, this.meta);
 
+  Future inTransaction(Future computation()) {
+    return store.inTransaction(computation);
+  }
+
+  _indexKeyOrRangeFilter([key_OR_range]) {
+    // null means all entry without null value
+    if (key_OR_range == null) {
+      return new sdb.Filter.notEqual(meta.keyPath, null);
+    }
+    return _keyOrRangeFilter(meta.keyPath, key_OR_range);
+  }
+
   @override
   Future<int> count([key_OR_range]) {
-    return store.inTransaction(() {
-      //return iodbStore.count(_keyOrRangeFilter(key_OR_range));
+    return inTransaction(() {
+      return store.sdbStore.count(_indexKeyOrRangeFilter(key_OR_range));
     });
   }
 
   @override
   Future get(key) {
-    throw 'not implemented yet';
+    return inTransaction(() {
+      sdb.Finder finder = new sdb.Finder(filter: _indexKeyOrRangeFilter(key), limit: 1);
+      return store.sdbStore.findRecords(finder).then((List<sdb.Record> records) {
+        if (records.isNotEmpty) {
+          return records.first.value;
+        }
+      });
+    });
   }
 
   @override
   Future getKey(key) {
-    throw 'not implemented yet';
+    return inTransaction(() {
+      sdb.Finder finder = new sdb.Finder(filter: _indexKeyOrRangeFilter(key), limit: 1);
+      return store.sdbStore.findRecords(finder).then((List<sdb.Record> records) {
+        if (records.isNotEmpty) {
+          return records.first.key;
+        }
+      });
+    });
   }
 
   @override
@@ -100,16 +131,48 @@ class _SdbIndex extends Index {
   @override
   bool get unique => meta.unique;
 }
+
+sdb.Filter _keyOrRangeFilter(String key, [key_OR_range]) {
+  if (key_OR_range == null) {
+    return null;
+  } else if (key_OR_range is KeyRange) {
+    KeyRange range = key_OR_range;
+    sdb.Filter lowerFilter;
+    sdb.Filter upperFilter;
+    List<sdb.Filter> filters = [];
+    if (range.lower != null) {
+      if (range.lowerOpen == true) {
+        lowerFilter = new sdb.Filter.greaterThan(key, range.lower);
+      } else {
+        lowerFilter = new sdb.Filter.greaterThanOrEquals(key, range.lower);
+      }
+      filters.add(lowerFilter);
+    }
+    if (range.upper != null) {
+      if (range.upperOpen == true) {
+        upperFilter = new sdb.Filter.lessThan(key, range.upper);
+      } else {
+        upperFilter = new sdb.Filter.lessThanOrEquals(key, range.upper);
+      }
+      filters.add(upperFilter);
+    }
+    return new sdb.Filter.and(filters);
+
+  } else {
+    return new sdb.Filter.equal(key, key_OR_range);
+  }
+}
+
 class _SdbObjectStore extends ObjectStore {
 
   final IdbObjectStoreMeta meta;
   final _SdbTransaction transaction;
   _SdbDatabase get database => transaction.database;
-  sdb.Database get iodbDatabase => database.db;
-  sdb.Store iodbStore;
+  sdb.Database get sdbDatabase => database.db;
+  sdb.Store sdbStore;
 
   _SdbObjectStore(this.transaction, this.meta) {
-    iodbStore = iodbDatabase.getStore(name);
+    sdbStore = sdbDatabase.getStore(name);
   }
 
   Future inWritableTransaction(Future computation()) {
@@ -120,7 +183,18 @@ class _SdbObjectStore extends ObjectStore {
   }
 
   Future inTransaction(Future computation()) {
-    return new Future.sync(computation);
+    // create the transaction if needed
+    // make it async so that we get the result of the action before transaction completion
+    Completer completer = new Completer();
+    transaction._completed = completer.future;
+    
+    return sdbStore.inTransaction(() {
+      return computation();
+    }).then((result) {
+      completer.complete();
+      return result;
+      
+    });
   }
 
 
@@ -146,22 +220,48 @@ class _SdbObjectStore extends ObjectStore {
     return key;
   }
 
+  _put(value, key) {
+    // Check all indexes
+    List<Future> futures = [];
+    if (value is Map) {
+
+      meta.indecies.forEach((IdbIndexMeta indexMeta) {
+        var fieldValue = value[indexMeta.keyPath];
+        if (fieldValue != null) {
+          sdb.Finder finder = new sdb.Finder(filter: new sdb.Filter.equal(indexMeta.keyPath, fieldValue), limit: 1);
+          futures.add(sdbStore.findRecord(finder).then((sdb.Record record) {
+            // not ourself
+            if (record != null && record.key != key && !indexMeta.multiEntry) {
+              throw new DatabaseError("key '${fieldValue}' already exists in ${record} for index ${indexMeta}");
+            }
+          }));
+        }
+      });
+
+    }
+    return Future.wait(futures).then((_) {
+      return sdbStore.put(value, key);
+    });
+  }
+
   @override
   Future add(value, [key]) {
     return inWritableTransaction(() {
-      return iodbStore.inTransaction(() {
+      return sdbStore.inTransaction(() {
+
+
 
         key = _getKey(value, key);
 
         if (key != null) {
-          return iodbStore.get(key).then((existingValue) {
+          return sdbStore.get(key).then((existingValue) {
             if (existingValue != null) {
               throw new DatabaseError('Key ${key} already exists in the object store');
             }
-            return iodbStore.put(value, key);
+            return _put(value, key);
           });
         } else {
-          return iodbStore.put(value, key);
+          return _put(value, key);
         }
       });
     });
@@ -171,46 +271,22 @@ class _SdbObjectStore extends ObjectStore {
   @override
   Future clear() {
     return inWritableTransaction(() {
-      return iodbStore.clear();
+      return sdbStore.clear();
     }).then((_) {
       return null;
     });
   }
 
-  sdb.Filter _keyOrRangeFilter([key_OR_range]) {
-    if (key_OR_range == null) {
-      return null;
-    } else if (key_OR_range is KeyRange) {
-      KeyRange range = key_OR_range;
-      sdb.Filter lowerFilter;
-      sdb.Filter upperFilter;
-      List<sdb.Filter> filters = [];
-      if (range.lower != null) {
-        if (range.lowerOpen == true) {
-          lowerFilter = new sdb.Filter.greaterThan(sdb.Field.KEY, range.lower);
-        } else {
-          lowerFilter = new sdb.Filter.greaterThanOrEquals(sdb.Field.KEY, range.lower);
-        }
-        filters.add(lowerFilter);
-      }
-      if (range.upper != null) {
-        if (range.upperOpen == true) {
-          upperFilter = new sdb.Filter.lessThan(sdb.Field.KEY, range.upper);
-        } else {
-          upperFilter = new sdb.Filter.lessThanOrEquals(sdb.Field.KEY, range.upper);
-        }
-        filters.add(upperFilter);
-      }
-      return new sdb.Filter.and(filters);
 
-    } else {
-      return new sdb.Filter.byKey(key_OR_range);
-    }
+
+  _storeKeyOrRangeFilter([key_OR_range]) {
+    return _keyOrRangeFilter(sdb.Field.KEY, key_OR_range);
   }
+
   @override
   Future<int> count([key_OR_range]) {
     return inTransaction(() {
-      return iodbStore.count(_keyOrRangeFilter(key_OR_range));
+      return sdbStore.count(_storeKeyOrRangeFilter(key_OR_range));
     });
   }
 
@@ -224,7 +300,7 @@ class _SdbObjectStore extends ObjectStore {
   @override
   Future delete(key) {
     return inWritableTransaction(() {
-      return iodbStore.delete(key);
+      return sdbStore.delete(key);
     });
   }
 
@@ -244,7 +320,7 @@ class _SdbObjectStore extends ObjectStore {
   @override
   Future getObject(key) {
     return inTransaction(() {
-      return iodbStore.getRecord(key).then((sdb.Record record) {
+      return sdbStore.getRecord(key).then((sdb.Record record) {
         return _recordToValue(record);
       });
     });
@@ -264,13 +340,21 @@ class _SdbObjectStore extends ObjectStore {
 
   @override
   Stream<CursorWithValue> openCursor({key, KeyRange range, String direction, bool autoAdvance}) {
-    throw 'not implemented yet';
+    StreamController<CursorWithValue> ctlr = new StreamController();
+    
+//    inTransaction(() {
+//      sdb.Filter filter;
+//      if (key != null) {
+//        
+//      }
+//    });
+    return ctlr.stream;
   }
 
   @override
   Future put(value, [key]) {
     return inWritableTransaction(() {
-      return iodbStore.put(value, _getKey(value, key));
+      return _put(value, _getKey(value, key));
     });
   }
 
@@ -297,14 +381,14 @@ class _SdbDatabase extends Database {
   @override
   IdbSembastFactory get factory => super.factory;
 
-  sdb.DatabaseFactory get iodbFactory => factory._databaseFactory;
+  sdb.DatabaseFactory get sdbFactory => factory._databaseFactory;
 
   _SdbDatabase(IdbFactory factory, this._name) : super(factory);
 
   Future open(int newVersion, void onUpgradeNeeded(VersionChangeEvent event)) {
     int previousVersion;
     _open() {
-      return iodbFactory.openDatabase(join(factory._path, _name), version: 1).then((sdb.Database db) {
+      return sdbFactory.openDatabase(join(factory._path, _name), version: 1).then((sdb.Database db) {
         this.db = db;
         return db.inTransaction(() {
 
