@@ -118,14 +118,39 @@ class _IodbObjectStore extends ObjectStore {
   }
 
   Future inTransaction(Future computation()) {
-    return computation();
+    return new Future.sync(computation);
   }
 
+
+  /// extract the key from the key itself or from the value
+  /// it is a map and keyPath is not null
+  dynamic _getKey(value, [key]) {
+
+    if ((keyPath != null) && (value is Map)) {
+      var keyInValue = value[keyPath];
+      if (keyInValue != null) {
+        if (key != null) {
+          throw new ArgumentError("both key ${key} and inline keyPath ${keyInValue} are specified");
+        } else {
+          return keyInValue;
+        }
+      }
+    }
+    
+    if (key == null && (!autoIncrement)) {
+      throw new DatabaseError('neither keyPath nor autoIncrement set and trying to add object without key');
+    }
+    
+    return key;
+  }
 
   @override
   Future add(value, [key]) {
     return inWritableTransaction(() {
       return iodbStore.inTransaction(() {
+
+        key = _getKey(value, key);
+
         if (key != null) {
           return iodbStore.get(key).then((existingValue) {
             if (existingValue != null) {
@@ -145,6 +170,8 @@ class _IodbObjectStore extends ObjectStore {
   Future clear() {
     return inWritableTransaction(() {
       return iodbStore.clear();
+    }).then((_) {
+      return null;
     });
   }
 
@@ -199,10 +226,25 @@ class _IodbObjectStore extends ObjectStore {
     });
   }
 
+  dynamic _recordToValue(iodb.Record record) {
+    if (record == null) {
+      return null;
+    }
+    var value = record.value;
+    // Add key if _keyPath is not null
+    if ((keyPath != null) && (value is Map)) {
+      value[keyPath] = record.key;
+    }
+
+    return value;
+  }
+
   @override
   Future getObject(key) {
     return inTransaction(() {
-      return iodbStore.get(key);
+      return iodbStore.getRecord(key).then((iodb.Record record) {
+        return _recordToValue(record);
+      });
     });
   }
 
@@ -226,7 +268,7 @@ class _IodbObjectStore extends ObjectStore {
   @override
   Future put(value, [key]) {
     return inWritableTransaction(() {
-      return iodbStore.put(value, key);
+      return iodbStore.put(value, _getKey(value, key));
     });
   }
 

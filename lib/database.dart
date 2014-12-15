@@ -122,9 +122,9 @@ class Record {
   bool get deleted => _deleted == true;
   Store get store => _store;
 
-  Store _store;
-  var _key;
-  var _value;
+  final Store _store;
+  var _key; // not final as can be set during auto key generation
+  final _value;
   bool _deleted;
 
   operator [](var field) {
@@ -136,12 +136,11 @@ class Record {
     return value[field];
   }
 
-  Record._fromMap(Database db, Map map) {
-    _store = db.getStore(map[_store_name]);
-    _key = map[_record_key];
-    _value = map[_record_value];
-    _deleted = map[_record_deleted] == true;
-  }
+  Record._fromMap(Database db, Map map)
+      : _store = db.getStore(map[_store_name]),
+        _key = map[_record_key],
+        _value = map[_record_value],
+        _deleted = map[_record_deleted] == true;
 
   Record _clone() {
     return new Record._(_store, _key, _value, _deleted);
@@ -152,7 +151,9 @@ class Record {
     return (key != null);
   }
 
-  Record._(this._store, this._key, this._value, [this._deleted]);
+  Record._(this._store, var key, var _value, [this._deleted])
+      : _key = _cloneKey(key),
+        _value = _cloneValue(_value);
 
   Map _toBaseMap() {
     Map map = {};
@@ -182,7 +183,7 @@ class Record {
     return _toMap().toString();
   }
 
-  Record(this._store, this._value, [this._key]);
+  Record(this._store, this._value, [this._key]) : _deleted = null;
 
 
   @override
@@ -195,24 +196,34 @@ class Record {
     return false;
   }
 }
-_encodeKey(var key) {
+
+_cloneKey(var key) {
   if (key is String) {
     return key;
   }
   if (key is int) {
     return key;
   }
+  if (key == null) {
+    return key;
+  }
   throw "key ${key} not supported${key != null ? 'type:${key.runtimeType}' : ''}";
 }
 
-_encodeValue(var value) {
+_cloneValue(var value) {
   if (value is Map) {
-    return value;
+    return new Map.from(value);
+  }
+  if (value is List) {
+    return new List.from(value);
   }
   if (value is String) {
     return value;
   }
   if (value is num) {
+    return value;
+  }
+  if (value == null) {
     return value;
   }
   throw "value ${value} not supported${value != null ? 'type:${value.runtimeType}' : ''}";
@@ -696,9 +707,12 @@ class Store {
     return "${name}";
   }
 
+  ///
+  /// TODO: decide on return value
+  ///
   Future clear() {
     Iterable keys = _records.keys;
-    return deleteAll(keys);
+    return deleteAll(new List.from(keys, growable: false));
   }
 }
 
