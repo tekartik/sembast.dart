@@ -2,11 +2,11 @@ library tekartik_iodb.teansaction_test;
 
 // basically same as the io runner but with extra output
 import 'package:tekartik_test/test_config_io.dart';
-import 'package:tekartik_iodb/database.dart';
+import 'package:sembast/database.dart';
 import 'package:tekartik_io_tools/platform_utils.dart';
 import 'package:path/path.dart';
 import 'dart:async';
-import 'package:tekartik_iodb/database_memory.dart';
+import 'package:sembast/database_memory.dart';
 import 'database_test.dart';
 
 void main() {

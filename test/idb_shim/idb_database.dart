@@ -2,14 +2,14 @@ library tekartik_iodb.idb_database;
 
 import 'package:idb_shim/idb_client_memory.dart';
 import 'package:idb_shim/idb_client.dart';
-import 'package:tekartik_iodb/database.dart' as iodb;
+import 'package:tekartik_iodb/database.dart' as sdb;
 import 'dart:async';
 import 'package:path/path.dart';
 import 'idb_common_meta.dart';
 
-const IDB_IODB_DATABASE_MEMORY = "iodb";
+const IDB_FACTORY_SEMBAST = "sembast";
 
-class _IodbVersionChangeEvent extends VersionChangeEvent {
+class _SdbVersionChangeEvent extends VersionChangeEvent {
 
   final int oldVersion;
   final int newVersion;
@@ -19,9 +19,9 @@ class _IodbVersionChangeEvent extends VersionChangeEvent {
   /**
      * added for convenience
      */
-  _EmbsioTransaction get transaction => request.transaction;
+  _SdbTransaction get transaction => request.transaction;
 
-  _IodbVersionChangeEvent(_IodbDatabase database, int oldVersion, this.newVersion) //
+  _SdbVersionChangeEvent(_SdbDatabase database, int oldVersion, this.newVersion) //
       : oldVersion = oldVersion == null ? 0 : oldVersion {
 
     // handle = too to catch programatical errors
@@ -36,34 +36,36 @@ class _IodbVersionChangeEvent extends VersionChangeEvent {
   }
 }
 
-class _EmbsioTransaction extends Transaction {
+class _SdbTransaction extends Transaction {
 
   Completer completer;
   @override
-  _IodbDatabase get database => super.database;
+  _SdbDatabase get database => super.database;
 
   final IdbTransactionMeta meta;
-  _EmbsioTransaction(_IodbDatabase database, this.meta) : super(database);
+  _SdbTransaction(_SdbDatabase database, this.meta) : super(database);
 
   @override
   Future<Database> get completed => completer == null ? new Future.value(database) : completer.future;
 
   @override
   ObjectStore objectStore(String name) {
-    return new _IodbObjectStore(this, database.meta.getObjectStore(name));
+    return new _SdbObjectStore(this, database.meta.getObjectStore(name));
   }
 }
 
-class _EmbsioIndex extends Index {
+class _SdbIndex extends Index {
 
-  final _IodbObjectStore store;
+  final _SdbObjectStore store;
   final IdbIndexMeta meta;
 
-  _EmbsioIndex(this.store, this.meta);
+  _SdbIndex(this.store, this.meta);
 
   @override
   Future<int> count([key_OR_range]) {
-    throw 'not implemented yet';
+    return store.inTransaction(() {
+      //return iodbStore.count(_keyOrRangeFilter(key_OR_range));
+    });
   }
 
   @override
@@ -98,15 +100,15 @@ class _EmbsioIndex extends Index {
   @override
   bool get unique => meta.unique;
 }
-class _IodbObjectStore extends ObjectStore {
+class _SdbObjectStore extends ObjectStore {
 
   final IdbObjectStoreMeta meta;
-  final _EmbsioTransaction transaction;
-  _IodbDatabase get database => transaction.database;
-  iodb.Database get iodbDatabase => database.db;
-  iodb.Store iodbStore;
+  final _SdbTransaction transaction;
+  _SdbDatabase get database => transaction.database;
+  sdb.Database get iodbDatabase => database.db;
+  sdb.Store iodbStore;
 
-  _IodbObjectStore(this.transaction, this.meta) {
+  _SdbObjectStore(this.transaction, this.meta) {
     iodbStore = iodbDatabase.getStore(name);
   }
 
@@ -136,11 +138,11 @@ class _IodbObjectStore extends ObjectStore {
         }
       }
     }
-    
+
     if (key == null && (!autoIncrement)) {
       throw new DatabaseError('neither keyPath nor autoIncrement set and trying to add object without key');
     }
-    
+
     return key;
   }
 
@@ -175,34 +177,34 @@ class _IodbObjectStore extends ObjectStore {
     });
   }
 
-  iodb.Filter _keyOrRangeFilter([key_OR_range]) {
+  sdb.Filter _keyOrRangeFilter([key_OR_range]) {
     if (key_OR_range == null) {
       return null;
     } else if (key_OR_range is KeyRange) {
       KeyRange range = key_OR_range;
-      iodb.Filter lowerFilter;
-      iodb.Filter upperFilter;
-      List<iodb.Filter> filters = [];
+      sdb.Filter lowerFilter;
+      sdb.Filter upperFilter;
+      List<sdb.Filter> filters = [];
       if (range.lower != null) {
         if (range.lowerOpen == true) {
-          lowerFilter = new iodb.Filter.greaterThan(iodb.Field.KEY, range.lower);
+          lowerFilter = new sdb.Filter.greaterThan(sdb.Field.KEY, range.lower);
         } else {
-          lowerFilter = new iodb.Filter.greaterThanOrEquals(iodb.Field.KEY, range.lower);
+          lowerFilter = new sdb.Filter.greaterThanOrEquals(sdb.Field.KEY, range.lower);
         }
         filters.add(lowerFilter);
       }
       if (range.upper != null) {
         if (range.upperOpen == true) {
-          upperFilter = new iodb.Filter.lessThan(iodb.Field.KEY, range.upper);
+          upperFilter = new sdb.Filter.lessThan(sdb.Field.KEY, range.upper);
         } else {
-          upperFilter = new iodb.Filter.lessThanOrEquals(iodb.Field.KEY, range.upper);
+          upperFilter = new sdb.Filter.lessThanOrEquals(sdb.Field.KEY, range.upper);
         }
         filters.add(upperFilter);
       }
-      return new iodb.Filter.and(filters);
+      return new sdb.Filter.and(filters);
 
     } else {
-      return new iodb.Filter.byKey(key_OR_range);
+      return new sdb.Filter.byKey(key_OR_range);
     }
   }
   @override
@@ -216,7 +218,7 @@ class _IodbObjectStore extends ObjectStore {
   Index createIndex(String name, keyPath, {bool unique, bool multiEntry}) {
     IdbIndexMeta indexMeta = new IdbIndexMeta(name, keyPath, unique, multiEntry);
     meta.createIndex(indexMeta);
-    return new _EmbsioIndex(this, indexMeta);
+    return new _SdbIndex(this, indexMeta);
   }
 
   @override
@@ -226,7 +228,7 @@ class _IodbObjectStore extends ObjectStore {
     });
   }
 
-  dynamic _recordToValue(iodb.Record record) {
+  dynamic _recordToValue(sdb.Record record) {
     if (record == null) {
       return null;
     }
@@ -242,7 +244,7 @@ class _IodbObjectStore extends ObjectStore {
   @override
   Future getObject(key) {
     return inTransaction(() {
-      return iodbStore.getRecord(key).then((iodb.Record record) {
+      return iodbStore.getRecord(key).then((sdb.Record record) {
         return _recordToValue(record);
       });
     });
@@ -251,7 +253,7 @@ class _IodbObjectStore extends ObjectStore {
   @override
   Index index(String name) {
     IdbIndexMeta indexMeta = meta.index(name);
-    return new _EmbsioIndex(this, indexMeta);
+    return new _SdbIndex(this, indexMeta);
   }
 
   @override
@@ -285,24 +287,24 @@ class _IodbObjectStore extends ObjectStore {
 /// {"key":"stores","value":["test_store"]}
 /// {"key":"store_test_store","value":{"name":"test_store","keyPath":"my_key","autoIncrement":true}}
 
-class _IodbDatabase extends Database {
+class _SdbDatabase extends Database {
 
-  _EmbsioTransaction versionChangeTransaction;
+  _SdbTransaction versionChangeTransaction;
   final IdbDatabaseMeta meta = new IdbDatabaseMeta();
   final String _name;
-  iodb.Database db;
+  sdb.Database db;
 
   @override
-  IdbDatabaseFactory get factory => super.factory;
+  IdbSembastFactory get factory => super.factory;
 
-  iodb.DatabaseFactory get iodbFactory => factory._databaseFactory;
+  sdb.DatabaseFactory get iodbFactory => factory._databaseFactory;
 
-  _IodbDatabase(IdbFactory factory, this._name) : super(factory);
+  _SdbDatabase(IdbFactory factory, this._name) : super(factory);
 
   Future open(int newVersion, void onUpgradeNeeded(VersionChangeEvent event)) {
     int previousVersion;
     _open() {
-      return iodbFactory.openDatabase(join(factory._path, _name), version: 1).then((iodb.Database db) {
+      return iodbFactory.openDatabase(join(factory._path, _name), version: 1).then((sdb.Database db) {
         this.db = db;
         return db.inTransaction(() {
 
@@ -310,15 +312,15 @@ class _IodbDatabase extends Database {
             previousVersion = version;
           }).then((_) {
             // read meta
-            return db.mainStore.getRecord("stores").then((iodb.Record record) {
+            return db.mainStore.getRecord("stores").then((sdb.Record record) {
               if (record != null) {
                 List<String> storeNames = record.value;
                 List<String> keys = [];
                 storeNames.forEach((String storeName) {
                   keys.add("store_${storeName}");
                 });
-                return db.mainStore.getRecords(keys).then((List<iodb.Record> records) {
-                  records.forEach((iodb.Record record) {
+                return db.mainStore.getRecords(keys).then((List<sdb.Record> records) {
+                  records.forEach((sdb.Record record) {
                     Map map = record.value;
                     IdbObjectStoreMeta store = new IdbObjectStoreMeta.fromMap(meta, map);
                     meta.addObjectStore(store);
@@ -342,10 +344,10 @@ class _IodbDatabase extends Database {
         Set<IdbObjectStoreMeta> changedStores;
 
         meta.onUpgradeNeeded(() {
-          versionChangeTransaction = new _EmbsioTransaction(this, meta.versionChangeTransaction);
+          versionChangeTransaction = new _SdbTransaction(this, meta.versionChangeTransaction);
           // could be null when opening an empty database
           if (onUpgradeNeeded != null) {
-            onUpgradeNeeded(new _IodbVersionChangeEvent(this, previousVersion, newVersion));
+            onUpgradeNeeded(new _SdbVersionChangeEvent(this, previousVersion, newVersion));
           }
           changedStores = meta.versionChangeStores;
         });
@@ -389,7 +391,7 @@ class _IodbDatabase extends Database {
   ObjectStore createObjectStore(String name, {String keyPath, bool autoIncrement}) {
     IdbObjectStoreMeta storeMeta = new IdbObjectStoreMeta(meta, name, keyPath, autoIncrement);
     meta.createObjectStore(storeMeta);
-    return new _IodbObjectStore(versionChangeTransaction, storeMeta);
+    return new _SdbObjectStore(versionChangeTransaction, storeMeta);
   }
 
   @override
@@ -413,13 +415,13 @@ class _IodbDatabase extends Database {
   @override
   Transaction transaction(storeName_OR_storeNames, String mode) {
     IdbTransactionMeta txnMeta = meta.transaction(storeName_OR_storeNames, mode);
-    return new _EmbsioTransaction(this, txnMeta);
+    return new _SdbTransaction(this, txnMeta);
   }
 
   @override
   Transaction transactionList(List<String> storeNames, String mode) {
     IdbTransactionMeta txnMeta = meta.transaction(storeNames, mode);
-    return new _EmbsioTransaction(this, txnMeta);
+    return new _SdbTransaction(this, txnMeta);
   }
 
   @override
@@ -443,17 +445,17 @@ class _IodbDatabase extends Database {
     return toDebugMap().toString();
   }
 }
-class IdbDatabaseFactory extends IdbFactory {
+class IdbSembastFactory extends IdbFactory {
 
-  final iodb.DatabaseFactory _databaseFactory;
+  final sdb.DatabaseFactory _databaseFactory;
   final String _path;
 
   @override
   bool get persistent => _databaseFactory.persistent;
 
-  IdbDatabaseFactory(this._databaseFactory, this._path);
+  IdbSembastFactory(this._databaseFactory, this._path);
 
-  String get name => IDB_IODB_DATABASE_MEMORY;
+  String get name => IDB_FACTORY_SEMBAST;
 
 
   @override
@@ -474,7 +476,7 @@ class IdbDatabaseFactory extends IdbFactory {
       return new Future.error(new ArgumentError('name cannot be null'));
     }
 
-    _IodbDatabase db = new _IodbDatabase(this, dbName);
+    _SdbDatabase db = new _SdbDatabase(this, dbName);
 
     return db.open(version, onUpgradeNeeded).then((_) {
       return db;

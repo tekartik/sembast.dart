@@ -1,4 +1,4 @@
-library tekartik_iodb.database;
+library sembast.database;
 
 import 'dart:async';
 import 'dart:convert';

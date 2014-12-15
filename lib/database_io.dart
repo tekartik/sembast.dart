@@ -1,4 +1,4 @@
-library tekartik_iodb.database_io;
+library sembast.database_io;
 
 import 'dart:async';
 import 'dart:io';

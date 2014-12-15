@@ -1,7 +1,6 @@
-name:  tekartik_iodb
-description:  A simple io database
-dependencies:
+name: sembast
+description: A simple io database
 dev_dependencies:
+  idb_shim: any
   tekartik_test:
     git: git://github.com/alextekartik/tekartik_test.dart
-  idb_shim: any
