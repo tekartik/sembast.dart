@@ -55,6 +55,18 @@ void defineTests(DatabaseFactory factory) {
       });
     });
 
+    test('put/clear/get in transaction', () {
+      return db.inTransaction(() {
+        return db.put("hi", 1).then((_) {
+          return db.mainStore.clear().then((_) {
+            return db.get(1).then((String value) {
+              expect(value, null);
+            });
+          });
+        });
+      });
+    });
+
     test('put in transaction', () {
       List<Future> futures = [];
       futures.add(db.inTransaction(() {

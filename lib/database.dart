@@ -787,8 +787,17 @@ class Store {
   /// TODO: decide on return value
   ///
   Future clear() {
-    Iterable keys = _records.keys;
-    return deleteAll(new List.from(keys, growable: false));
+    return inTransaction(() {
+      // first delete the one in transaction
+      return new Future.sync(() {
+        if (_txnRecords != null) {
+          return deleteAll(new List.from(_txnRecords.keys, growable: false));
+        }
+      }).then((_) {
+        Iterable keys = _records.keys;
+        return deleteAll(new List.from(keys, growable: false));
+      });
+    });
   }
 }
 
