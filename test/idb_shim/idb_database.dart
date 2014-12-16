@@ -45,60 +45,70 @@ class _SdbTransaction extends Transaction {
 
   int index = 0;
 
+  _execute(i) {
+    if (database.LOGV) {
+      _SdbDatabase.logger.finest("exec $i");
+    }
+    Completer completer = completers[i];
+    Function action = actions[i];
+    return new Future.sync(action).then((result) {
+      if (database.LOGV) {
+        _SdbDatabase.logger.finest("done $i");
+      }
+      completer.complete(result);
+    }).catchError((e) {
+      //devPrint(" err $i");
+      if (database.LOGV) {
+        _SdbDatabase.logger.finest("err $i");
+      }
+      completer.completeError(e);
+    });
+  }
+
+  _next() {
+    //print('_next? ${index}/${actions.length}');
+    if (index < actions.length) {
+      // Always try more
+      return _execute(index++).then((_) {
+        return _next();
+      });
+    } else {
+      // check next cycle too
+      return new Future.value().then((_) {
+        if (index < actions.length) {
+          return _next();
+        }
+      });
+    }
+  }
+
+  // Lazy execution of the first action
+  Future lazyExecution;
+
   //
   // Create or execute the transaction
   // leaving a time to breath
+  // Since it must run everything in a single call, let all the actions
+  // in the first callback enqueue before running
   //
   Future execute(action()) {
 
-    _execute(i) {
-      //devPrint("exec $i");
-      Completer completer = completers[i];
-      Function action = actions[i];
-      return new Future.sync(action).then((result) {
-        //devPrint("done $i");
-        completer.complete(result);
-      }).catchError((e) {
-        //devPrint(" err $i");
-        completer.completeError(e);
-      });
-    }
+    Future actionFuture = _enqueue(action);
+    futures.add(actionFuture);
 
-
-    _next() {
-      //devPrint('_next? ${index}/${actions.length}');
-      if (index < actions.length) {
-        // Always try more
-        return _execute(index++).then((_) {
-          return _next();
-        });
-      } else {
-        // check next cycle too
-        return new Future.value().then((_) {
-          if (index < actions.length) {
-            return _next();
-          }
-        });
-      }
-    }
-
-    if (sdbTransaction == null) {
-      sdbTransaction = sdbDatabase.transaction;
-      if (sdbTransaction == null) {
+    if (lazyExecution == null) {
+      // don't return the result here
+      lazyExecution = new Future.microtask(() {
+        assert(sdbDatabase.transaction == null);
+        
+        // No return value here
         return sdbDatabase.inTransaction(() {
 
           // assign right away as this is tested
           sdbTransaction = sdbDatabase.transaction;
 
-
-          var finalResult = action();
-          var result = finalResult;
-
-
-
-
-          _next();
-          return finalResult;
+          return _next();
+         
 
 
 //
@@ -116,30 +126,57 @@ class _SdbTransaction extends Transaction {
 //          return _checkNext();
         });
 
-      }
+      });
+      //return lazyExecution;
     }
-    // not lazy
+
+    return actionFuture;
+
+  }
+
+  _enqueue(action()) {
+// not lazy
     Completer completer = new Completer.sync();
     completers.add(completer);
     actions.add(action);
     //devPrint("push ${actions.length}");
-    _next();
+    //_next();
     return completer.future.then((result) {
       // re-push termination check
       //print(result);
       return result;
     });
   }
-
   sdb.Transaction sdbTransaction;
   List<Completer> completers = [];
   List<Function> actions = [];
+  List<Future> futures = [];
 
   final IdbTransactionMeta meta;
   _SdbTransaction(_SdbDatabase database, this.meta) : super(database);
 
+  Future<Database> get _completed {
+    if (lazyExecution == null) {
+      return new Future.value(database);
+    }
+    return lazyExecution.then((_) {
+      return sdbTransaction.completed.then((_) {
+        return Future.wait(futures);
+      });
+    });
+  }
   @override
-  Future<Database> get completed => sdbTransaction == null ? new Future.value(database) : sdbTransaction.completed;
+  Future<Database> get completed {
+    // postpone to next 2 cycles to allow enqueing
+    // actions after completed has been called
+    return new Future.value().then((_) => _completed);
+
+  }
+
+//    sdbTransaction == null ? new Future.value(database) : sdbTransaction.completed.then((_) {
+//    // delay the completed event
+//
+//  });
 
   @override
   ObjectStore objectStore(String name) {
@@ -213,16 +250,48 @@ class _SdbIndex extends Index {
 
   @override
   Stream<CursorWithValue> openCursor({key, KeyRange range, String direction, bool autoAdvance}) {
-    throw 'not implemented yet';
+    IdbCursorMeta cursorMeta = new IdbCursorMeta(key, range, direction, autoAdvance);
+    _SdbIndexCursorWithValueController ctlr = new _SdbIndexCursorWithValueController(this, cursorMeta);
+
+    inTransaction(() {
+      return ctlr.openCursor();
+    });
+
+    return ctlr.stream;
   }
 
   @override
   Stream<Cursor> openKeyCursor({key, KeyRange range, String direction, bool autoAdvance}) {
-    throw 'not implemented yet';
+    IdbCursorMeta cursorMeta = new IdbCursorMeta(key, range, direction, autoAdvance);
+    _SdbIndexKeyCursorController ctlr = new _SdbIndexKeyCursorController(this, cursorMeta);
+
+    inTransaction(() {
+      return ctlr.openCursor();
+    });
+
+    return ctlr.stream;
   }
 
   @override
   bool get unique => meta.unique;
+
+  sdb.Filter cursorFilter(key, KeyRange range) {
+    return _keyCursorFilter(keyPath, key, range);
+  }
+
+  sdb.SortOrder sortOrder(bool ascending) {
+    return new sdb.SortOrder(keyPath, ascending);
+  }
+}
+
+sdb.Filter _keyCursorFilter(String keyField, key, KeyRange range) {
+  sdb.Filter filter;
+  if (range != null) {
+    return _keyRangeFilter(keyField, range);
+  } else {
+    return _keyFilter(keyField, key);
+
+  }
 }
 
 sdb.Filter _keyRangeFilter(String keyPath, KeyRange range) {
@@ -263,29 +332,29 @@ sdb.Filter _keyOrRangeFilter(String keyPath, [key_OR_range]) {
   }
 }
 
-abstract class IdbCursor {
-  //
-  // Idb redefinition
-  //
-  String get direction;
-  void advance(int count);
-  Future delete();
-  void next();
-  Object get primaryKey;
-  Object get key;
-  Future update(value);
-  Object get value;
-}
+//abstract class IdbCursor {
+//  //
+//  // Idb redefinition
+//  //
+//  String get direction;
+//  void advance(int count);
+//  Future delete();
+//  void next();
+//  Object get primaryKey;
+//  Object get key;
+//  Future update(value);
+//  //Object get value;
+//}
 
-abstract class _SdbCursorMixin implements IdbCursor {
+abstract class _SdbKeyCursorMixin implements Cursor {
   // set upon creation
-  int index;
-  _SdbCursorController ctlr;
+  int recordIndex;
+  _SdbBaseCursorControllerMixin ctlr;
 
   _SdbObjectStore get store => ctlr.store;
   IdbCursorMeta get meta => ctlr.meta;
 
-  sdb.Record get record => ctlr.records[index];
+  sdb.Record get record => ctlr.records[recordIndex];
   //
   // Idb
   //
@@ -304,7 +373,6 @@ abstract class _SdbCursorMixin implements IdbCursor {
     return store.delete(record.key);
   }
 
-  //TODO for index
   @override
   Object get key => record.key;
 
@@ -315,51 +383,137 @@ abstract class _SdbCursorMixin implements IdbCursor {
   @override
   Future update(value) => store.put(value, key);
 
-  // TODO: implement value
+
+}
+
+abstract class _SdbIndexCursorMixin implements Cursor {
+  _SdbIndexCursorControllerMixin get indexCtlr;
+  _SdbIndex get index => indexCtlr.index;
+  sdb.Record get record;
+
+///
+/// Return the index key of the record
+///
+  @override
+  Object get key => record.value[index.keyPath];
+}
+
+abstract class _SdbCursorWithValueMixin implements CursorWithValue {
+  sdb.Record get record;
+
   @override
   Object get value => record.value;
 }
-class _SdbCursorWithValue extends CursorWithValue with _SdbCursorMixin {
-  //
-  // Sdb specific implementation
-  //
 
+class _SdbIndexKeyCursor extends Object with _SdbKeyCursorMixin, _SdbIndexCursorMixin implements Cursor {
+  _SdbIndexKeyCursorController get indexCtlr => ctlr;
 
-
-  //
-
-
-  IdbCursorMeta get meta => ctlr.meta;
-
-  _SdbCursorWithValue(_SdbCursorController ctlr, int index) {
+  _SdbIndexKeyCursor(_SdbIndexKeyCursorController ctlr, int index) {
     this.ctlr = ctlr;
-    this.index = index;
+    this.recordIndex = index;
   }
 
+  ///
+  /// Return the index key of the record
+  ///
+  @override
+  Object get key => record.value[indexCtlr.index.keyPath];
+}
 
+class _SdbStoreKeyCursor extends Object with _SdbKeyCursorMixin implements Cursor {
+  _SdbStoreKeyCursor(_SdbBaseCursorControllerMixin ctlr, int index) {
+    this.ctlr = ctlr;
+    this.recordIndex = index;
+  }
+}
 
+class _SdbIndexCursorWithValue extends Object with _SdbKeyCursorMixin, _SdbCursorWithValueMixin {
+  _SdbIndexCursorWithValueController get indexCtlr => ctlr;
+  _SdbIndexCursorWithValue(_SdbBaseCursorControllerMixin ctlr, int index) {
+    this.ctlr = ctlr;
+    this.recordIndex = index;
+  }
 
-
+  ///
+  /// Return the index key of the record
+  ///
+  @override
+  Object get key => record.value[indexCtlr.index.keyPath];
 
 }
 
-class _SdbCursorController {
-  final IdbCursorMeta meta;
-  final _SdbObjectStore store;
+class _SdbStoreCursorWithValue extends Object with _SdbKeyCursorMixin, _SdbCursorWithValueMixin {
+  _SdbStoreCursorWithValue(_SdbBaseCursorControllerMixin ctlr, int index) {
+    this.ctlr = ctlr;
+    this.recordIndex = index;
+  }
+}
+
+
+class _SdbCursorWithValue extends Object with _SdbKeyCursorMixin, _SdbCursorWithValueMixin {
+  _SdbCursorWithValue(_SdbBaseCursorControllerMixin ctlr, int index) {
+    this.ctlr = ctlr;
+    this.recordIndex = index;
+  }
+}
+
+abstract class _ISdbCursor {
+  sdb.Filter get filter;
+  sdb.SortOrder get sortOrder;
+}
+
+abstract class _SdbIndexCursorControllerMixin implements _ISdbCursor {
+  _SdbIndex index;
+  IdbCursorMeta get meta;
+
+  @override
+  sdb.SortOrder get sortOrder {
+    return index.sortOrder(meta.ascending);
+  }
+
+  @override
+  sdb.Filter get filter {
+    return index.cursorFilter(meta.key, meta.range);
+  }
+}
+
+abstract class _SdbStoreCursorControllerMixin implements _ISdbCursor {
+  _SdbObjectStore get store;
+  IdbCursorMeta get meta;
+
+  @override
+  sdb.SortOrder get sortOrder {
+    return store.sortOrder(meta.ascending);
+  }
+
+  @override
+  sdb.Filter get filter {
+    return store.cursorFilter(meta.key, meta.range);
+  }
+}
+
+
+abstract class _SdbBaseCursorControllerMixin implements _ISdbCursor {
+  IdbCursorMeta meta;
+  _SdbObjectStore get store;
+
+// To implement for KeyCursor vs CursorWithValue
+  Cursor nextEvent(int index);
+
   List<sdb.Record> records;
   bool get done => currentIndex == null;
   int currentIndex = -1;
   StreamController ctlr;
 
-  Stream<CursorWithValue> get stream => ctlr.stream;
-  _SdbCursorController(this.store, this.meta) {
+  void init() {
     ctlr = new StreamController(sync: true);
   }
+
 
   Future autoNext() {
     return advance(1).then((_) {
       if (meta.autoAdvance && (!done)) {
-        autoNext();
+        return autoNext();
       }
     });
   }
@@ -371,21 +525,85 @@ class _SdbCursorController {
       currentIndex = null;
       return ctlr.close();
     }
-    _SdbCursorWithValue cwv = new _SdbCursorWithValue(this, currentIndex);
-    ctlr.add(cwv);
+
+    ctlr.add(nextEvent(currentIndex));
     return new Future.value();
 
   }
 
-  openCursor() {
+  Future openCursor() {
 
-    sdb.Filter filter = store._cursorFilter(meta.key, meta.range);
-    sdb.SortOrder sortOrder = new sdb.SortOrder(store.keyField, meta.ascending);
+    sdb.Filter filter = this.filter;
+    sdb.SortOrder sortOrder = this.sortOrder;
     sdb.Finder finder = new sdb.Finder(filter: filter, sortOrders: [sortOrder]);
     return store.sdbStore.findRecords(finder).then((List<sdb.Record> records) {
       this.records = records;
-      autoNext();
+      return autoNext();
     });
+  }
+}
+
+abstract class _SdbKeyCursorControllerMixin {
+  StreamController<Cursor> get ctlr;
+  Stream<Cursor> get stream => ctlr.stream;
+}
+
+abstract class _SdbCursorWithValueControllerMixin {
+  StreamController<CursorWithValue> get ctlr;
+  Stream<CursorWithValue> get stream => ctlr.stream;
+}
+
+class _SdbStoreKeyCursorController extends Object with _SdbKeyCursorControllerMixin, _SdbBaseCursorControllerMixin, _SdbStoreCursorControllerMixin {
+  _SdbObjectStore store;
+  _SdbStoreKeyCursorController(this.store, IdbCursorMeta meta) {
+    this.meta = meta;
+    init();
+  }
+
+  Cursor nextEvent(int index) {
+    _SdbStoreKeyCursor cursor = new _SdbStoreKeyCursor(this, index);
+    return cursor;
+  }
+}
+
+class _SdbIndexKeyCursorController extends Object with _SdbKeyCursorControllerMixin, _SdbBaseCursorControllerMixin, _SdbIndexCursorControllerMixin {
+  _SdbIndex index;
+  _SdbObjectStore get store => index.store;
+  _SdbIndexKeyCursorController(_SdbIndex index, IdbCursorMeta meta) {
+    this.meta = meta;
+    this.index = index;
+    init();
+  }
+
+  Cursor nextEvent(int index) {
+    _SdbIndexKeyCursor cursor = new _SdbIndexKeyCursor(this, index);
+    return cursor;
+  }
+}
+
+class _SdbIndexCursorWithValueController extends Object with _SdbCursorWithValueControllerMixin, _SdbBaseCursorControllerMixin, _SdbIndexCursorControllerMixin {
+  _SdbIndex index;
+  _SdbObjectStore get store => index.store;
+  _SdbIndexCursorWithValueController(this.index, IdbCursorMeta meta) {
+    this.meta = meta;
+    init();
+  }
+
+  Cursor nextEvent(int index) {
+    _SdbIndexCursorWithValue cursor = new _SdbIndexCursorWithValue(this, index);
+    return cursor;
+  }
+}
+class _SdbStoreCursorWithValueController extends Object with _SdbCursorWithValueControllerMixin, _SdbBaseCursorControllerMixin, _SdbStoreCursorControllerMixin {
+  _SdbObjectStore store;
+  _SdbStoreCursorWithValueController(this.store, IdbCursorMeta meta) {
+    this.meta = meta;
+    init();
+  }
+
+  Cursor nextEvent(int index) {
+    _SdbStoreCursorWithValue cursor = new _SdbStoreCursorWithValue(this, index);
+    return cursor;
   }
 }
 
@@ -535,7 +753,10 @@ class _SdbObjectStore extends ObjectStore {
   @override
   Future delete(key) {
     return inWritableTransaction(() {
-      return sdbStore.delete(key);
+      return sdbStore.delete(key).then((_) {
+        // delete returns null
+        return null;
+      });
     });
   }
 
@@ -573,7 +794,11 @@ class _SdbObjectStore extends ObjectStore {
   @override
   String get name => meta.name;
 
-  sdb.Filter _cursorFilter(key, KeyRange range) {
+  sdb.SortOrder sortOrder(bool ascending) {
+    return new sdb.SortOrder(keyField, ascending);
+  }
+
+  sdb.Filter cursorFilter(key, KeyRange range) {
     sdb.Filter filter;
     if (range != null) {
       return _keyRangeFilter(keyField, range);
@@ -588,10 +813,10 @@ class _SdbObjectStore extends ObjectStore {
   @override
   Stream<CursorWithValue> openCursor({key, KeyRange range, String direction, bool autoAdvance}) {
     IdbCursorMeta cursorMeta = new IdbCursorMeta(key, range, direction, autoAdvance);
-    _SdbCursorController ctlr = new _SdbCursorController(this, cursorMeta);
+    _SdbStoreCursorWithValueController ctlr = new _SdbStoreCursorWithValueController(this, cursorMeta);
 
     inTransaction(() {
-      ctlr.openCursor();
+      return ctlr.openCursor();
     });
 
     return ctlr.stream;
@@ -619,7 +844,8 @@ class _SdbObjectStore extends ObjectStore {
 
 class _SdbDatabase extends Database {
 
-  Logger logger = new Logger("SembastIdb");
+  static Logger logger = new Logger("SembastIdb");
+  final bool LOGV = logger.isLoggable(Level.FINEST);
 
   _SdbTransaction versionChangeTransaction;
   final IdbDatabaseMeta meta = new IdbDatabaseMeta();

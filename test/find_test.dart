@@ -88,6 +88,34 @@ void defineTests(DatabaseFactory factory) {
       });
     });
 
+    test('in_transaction no_filter', () {
+      return db.inTransaction(() {
+        Finder finder = new Finder();
+        return store.findRecords(finder).then((List<Record> records) {
+          expect(records.length, 3);
+          expect(records[0], record1);
+        }).then((_) {
+
+          Record record = new Record(store, "he", 4);
+          return store.putRecord(record).then((_) {
+            return store.findRecords(finder).then((List<Record> records) {
+              expect(records.length, 4);
+              // for now txn records are first
+              expect(records[0], record);
+              expect(records[3], record3);
+            });
+          });
+        }).then((_) {
+          // delete ho
+          return store.delete(2).then((_) {
+            return store.findRecords(finder).then((List<Record> records) {
+              expect(records.length, 3);
+            });
+          });
+        });
+      });
+    });
+
     test('delete_in_transaction', () {
       return db.inTransaction(() {
         Finder finder = new Finder();

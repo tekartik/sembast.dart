@@ -419,6 +419,14 @@ class SortOrder {
 }
 
 abstract class Filter {
+  static bool marchRecord(Filter filter, Record record) {
+    if (filter != null) {
+      return filter.match(record);
+    } else {
+      return (!record.deleted);
+    }
+  }
+  
   bool match(Record record) {
     if (record.deleted) {
       return false;
@@ -531,7 +539,7 @@ class Store {
 // handle record in transaction first
     if (_inTransaction && _txnRecords != null) {
       _txnRecords.values.forEach((Record record) {
-        if (filter.match(record)) {
+        if (Filter.marchRecord(filter, record)) {
           action(record);
         }
       });
@@ -546,9 +554,10 @@ class Store {
           return;
         }
       }
-      if (filter.match(record)) {
+      if (Filter.marchRecord(filter, record)) {
         action(record);
       }
+
     });
   }
 
@@ -568,15 +577,12 @@ class Store {
     return inTransaction(() {
       List<Record> result;
 
-      if (finder.filter == null) {
-        result = new List.from(_records.values);
-      } else {
-        result = [];
 
-        _forEachRecords(finder.filter, (Record record) {
-          result.add(record);
-        });
-      }
+      result = [];
+
+      _forEachRecords(finder.filter, (Record record) {
+        result.add(record);
+      });
 
       // sort
       result.sort((Record record1, record2) {
@@ -792,7 +798,7 @@ class Store {
 
 class Database {
 
-  static Logger logger = new Logger("SembastIdb");
+  static Logger logger = new Logger("Sembast");
   final bool LOGV = logger.isLoggable(Level.FINEST);
 
   final DatabaseStorage _storage;
@@ -901,13 +907,15 @@ class Database {
       var err;
       runZoned(() {
         // execute and commit
-//        if (LOGV) {
-//          logger.fine("begin transaction");
-//        }
+        if (LOGV) {
+          logger.fine("begin transaction");
+        }
         return new Future.sync(action).then((_result) {
           return new Future.sync(_commit).then((_) {
             result = _result;
-            //logger.fine("commit transaction");
+            if (LOGV) {
+              logger.fine("commit transaction");
+            }
           });
 
         });
