@@ -1,7 +1,6 @@
 library tekartik_iodb.idb_meta;
 
 import 'package:idb_shim/idb_client.dart';
-import 'dart:async';
 
 class IdbTransactionMeta {
   String mode;

@@ -100,7 +100,7 @@ class _SdbTransaction extends Transaction {
       // don't return the result here
       lazyExecution = new Future.microtask(() {
         assert(sdbDatabase.transaction == null);
-        
+
         // No return value here
         return sdbDatabase.inTransaction(() {
 
@@ -108,7 +108,7 @@ class _SdbTransaction extends Transaction {
           sdbTransaction = sdbDatabase.transaction;
 
           return _next();
-         
+
 
 
 //
@@ -161,10 +161,17 @@ class _SdbTransaction extends Transaction {
     }
     return lazyExecution.then((_) {
       return sdbTransaction.completed.then((_) {
-        return Future.wait(futures);
+        return Future.wait(futures).then((_) {
+          return database;
+        }).catchError((e, st) {
+          // catch any errors
+          // this is needed so that completed always complete
+          // without error
+        });
       });
     });
   }
+
   @override
   Future<Database> get completed {
     // postpone to next 2 cycles to allow enqueing
@@ -381,7 +388,7 @@ abstract class _SdbKeyCursorMixin implements Cursor {
   Object get primaryKey => record.key;
 
   @override
-  Future update(value) => store.put(value, key);
+  Future update(value) => store.put(value, primaryKey);
 
 
 }
@@ -684,7 +691,8 @@ class _SdbObjectStore extends ObjectStore {
           sdb.Finder finder = new sdb.Finder(filter: new sdb.Filter.equal(indexMeta.keyPath, fieldValue), limit: 1);
           futures.add(sdbStore.findRecord(finder).then((sdb.Record record) {
             // not ourself
-            if (record != null && record.key != key && !indexMeta.multiEntry) {
+            if ((record != null) && (record.key != key) //
+                && ((!indexMeta.multiEntry) && indexMeta.unique)) {
               throw new DatabaseError("key '${fieldValue}' already exists in ${record} for index ${indexMeta}");
             }
           }));

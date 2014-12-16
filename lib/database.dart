@@ -1,6 +1,6 @@
 library sembast.database;
 
-import 'package:tekartik_core/dev_utils.dart';
+//import 'package:tekartik_core/dev_utils.dart';
 import 'package:logging/logging.dart';
 import 'dart:async';
 import 'dart:convert';
@@ -923,10 +923,22 @@ class Database {
             }
           });
 
+        }).catchError((e, st) {
+          logger.severe("txn error $e");
+          logger.finest(e);
+          logger.finest(st);
+          //txn._completer.completeError(e);
+          err = e;
+          //return new Future.error(e);
+          _transactions.remove(txn.id);
+          _clearTxnData();
+          txn._completer.complete();
+          actionCompleter.completeError(err);
         });
       }, zoneValues: {
         _zoneTransactionKey: txn.id
       }, onError: (e, st) {
+        logger.severe("txn zone error $e");
         logger.finest(e);
         logger.finest(st);
         //txn._completer.completeError(e);
@@ -934,14 +946,16 @@ class Database {
         //return new Future.error(e);
         _transactions.remove(txn.id);
         _clearTxnData();
-        actionCompleter.completeError(err);
         txn._completer.complete();
+        actionCompleter.completeError(err);
 
       }).whenComplete(() {
-        _transactions.remove(txn.id);
-        _clearTxnData();
-        actionCompleter.complete(result);
-        txn._completer.complete();
+        if (!actionCompleter.isCompleted) {
+          _transactions.remove(txn.id);
+          _clearTxnData();
+          actionCompleter.complete(result);
+          txn._completer.complete();
+        }
 
 
       });

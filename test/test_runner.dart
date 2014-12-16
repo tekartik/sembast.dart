@@ -1,7 +1,6 @@
 library tekartik_iodb.test_runner;
 
 import 'package:tekartik_test/test_config_io.dart';
-import 'package:tekartik_core/log_utils.dart';
 import 'package:sembast/database_memory.dart';
 import 'package:sembast/database_io.dart';
 import 'database_perf_test.dart' as database_perf_test;
@@ -11,14 +10,12 @@ import 'record_test.dart' as record_test;
 import 'find_test.dart' as find_test;
 import 'store_test.dart' as store_test;
 import 'transaction_test.dart' as transaction_test;
-import 'idb_shim_more_test.dart' as idb_shim_more_test;
 import 'package:sembast/database.dart';
-import 'idb_shim/idb_database.dart';
 
 // default use memory
 void main() {
   useVMConfiguration();
-  debugQuickLogging(Level.FINEST);
+  //debugQuickLogging(Level.FINEST);
   group('memory', () {
     defineTests(memoryDatabaseFactory);
   });
@@ -35,6 +32,4 @@ void defineTests(DatabaseFactory factory) {
   store_test.defineTests(factory);
   find_test.defineTests(factory);
   transaction_test.defineTests(factory);
-  idb_shim_more_test.defineTests(new IdbSembastFactory(factory, 'tmp'));
-
 }
