@@ -1,5 +1,7 @@
 library sembast.idb_database;
 
+import 'package:tekartik_core/dev_utils.dart';
+import 'package:logging/logging.dart';
 import 'package:idb_shim/idb_client_memory.dart';
 import 'package:idb_shim/idb_client.dart';
 import 'package:sembast/database.dart' as sdb;
@@ -38,21 +40,110 @@ class _SdbVersionChangeEvent extends VersionChangeEvent {
 
 class _SdbTransaction extends Transaction {
 
-  Future _completed;
-  @override
-  _SdbDatabase get database => super.database;
+  _SdbDatabase get database => super.database as _SdbDatabase;
+  sdb.Database get sdbDatabase => database.db;
+
+
+  int index = 0;
+
+  //
+  // Create or execute the transaction
+  // leaving a time to breath
+  //
+  Future execute(action()) {
+
+    _execute(i) {
+      //devPrint("exec $i");
+      Completer completer = completers[i];
+      Function action = actions[i];
+      return new Future.sync(action).then((result) {
+        //devPrint("done $i");
+        completer.complete(result);
+      }).catchError((e) {
+        //devPrint(" err $i");
+        completer.completeError(e);
+      });
+    }
+
+
+    _next() {
+      //devPrint('_next? ${index}/${actions.length}');
+      if (index < actions.length) {
+        // Always try more
+        return _execute(index++).then((_) {
+          return _next();
+        });
+      } else {
+        // check next cycle too
+        return new Future.value().then((_) {
+          if (index < actions.length) {
+            return _next();
+          }
+        });
+      }
+    }
+
+    if (sdbTransaction == null) {
+      sdbTransaction = sdbDatabase.transaction;
+      if (sdbTransaction == null) {
+        return sdbDatabase.inTransaction(() {
+
+          // assign right away as this is tested
+          sdbTransaction = sdbDatabase.transaction;
+
+          var finalResult = action();
+          var result = finalResult;
+
+
+
+
+          _next();
+          return finalResult;
+
+
+//
+//          _checkNext() {
+//            _next();
+//            if (index < actions.length) {
+//              return new Future.sync(_next());
+//            }
+//
+//                return finalResult;
+//
+//              }();
+//                    }
+//
+//          return _checkNext();
+        });
+
+      }
+    }
+    // not lazy
+    Completer completer = new Completer.sync();
+    completers.add(completer);
+    actions.add(action);
+    devPrint("push ${actions.length}");
+    _next();
+    return completer.future.then((result) {
+      // re-push termination check
+    });
+  }
+
+  sdb.Transaction sdbTransaction;
+  List<Completer> completers = [];
+  List<Function> actions = [];
 
   final IdbTransactionMeta meta;
   _SdbTransaction(_SdbDatabase database, this.meta) : super(database);
 
   @override
-  Future<Database> get completed => _completed == null ? new Future.value(database) : _completed;
+  Future<Database> get completed => sdbTransaction == null ? new Future.value(database) : sdbTransaction.completed;
 
   @override
   ObjectStore objectStore(String name) {
     return new _SdbObjectStore(this, database.meta.getObjectStore(name));
   }
-  
+
 //  @override
 //  String toString() {
 //    return
@@ -132,34 +223,167 @@ class _SdbIndex extends Index {
   bool get unique => meta.unique;
 }
 
-sdb.Filter _keyOrRangeFilter(String key, [key_OR_range]) {
-  if (key_OR_range == null) {
-    return null;
-  } else if (key_OR_range is KeyRange) {
-    KeyRange range = key_OR_range;
-    sdb.Filter lowerFilter;
-    sdb.Filter upperFilter;
-    List<sdb.Filter> filters = [];
-    if (range.lower != null) {
-      if (range.lowerOpen == true) {
-        lowerFilter = new sdb.Filter.greaterThan(key, range.lower);
-      } else {
-        lowerFilter = new sdb.Filter.greaterThanOrEquals(key, range.lower);
-      }
-      filters.add(lowerFilter);
+sdb.Filter _keyRangeFilter(String keyPath, KeyRange range) {
+  sdb.Filter lowerFilter;
+  sdb.Filter upperFilter;
+  List<sdb.Filter> filters = [];
+  if (range.lower != null) {
+    if (range.lowerOpen == true) {
+      lowerFilter = new sdb.Filter.greaterThan(keyPath, range.lower);
+    } else {
+      lowerFilter = new sdb.Filter.greaterThanOrEquals(keyPath, range.lower);
     }
-    if (range.upper != null) {
-      if (range.upperOpen == true) {
-        upperFilter = new sdb.Filter.lessThan(key, range.upper);
-      } else {
-        upperFilter = new sdb.Filter.lessThanOrEquals(key, range.upper);
-      }
-      filters.add(upperFilter);
+    filters.add(lowerFilter);
+  }
+  if (range.upper != null) {
+    if (range.upperOpen == true) {
+      upperFilter = new sdb.Filter.lessThan(keyPath, range.upper);
+    } else {
+      upperFilter = new sdb.Filter.lessThanOrEquals(keyPath, range.upper);
     }
-    return new sdb.Filter.and(filters);
+    filters.add(upperFilter);
+  }
+  return new sdb.Filter.and(filters);
+}
 
+sdb.Filter _keyFilter(String keyPath, var key) {
+  if (key == null) {
+    return null;
+  }
+  return new sdb.Filter.equal(keyPath, key);
+}
+
+sdb.Filter _keyOrRangeFilter(String keyPath, [key_OR_range]) {
+  if (key_OR_range is KeyRange) {
+    return _keyRangeFilter(keyPath, key_OR_range);
   } else {
-    return new sdb.Filter.equal(key, key_OR_range);
+    return _keyFilter(keyPath, key_OR_range);
+  }
+}
+
+abstract class IdbCursor {
+  //
+  // Idb redefinition
+  //
+  String get direction;
+  void advance(int count);
+  Future delete();
+  void next();
+  Object get primaryKey;
+  Object get key;
+  Future update(value);
+  Object get value;
+}
+
+abstract class _SdbCursorMixin implements IdbCursor {
+  // set upon creation
+  int index;
+  _SdbCursorController ctlr;
+
+  _SdbObjectStore get store => ctlr.store;
+  IdbCursorMeta get meta => ctlr.meta;
+
+  sdb.Record get record => ctlr.records[index];
+  //
+  // Idb
+  //
+  @override
+  String get direction => meta.direction;
+  void advance(int count) {
+    // no future
+    ctlr.advance(count);
+  }
+
+  @override
+  void next() => advance(1);
+
+  @override
+  Future delete() {
+    return store.delete(record.key);
+  }
+
+  //TODO for index
+  @override
+  Object get key => record.key;
+
+
+  @override
+  Object get primaryKey => record.key;
+
+  @override
+  Future update(value) => store.put(value, key);
+
+  // TODO: implement value
+  @override
+  Object get value => record.value;
+}
+class _SdbCursorWithValue extends CursorWithValue with _SdbCursorMixin {
+  //
+  // Sdb specific implementation
+  //
+
+
+
+  //
+
+
+  IdbCursorMeta get meta => ctlr.meta;
+
+  _SdbCursorWithValue(_SdbCursorController ctlr, int index) {
+    this.ctlr = ctlr;
+    this.index = index;
+  }
+
+
+
+
+
+
+}
+
+class _SdbCursorController {
+  final IdbCursorMeta meta;
+  final _SdbObjectStore store;
+  List<sdb.Record> records;
+  bool get done => currentIndex == null;
+  int currentIndex = -1;
+  StreamController ctlr;
+
+  Stream<CursorWithValue> get stream => ctlr.stream;
+  _SdbCursorController(this.store, this.meta) {
+    ctlr = new StreamController(sync: true);
+  }
+
+  Future autoNext() {
+    return advance(1).then((_) {
+      if (meta.autoAdvance && (!done)) {
+        autoNext();
+      }
+    });
+  }
+
+
+  Future advance(int count) {
+    currentIndex += count;
+    if (currentIndex >= records.length) {
+      currentIndex = null;
+      return ctlr.close();
+    }
+    _SdbCursorWithValue cwv = new _SdbCursorWithValue(this, currentIndex);
+    ctlr.add(cwv);
+    return new Future.value();
+
+  }
+
+  openCursor() {
+
+    sdb.Filter filter = store._cursorFilter(meta.key, meta.range);
+    sdb.SortOrder sortOrder = new sdb.SortOrder(store.keyField, meta.ascending);
+    sdb.Finder finder = new sdb.Finder(filter: filter, sortOrders: [sortOrder]);
+    return store.sdbStore.findRecords(finder).then((List<sdb.Record> records) {
+      this.records = records;
+      autoNext();
+    });
   }
 }
 
@@ -170,6 +394,7 @@ class _SdbObjectStore extends ObjectStore {
   _SdbDatabase get database => transaction.database;
   sdb.Database get sdbDatabase => database.db;
   sdb.Store sdbStore;
+
 
   _SdbObjectStore(this.transaction, this.meta) {
     sdbStore = sdbDatabase.getStore(name);
@@ -182,19 +407,27 @@ class _SdbObjectStore extends ObjectStore {
     return inTransaction(computation);
   }
 
-  Future inTransaction(Future computation()) {
-    // create the transaction if needed
-    // make it async so that we get the result of the action before transaction completion
-    Completer completer = new Completer();
-    transaction._completed = completer.future;
-    
-    return sdbStore.inTransaction(() {
-      return computation();
-    }).then((result) {
-      completer.complete();
-      return result;
-      
-    });
+  Future inTransaction(computation()) {
+    return transaction.execute(computation);
+//    transaction.txn
+
+//    // create the transaction if needed
+//    // make it async so that we get the result of the action before transaction completion
+//    Completer completer = new Completer();
+//    transaction._completed = completer.future;
+//
+//    return sdbStore.inTransaction(() {
+//      return computation();
+//    }).then((result) {
+//      completer.complete();
+//      return result;
+//
+//    })
+//    return sdbStore.inTransaction(() {
+//      return new Future.sync(computation).then((result) {
+//
+//      });
+//    });
   }
 
 
@@ -338,16 +571,27 @@ class _SdbObjectStore extends ObjectStore {
   @override
   String get name => meta.name;
 
+  sdb.Filter _cursorFilter(key, KeyRange range) {
+    sdb.Filter filter;
+    if (range != null) {
+      return _keyRangeFilter(keyField, range);
+    } else {
+      return _keyFilter(keyField, key);
+
+    }
+  }
+
+  String get keyField => keyPath != null ? keyPath : sdb.Field.KEY;
+
   @override
   Stream<CursorWithValue> openCursor({key, KeyRange range, String direction, bool autoAdvance}) {
-    StreamController<CursorWithValue> ctlr = new StreamController();
-    
-//    inTransaction(() {
-//      sdb.Filter filter;
-//      if (key != null) {
-//        
-//      }
-//    });
+    IdbCursorMeta cursorMeta = new IdbCursorMeta(key, range, direction, autoAdvance);
+    _SdbCursorController ctlr = new _SdbCursorController(this, cursorMeta);
+
+    inTransaction(() {
+      ctlr.openCursor();
+    });
+
     return ctlr.stream;
   }
 
@@ -372,6 +616,8 @@ class _SdbObjectStore extends ObjectStore {
 /// {"key":"store_test_store","value":{"name":"test_store","keyPath":"my_key","autoIncrement":true}}
 
 class _SdbDatabase extends Database {
+
+  Logger logger = new Logger("SembastIdb");
 
   _SdbTransaction versionChangeTransaction;
   final IdbDatabaseMeta meta = new IdbDatabaseMeta();

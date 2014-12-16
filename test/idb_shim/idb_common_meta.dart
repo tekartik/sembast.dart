@@ -7,6 +7,10 @@ class IdbTransactionMeta {
   String mode;
   List<String> storeNames;
   IdbTransactionMeta(this.storeNames, this.mode);
+  
+  // ref counting
+  // start on 0
+  int refCount;
 }
 
 class IdbDatabaseMeta {
@@ -91,8 +95,8 @@ class IdbObjectStoreMeta {
   final String keyPath;
   final bool autoIncrement;
 
-  Iterable<IdbIndexMeta> get indecies => _indecies.values; 
-  
+  Iterable<IdbIndexMeta> get indecies => _indecies.values;
+
   Map<String, IdbIndexMeta> _indecies = new Map();
 
   Iterable<String> get indexNames => _indecies.keys;
@@ -123,8 +127,8 @@ class IdbObjectStoreMeta {
 
   addIndex(IdbIndexMeta index) {
     _indecies[index.name] = index;
-   }
-  
+  }
+
   Map toDebugMap() {
     return toMap();
   }
@@ -145,8 +149,61 @@ class IdbObjectStoreMeta {
   String toString() {
     return toDebugMap().toString();
   }
-  
- 
+
+
+}
+
+class IdbCursorMeta {
+  var key;
+  bool get ascending => _ascending;
+  final bool autoAdvance;
+
+  KeyRange range;
+  bool _ascending;
+
+  String get direction => _ascending ? IDB_DIRECTION_NEXT : IDB_DIRECTION_PREV;
+
+  IdbCursorMeta(this.key, this.range, String direction, bool autoAdvance) : autoAdvance = autoAdvance == true {
+    if (direction == null) {
+      direction = IDB_DIRECTION_NEXT;
+    }
+
+    switch (direction) {
+      case IDB_DIRECTION_PREV:
+        _ascending = false;
+        break;
+      case IDB_DIRECTION_NEXT:
+        _ascending = true;
+        break;
+      default:
+        throw new ArgumentError("direction '$direction' not supported");
+    }
+    if (key != null && range != null) {
+      throw new ArgumentError("both key '${key}' and range '${range}' are specified");
+    }
+  }
+
+  Map toDebugMap() {
+
+    Map map = {
+      "direction": direction
+    };
+    if (key != null) {
+      map["key"] = key;
+    }
+    if (range != null) {
+      map["range"] = range;
+    }
+    if (autoAdvance) {
+      map["autoAdvance"] = autoAdvance;
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return toDebugMap().toString();
+  }
 }
 
 class IdbIndexMeta {

@@ -1,5 +1,7 @@
 library sembast.database;
 
+import 'package:tekartik_core/dev_utils.dart';
+import 'package:logging/logging.dart';
 import 'dart:async';
 import 'dart:convert';
 
@@ -113,10 +115,19 @@ class _Meta {
 class Transaction {
 
   final int id;
-  Completer _completer = new Completer.sync();
+
+  // make the completer async as the Transaction following
+  // action is not a priority
+  Completer _completer = new Completer();
   Transaction._(this.id);
 
+  bool get isCompleted => _completer.isCompleted;
   Future get completed => _completer.future;
+
+  @override
+  String toString() {
+    return "txn ${id}${_completer.isCompleted ? ' completed' : ''}";
+  }
 }
 
 ///
@@ -394,6 +405,17 @@ class SortOrder {
     }
     return value1.compareTo(value2);
   }
+
+  Map toDebugMap() {
+    return {
+      field: ascending ? "asc" : "desc"
+    };
+  }
+
+  @override
+  String toString() {
+    return "${field} ${ascending ? 'asc' : 'desc'}";
+  }
 }
 
 abstract class Filter {
@@ -493,9 +515,13 @@ class Store {
 
   Future put(var value, [var key]) {
     return database.inTransaction(() {
+
       Record record = new Record._(this, key, value, false);
 
       _putRecord(record);
+      if (database.LOGV) {
+        Database.logger.fine("${database.transaction} put ${record}");
+      }
       return record.key;
     });
 
@@ -649,6 +675,9 @@ class Store {
     if (record == null) {
       record = _records[key];
     }
+    if (database.LOGV) {
+      Database.logger.fine("${database.transaction} get ${record} key ${key}");
+    }
     return record;
   }
 
@@ -763,6 +792,9 @@ class Store {
 
 class Database {
 
+  static Logger logger = new Logger("SembastIdb");
+  final bool LOGV = logger.isLoggable(Level.FINEST);
+
   final DatabaseStorage _storage;
 
   String get path => _storage.path;
@@ -834,8 +866,17 @@ class Database {
 
   // for transaction
   static const _zoneTransactionKey = "sembast.txn"; // transaction key
-  static const _zoneChildKey = "sembast.txn.child"; // bool
+  //static const _zoneChildKey = "sembast.txn.child"; // bool
 
+  Future newTransaction(action()) {
+    if (!_inTransaction) {
+      return inTransaction(action);
+    }
+    Transaction txn = transaction;
+    return txn.completed.then((_) {
+      return newTransaction(action);
+    });
+  }
   Future inTransaction(action()) {
 
     //devPrint("z: ${Zone.current[_zoneRootKey]}");
@@ -860,9 +901,13 @@ class Database {
       var err;
       runZoned(() {
         // execute and commit
+//        if (LOGV) {
+//          logger.fine("begin transaction");
+//        }
         return new Future.sync(action).then((_result) {
           return new Future.sync(_commit).then((_) {
             result = _result;
+            //logger.fine("commit transaction");
           });
 
         });
@@ -888,26 +933,43 @@ class Database {
       return actionCompleter.future;
 
     } else {
-      // in child transaction
-      // no commit yet
-      if ((_txnChildCompleter == null) || (_txnChildCompleter.isCompleted)) {
-        _txnChildCompleter = new Completer();
-      } else {
-        return _txnChildCompleter.future.then((_) {
-          return inTransaction(action);
-        });
-      }
-
-      Completer actionCompleter = _txnChildCompleter;
-
-      return runZoned(() {
-        return new Future.sync(action);
-      }, zoneValues: {
-        _zoneChildKey: true
-      }).whenComplete(() {
-        actionCompleter.complete();
-
-      });
+      return new Future.sync(action);
+//      if (LOGV) {
+//        logger.fine("inTxn ${transaction} start");
+//      }
+//      // in child transaction
+//      // no commit yet
+//      if ((_txnChildCompleter == null) || (_txnChildCompleter.isCompleted)) {
+//        _txnChildCompleter = new Completer();
+//      } else {
+//        return _txnChildCompleter.future.then((_) {
+//          return inTransaction(action);
+//        });
+//      }
+//
+//      Completer actionCompleter = _txnChildCompleter;
+//
+//      _done() {
+//        if (LOGV) {
+//          logger.fine("inTxn ${transaction} done");
+//        }
+//        actionCompleter.complete();
+//      }
+//      devPrint("inner ${transaction}");
+//      return runZoned(() {
+//        return new Future.sync(action);
+//      }, zoneValues: {
+//        _zoneChildKey: true
+//      }, onError: (e, st) {
+//        print("$e");
+//        print("$st");
+//        _done();
+//        devPrint("inner ${transaction} error");
+//      }).whenComplete(() {
+//        _done();
+//        devPrint("inner ${transaction} done");
+//
+//      });
 
     }
 
