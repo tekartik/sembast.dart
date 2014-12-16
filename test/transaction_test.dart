@@ -198,7 +198,7 @@ void defineTests(DatabaseFactory factory) {
         return db.inTransaction(() {
           expect(db.transaction.id, 1);
         }).then((_) {
-          expect(db.transaction, null);
+          expect(db.transaction.id, 1);
         });
       }).then((_) {
         expect(db.transaction, null);

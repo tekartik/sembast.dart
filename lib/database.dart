@@ -913,13 +913,15 @@ class Database {
         });
       }, zoneValues: {
         _zoneTransactionKey: txn.id
-      }, onError: (e) {
+      }, onError: (e, st) {
+        logger.finest(e);
+        logger.finest(st);
         //txn._completer.completeError(e);
         err = e;
         //return new Future.error(e);
         _transactions.remove(txn.id);
         _clearTxnData();
-        actionCompleter.complete(err);
+        actionCompleter.completeError(err);
         txn._completer.complete();
 
       }).whenComplete(() {

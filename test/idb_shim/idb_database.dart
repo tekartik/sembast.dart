@@ -1,8 +1,7 @@
 library sembast.idb_database;
 
-import 'package:tekartik_core/dev_utils.dart';
+//import 'package:tekartik_core/dev_utils.dart';
 import 'package:logging/logging.dart';
-import 'package:idb_shim/idb_client_memory.dart';
 import 'package:idb_shim/idb_client.dart';
 import 'package:sembast/database.dart' as sdb;
 import 'dart:async';
@@ -91,6 +90,7 @@ class _SdbTransaction extends Transaction {
           // assign right away as this is tested
           sdbTransaction = sdbDatabase.transaction;
 
+
           var finalResult = action();
           var result = finalResult;
 
@@ -122,10 +122,12 @@ class _SdbTransaction extends Transaction {
     Completer completer = new Completer.sync();
     completers.add(completer);
     actions.add(action);
-    devPrint("push ${actions.length}");
+    //devPrint("push ${actions.length}");
     _next();
     return completer.future.then((result) {
       // re-push termination check
+      //print(result);
+      return result;
     });
   }
 
