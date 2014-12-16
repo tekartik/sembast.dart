@@ -426,7 +426,7 @@ abstract class Filter {
       return (!record.deleted);
     }
   }
-  
+
   bool match(Record record) {
     if (record.deleted) {
       return false;
@@ -724,15 +724,11 @@ class Store {
 
   Future<int> count([Filter filter]) {
     return inTransaction(() {
-      if (filter == null) {
-        return _records.length;
-      } else {
-        int count = 0;
-        _forEachRecords(filter, (Record record) {
-          count++;
-        });
-        return count;
-      }
+      int count = 0;
+      _forEachRecords(filter, (Record record) {
+        count++;
+      });
+      return count;
     });
   }
 

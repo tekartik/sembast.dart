@@ -104,6 +104,10 @@ void defineTests(DatabaseFactory factory) {
               expect(records[0], record);
               expect(records[3], record3);
             });
+          }).then((_) {
+            return store.count().then((int count) {
+              expect(count, 4);
+            });
           });
         }).then((_) {
           // delete ho
