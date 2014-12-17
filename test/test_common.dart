@@ -1,7 +1,7 @@
-library tekartik_iodb.database_test;
+library sembast.database_test;
 
 // basically same as the io runner but with extra output
-import 'package:sembast/database.dart';
+import 'package:sembast/sembast.dart';
 import 'dart:async';
 
 Future<Database> setupForTest(DatabaseFactory factory, String path) {

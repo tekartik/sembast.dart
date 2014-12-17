@@ -1,9 +1,9 @@
-library tekartik_iodb.database_perf_test;
+library sembast.database_perf_test;
 
 // basically same as the io runner but with extra output
 import 'package:tekartik_test/test_config_io.dart';
-import 'package:sembast/database.dart';
-import 'package:sembast/database_io.dart';
+import 'package:sembast/sembast.dart';
+import 'package:sembast/sembast_io.dart';
 import 'dart:async';
 import 'database_test.dart';
 
