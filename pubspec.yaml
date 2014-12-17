@@ -4,3 +4,6 @@ dev_dependencies:
   idb_shim: any
   tekartik_test:
     git: git://github.com/alextekartik/tekartik_test.dart
+dependency_overrides:
+  idb_shim:
+    path: ../idb_shim.dart

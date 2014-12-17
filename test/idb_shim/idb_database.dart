@@ -6,7 +6,7 @@ import 'package:idb_shim/idb_client.dart';
 import 'package:sembast/database.dart' as sdb;
 import 'dart:async';
 import 'package:path/path.dart';
-import 'idb_common_meta.dart';
+import '../../../idb_shim.dart/lib/src/common/common_meta.dart';
 
 const IDB_FACTORY_SEMBAST = "sembast";
 
@@ -754,7 +754,7 @@ class _SdbObjectStore extends ObjectStore {
   @override
   Index createIndex(String name, keyPath, {bool unique, bool multiEntry}) {
     IdbIndexMeta indexMeta = new IdbIndexMeta(name, keyPath, unique, multiEntry);
-    meta.createIndex(indexMeta);
+    meta.createIndex(database.meta, indexMeta);
     return new _SdbIndex(this, indexMeta);
   }
 
@@ -867,6 +867,23 @@ class _SdbDatabase extends Database {
 
   _SdbDatabase(IdbFactory factory, this._name) : super(factory);
 
+  Future<List<IdbObjectStoreMeta>> _loadStoresMeta(List<String> storeNames) {
+    List<String> keys = [];
+    storeNames.forEach((String storeName) {
+      keys.add("store_${storeName}");
+    });
+                    
+    return db.mainStore.getRecords(keys).then((List<sdb.Record> records) {
+      List<IdbObjectStoreMeta> list = [];
+      records.forEach((sdb.Record record) {
+        Map map = record.value;
+        IdbObjectStoreMeta store = new IdbObjectStoreMeta.fromMap(map);
+        list.add(store);
+      });
+      return list;
+    });
+  }
+  
   Future open(int newVersion, void onUpgradeNeeded(VersionChangeEvent event)) {
     int previousVersion;
     _open() {
@@ -880,15 +897,10 @@ class _SdbDatabase extends Database {
             // read meta
             return db.mainStore.getRecord("stores").then((sdb.Record record) {
               if (record != null) {
+                // for now load all at once
                 List<String> storeNames = record.value;
-                List<String> keys = [];
-                storeNames.forEach((String storeName) {
-                  keys.add("store_${storeName}");
-                });
-                return db.mainStore.getRecords(keys).then((List<sdb.Record> records) {
-                  records.forEach((sdb.Record record) {
-                    Map map = record.value;
-                    IdbObjectStoreMeta store = new IdbObjectStoreMeta.fromMap(meta, map);
+                return _loadStoresMeta(storeNames).then((List<IdbObjectStoreMeta> storeMetas) {
+                  storeMetas.forEach((IdbObjectStoreMeta store) {
                     meta.addObjectStore(store);
 
 
@@ -955,7 +967,7 @@ class _SdbDatabase extends Database {
 
   @override
   ObjectStore createObjectStore(String name, {String keyPath, bool autoIncrement}) {
-    IdbObjectStoreMeta storeMeta = new IdbObjectStoreMeta(meta, name, keyPath, autoIncrement);
+    IdbObjectStoreMeta storeMeta = new IdbObjectStoreMeta(name, keyPath, autoIncrement);
     meta.createObjectStore(storeMeta);
     return new _SdbObjectStore(versionChangeTransaction, storeMeta);
   }
