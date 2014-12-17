@@ -6,7 +6,7 @@ import 'package:idb_shim/idb_client.dart';
 import 'package:sembast/sembast.dart' as sdb;
 import 'dart:async';
 import 'package:path/path.dart';
-import '../../../idb_shim.dart/lib/src/common/common_meta.dart';
+import 'package:idb_shim/src/common/common_meta.dart';
 
 const IDB_FACTORY_SEMBAST = "sembast";
 

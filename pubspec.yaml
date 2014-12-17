@@ -1,9 +1,12 @@
 name: sembast
+version: 0.1.0
+author: Alexandre Roux Tekartik <alex.tekartik.pub@gmail.com>
 description: A simple io database
+homepage: https://github.com/alextekartik/sembast.dart
 dev_dependencies:
   idb_shim: any
   tekartik_test:
     git: git://github.com/alextekartik/tekartik_test.dart
 dependency_overrides:
-  idb_shim:
-    path: ../idb_shim.dart
+#  idb_shim:
+#    path: ../idb_shim.dart

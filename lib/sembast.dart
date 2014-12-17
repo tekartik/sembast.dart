@@ -38,6 +38,9 @@ abstract class DatabaseFactory {
   ///
   Future<Database> openDatabase(String path, {int version, OnVersionChangedFunction onVersionChanged, DatabaseMode mode});
 
+  ///
+  /// Delete a database if existing
+  ///
   Future deleteDatabase(String path);
 
   //Stream<String> getData(String path);
