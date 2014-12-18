@@ -1,10 +1,14 @@
 library sembast.test_runner;
 
 import 'package:tekartik_test/test_config_io.dart';
+import 'package:sembast/src/memory/memory_file_system.dart';
+import 'package:sembast/src/io/io_file_system.dart';
+import 'package:sembast/src/sembast_fs.dart';
+import 'package:sembast/src/file_system.dart';
 import 'package:sembast/sembast_memory.dart';
 import 'package:sembast/sembast_io.dart';
 import 'package:idb_shim/idb_client.dart';
-import 'idb_shim/idb_client_sembast.dart';
+import 'package:idb_shim/idb_client_sembast.dart';
 import 'database_perf_test.dart' as database_perf_test;
 import 'database_test.dart' as database_test;
 import 'idb_quick_standalone_test.dart' as idb_quick_standalone_test;
@@ -14,6 +18,7 @@ import 'find_test.dart' as find_test;
 import 'store_test.dart' as store_test;
 import 'transaction_test.dart' as transaction_test;
 import 'package:sembast/sembast.dart';
+import 'src_file_system_test.dart' as src_file_system_test;
 
 // default use memory
 void main() {
@@ -23,9 +28,16 @@ void main() {
     defineTests(memoryDatabaseFactory);
   });
   group('io', () {
+    defineFileSystemTests(ioFileSystem);
     defineTests(ioDatabaseFactory);
   });
-
+  group('memory_fs', () {
+    defineFileSystemTests(memoryFileSystem);
+    defineTests(new FsDatabaseFactory(memoryFileSystem));
+  });
+}
+void defineFileSystemTests(FileSystem fs) {
+  src_file_system_test.defineTests(fs);
 }
 void defineTests(DatabaseFactory factory) {
   database_perf_test.defineTests(factory);
