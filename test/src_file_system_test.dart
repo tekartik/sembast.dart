@@ -338,6 +338,32 @@ void defineTests(FileSystem fs) {
         });
       });
 
+      test('rename', () {
+        return createFileName("test").then((File file) {
+          return file.rename(namePath("test2")).then((File renamed) {
+            return expectFileExists(renamed).then((_) {
+              return expectFileExists(file, false).then((_) {
+              });
+            });
+          });
+        });
+
+      });
+
+      test('rename to existing', () {
+        return createFileName("test").then((File file) {
+          String path2 = namePath("test2");
+          return createFile(fs.newFile(path2)).then((_) {
+            return file.rename(path2).then((File renamed) {
+              //devPrint(renamed);
+            }).catchError((e) {
+              //devPrint(e);
+            });
+          });
+        });
+
+      });
+
     });
   });
 

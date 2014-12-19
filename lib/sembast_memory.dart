@@ -83,4 +83,10 @@ class _MemoryDatabaseStorage extends DatabaseStorage {
 
   @override
   Future appendLines(List<String> lines) => null;
+
+  @override
+  DatabaseStorage get tmpStorage => null;
+
+  @override
+  Future tmpRecover() => null;
 }

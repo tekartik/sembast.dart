@@ -160,6 +160,10 @@ class Directory extends FileSystemEntity implements fs.Directory {
   @override
   Future<Directory> create({bool recursive: false}) //
   => _wrap(ioDir.create(recursive: recursive).then((io.Directory ioDir) => this));
+
+  @override
+  Future<FileSystemEntity> rename(String newPath) //
+  => _wrap(ioFileSystemEntity.rename(newPath).then((io.FileSystemEntity ioFileSystemEntity) => new Directory(ioFileSystemEntity.path)));
 }
 
 class File extends FileSystemEntity implements fs.File {
@@ -188,6 +192,10 @@ class File extends FileSystemEntity implements fs.File {
   @override
   fs.IOSink openWrite({fs.FileMode mode: fs.FileMode.WRITE, Encoding encoding: UTF8}) //
   => new _IoIOSink(ioFile.openWrite(mode: _fileMode(mode), encoding: encoding));
+
+  @override
+  Future<FileSystemEntity> rename(String newPath) //
+  => _wrap(ioFileSystemEntity.rename(newPath).then((io.FileSystemEntity ioFileSystemEntity) => new File(ioFileSystemEntity.path)));
 
 
 }

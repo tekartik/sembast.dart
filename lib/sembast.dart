@@ -52,6 +52,8 @@ abstract class DatabaseStorage {
   bool get supported;
   DatabaseStorage();
 
+  DatabaseStorage get tmpStorage;
+  Future tmpRecover();
   Future delete();
   Future<bool> find();
   Future findOrCreate();
@@ -79,6 +81,7 @@ class DatabaseException implements Exception {
 //import 'package:tekartik_core/dev_utils.dart';
 
 const String _db_version = "version";
+const String _db_sembast_version = "sembast";
 const String _record_key = "key";
 const String _store_name = "store";
 const String _record_value = "value"; // only for simple type where the key is not a string
@@ -88,9 +91,11 @@ const String _main_store = "_main"; // main store name;
 class _Meta {
 
   int version;
+  int sembastVersion = 1;
 
   _Meta.fromMap(Map map) {
     version = map[_db_version];
+    sembastVersion = map[_db_sembast_version];
   }
 
   static bool isMapMeta(Map map) {
@@ -101,7 +106,8 @@ class _Meta {
 
   Map toMap() {
     var map = {
-      _db_version: version
+      _db_version: version,
+      _db_sembast_version: sembastVersion
     };
     return map;
   }
@@ -1015,6 +1021,43 @@ class Database {
     record.store._loadRecord(record);
   }
 
+  ///
+  /// Compact the database (work in progress)
+  ///
+  ///
+  @deprecated
+  Future compact() {
+    return newTransaction(() {
+      if (_storage.supported) {
+        DatabaseStorage tmpStorage = _storage.tmpStorage;
+        return tmpStorage.delete().then((_) {
+          return tmpStorage.findOrCreate().then((_) {
+            List<String> lines = [];
+            lines.add(JSON.encode(_meta.toMap()));
+            stores.forEach((Store store) {
+              store._records.values.forEach((Record record) {
+                Map map = record._toMap();
+                var encoded;
+                try {
+                  encoded = JSON.encode(map);
+                } catch (e, st) {
+                  print(map);
+                  print(e);
+                  print(st);
+                  rethrow;
+                }
+                lines.add(encoded);
+              });
+            });
+            tmpStorage.appendLines(lines);
+
+          });
+        }).then((_) {
+          return _storage.tmpRecover();
+        });
+      }
+    });
+  }
   // future or not
   _commit() {
 

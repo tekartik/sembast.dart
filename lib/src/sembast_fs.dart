@@ -3,12 +3,16 @@ library sembast.fs;
 import 'dart:async';
 import 'dart:convert';
 import '../sembast.dart';
-
+import 'package:path/path.dart';
+import 'package:logging/logging.dart';
 import 'file_system.dart';
 
 class _FsDatabaseStorage extends DatabaseStorage {
   final FileSystem fs;
   final File file;
+  bool isTmp;
+
+  Logger log = new Logger("FsDatabaseStorage");
 
   _FsDatabaseStorage(FileSystem fs, String path)
       : fs = fs,
@@ -37,16 +41,63 @@ class _FsDatabaseStorage extends DatabaseStorage {
   Future findOrCreate() {
     return fs.isFile(path).then((isFile) {
       if (!isFile) {
-        return file.create(recursive: true).then((File file) {
+        // try to recover from tmp file
+        return new Future.sync(() {
+          if (isTmp == true) {
+            return false;
+          } else {
+            return tmpRecover();    
+          }
+        }).then((bool done) {
+          if (!done) {
+            return file.create(recursive: true).then((File file) {
 
-        }).catchError((e) {
-          return fs.isFile(path).then((isFile) {
-            if (!isFile) {
-              throw e;
-            }
-          });
+            }).catchError((e) {
+              return fs.isFile(path).then((isFile) {
+                if (!isFile) {
+                  throw e;
+                }
+              });
+            });
+          } else {
+            // ok found fine
+          }
         });
       }
+    });
+  }
+
+
+  String get tmpPath => join(dirname(path), ".${basename(path)}");
+
+  @override
+  DatabaseStorage get tmpStorage {
+    return new _FsDatabaseStorage(fs, tmpPath)..isTmp = true;
+  }
+
+  @override
+  Future<bool> tmpRecover() {
+    return new Future.sync(() {
+      return fs.isFile(tmpPath).then((bool isFile) {
+        log.info("Recovering from ${tmpPath}");
+
+        if (isFile) {
+          return file.delete().catchError((e) {
+            print('fail to delete');
+            print(e);
+            return true;
+          }).whenComplete(() {
+            return fs.newFile(tmpPath).rename(file.path).then((File renamedFile) {
+              // ok
+              return true;
+            });
+          });
+        }
+        return false;
+        
+      });
+
+
     });
   }
 

@@ -1,3 +1,4 @@
+syntax: glob
 # Don’t commit the following directories created by pub.
 build/
 packages/
@@ -5,6 +6,7 @@ packages/
 .pub/
 tmp/
 packages
+data/out
 
 # Or the files created by dart2js.
 *.dart.js

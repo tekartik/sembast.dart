@@ -312,6 +312,37 @@ abstract class _MemoryFileSystemEntityImpl {
     });
   }
 
+  // base implementation
+  Future<_MemoryFileSystemEntityImpl> rename(String newPath) {
+    return new Future.sync(() {
+      if (isRootDir) {
+        throw new _MemoryFileSystemException(path, "Rename failed");
+      }
+      _MemoryFileSystemEntityImpl impl = existingImpl;
+      if (!_checkExists(impl)) {
+        throw new _MemoryFileSystemException(path, "Rename failed", _noSuchPathError);
+      }
+      // remove from parent
+      impl._parent.children.remove(segment);
+      impl._exists = false;
+
+      String newSegment = basename(newPath);
+      if (impl is _MemoryFileImpl) {
+        _MemoryFileImpl newImpl = new _MemoryFileImpl(impl._parent, newSegment);
+
+        newImpl.content = impl.content;
+
+        // re-add
+        newImpl.implSetExists(true);
+        
+        return newImpl;
+      } else {
+        throw 'not supported yet';
+      }
+
+    });
+  }
+
   _MemoryFileSystemEntityImpl createSync(bool recursive);
 //  _MemoryFileSystemEntityImpl createSync(bool recursive) {
 //    _MemoryFileSystemEntityImpl impl = existingImpl;
@@ -432,7 +463,7 @@ class _MemoryFileSystem implements fs.FileSystem {
   _MemoryFile get scriptFile => null;
 }
 
-class _MemoryFileSystemEntity implements fs.FileSystemEntity {
+abstract class _MemoryFileSystemEntity implements fs.FileSystemEntity {
   _MemoryFileSystemEntityImpl impl;
 
   @override
@@ -448,6 +479,7 @@ class _MemoryFileSystemEntity implements fs.FileSystemEntity {
 
   @override
   String toString() => impl.toString();
+
 }
 
 class _MemoryDirectory extends _MemoryFileSystemEntity implements fs.Directory {
@@ -458,6 +490,11 @@ class _MemoryDirectory extends _MemoryFileSystemEntity implements fs.Directory {
   }
 
   @override Future<_MemoryDirectory> create({bool recursive: false}) => dirImpl.create(recursive).then((_) => this);
+
+
+  @override
+  Future<fs.FileSystemEntity> rename(String newPath) //
+  => impl.rename(newPath).then((_MemoryFileSystemEntityImpl impl) => new _MemoryDirectory(impl));
 }
 
 class _MemoryFile extends _MemoryFileSystemEntity implements fs.File {
@@ -482,4 +519,8 @@ class _MemoryFile extends _MemoryFileSystemEntity implements fs.File {
   @override
   fs.IOSink openWrite({fs.FileMode mode: fs.FileMode.WRITE, Encoding encoding: UTF8}) //
   => fileImpl.openWrite(mode);
+
+  @override
+  Future<fs.FileSystemEntity> rename(String newPath) //
+  => impl.rename(newPath).then((_MemoryFileSystemEntityImpl impl) => new _MemoryFile(impl));
 }

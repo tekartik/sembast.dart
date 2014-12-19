@@ -188,6 +188,17 @@ abstract class FileSystemEntity {
    * cannot be deleted, the future completes with an exception.
    */
   Future<FileSystemEntity> delete({bool recursive: false});
+  
+  /**
+   * Renames this file system entity. Returns a `Future<FileSystemEntity>`
+   * that completes with a [FileSystemEntity] instance for the renamed
+   * file system entity.
+   *
+   * If [newPath] identifies an existing entity of the same type, that entity
+   * is replaced. If [newPath] identifies an existing entity of a different
+   * type, the operation fails and the future completes with an exception.
+   */
+  Future<FileSystemEntity> rename(String newPath);
 }
 
 abstract class Directory extends FileSystemEntity {
