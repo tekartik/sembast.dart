@@ -31,7 +31,7 @@ void main() {
     defineFileSystemTests(ioFileSystem);
     defineTests(ioDatabaseFactory);
   });
-  skip_group('memory_fs', () {
+  group('memory_fs', () {
     defineFileSystemTests(memoryFileSystem);
     defineTests(new FsDatabaseFactory(memoryFileSystem));
   });

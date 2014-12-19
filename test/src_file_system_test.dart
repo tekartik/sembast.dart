@@ -135,6 +135,14 @@ void defineTests(FileSystem fs) {
       test('type', () {
         return fs.type(namePath("test")).then((FileSystemEntityType type) {
           expect(type, FileSystemEntityType.NOT_FOUND);
+        }).then((_) {
+          return fs.isFile(namePath("test")).then((bool isFile) {
+            expect(isFile, false);
+          });
+        }).then((_) {
+          return fs.isDirectory(namePath("test")).then((bool isFile) {
+            expect(isFile, false);
+          });
         });
       });
     });
@@ -266,7 +274,7 @@ void defineTests(FileSystem fs) {
         return sink.close().then((_) {
           fail('');
         }, onError: (FileSystemException e, st) {
-          devPrint("${e}");
+          //devPrint("${e}");
         });
       });
 
@@ -302,7 +310,7 @@ void defineTests(FileSystem fs) {
         return sink.close().then((_) {
           fail('');
         }, onError: (FileSystemException e, st) {
-          devPrint("${e}");
+          //devPrint("${e}");
         });
       });
 

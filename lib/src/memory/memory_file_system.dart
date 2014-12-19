@@ -155,10 +155,10 @@ class _MemoryFileImpl extends _MemoryFileSystemEntityImpl {
       return close().catchError((e) {
         ctlr.addError(e);
       }).then((_) {
-        ctlr.close();  
+        ctlr.close();
       });
-      
-      
+
+
     });
     return ctlr.stream;
   }
@@ -239,9 +239,7 @@ abstract class _MemoryFileSystemEntityImpl {
     return __parent;
   }
   fs.FileSystemEntityType _type;
-  Future<fs.FileSystemEntityType> type() {
-    return new Future.value(_type);
-  }
+
   bool get isRootDir => this == _fs.rootDir;
 
   implSetExists(bool exists_) {
@@ -403,14 +401,15 @@ class _MemoryFileSystem implements fs.FileSystem {
 
   @override
   Future<bool> isFile(String path) {
-    return new Future.sync(() {
-      _MemoryFileSystemEntityImpl impl = rootDir.getFileFromPath(path);
-      if (impl != null) {
-        return impl.type().then((fs.FileSystemEntityType type) {
-          return type == fs.FileSystemEntityType.FILE;
-        });
-      }
-      return false;
+    return type(path, followLinks: true).then((fs.FileSystemEntityType type) {
+      return type == fs.FileSystemEntityType.FILE;
+    });
+  }
+
+  @override
+  Future<bool> isDirectory(String path) {
+    return type(path, followLinks: true).then((fs.FileSystemEntityType type) {
+      return type == fs.FileSystemEntityType.DIRECTORY;
     });
   }
 
@@ -419,10 +418,9 @@ class _MemoryFileSystem implements fs.FileSystem {
     return new Future.sync(() {
       _MemoryFileSystemEntityImpl impl = rootDir.getChildEntityFromPath(path);
       if (impl != null) {
-        return impl.type();
+        return impl._type;
       }
       return fs.FileSystemEntityType.NOT_FOUND;
-      ;
     });
 
   }

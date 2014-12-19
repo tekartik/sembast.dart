@@ -58,6 +58,7 @@ abstract class FileSystemEntity implements fs.FileSystemEntity {
    * Checks if type(path) returns FileSystemEntityType.FILE.
    */
   static Future<bool> isFile(String path) => _fs.isFile(path);
+  static Future<bool> isDirectory(String path) => _fs.isDirectory(path);
 
   @override
   Future<bool> exists() => _wrap(ioFileSystemEntity.exists());
@@ -125,6 +126,9 @@ class _IoFileSystem implements fs.FileSystem {
 
   @override
   Future<bool> isFile(String path) => io.FileSystemEntity.isFile(path);
+
+  @override
+  Future<bool> isDirectory(String path) => io.FileSystemEntity.isDirectory(path);
 
   @override
   Future<fs.FileSystemEntityType> type(String path, {bool followLinks: true}) //

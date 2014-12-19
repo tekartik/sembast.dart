@@ -93,6 +93,11 @@ abstract class FileSystem {
    */
   Future<bool> isFile(String path);
   
+  /**
+   * Checks if type(path) returns FileSystemEntityType.DIRECTORY.
+   */
+  Future<bool> isDirectory(String path);
+  
   ///
   /// Current directory if any
   ///
