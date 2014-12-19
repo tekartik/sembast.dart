@@ -28,7 +28,7 @@ abstract class OSError {
   /// Error code supplied by the operating system. Will have the value
   /// [noErrorCode] if there is no error code associated with the error.
   int get errorCode;
-  
+
   /// Error message supplied by the operating system. null if no message is
   /// associated with the error.
   String get message;
@@ -43,9 +43,9 @@ abstract class FileSystemException {
   ///
   /// The file system path on which the error occurred. Can be `null`
   /// if the exception does not relate directly to a file system path.
-  /// 
+  ///
   String get path;
-  
+
   /// The underlying OS error. Can be `null` if the exception is not
   /// raised due to an OS error.
   OSError get osError;
@@ -62,7 +62,7 @@ abstract class FileSystem {
    * current working directory.
    */
   Directory newDirectory(String path);
-  
+
   /**
    * Creates a [File] object.
    *
@@ -75,9 +75,33 @@ abstract class FileSystem {
   File newFile(String path);
 
   /**
+   * Finds the type of file system object that a path points to. Returns
+   * a [:Future<FileSystemEntityType>:] that completes with the result.
+   *
+   * [FileSystemEntityType] has the constant instances FILE, DIRECTORY,
+   * LINK, and NOT_FOUND.  [type] will return LINK only if the optional
+   * named argument [followLinks] is false, and [path] points to a link.
+   * If the path does not point to a file system object, or any other error
+   * occurs in looking up the path, NOT_FOUND is returned.  The only
+   * error or exception that may be put on the returned future is ArgumentError,
+   * caused by passing the wrong type of arguments to the function.
+   */
+  Future<FileSystemEntityType> type(String path, {bool followLinks: true});
+
+  /**
    * Checks if type(path) returns FileSystemEntityType.FILE.
    */
   Future<bool> isFile(String path);
+  
+  ///
+  /// Current directory if any
+  ///
+  Directory get currentDirectory;
+  
+  ///
+  /// Current running script file if any
+  ///
+  File get scriptFile;
 }
 
 abstract class IOSink {
@@ -94,6 +118,28 @@ abstract class IOSink {
    * Close the target consumer.
    */
   Future close();
+}
+
+/**
+ * The type of an entity on the file system, such as a file, directory, or link.
+ *
+ * These constants are used by the [FileSystemEntity] class
+ * to indicate the object's type.
+ *
+ */
+
+class FileSystemEntityType {
+  static const FILE = const FileSystemEntityType._internal(0);
+  static const DIRECTORY = const FileSystemEntityType._internal(1);
+  static const LINK = const FileSystemEntityType._internal(2);
+  static const NOT_FOUND = const FileSystemEntityType._internal(3);
+  static const _typeList = const [FileSystemEntityType.FILE, FileSystemEntityType.DIRECTORY, FileSystemEntityType.LINK, FileSystemEntityType.NOT_FOUND];
+  final int _type;
+
+  const FileSystemEntityType._internal(this._type);
+
+  static FileSystemEntityType _lookup(int type) => _typeList[type];
+  String toString() => const ['FILE', 'DIRECTORY', 'LINK', 'NOT_FOUND'][_type];
 }
 
 abstract class FileSystemEntity {
@@ -117,7 +163,7 @@ abstract class FileSystemEntity {
    * Get the path of the file.
    */
   String get path;
-  
+
   /**
    * Deletes this [FileSystemEntity].
    *
@@ -140,7 +186,18 @@ abstract class FileSystemEntity {
 }
 
 abstract class Directory extends FileSystemEntity {
-  
+  /**
+   * Creates the directory with this name.
+   *
+   * If [recursive] is false, only the last directory in the path is
+   * created. If [recursive] is true, all non-existing path components
+   * are created. If the directory already exists nothing is done.
+   *
+   * Returns a [:Future<Directory>:] that completes with this
+   * directory once it has been created. If the directory cannot be
+   * created the future completes with an exception.
+   */
+  Future<Directory> create({bool recursive: false});
 }
 
 abstract class File extends FileSystemEntity {

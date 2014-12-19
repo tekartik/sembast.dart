@@ -2,7 +2,6 @@ library sembast.fs;
 
 import 'dart:async';
 import 'dart:convert';
-
 import '../sembast.dart';
 
 import 'file_system.dart';

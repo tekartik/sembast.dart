@@ -25,6 +25,19 @@ io.FileMode _fileMode(fs.FileMode fsFileMode) {
   }
 }
 
+fs.FileSystemEntityType fsFileType(io.FileSystemEntityType type) {
+  switch (type) {
+    case io.FileSystemEntityType.FILE:
+      return fs.FileSystemEntityType.FILE;
+    case io.FileSystemEntityType.DIRECTORY:
+      return fs.FileSystemEntityType.DIRECTORY;
+    case io.FileSystemEntityType.NOT_FOUND:
+      return fs.FileSystemEntityType.NOT_FOUND;
+    default:
+      throw type;
+  }
+}
+
 class _IoIOSink implements fs.IOSink {
   final io.IOSink ioSink;
   _IoIOSink(this.ioSink);
@@ -33,7 +46,7 @@ class _IoIOSink implements fs.IOSink {
   void writeln([Object obj = ""]) => ioSink.writeln(obj);
 
   @override
-  Future close() => ioSink.close();
+  Future close() => _wrap(ioSink.close());
 
 }
 
@@ -112,6 +125,16 @@ class _IoFileSystem implements fs.FileSystem {
 
   @override
   Future<bool> isFile(String path) => io.FileSystemEntity.isFile(path);
+
+  @override
+  Future<fs.FileSystemEntityType> type(String path, {bool followLinks: true}) //
+  => _wrap(io.FileSystemEntity.type(path, followLinks: true).then((io.FileSystemEntityType ioType) => fsFileType(ioType)));
+
+  @override
+  Directory get currentDirectory => io.Directory.current == null ? null : newDirectory(io.Directory.current.path);
+
+  @override
+  File get scriptFile => io.Platform.script == null ? null : newFile(io.Platform.script.path);
 }
 
 class Directory extends FileSystemEntity implements fs.Directory {
@@ -129,6 +152,10 @@ class Directory extends FileSystemEntity implements fs.Directory {
   Directory(String path) {
     ioFileSystemEntity = new io.Directory(path);
   }
+
+  @override
+  Future<Directory> create({bool recursive: false}) //
+  => _wrap(ioDir.create(recursive: recursive).then((io.Directory ioDir) => this));
 }
 
 class File extends FileSystemEntity implements fs.File {
