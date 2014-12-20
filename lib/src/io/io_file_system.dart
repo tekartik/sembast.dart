@@ -138,7 +138,7 @@ class _IoFileSystem implements fs.FileSystem {
   Directory get currentDirectory => io.Directory.current == null ? null : newDirectory(io.Directory.current.path);
 
   @override
-  File get scriptFile => io.Platform.script == null ? null : newFile(io.Platform.script.path);
+  File get scriptFile => io.Platform.script == null ? null : newFile(io.Platform.script.toFilePath());
 }
 
 class Directory extends FileSystemEntity implements fs.Directory {
