@@ -28,7 +28,7 @@ void defineTests(DatabaseFactory factory) {
         record1 = new Record(store, "hi", 1);
         record2 = new Record(store, "ho", 2);
         record3 = new Record(store, "ha", 3);
-        return store.putRecords([record1, record2, record3]);
+        return db.putRecords([record1, record2, record3]);
       });
     });
 
@@ -69,7 +69,7 @@ void defineTests(DatabaseFactory factory) {
 
           Record record = new Record(store, "he", 4);
 
-          return store.putRecord(record).then((_) {
+          return db.putRecord(record).then((_) {
             finder.filter = new Filter.equal(Field.VALUE, "he");
             return store.findRecords(finder).then((List<Record> records) {
               expect(records.length, 1);
@@ -97,7 +97,7 @@ void defineTests(DatabaseFactory factory) {
         }).then((_) {
 
           Record record = new Record(store, "he", 4);
-          return store.putRecord(record).then((_) {
+          return db.putRecord(record).then((_) {
             return store.findRecords(finder).then((List<Record> records) {
               expect(records.length, 4);
               // for now txn records are first
@@ -237,7 +237,7 @@ void defineTests(DatabaseFactory factory) {
             "text": "ha",
             "value": 2
           }, 3);
-          return store.putRecords([record1, record2, record3]);
+          return db.putRecords([record1, record2, record3]);
         });
       });
 

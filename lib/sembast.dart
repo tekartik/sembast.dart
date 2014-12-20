@@ -177,8 +177,11 @@ class Record {
         _value = map[_record_value],
         _deleted = map[_record_deleted] == true;
 
-  Record _clone() {
-    return new Record._(_store, _key, _value, _deleted);
+  ///
+  /// allow overriding store to clean for main store
+  ///
+  Record _clone({Store store}) {
+    return new Record._(store == null ? _store : store, _key, _value, _deleted);
   }
 
   static bool isMapRecord(Map map) {
@@ -602,7 +605,7 @@ class Store {
     });
   }
 
-  _setRecordInMemory(Record record) {
+  void _setRecordInMemory(Record record) {
     if (record.deleted) {
       record.store._records.remove(record.key);
     } else {
@@ -611,7 +614,7 @@ class Store {
   }
 
 
-  _loadRecord(Record record) {
+  void _loadRecord(Record record) {
     var key = record.key;
     _setRecordInMemory(record);
     // update for auto increment
@@ -625,55 +628,44 @@ class Store {
   Future inTransaction(Future action()) {
     return database.inTransaction(action);
   }
+
+  // Use Database.putRecord instead
+  @deprecated
   Future<Record> putRecord(Record record) {
-    return database.inTransaction(() {
-      return _putRecord(record._clone());
-    });
+    return database.putRecord(record);
   }
 
+  // Use Database.putRecords instead
+  @deprecated
   Future<List<Record>> putRecords(List<Record> records) {
-    return inTransaction(() {
-
-      List<Record> clones = [];
-      for (Record record in records) {
-        clones.add(record._clone());
-      }
-      return _putRecords(clones);
-    });
+    return database.putRecords(records);
   }
 
   Record _putRecord(Record record) {
-    return _putRecords([record]).first;
-  }
+    assert(record.store == this);
+    // auto-gen key if needed
+    if (record.key == null) {
+      record._key = ++_lastIntKey;
+    } else {
+      // update last int key in case auto gen is needed again
+      if (record._key is int && record.key > _lastIntKey) {
+        _lastIntKey = record.key;
+      }
+    }
 
-  // record must have been clone before
-  List<Record> _putRecords(List<Record> records) {
-
+    // add to store transaction
     if (_txnRecords == null) {
       _txnRecords = new Map();
     }
+    _txnRecords[record.key] = record;
 
-    // temp records
-    for (Record record in records) {
-      Store store = record.store;
+    return record;
+  }
 
-      // auto-gen key if needed
-      if (record.key == null) {
-        record._key = ++store._lastIntKey;
-      } else {
-        // update last int key in case auto gen is needed again
-        if (record._key is int && record.key > store._lastIntKey) {
-          store._lastIntKey = record.key;
-        }
-      }
-
-      _txnRecords[record.key] = record;
-      ;
-    }
-    return records;
-
-
-
+  // record must have been clone before
+  @deprecated
+  List<Record> _putRecords(List<Record> records) {
+    return database._putRecords(records);
   }
 
 
@@ -772,7 +764,7 @@ class Store {
       }
 
       if (updates.isNotEmpty) {
-        _putRecords(updates);
+        database._putRecords(updates);
       }
       return deletedKeys;
     });
@@ -1014,18 +1006,16 @@ class Database {
 
   }
 
-  _setRecordInMemory(Record record) {
+  void _setRecordInMemory(Record record) {
     record.store._setRecordInMemory(record);
   }
-  _loadRecord(Record record) {
+  void _loadRecord(Record record) {
     record.store._loadRecord(record);
   }
 
   ///
   /// Compact the database (work in progress)
   ///
-  ///
-  @deprecated
   Future compact() {
     return newTransaction(() {
       if (_storage.supported) {
@@ -1049,7 +1039,7 @@ class Database {
                 lines.add(encoded);
               });
             });
-            tmpStorage.appendLines(lines);
+            return tmpStorage.appendLines(lines);
 
           });
         }).then((_) {
@@ -1102,8 +1092,46 @@ class Database {
     }
   }
 
+  /// clone and fix the store
+  Record _cloneAndFix(Record record) {
+    Store store = record.store;
+    if (store == null) {
+      store = mainStore;
+    }
+    return record._clone(store: store);
+  }
+
   Future<Record> putRecord(Record record) {
-    return record.store.put(record);
+    return inTransaction(() {
+      return _putRecord(_cloneAndFix(record));
+    });
+  }
+
+  Future<List<Record>> putRecords(List<Record> records) {
+    return inTransaction(() {
+      List<Record> toPut = [];
+      for (Record record in records) {
+        toPut.add(_cloneAndFix(record));
+      }
+      return _putRecords(toPut);
+    });
+  }
+
+  Record _putRecord(Record record) {
+    return record.store._putRecord(record);
+  }
+
+  // record must have been clone before
+  List<Record> _putRecords(List<Record> records) {
+
+    // temp records
+    for (Record record in records) {
+      _putRecord(record);
+    }
+    return records;
+
+
+
   }
 
   Future get(var key) {
@@ -1284,16 +1312,14 @@ class Database {
           _stores = new Map();
           _checkMainStore();
 
-
-
-
-//          _mainStore = new Store._(this, _main_store);
-//          _stores[_main_store] = _mainStore;
+          int totalLines = 0;
+          int obsoleteLines = 0;
 
           bool needCompact = false;
 
 
           return _storage.readLines().forEach((String line) {
+            totalLines++;
             // evesrything is JSON
             Map map = JSON.decode(line);
 
@@ -1305,13 +1331,19 @@ class Database {
               // record?
               Record record = new Record._fromMap(this, map);
               if (_hasRecord(record)) {
-                needCompact = true;
+                obsoleteLines++;
               }
               _loadRecord(record);
 
             }
 
 
+          }).then((_) {
+            // auto compaction
+            // allow for 20% of lost lines
+            if (obsoleteLines > 5 && (obsoleteLines / totalLines > 0.20)) {
+              return compact();
+            }
           }).then((_) => _openDone());
         } else {
           // ensure main store exists

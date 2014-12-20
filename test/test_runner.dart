@@ -11,7 +11,6 @@ import 'package:idb_shim/idb_client.dart';
 import 'package:idb_shim/idb_client_sembast.dart';
 import 'database_perf_test.dart' as database_perf_test;
 import 'database_test.dart' as database_test;
-import 'database_format_test.dart' as database_format_test;
 import 'idb_quick_standalone_test.dart' as idb_quick_standalone_test;
 import 'crud_test.dart' as crud_test;
 import 'record_test.dart' as record_test;
@@ -20,6 +19,7 @@ import 'store_test.dart' as store_test;
 import 'transaction_test.dart' as transaction_test;
 import 'package:sembast/sembast.dart';
 import 'src_file_system_test.dart' as src_file_system_test;
+import 'database_format_test.dart' as database_format_test;
 
 // default use memory
 void main() {
@@ -37,10 +37,12 @@ void main() {
     defineTests(new FsDatabaseFactory(memoryFileSystem));
   });
 }
+
 void defineFileSystemTests(FileSystem fs) {
   src_file_system_test.defineTests(fs);
   database_format_test.defineTests(fs);
 }
+
 void defineTests(DatabaseFactory factory) {
   database_perf_test.defineTests(factory);
   database_test.defineTests(factory);

@@ -1,5 +1,5 @@
 name: sembast
-version: 0.1.0
+version: 0.2.0
 author: Alexandre Roux Tekartik <alex.tekartik.pub@gmail.com>
 description: A simple io database
 homepage: https://github.com/alextekartik/sembast.dart

@@ -55,12 +55,22 @@ void defineTests(DatabaseFactory factory) {
       expect(record["bool"], true);
     });
 
+    test('put database', () {
+      Record record1 = new Record(null, "hi");
+      return db.putRecord(record1).then((inserted) {
+        expect(record1.store, isNull);
+        expect(record1.key, isNull);
+        expect(inserted.key, 1);
+        expect(inserted.store, db.mainStore);
+      });
+    });
+
     test('put/delete multiple', () {
       Store store = db.mainStore;
       Record record1 = new Record(store, "hi", 1);
       Record record2 = new Record(store, "ho", 2);
       Record record3 = new Record(store, "ha", 3);
-      return store.putRecords([record1, record2, record3]).then((List<Record> inserted) {
+      return db.putRecords([record1, record2, record3]).then((List<Record> inserted) {
         expect(inserted.length, 3);
         expect(inserted[0].key, 1);
 
@@ -82,7 +92,7 @@ void defineTests(DatabaseFactory factory) {
     test('put/get/delete', () {
       Store store = db.mainStore;
       Record record = new Record(store, "hi");
-      return store.putRecord(record).then((Record insertedRecord) {
+      return db.putRecord(record).then((Record insertedRecord) {
         expect(record.key, null);
         expect(insertedRecord.key, 1);
         expect(insertedRecord.value, "hi");
