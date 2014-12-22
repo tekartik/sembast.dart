@@ -34,6 +34,13 @@ String testOutPath(FileSystem fs) {
   return join(_rootPath(), "tmp");
 }
 
+Future<List<Record>> recordStreamToList(Stream<Record> stream) {
+  List<Record> records = [];
+  return stream.listen((Record record) {
+    records.add(record);
+  }).asFuture().then((_) => records);
+}
+
 ///
 /// helper to read a list of string (lines)
 ///
