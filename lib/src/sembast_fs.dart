@@ -46,7 +46,7 @@ class _FsDatabaseStorage extends DatabaseStorage {
           if (isTmp == true) {
             return false;
           } else {
-            return tmpRecover();    
+            return tmpRecover();
           }
         }).then((bool done) {
           if (!done) {
@@ -68,7 +68,7 @@ class _FsDatabaseStorage extends DatabaseStorage {
   }
 
 
-  String get tmpPath => join(dirname(path), ".${basename(path)}");
+  String get tmpPath => join(dirname(path), "~${basename(path)}");
 
   @override
   DatabaseStorage get tmpStorage {
@@ -94,7 +94,7 @@ class _FsDatabaseStorage extends DatabaseStorage {
           });
         }
         return false;
-        
+
       });
 
 
@@ -113,6 +113,18 @@ class _FsDatabaseStorage extends DatabaseStorage {
     });
 
     return sink.close();
+  }
+
+  @override
+  String toString() {
+    Map map = {
+      "file": file.toString(),
+      "fs": fs.toString()
+    };
+    if (isTmp == true) {
+      map['tmp'] = true;
+    }
+    return map.toString();
   }
 
 }

@@ -139,6 +139,9 @@ class _IoFileSystem implements fs.FileSystem {
 
   @override
   File get scriptFile => io.Platform.script == null ? null : newFile(io.Platform.script.toFilePath());
+  
+  @override
+  String toString() => "io";
 }
 
 class Directory extends FileSystemEntity implements fs.Directory {

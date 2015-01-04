@@ -334,7 +334,7 @@ abstract class _MemoryFileSystemEntityImpl {
 
         // re-add
         newImpl.implSetExists(true);
-        
+
         return newImpl;
       } else {
         throw 'not supported yet';
@@ -461,6 +461,9 @@ class _MemoryFileSystem implements fs.FileSystem {
 
   @override
   _MemoryFile get scriptFile => null;
+
+  @override
+  String toString() => "memory";
 }
 
 abstract class _MemoryFileSystemEntity implements fs.FileSystemEntity {
