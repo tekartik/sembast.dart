@@ -58,7 +58,7 @@ class Database {
   }
 
   Completer _txnRootCompleter;
-  Completer _txnChildCompleter;
+  //Completer _txnChildCompleter;
 
   int get _currentZoneTxnId => Zone.current[_zoneTransactionKey];
   bool get _inTransaction => _currentZoneTxnId != null;
@@ -527,7 +527,7 @@ class Database {
           int totalLines = 0;
           int obsoleteLines = 0;
 
-          bool needCompact = false;
+          //bool needCompact = false;
 
 
           return _storage.readLines().forEach((String line) {

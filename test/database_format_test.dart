@@ -1,8 +1,8 @@
 library sembast.database_format_test;
 
 // basically same as the io runner but with extra output
-import 'package:tekartik_test/test_config_io.dart';
-import 'package:sembast/src/io/io_file_system.dart';
+import 'package:test/test.dart';
+import 'package:sembast/src/memory/memory_file_system.dart';
 import 'package:sembast/src/file_system.dart';
 import 'package:sembast/src/sembast_fs.dart';
 import 'package:sembast/sembast.dart';
@@ -10,8 +10,7 @@ import 'test_common.dart';
 import 'dart:convert';
 
 void main() {
-  useVMConfiguration();
-  defineTests(ioFileSystem);
+  defineTests(memoryFileSystem);
 }
 
 void defineTests(FileSystem fs) {

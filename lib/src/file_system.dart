@@ -18,6 +18,7 @@ class FileMode {
   static const APPEND = const FileMode._internal(2);
   final int _mode;
 
+  int get mode => _mode;
   const FileMode._internal(this._mode);
 }
 
@@ -138,12 +139,12 @@ class FileSystemEntityType {
   static const DIRECTORY = const FileSystemEntityType._internal(1);
   static const LINK = const FileSystemEntityType._internal(2);
   static const NOT_FOUND = const FileSystemEntityType._internal(3);
-  static const _typeList = const [FileSystemEntityType.FILE, FileSystemEntityType.DIRECTORY, FileSystemEntityType.LINK, FileSystemEntityType.NOT_FOUND];
+  //static const _typeList = const [FileSystemEntityType.FILE, FileSystemEntityType.DIRECTORY, FileSystemEntityType.LINK, FileSystemEntityType.NOT_FOUND];
   final int _type;
 
   const FileSystemEntityType._internal(this._type);
 
-  static FileSystemEntityType _lookup(int type) => _typeList[type];
+  //static FileSystemEntityType _lookup(int type) => _typeList[type];
   String toString() => const ['FILE', 'DIRECTORY', 'LINK', 'NOT_FOUND'][_type];
 }
 

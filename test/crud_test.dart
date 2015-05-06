@@ -1,13 +1,12 @@
 library sembast.crud_test;
 
 // basically same as the io runner but with extra output
-import 'package:tekartik_test/test_config_io.dart';
+import 'package:test/test.dart';
 import 'package:sembast/sembast.dart';
 import 'package:sembast/sembast_memory.dart';
 import 'database_test.dart';
 
 void main() {
-  useVMConfiguration();
   defineTests(memoryDatabaseFactory);
 }
 

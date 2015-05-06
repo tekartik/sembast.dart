@@ -1,13 +1,12 @@
 library sembast.store_test;
 
 // basically same as the io runner but with extra output
-import 'package:tekartik_test/test_config_io.dart';
+import 'package:test/test.dart';
 import 'package:sembast/sembast.dart';
 import 'package:sembast/sembast_memory.dart';
 import 'database_test.dart';
 
 void main() {
-  useVMConfiguration();
   defineTests(memoryDatabaseFactory);
 }
 
@@ -42,6 +41,7 @@ void defineTests(DatabaseFactory factory) {
 
     test('delete', () {
       Store store = db.getStore("test");
+      expect(store, isNotNull);
       return db.deleteStore("test").then((_) {
         expect(db.findStore("test"), isNull);
       });
@@ -51,6 +51,7 @@ void defineTests(DatabaseFactory factory) {
     test('delete_main', () {
       Store store = db.getStore(null);
       return db.deleteStore(null).then((_) {
+        expect(db.findStore(null), store);
         expect(db.findStore(null), db.mainStore);
         expect(db.stores, [db.mainStore]);
         return db.deleteStore(db.mainStore.name).then((_) {

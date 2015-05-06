@@ -1,12 +1,11 @@
 library sembast.test_runner_memory;
 
-import 'package:tekartik_test/test_config_io.dart';
 import 'package:sembast/sembast_memory.dart';
 import 'package:sembast/sembast.dart';
-import 'test_runner.dart' as test_runner_test;
+import 'test_runner_all_test.dart' as test_runner_test;
 
 void main() {
-  useVMConfiguration();
+  //useVMConfiguration();
   //debugQuickLogging(Level.FINEST);
   defineTests(memoryDatabaseFactory);
 }

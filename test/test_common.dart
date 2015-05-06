@@ -19,8 +19,8 @@ String testOutDbPath(FileSystem fs) {
 }
 String testOutPath(FileSystem fs) {
 
-  String DATA_FOLDER = 'data';
-  String OUT_FOLDER = 'out';
+  //String DATA_FOLDER = 'data';
+  //String OUT_FOLDER = 'out';
 
   String _rootPath() {
     if (fs.scriptFile != null) {
@@ -29,8 +29,8 @@ String testOutPath(FileSystem fs) {
     return fs.currentDirectory.path;
   }
 
-  String dataPath = join(_rootPath(), DATA_FOLDER);
-  String outDataPath = join(dataPath, OUT_FOLDER);
+  //String dataPath = join(_rootPath(), DATA_FOLDER);
+  //String outDataPath = join(dataPath, OUT_FOLDER);
   return join(_rootPath(), "tmp");
 }
 

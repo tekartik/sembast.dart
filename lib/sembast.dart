@@ -26,6 +26,8 @@ class DatabaseMode {
   /// The mode for emptying the existing content if any
   static const EMPTY = const DatabaseMode._internal(2);
   final int _mode;
+  
+  int get mode => _mode;
 
   const DatabaseMode._internal(this._mode);
 }

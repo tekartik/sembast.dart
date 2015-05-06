@@ -1,18 +1,17 @@
 library sembast.database_perf_test;
 
 // basically same as the io runner but with extra output
-import 'package:tekartik_test/test_config_io.dart';
+import 'package:test/test.dart';
 import 'package:sembast/sembast.dart';
-import 'package:sembast/sembast_io.dart';
+import 'package:sembast/sembast_memory.dart';
 import 'dart:async';
 import 'database_test.dart';
 
 void main() {
-  useVMConfiguration();
-  defineTests(ioDatabaseFactory);
+  defineTests(memoryDatabaseFactory, 10);
 }
 
-void defineTests(DatabaseFactory factory) {
+void defineTests(DatabaseFactory factory, int putCount) {
 
   group('perf', () {
 
@@ -28,7 +27,6 @@ void defineTests(DatabaseFactory factory) {
       db.close();
     });
 
-    int putCount = 100;
     test('put/read $putCount', () {
       List<Future> futures = [];
       for (int i = 0; i < putCount; i++) {

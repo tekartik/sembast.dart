@@ -2,7 +2,7 @@ library sembast.io_file_system_test;
 
 // basically same as the io runner but with extra output
 //import 'package:tekartik_test/test_config.dart';
-import 'package:tekartik_test/test_utils.dart';
+import 'package:test/test.dart';
 import 'package:sembast/src/file_system.dart';
 import 'dart:async';
 import 'package:path/path.dart';
