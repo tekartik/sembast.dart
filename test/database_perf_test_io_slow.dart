@@ -8,5 +8,5 @@ import 'package:sembast/sembast_io.dart';
 import 'database_perf_test.dart' as database_perf_test;
 
 void main() {
-  database_perf_test.defineTests(ioDatabaseFactory, 10000);
+  database_perf_test.defineTests(ioDatabaseFactory, 1000);
 }
