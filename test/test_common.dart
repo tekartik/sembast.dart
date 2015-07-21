@@ -4,13 +4,26 @@ library sembast.database_test;
 import 'package:sembast/sembast.dart';
 import 'dart:async';
 import 'package:sembast/src/file_system.dart';
+import 'package:sembast/src/sembast_fs.dart';
 import 'package:path/path.dart';
 import 'dart:convert';
 
-Future<Database> setupForTest(DatabaseFactory factory, String path) {
+Future<Database> setupForTest(DatabaseFactory factory, [String path]) {
+  if (path == null) {
+    path = testOutFactoryDbPath(factory);
+  }
   return factory.deleteDatabase(path).then((_) {
     return factory.openDatabase(path);
   });
+}
+
+String testOutFactoryDbPath(DatabaseFactory factory) {
+  if (factory is FsDatabaseFactory) {
+    FileSystem fs = factory.fs;
+    return testOutDbPath(fs);
+  } else {
+    return "test.db";
+  }
 }
 
 String testOutDbPath(FileSystem fs) {

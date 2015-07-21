@@ -5,8 +5,6 @@ import 'package:sembast/sembast.dart';
 import 'test_runner_all_test.dart' as test_runner_test;
 
 void main() {
-  //useVMConfiguration();
-  //debugQuickLogging(Level.FINEST);
   defineTests(memoryDatabaseFactory);
 }
 void defineTests(DatabaseFactory factory) {

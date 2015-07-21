@@ -7,21 +7,11 @@ import 'package:sembast/src/file_system.dart';
 import 'dart:async';
 import 'package:path/path.dart';
 import 'dart:convert';
+import 'test_common.dart';
 
 void defineTests(FileSystem fs) {
 
-  String DATA_FOLDER = 'data';
-  String OUT_FOLDER = 'out';
-
-  String _rootPath() {
-    if (fs.scriptFile != null) {
-      return dirname(fs.scriptFile.path);
-    }
-    return fs.currentDirectory.path;
-  }
-
-  String dataPath = join(_rootPath(), DATA_FOLDER);
-  String outDataPath = join(dataPath, OUT_FOLDER);
+  String outDataPath = testOutPath(fs);
 
   String namePath(String name) => join(outDataPath, name);
 
@@ -126,10 +116,6 @@ void defineTests(FileSystem fs) {
 
       test('scriptFile', () {
         //expect(fs.scriptFile, isNotNull);
-      });
-
-      test('rootPath', () {
-        expect(_rootPath(), isNotNull);
       });
 
       test('type', () {

@@ -1,3 +1,4 @@
+@TestOn("vm")
 library sembast.test_runner_io;
 
 import 'package:test/test.dart';

@@ -1,12 +1,8 @@
 library sembast.test_runner;
 
-import 'package:test/test.dart';
 import 'package:sembast/src/memory/memory_file_system.dart';
-import 'package:sembast/src/io/io_file_system.dart';
 import 'package:sembast/src/sembast_fs.dart';
 import 'package:sembast/src/file_system.dart';
-import 'package:sembast/sembast_memory.dart';
-import 'package:sembast/sembast_io.dart';
 import 'database_perf_test.dart' as database_perf_test;
 import 'database_test.dart' as database_test;
 import 'crud_test.dart' as crud_test;
@@ -20,18 +16,8 @@ import 'database_format_test.dart' as database_format_test;
 
 // default use memory
 void main() {
-  //debugQuickLogging(Level.FINEST);
-  group('memory', () {
-    defineTests(memoryDatabaseFactory);
-  });
-  group('io', () {
-    defineFileSystemTests(ioFileSystem);
-    defineTests(ioDatabaseFactory);
-  });
-  group('memory_fs', () {
-    defineFileSystemTests(memoryFileSystem);
-    defineTests(new FsDatabaseFactory(memoryFileSystem));
-  });
+  defineFileSystemTests(memoryFileSystem);
+  defineTests(new FsDatabaseFactory(memoryFileSystem));
 }
 
 void defineFileSystemTests(FileSystem fs) {

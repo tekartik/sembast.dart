@@ -4,14 +4,7 @@ library sembast.database_test;
 import 'package:test/test.dart';
 import 'package:sembast/sembast_memory.dart';
 import 'package:sembast/sembast.dart';
-import 'package:tekartik_io_tools/platform_utils.dart';
-import 'package:path/path.dart';
 import 'test_common.dart' as common;
-import 'dart:async';
-
-Future<Database> setupForTest(DatabaseFactory factory) {
-  return common.setupForTest(factory, join(scriptDirPath, "tmp", "test.db"));
-}
 
 void main() {
   defineTests(memoryDatabaseFactory);
@@ -21,7 +14,7 @@ void defineTests(DatabaseFactory factory) {
 
   group('database', () {
 
-    String dbPath = join(scriptDirPath, "tmp", "test.db");
+    String dbPath = common.testOutFactoryDbPath(factory);
 
     group('open', () {
       Database db;

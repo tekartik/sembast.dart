@@ -4,7 +4,7 @@ library sembast.crud_test;
 import 'package:test/test.dart';
 import 'package:sembast/sembast.dart';
 import 'package:sembast/sembast_memory.dart';
-import 'database_test.dart';
+import 'test_common.dart';
 
 void main() {
   defineTests(memoryDatabaseFactory);

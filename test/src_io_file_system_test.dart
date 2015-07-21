@@ -1,3 +1,4 @@
+@TestOn("vm")
 library sembast.io_file_system_test;
 
 // basically same as the io runner but with extra output
