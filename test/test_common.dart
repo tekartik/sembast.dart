@@ -1,5 +1,5 @@
 library sembast.database_test;
-
+import 'dart:mirrors';
 // basically same as the io runner but with extra output
 import 'package:sembast/sembast.dart';
 import 'dart:async';
@@ -7,6 +7,10 @@ import 'package:sembast/src/file_system.dart';
 import 'package:sembast/src/sembast_fs.dart';
 import 'package:path/path.dart';
 import 'dart:convert';
+
+// just for mirror
+class _TestUtils {
+}
 
 Future<Database> setupForTest(DatabaseFactory factory, [String path]) {
   if (path == null) {
@@ -30,16 +34,21 @@ String testOutDbPath(FileSystem fs) {
   return join(testOutPath(fs), "test.db");
 
 }
+
 String testOutPath(FileSystem fs) {
 
   //String DATA_FOLDER = 'data';
   //String OUT_FOLDER = 'out';
-
   String _rootPath() {
-    if (fs.scriptFile != null) {
-      return dirname(fs.scriptFile.path);
+    if (fs.toString() == "io") {
+      final String _testScriptPath = (reflectClass(_TestUtils).owner as LibraryMirror).uri.toFilePath();
+      return dirname(_testScriptPath);
+    } else {
+      if (fs.scriptFile != null) {
+        return dirname(fs.scriptFile.path);
+      }
+      return fs.currentDirectory.path;
     }
-    return fs.currentDirectory.path;
   }
 
   //String dataPath = join(_rootPath(), DATA_FOLDER);
