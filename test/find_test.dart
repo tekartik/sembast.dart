@@ -11,8 +11,6 @@ void main() {
 }
 
 void defineTests(DatabaseFactory factory) {
-
-
   //Database db;
 
   group('find', () {
@@ -65,7 +63,6 @@ void defineTests(DatabaseFactory factory) {
           expect(records.length, 1);
           expect(records[0], record1);
         }).then((_) {
-
           Record record = new Record(store, "he", 4);
 
           return db.putRecord(record).then((_) {
@@ -94,7 +91,6 @@ void defineTests(DatabaseFactory factory) {
           expect(records.length, 3);
           expect(records[0], record1);
         }).then((_) {
-
           Record record = new Record(store, "he", 4);
           return db.putRecord(record).then((_) {
             return store.findRecords(finder).then((List<Record> records) {
@@ -130,11 +126,8 @@ void defineTests(DatabaseFactory factory) {
             expect(records.length, 0);
           });
         });
-
       });
     });
-
-
 
     test('less_greater', () {
       Finder finder = new Finder();
@@ -155,7 +148,6 @@ void defineTests(DatabaseFactory factory) {
         return store.findRecords(finder).then((List<Record> records) {
           expect(records.length, 0);
         });
-
       }).then((_) {
         Finder finder = new Finder();
         finder.filter = new Filter.greaterThanOrEquals(Field.VALUE, "ho");
@@ -182,13 +174,19 @@ void defineTests(DatabaseFactory factory) {
 
     test('composite', () {
       Finder finder = new Finder();
-      finder.filter = new Filter.and([new Filter.lessThan(Field.VALUE, "ho"), new Filter.greaterThan(Field.VALUE, "ha")]);
+      finder.filter = new Filter.and([
+        new Filter.lessThan(Field.VALUE, "ho"),
+        new Filter.greaterThan(Field.VALUE, "ha")
+      ]);
       return store.findRecords(finder).then((List<Record> records) {
         expect(records.length, 1);
         expect(records[0], record1);
       }).then((_) {
         Finder finder = new Finder();
-        finder.filter = new Filter.or([new Filter.lessThan(Field.VALUE, "hi"), new Filter.greaterThan(Field.VALUE, "hum")]);
+        finder.filter = new Filter.or([
+          new Filter.lessThan(Field.VALUE, "hi"),
+          new Filter.greaterThan(Field.VALUE, "hum")
+        ]);
         return store.findRecords(finder).then((List<Record> records) {
           expect(records.length, 1);
           expect(records[0], record3);
@@ -224,18 +222,9 @@ void defineTests(DatabaseFactory factory) {
           db = database;
         }).then((_) {
           store = db.mainStore;
-          record1 = new Record(store, {
-            "text": "hi",
-            "value": 1
-          }, 1);
-          record2 = new Record(store, {
-            "text": "ho",
-            "value": 2
-          }, 2);
-          record3 = new Record(store, {
-            "text": "ha",
-            "value": 2
-          }, 3);
+          record1 = new Record(store, {"text": "hi", "value": 1}, 1);
+          record2 = new Record(store, {"text": "ho", "value": 2}, 2);
+          record3 = new Record(store, {"text": "ha", "value": 2}, 3);
           return db.putRecords([record1, record2, record3]);
         });
       });
@@ -246,14 +235,20 @@ void defineTests(DatabaseFactory factory) {
 
       test('sort', () {
         Finder finder = new Finder();
-        finder.sortOrders = [new SortOrder("value", true), new SortOrder("text", true)];
+        finder.sortOrders = [
+          new SortOrder("value", true),
+          new SortOrder("text", true)
+        ];
         return store.findRecords(finder).then((List<Record> records) {
           expect(records.length, 3);
           expect(records[0], record1);
           expect(records[1], record3);
           expect(records[2], record2);
         }).then((_) {
-          finder.sortOrders = [new SortOrder("value", true), new SortOrder("text", false)];
+          finder.sortOrders = [
+            new SortOrder("value", true),
+            new SortOrder("text", false)
+          ];
           return store.findRecords(finder).then((List<Record> records) {
             expect(records.length, 3);
             expect(records[0], record1);

@@ -15,7 +15,6 @@ class Store {
 
   Future put(var value, [var key]) {
     return database.inTransaction(() {
-
       Record record = new Record._(this, key, value, false);
 
       _putRecord(record);
@@ -24,9 +23,8 @@ class Store {
       }
       return record.key;
     });
-
   }
-  
+
   Stream<Record> get records {
     StreamController<Record> ctlr = new StreamController();
     inTransaction(() {
@@ -51,7 +49,6 @@ class Store {
 
     // then the regular unless already in transaction
     _records.values.forEach((Record record) {
-
       if (_inTransaction && _txnRecords != null) {
         if (_txnRecords.keys.contains(record.key)) {
           // already handled
@@ -61,7 +58,6 @@ class Store {
       if (Filter.matchRecord(filter, record)) {
         action(record);
       }
-
     });
   }
 
@@ -81,7 +77,6 @@ class Store {
     return inTransaction(() {
       List<Record> result;
 
-
       result = [];
 
       _forEachRecords(finder.filter, (Record record) {
@@ -91,7 +86,6 @@ class Store {
       // sort
       result.sort((Record record1, record2) {
         return finder.compare(record1, record2);
-
       });
       return result;
     });
@@ -104,7 +98,6 @@ class Store {
       record.store._records[record.key] = record;
     }
   }
-
 
   void _loadRecord(Record record) {
     var key = record.key;
@@ -160,7 +153,6 @@ class Store {
     return database._putRecords(records);
   }
 
-
   Record _getRecord(var key) {
     var record;
 
@@ -201,7 +193,6 @@ class Store {
           ;
         }
       }
-
     }
     return new Future.value(records);
   }

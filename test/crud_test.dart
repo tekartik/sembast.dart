@@ -11,9 +11,7 @@ void main() {
 }
 
 void defineTests(DatabaseFactory factory) {
-
   group('crud', () {
-
     Database db;
 
     setUp(() {
@@ -93,7 +91,6 @@ void defineTests(DatabaseFactory factory) {
         return db.reOpen().then((_) {
           return db.get(1).then((String value) {
             expect(value, "hi");
-
           });
         });
       });
@@ -106,7 +103,6 @@ void defineTests(DatabaseFactory factory) {
             expect(key, 2);
           });
         });
-
       });
     });
 
@@ -151,9 +147,7 @@ void defineTests(DatabaseFactory factory) {
     });
 
     test('put_close_get_map', () {
-      Map info = {
-        "info": 12
-      };
+      Map info = {"info": 12};
       return db.put(info, 1).then((_) {
         return db.reOpen().then((_) {
           return db.get(1).then((Map infoRead) {
@@ -165,9 +159,7 @@ void defineTests(DatabaseFactory factory) {
     });
 
     test('auto_increment put_get_map', () {
-      Map info = {
-        "info": 12
-      };
+      Map info = {"info": 12};
       return db.put(info).then((key) {
         return db.get(key).then((Map infoRead) {
           expect(infoRead, info);
@@ -175,7 +167,5 @@ void defineTests(DatabaseFactory factory) {
         });
       });
     });
-
-
   });
 }

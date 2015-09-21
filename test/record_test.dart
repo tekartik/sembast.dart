@@ -11,7 +11,6 @@ void main() {
 }
 
 void defineTests(DatabaseFactory factory) {
-
   group('record', () {
     Database db;
 
@@ -34,19 +33,12 @@ void defineTests(DatabaseFactory factory) {
       expect(record[Field.VALUE], "hi");
       expect(record[Field.KEY], 1);
 
-      record = new Record(store, {
-        "text": "hi",
-        "int": 1,
-        "bool": true
-      }, "mykey");
+      record =
+          new Record(store, {"text": "hi", "int": 1, "bool": true}, "mykey");
 
       expect(record.store, store);
       expect(record.key, "mykey");
-      expect(record.value, {
-        "text": "hi",
-        "int": 1,
-        "bool": true
-      });
+      expect(record.value, {"text": "hi", "int": 1, "bool": true});
       expect(record[Field.VALUE], record.value);
       expect(record[Field.KEY], record.key);
       expect(record["text"], "hi");
@@ -69,7 +61,8 @@ void defineTests(DatabaseFactory factory) {
       Record record1 = new Record(store, "hi", 1);
       Record record2 = new Record(store, "ho", 2);
       Record record3 = new Record(store, "ha", 3);
-      return db.putRecords([record1, record2, record3]).then((List<Record> inserted) {
+      return db.putRecords([record1, record2, record3])
+          .then((List<Record> inserted) {
         expect(inserted.length, 3);
         expect(inserted[0].key, 1);
 
@@ -112,8 +105,6 @@ void defineTests(DatabaseFactory factory) {
           });
         });
       });
-
     });
-
   });
 }

@@ -27,8 +27,7 @@ class _FsDatabaseStorage extends DatabaseStorage {
   @override
   Future delete() {
     return file.exists().then((exists) {
-      return file.delete(recursive: true).catchError((_) {
-      });
+      return file.delete(recursive: true).catchError((_) {});
     });
   }
 
@@ -50,9 +49,8 @@ class _FsDatabaseStorage extends DatabaseStorage {
           }
         }).then((bool done) {
           if (!done) {
-            return file.create(recursive: true).then((File file) {
-
-            }).catchError((e) {
+            return file.create(recursive: true).then((File file) {})
+                .catchError((e) {
               return fs.isFile(path).then((isFile) {
                 if (!isFile) {
                   throw e;
@@ -66,7 +64,6 @@ class _FsDatabaseStorage extends DatabaseStorage {
       }
     });
   }
-
 
   String get tmpPath => join(dirname(path), "~${basename(path)}");
 
@@ -87,22 +84,25 @@ class _FsDatabaseStorage extends DatabaseStorage {
             print(e);
             return true;
           }).whenComplete(() {
-            return fs.newFile(tmpPath).rename(file.path).then((File renamedFile) {
+            return fs
+                .newFile(tmpPath)
+                .rename(file.path)
+                .then((File renamedFile) {
               // ok
               return true;
             });
           });
         }
         return false;
-
       });
-
-
     });
   }
 
   Stream<String> readLines() {
-    return file.openRead().transform(UTF8.decoder).transform(new LineSplitter());
+    return file
+        .openRead()
+        .transform(UTF8.decoder)
+        .transform(new LineSplitter());
   }
 
   Future appendLines(List<String> lines) {
@@ -117,27 +117,27 @@ class _FsDatabaseStorage extends DatabaseStorage {
 
   @override
   String toString() {
-    Map map = {
-      "file": file.toString(),
-      "fs": fs.toString()
-    };
+    Map map = {"file": file.toString(), "fs": fs.toString()};
     if (isTmp == true) {
       map['tmp'] = true;
     }
     return map.toString();
   }
-
 }
+
 /// FileSystem implementation
 class FsDatabaseFactory implements DatabaseFactory {
   final FileSystem fs;
   FsDatabaseFactory(this.fs);
 
   @override
-  Future<Database> openDatabase(String path, {int version, OnVersionChangedFunction onVersionChanged, DatabaseMode mode}) {
+  Future<Database> openDatabase(String path,
+      {int version,
+      OnVersionChangedFunction onVersionChanged,
+      DatabaseMode mode}) {
     Database db = new Database(new _FsDatabaseStorage(fs, path));
-    return db.open(version: version, onVersionChanged: onVersionChanged, mode: mode);
-
+    return db.open(
+        version: version, onVersionChanged: onVersionChanged, mode: mode);
   }
 
   @override

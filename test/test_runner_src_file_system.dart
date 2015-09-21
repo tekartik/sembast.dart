@@ -10,7 +10,6 @@ import 'dart:convert';
 import 'test_common.dart';
 
 void defineTests(FileSystem fs) {
-
   String outDataPath = testOutPath(fs);
 
   String namePath(String name) => join(outDataPath, name);
@@ -39,7 +38,8 @@ void defineTests(FileSystem fs) {
     });
   }
 
-  Future<File> expectFileNameExists(String name, [bool exists = true]) => expectFileExists(nameFile(name), exists);
+  Future<File> expectFileNameExists(String name, [bool exists = true]) =>
+      expectFileExists(nameFile(name), exists);
 
   Stream<List<int>> openRead(File file) {
     return file.openRead();
@@ -71,7 +71,8 @@ void defineTests(FileSystem fs) {
     });
   }
   Future clearOutFolder() {
-    return deleteDirectory(fs.newDirectory(outDataPath)).catchError((FileSystemException e, st) {
+    return deleteDirectory(fs.newDirectory(outDataPath))
+        .catchError((FileSystemException e, st) {
       //devPrint("${e}\n${st}");
     });
   }
@@ -103,12 +104,9 @@ void defineTests(FileSystem fs) {
     return clearOutFolder();
   });
 
-  tearDown(() {
-  });
-
+  tearDown(() {});
 
   group('fs', () {
-
     group('file_system', () {
       test('currentDirectory', () {
         expect(fs.currentDirectory, isNotNull);
@@ -153,8 +151,7 @@ void defineTests(FileSystem fs) {
         Directory subDir = fs.newDirectory(join(mainDir.path, "test"));
 
         return subDir.create(recursive: true).then((_) {
-          return expectDirExists(mainDir, true).then((_) {
-          });
+          return expectDirExists(mainDir, true).then((_) {});
         });
       });
 
@@ -162,13 +159,11 @@ void defineTests(FileSystem fs) {
         Directory dir = nameDir("test");
         return dir.delete(recursive: true).then((_) {
           fail('');
-        }, onError: (FileSystemException e) {
-        }).then((_) {
+        }, onError: (FileSystemException e) {}).then((_) {
           return expectDirExists(dir, false);
         }).then((_) {
           return dir.create(recursive: true).then((_) {
-            return expectDirExists(dir, true).then((_) {
-            });
+            return expectDirExists(dir, true).then((_) {});
           }).then((_) {
             return dir.delete(recursive: true).then((_) {
               return expectDirExists(dir, false);
@@ -187,7 +182,6 @@ void defineTests(FileSystem fs) {
           });
         });
       });
-
     });
     group('file', () {
       test('file exists', () {
@@ -206,8 +200,7 @@ void defineTests(FileSystem fs) {
         File file = nameFile("test");
         return deleteFile(file).then((_) {
           fail('');
-        }, onError: (FileSystemException e) {
-        }).then((_) {
+        }, onError: (FileSystemException e) {}).then((_) {
           return expectFileExists(file, false).then((_) {
             return createFile(file);
           }).then((_) {
@@ -220,8 +213,7 @@ void defineTests(FileSystem fs) {
         File file = nameFile(join("sub", "test"));
         return deleteFile(file).then((_) {
           fail('');
-        }, onError: (FileSystemException e) {
-        }).then((_) {
+        }, onError: (FileSystemException e) {}).then((_) {
           return expectFileExists(file, false).then((_) {
             return createFile(file);
           }).then((_) {
@@ -250,7 +242,6 @@ void defineTests(FileSystem fs) {
 //        }, onError: (e) {
 //          devPrint(e);
 //        }).asFuture();
-
       });
 
       test('open write 1', () {
@@ -328,12 +319,10 @@ void defineTests(FileSystem fs) {
         return createFileName("test").then((File file) {
           return file.rename(namePath("test2")).then((File renamed) {
             return expectFileExists(renamed).then((_) {
-              return expectFileExists(file, false).then((_) {
-              });
+              return expectFileExists(file, false).then((_) {});
             });
           });
         });
-
       });
 
       test('rename to existing', () {
@@ -347,10 +336,7 @@ void defineTests(FileSystem fs) {
             });
           });
         });
-
       });
-
     });
   });
-
 }

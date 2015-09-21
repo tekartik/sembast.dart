@@ -12,9 +12,7 @@ void main() {
 }
 
 void defineTests(DatabaseFactory factory) {
-
   group('transaction', () {
-
     //String dbPath = join(scriptDirPath, "tmp", "test.db");
     Database db;
 
@@ -37,7 +35,6 @@ void defineTests(DatabaseFactory factory) {
       futures.add(db.get(1).then((String value) {
         expect(db.transaction, isNull);
         expect(value, null);
-
       }));
       return Future.wait(futures);
     });
@@ -84,7 +81,6 @@ void defineTests(DatabaseFactory factory) {
       // here the value should not be loaded yet
       futures.add(db.get(1).then((String value) {
         expect(value, null);
-
       }));
       return Future.wait(futures);
     });
@@ -99,7 +95,6 @@ void defineTests(DatabaseFactory factory) {
           });
         });
       });
-
     });
 
     test('put in sub sub transaction', () {
@@ -114,7 +109,6 @@ void defineTests(DatabaseFactory factory) {
           });
         });
       });
-
     });
 
     test('put and rollback', () {
@@ -195,7 +189,6 @@ void defineTests(DatabaseFactory factory) {
         }).then((_) {
           expect(db.transaction.id, 1);
         });
-
       }).then((_) {
         expect(db.transaction, null);
       });
@@ -257,6 +250,5 @@ void defineTests(DatabaseFactory factory) {
         });
       });
     });
-
   });
 }

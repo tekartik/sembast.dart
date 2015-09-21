@@ -9,10 +9,12 @@ import 'dart:convert';
 class FileMode {
   /// The mode for opening a file only for reading.
   static const READ = const FileMode._internal(0);
+
   /// The mode for opening a file for reading and writing. The file is
   /// overwritten if it already exists. The file is created if it does not
   /// already exist.
   static const WRITE = const FileMode._internal(1);
+
   /// The mode for opening a file for reading and writing to the
   /// end of it. The file is created if it does not already exist.
   static const APPEND = const FileMode._internal(2);
@@ -50,8 +52,8 @@ abstract class FileSystemException {
   /// The underlying OS error. Can be `null` if the exception is not
   /// raised due to an OS error.
   OSError get osError;
-
 }
+
 abstract class FileSystem {
   /**
    * Creates a [Directory] object.
@@ -93,17 +95,17 @@ abstract class FileSystem {
    * Checks if type(path) returns FileSystemEntityType.FILE.
    */
   Future<bool> isFile(String path);
-  
+
   /**
    * Checks if type(path) returns FileSystemEntityType.DIRECTORY.
    */
   Future<bool> isDirectory(String path);
-  
+
   ///
   /// Current directory if any
   ///
   Directory get currentDirectory;
-  
+
   ///
   /// Current running script file if any
   ///
@@ -189,7 +191,7 @@ abstract class FileSystemEntity {
    * cannot be deleted, the future completes with an exception.
    */
   Future<FileSystemEntity> delete({bool recursive: false});
-  
+
   /**
    * Renames this file system entity. Returns a `Future<FileSystemEntity>`
    * that completes with a [FileSystemEntity] instance for the renamed
@@ -218,8 +220,6 @@ abstract class Directory extends FileSystemEntity {
 }
 
 abstract class File extends FileSystemEntity {
-
-
   /**
    * Create the file. Returns a [:Future<File>:] that completes with
    * the file when it has been created.

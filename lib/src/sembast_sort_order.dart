@@ -2,7 +2,7 @@ part of sembast;
 
 ///
 /// Sort order
-/// 
+///
 class SortOrder {
   final bool ascending;
   final String field;
@@ -15,6 +15,7 @@ class SortOrder {
     int result = compareAscending(record1, record2);
     return ascending ? result : -result;
   }
+
   int compareAscending(Record record1, Record record2) {
     var value1 = record1[field];
     var value2 = record2[field];
@@ -27,9 +28,7 @@ class SortOrder {
   }
 
   Map toDebugMap() {
-    return {
-      field: ascending ? "asc" : "desc"
-    };
+    return {field: ascending ? "asc" : "desc"};
   }
 
   @override

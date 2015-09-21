@@ -12,9 +12,7 @@ void main() {
 }
 
 void defineTests(DatabaseFactory factory, int putCount) {
-
   group('perf', () {
-
     Database db;
 
     setUp(() {
@@ -31,7 +29,6 @@ void defineTests(DatabaseFactory factory, int putCount) {
       List<Future> futures = [];
       for (int i = 0; i < putCount; i++) {
         futures.add(db.put("value $i", i));
-
       }
       return Future.wait(futures).then((_) {
         return db.count().then((int count) {
@@ -45,17 +42,13 @@ void defineTests(DatabaseFactory factory, int putCount) {
         List<Future> futures = [];
         for (int i = 0; i < putCount; i++) {
           futures.add(db.put("value $i", i));
-
         }
         return Future.wait(futures);
       }).then((_) {
         return db.count().then((int count) {
           expect(count, putCount);
-
         });
       });
     });
-
   });
-
 }

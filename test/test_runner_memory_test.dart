@@ -7,7 +7,7 @@ import 'test_runner_all_test.dart' as test_runner_test;
 void main() {
   defineTests(memoryDatabaseFactory);
 }
+
 void defineTests(DatabaseFactory factory) {
   test_runner_test.defineTests(factory);
 }
-

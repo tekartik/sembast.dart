@@ -1,4 +1,3 @@
-
 library sembast.database_format_test;
 
 // basically same as the io runner but with extra output
@@ -15,29 +14,21 @@ void main() {
 }
 
 void defineTests(FileSystem fs) {
-
   DatabaseFactory factory = new FsDatabaseFactory(fs);
   String dbPath = testOutDbPath(fs);
 
   group('basic format', () {
-
     setUp(() {
-      return fs.newFile(dbPath).delete().catchError((_) {
-
-      });
+      return fs.newFile(dbPath).delete().catchError((_) {});
     });
 
-    tearDown(() {
-    });
+    tearDown(() {});
 
     test('open_no_version', () {
       return factory.openDatabase(dbPath).then((Database db) {
         return readContent(fs, dbPath).then((List<String> lines) {
           expect(lines.length, 1);
-          expect(JSON.decode(lines.first), {
-            "version": 1,
-            "sembast": 1
-          });
+          expect(JSON.decode(lines.first), {"version": 1, "sembast": 1});
         });
       });
     });
@@ -48,10 +39,7 @@ void defineTests(FileSystem fs) {
       }).then((_) {
         return readContent(fs, dbPath).then((List<String> lines) {
           expect(lines.length, 2);
-          expect(JSON.decode(lines[1]), {
-            'key': 1,
-            'value': 'hi'
-          });
+          expect(JSON.decode(lines[1]), {'key': 1, 'value': 'hi'});
         });
       });
     });
@@ -64,31 +52,21 @@ void defineTests(FileSystem fs) {
       }).then((_) {
         return readContent(fs, dbPath).then((List<String> lines) {
           expect(lines.length, 3);
-          expect(JSON.decode(lines[1]), {
-            'key': 1,
-            'value': 'hi'
-          });
-          expect(JSON.decode(lines[2]), {
-            'key': 1,
-            'value': 'hi'
-          });
+          expect(JSON.decode(lines[1]), {'key': 1, 'value': 'hi'});
+          expect(JSON.decode(lines[2]), {'key': 1, 'value': 'hi'});
         });
       });
     });
 
     test('1 map record', () {
       return factory.openDatabase(dbPath).then((Database db) {
-        return db.put({
-          'test': 2
-        }, 1);
+        return db.put({'test': 2}, 1);
       }).then((_) {
         return readContent(fs, dbPath).then((List<String> lines) {
           expect(lines.length, 2);
           expect(JSON.decode(lines[1]), {
             'key': 1,
-            'value': {
-              'test': 2
-            }
+            'value': {'test': 2}
           });
         });
       });
@@ -105,11 +83,7 @@ void defineTests(FileSystem fs) {
       }).then((_) {
         return readContent(fs, dbPath).then((List<String> lines) {
           expect(lines.length, 2);
-          expect(JSON.decode(lines[1]), {
-            'key': 1,
-            'value': 'hi'
-          });
-
+          expect(JSON.decode(lines[1]), {'key': 1, 'value': 'hi'});
         });
       });
     });
@@ -128,8 +102,7 @@ void defineTests(FileSystem fs) {
         // write 6
         return db.putRecords(generate(6)).then((_) {
           // update 5
-          return db.putRecords(generate(5)).then((_) {
-          });
+          return db.putRecords(generate(5)).then((_) {});
         }).then((_) {
           return db.reOpen().then((_) {
             return readContent(fs, dbPath).then((List<String> lines) {
@@ -138,8 +111,7 @@ void defineTests(FileSystem fs) {
           });
         }).then((_) {
           // update 1 more to trigger auto compact
-          return db.putRecords(generate(1)).then((_) {
-          });
+          return db.putRecords(generate(1)).then((_) {});
         }).then((_) {
           return db.reOpen().then((_) {
             return readContent(fs, dbPath).then((List<String> lines) {
@@ -157,8 +129,7 @@ void defineTests(FileSystem fs) {
         // write 30
         return db.putRecords(generate(30)).then((_) {
           // update 7 (that's 19.4% of 37
-          return db.putRecords(generate(7)).then((_) {
-          });
+          return db.putRecords(generate(7)).then((_) {});
         }).then((_) {
           return db.reOpen().then((_) {
             return readContent(fs, dbPath).then((List<String> lines) {
@@ -167,8 +138,7 @@ void defineTests(FileSystem fs) {
           });
         }).then((_) {
           // update 1 more to trigger auto compact
-          return db.putRecords(generate(1)).then((_) {
-          });
+          return db.putRecords(generate(1)).then((_) {});
         }).then((_) {
           return db.reOpen().then((_) {
             return readContent(fs, dbPath).then((List<String> lines) {
@@ -179,5 +149,4 @@ void defineTests(FileSystem fs) {
       });
     });
   });
-
 }

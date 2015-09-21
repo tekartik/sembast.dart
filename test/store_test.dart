@@ -11,9 +11,7 @@ void main() {
 }
 
 void defineTests(DatabaseFactory factory) {
-
   group('store', () {
-
     Database db;
 
     setUp(() {
@@ -21,7 +19,6 @@ void defineTests(DatabaseFactory factory) {
         db = database;
       });
     });
-
 
     tearDown(() {
       db.close();
@@ -36,7 +33,6 @@ void defineTests(DatabaseFactory factory) {
           expect(value, null);
         });
       });
-
     });
 
     test('delete', () {
@@ -45,7 +41,6 @@ void defineTests(DatabaseFactory factory) {
       return db.deleteStore("test").then((_) {
         expect(db.findStore("test"), isNull);
       });
-
     });
 
     test('delete_main', () {
@@ -59,7 +54,6 @@ void defineTests(DatabaseFactory factory) {
           expect(db.stores, [db.mainStore]);
         });
       });
-
     });
 
     test('put/get', () {
@@ -88,11 +82,10 @@ void defineTests(DatabaseFactory factory) {
           return store2.get(1).then((String value) {
             expect(value, "ho");
           });
-
         });
       });
     });
-    
+
     test('records', () {
       Store store = db.getStore("test");
       return store.put("hi").then((int key) {
@@ -100,7 +93,6 @@ void defineTests(DatabaseFactory factory) {
         return store.records.listen((Record record) {
           expect(record.value, "hi");
           count++;
-          
         }).asFuture().then((_) {
           expect(count, 1);
         });

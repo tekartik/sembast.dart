@@ -11,17 +11,11 @@ void main() {
 }
 
 void defineTests() {
-
   group('memory', () {
+    setUp(() {});
 
-    setUp(() {
-    });
-
-    tearDown(() {
-    });
-
-    
+    tearDown(() {});
   });
-  
+
   fs.defineTests(memoryFileSystem);
 }

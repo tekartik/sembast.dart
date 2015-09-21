@@ -1,4 +1,5 @@
 library sembast.database_test;
+
 import 'dart:mirrors';
 // basically same as the io runner but with extra output
 import 'package:sembast/sembast.dart';
@@ -9,8 +10,7 @@ import 'package:path/path.dart';
 import 'dart:convert';
 
 // just for mirror
-class _TestUtils {
-}
+class _TestUtils {}
 
 Future<Database> setupForTest(DatabaseFactory factory, [String path]) {
   if (path == null) {
@@ -32,16 +32,15 @@ String testOutFactoryDbPath(DatabaseFactory factory) {
 
 String testOutDbPath(FileSystem fs) {
   return join(testOutPath(fs), "test.db");
-
 }
 
 String testOutPath(FileSystem fs) {
-
   //String DATA_FOLDER = 'data';
   //String OUT_FOLDER = 'out';
   String _rootPath() {
     if (fs.toString() == "io") {
-      final String _testScriptPath = (reflectClass(_TestUtils).owner as LibraryMirror).uri.toFilePath();
+      final String _testScriptPath =
+          (reflectClass(_TestUtils).owner as LibraryMirror).uri.toFilePath();
       return dirname(_testScriptPath);
     } else {
       if (fs.scriptFile != null) {
@@ -68,7 +67,12 @@ Future<List<Record>> recordStreamToList(Stream<Record> stream) {
 ///
 Future<List<String>> readContent(FileSystem fs, String filePath) {
   List<String> content = [];
-  return fs.newFile(filePath).openRead().transform(UTF8.decoder).transform(new LineSplitter()).listen((String line) {
+  return fs
+      .newFile(filePath)
+      .openRead()
+      .transform(UTF8.decoder)
+      .transform(new LineSplitter())
+      .listen((String line) {
     content.add(line);
   }).asFuture(content);
 }

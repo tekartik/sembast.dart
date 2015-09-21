@@ -1,7 +1,6 @@
 part of sembast;
 
 class Database {
-
   static Logger logger = new Logger("Sembast");
   final bool LOGV = logger.isLoggable(Level.FINEST);
 
@@ -48,13 +47,13 @@ class Database {
       store._rollback();
     }
   }
+
   void rollback() {
     // only valid in a transaction
     if (!_inTransaction) {
       throw new Exception("not in transaction");
     }
     _clearTxnData();
-
   }
 
   Completer _txnRootCompleter;
@@ -62,6 +61,7 @@ class Database {
 
   int get _currentZoneTxnId => Zone.current[_zoneTransactionKey];
   bool get _inTransaction => _currentZoneTxnId != null;
+
   ///
   /// get the current zone transaction
   ///
@@ -87,8 +87,8 @@ class Database {
       return newTransaction(action);
     });
   }
-  Future inTransaction(action()) {
 
+  Future inTransaction(action()) {
     //devPrint("z: ${Zone.current[_zoneRootKey]}");
     //devPrint("z: ${Zone.current[_zoneChildKey]}");
 
@@ -109,57 +109,53 @@ class Database {
 
       var result;
       var err;
-      runZoned(() {
-        // execute and commit
-        if (LOGV) {
-          logger.fine("begin transaction");
-        }
-        return new Future.sync(action).then((_result) {
-          return new Future.sync(_commit).then((_) {
-            result = _result;
+      runZoned(
+          () {
+            // execute and commit
             if (LOGV) {
-              logger.fine("commit transaction");
+              logger.fine("begin transaction");
             }
-          });
-
-        }).catchError((e, st) {
-          logger.severe("txn error $e");
-          logger.finest(e);
-          logger.finest(st);
-          //txn._completer.completeError(e);
-          err = e;
-          //return new Future.error(e);
-          _transactions.remove(txn.id);
-          _clearTxnData();
-          txn._completer.complete();
-          actionCompleter.completeError(err);
-        });
-      }, zoneValues: {
-        _zoneTransactionKey: txn.id
-      }, onError: (e, st) {
-        logger.severe("txn zone error $e");
-        logger.finest(e);
-        logger.finest(st);
-        //txn._completer.completeError(e);
-        err = e;
-        //return new Future.error(e);
-        _transactions.remove(txn.id);
-        _clearTxnData();
-        txn._completer.complete();
-        actionCompleter.completeError(err);
-
-      }).whenComplete(() {
+            return new Future.sync(action).then((_result) {
+              return new Future.sync(_commit).then((_) {
+                result = _result;
+                if (LOGV) {
+                  logger.fine("commit transaction");
+                }
+              });
+            }).catchError((e, st) {
+              logger.severe("txn error $e");
+              logger.finest(e);
+              logger.finest(st);
+              //txn._completer.completeError(e);
+              err = e;
+              //return new Future.error(e);
+              _transactions.remove(txn.id);
+              _clearTxnData();
+              txn._completer.complete();
+              actionCompleter.completeError(err);
+            });
+          },
+          zoneValues: {_zoneTransactionKey: txn.id},
+          onError: (e, st) {
+            logger.severe("txn zone error $e");
+            logger.finest(e);
+            logger.finest(st);
+            //txn._completer.completeError(e);
+            err = e;
+            //return new Future.error(e);
+            _transactions.remove(txn.id);
+            _clearTxnData();
+            txn._completer.complete();
+            actionCompleter.completeError(err);
+          }).whenComplete(() {
         if (!actionCompleter.isCompleted) {
           _transactions.remove(txn.id);
           _clearTxnData();
           actionCompleter.complete(result);
           txn._completer.complete();
         }
-
-
       });
       return actionCompleter.future;
-
     } else {
       return new Future.sync(action);
 //      if (LOGV) {
@@ -200,13 +196,12 @@ class Database {
 //      });
 
     }
-
-
   }
 
   void _setRecordInMemory(Record record) {
     record.store._setRecordInMemory(record);
   }
+
   void _loadRecord(Record record) {
     record.store._loadRecord(record);
   }
@@ -238,7 +233,6 @@ class Database {
               });
             });
             return tmpStorage.appendLines(lines);
-
           });
         }).then((_) {
           return _storage.tmpRecover();
@@ -246,13 +240,12 @@ class Database {
       }
     });
   }
+
   // future or not
   _commit() {
-
     List<Record> txnRecords = [];
     for (Store store in stores) {
       if (store._txnRecords != null) {
-
         txnRecords.addAll(store._txnRecords.values);
       }
     }
@@ -335,15 +328,11 @@ class Database {
 
   // record must have been clone before
   List<Record> _putRecords(List<Record> records) {
-
     // temp records
     for (Record record in records) {
       _putRecord(record);
     }
     return records;
-
-
-
   }
 
   Future get(var key) {
@@ -362,13 +351,16 @@ class Database {
     return record.store._has(record.key);
   }
 
-
   /**
    * reload from file system
    */
-  Future reOpen({int version, OnVersionChangedFunction onVersionChanged, DatabaseMode mode}) {
+  Future reOpen(
+      {int version,
+      OnVersionChangedFunction onVersionChanged,
+      DatabaseMode mode}) {
     close();
-    return open(version: version, onVersionChanged: onVersionChanged, mode: mode);
+    return open(
+        version: version, onVersionChanged: onVersionChanged, mode: mode);
   }
 
   void _checkMainStore() {
@@ -376,8 +368,8 @@ class Database {
       _addStore(null);
     }
   }
-  Store _addStore(String storeName) {
 
+  Store _addStore(String storeName) {
     if (storeName == null) {
       return _mainStore = _addStore(_main_store);
     } else {
@@ -412,7 +404,6 @@ class Database {
       if (store == null) {
         store = _addStore(storeName);
       }
-
     }
     return store;
   }
@@ -431,16 +422,18 @@ class Database {
     }
   }
 
-  Future open({int version, OnVersionChangedFunction onVersionChanged, DatabaseMode mode}) {
+  Future open(
+      {int version,
+      OnVersionChangedFunction onVersionChanged,
+      DatabaseMode mode}) {
     if (_opened) {
       if (path != this.path) {
-        throw new DatabaseException.badParam("existing path ${this.path} differ from open path ${path}");
+        throw new DatabaseException.badParam(
+            "existing path ${this.path} differ from open path ${path}");
       }
       return new Future.value(this);
     }
     return runZoned(() {
-
-
       _Meta meta;
 
       Future _handleVersionChanged(int oldVersion, int newVersion) {
@@ -509,7 +502,8 @@ class Database {
         if (mode == DatabaseMode.EXISTING) {
           return _storage.find().then((bool found) {
             if (!found) {
-              throw new DatabaseException.databaseNotFound("Database (open existing only) ${path} not found");
+              throw new DatabaseException.databaseNotFound(
+                  "Database (open existing only) ${path} not found");
             }
           });
         } else {
@@ -529,12 +523,10 @@ class Database {
 
           //bool needCompact = false;
 
-
           return _storage.readLines().forEach((String line) {
             totalLines++;
             // evesrything is JSON
             Map map = JSON.decode(line);
-
 
             if (_Meta.isMapMeta(map)) {
               // meta?
@@ -546,10 +538,7 @@ class Database {
                 obsoleteLines++;
               }
               _loadRecord(record);
-
             }
-
-
           }).then((_) {
             // auto compaction
             // allow for 20% of lost lines
@@ -571,8 +560,6 @@ class Database {
     });
   }
 
-
-
   void close() {
     _opened = false;
     //_mainStore = null;
@@ -581,11 +568,7 @@ class Database {
   }
 
   Map toDebugMap() {
-    return {
-      "path": path,
-      "version": version,
-      "stores": _stores
-    };
+    return {"path": path, "version": version, "stores": _stores};
   }
 
   @override

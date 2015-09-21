@@ -1,6 +1,5 @@
 part of sembast;
 
-
 ///
 /// Special field access
 ///
@@ -13,7 +12,6 @@ class Field {
 /// Records
 ///
 class Record {
-
   get key => _key;
   get value => _value;
   bool get deleted => _deleted == true;
@@ -69,14 +67,10 @@ class Record {
   }
 
   Map _toMap() {
-
     Map map = _toBaseMap();
     map[_record_value] = value;
     return map;
-
-
   }
-
 
   @override
   String toString() {
@@ -84,7 +78,6 @@ class Record {
   }
 
   Record(this._store, this._value, [this._key]) : _deleted = null;
-
 
   @override
   int get hashCode => key == null ? 0 : key.hashCode;

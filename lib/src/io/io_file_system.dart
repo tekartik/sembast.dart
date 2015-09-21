@@ -47,7 +47,6 @@ class _IoIOSink implements fs.IOSink {
 
   @override
   Future close() => _wrap(ioSink.close());
-
 }
 
 abstract class FileSystemEntity implements fs.FileSystemEntity {
@@ -63,10 +62,12 @@ abstract class FileSystemEntity implements fs.FileSystemEntity {
   @override
   Future<bool> exists() => _wrap(ioFileSystemEntity.exists());
 
-
   @override
   Future<fs.FileSystemEntity> delete({bool recursive: false}) //
-  => _wrap(ioFileSystemEntity.delete(recursive: recursive).then((io.FileSystemEntity ioFileSystemEntity) => this));
+      =>
+      _wrap(ioFileSystemEntity
+          .delete(recursive: recursive)
+          .then((io.FileSystemEntity ioFileSystemEntity) => this));
 
   @override
   String get path => ioFileSystemEntity.path;
@@ -128,18 +129,26 @@ class _IoFileSystem implements fs.FileSystem {
   Future<bool> isFile(String path) => io.FileSystemEntity.isFile(path);
 
   @override
-  Future<bool> isDirectory(String path) => io.FileSystemEntity.isDirectory(path);
+  Future<bool> isDirectory(String path) =>
+      io.FileSystemEntity.isDirectory(path);
 
   @override
   Future<fs.FileSystemEntityType> type(String path, {bool followLinks: true}) //
-  => _wrap(io.FileSystemEntity.type(path, followLinks: true).then((io.FileSystemEntityType ioType) => fsFileType(ioType)));
+      =>
+      _wrap(io.FileSystemEntity
+          .type(path, followLinks: true)
+          .then((io.FileSystemEntityType ioType) => fsFileType(ioType)));
 
   @override
-  Directory get currentDirectory => io.Directory.current == null ? null : newDirectory(io.Directory.current.path);
+  Directory get currentDirectory => io.Directory.current == null
+      ? null
+      : newDirectory(io.Directory.current.path);
 
   @override
-  File get scriptFile => io.Platform.script == null ? null : newFile(io.Platform.script.toFilePath());
-  
+  File get scriptFile => io.Platform.script == null
+      ? null
+      : newFile(io.Platform.script.toFilePath());
+
   @override
   String toString() => "io";
 }
@@ -162,11 +171,17 @@ class Directory extends FileSystemEntity implements fs.Directory {
 
   @override
   Future<Directory> create({bool recursive: false}) //
-  => _wrap(ioDir.create(recursive: recursive).then((io.Directory ioDir) => this));
+      =>
+      _wrap(ioDir
+          .create(recursive: recursive)
+          .then((io.Directory ioDir) => this));
 
   @override
   Future<FileSystemEntity> rename(String newPath) //
-  => _wrap(ioFileSystemEntity.rename(newPath).then((io.FileSystemEntity ioFileSystemEntity) => new Directory(ioFileSystemEntity.path)));
+      =>
+      _wrap(ioFileSystemEntity.rename(newPath).then(
+          (io.FileSystemEntity ioFileSystemEntity) =>
+              new Directory(ioFileSystemEntity.path)));
 }
 
 class File extends FileSystemEntity implements fs.File {
@@ -186,19 +201,25 @@ class File extends FileSystemEntity implements fs.File {
 
   @override
   Future<fs.File> create({bool recursive: false}) //
-  => _wrap(ioFile.create(recursive: recursive).then((io.File ioFile) => this));
+      =>
+      _wrap(ioFile.create(recursive: recursive).then((io.File ioFile) => this));
 
   @override
   Stream<List<int>> openRead([int start, int end]) //
-  => ioFile.openRead(start, end);
+      =>
+      ioFile.openRead(start, end);
 
   @override
-  fs.IOSink openWrite({fs.FileMode mode: fs.FileMode.WRITE, Encoding encoding: UTF8}) //
-  => new _IoIOSink(ioFile.openWrite(mode: _fileMode(mode), encoding: encoding));
+  fs.IOSink openWrite(
+          {fs.FileMode mode: fs.FileMode.WRITE, Encoding encoding: UTF8}) //
+      =>
+      new _IoIOSink(
+          ioFile.openWrite(mode: _fileMode(mode), encoding: encoding));
 
   @override
   Future<FileSystemEntity> rename(String newPath) //
-  => _wrap(ioFileSystemEntity.rename(newPath).then((io.FileSystemEntity ioFileSystemEntity) => new File(ioFileSystemEntity.path)));
-
-
+      =>
+      _wrap(ioFileSystemEntity.rename(newPath).then(
+          (io.FileSystemEntity ioFileSystemEntity) =>
+              new File(ioFileSystemEntity.path)));
 }

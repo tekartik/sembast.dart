@@ -9,7 +9,6 @@ import 'test_runner_all_test.dart';
 import 'package:sembast/sembast_memory.dart';
 import 'package:sembast/sembast_io.dart';
 
-
 // default use memory
 void main() {
   //debugQuickLogging(Level.FINEST);

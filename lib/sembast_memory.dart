@@ -7,7 +7,10 @@ import 'sembast.dart';
 /// In memory implementation
 class MemoryDatabaseFactory implements DatabaseFactory {
   @override
-  Future<Database> openDatabase(String path, {int version, OnVersionChangedFunction onVersionChanged, DatabaseMode mode}) {
+  Future<Database> openDatabase(String path,
+      {int version,
+      OnVersionChangedFunction onVersionChanged,
+      DatabaseMode mode}) {
     Database db;
     if (path == null) {
       db = _defaultDatabase;
@@ -17,10 +20,11 @@ class MemoryDatabaseFactory implements DatabaseFactory {
 
     if (db == null) {
       db = new Database(new _MemoryDatabaseStorage(this, path));
-
     }
 
-    return db.open(version: version, onVersionChanged: onVersionChanged, mode: mode).then((Database db) {
+    return db
+        .open(version: version, onVersionChanged: onVersionChanged, mode: mode)
+        .then((Database db) {
       if (path == null) {
         _defaultDatabase = db;
       } else {
@@ -28,7 +32,6 @@ class MemoryDatabaseFactory implements DatabaseFactory {
       }
       return db;
     });
-
   }
 
   // make it private
@@ -50,7 +53,8 @@ class MemoryDatabaseFactory implements DatabaseFactory {
   bool get persistent => false;
 }
 
-final MemoryDatabaseFactory memoryDatabaseFactory = new MemoryDatabaseFactory._();
+final MemoryDatabaseFactory memoryDatabaseFactory =
+    new MemoryDatabaseFactory._();
 
 ///
 /// Open a new database in memory
@@ -60,7 +64,6 @@ Future<Database> openMemoryDatabase() {
 }
 
 class _MemoryDatabaseStorage extends DatabaseStorage {
-
   final MemoryDatabaseFactory factory;
   final String path;
   _MemoryDatabaseStorage(this.factory, this.path);

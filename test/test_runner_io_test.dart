@@ -9,6 +9,7 @@ import 'test_runner_src_fs.dart' as test_runner_fs;
 void main() {
   defineTests();
 }
+
 void defineTests() {
   group('io', () {
     test('fs', () {

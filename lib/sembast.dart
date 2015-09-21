@@ -21,19 +21,20 @@ class DatabaseMode {
   /// The database is created if not found
   /// This is the default
   static const CREATE = const DatabaseMode._internal(0);
+
   /// The mode for opening an existing database
   static const EXISTING = const DatabaseMode._internal(1);
+
   /// The mode for emptying the existing content if any
   static const EMPTY = const DatabaseMode._internal(2);
   final int _mode;
-  
+
   int get mode => _mode;
 
   const DatabaseMode._internal(this._mode);
 }
 
 abstract class DatabaseFactory {
-
   bool get persistent;
 
   ///
@@ -43,7 +44,10 @@ abstract class DatabaseFactory {
   /// [version] is the version expected, if not null and if the existing version is different, onVersionChanged is called
   /// [mode] is [DatabaseMode.CREATE] by default
   ///
-  Future<Database> openDatabase(String path, {int version, OnVersionChangedFunction onVersionChanged, DatabaseMode mode});
+  Future<Database> openDatabase(String path,
+      {int version,
+      OnVersionChangedFunction onVersionChanged,
+      DatabaseMode mode});
 
   ///
   /// Delete a database if existing
@@ -72,7 +76,6 @@ abstract class DatabaseStorage {
 
 /// Exceptions
 class DatabaseException implements Exception {
-
   static int BAD_PARAM = 0;
   static int DATABASE_NOT_FOUND = 1;
   final int _code;
@@ -80,7 +83,8 @@ class DatabaseException implements Exception {
   int get code => _code;
   String get message => _message;
   DatabaseException.badParam(this._message) : _code = BAD_PARAM;
-  DatabaseException.databaseNotFound(this._message) : _code = DATABASE_NOT_FOUND;
+  DatabaseException.databaseNotFound(this._message)
+      : _code = DATABASE_NOT_FOUND;
 
   String toString() => "[${_code}] ${_message}";
 }
@@ -91,12 +95,13 @@ const String _db_version = "version";
 const String _db_sembast_version = "sembast";
 const String _record_key = "key";
 const String _store_name = "store";
-const String _record_value = "value"; // only for simple type where the key is not a string
+const String _record_value =
+    "value"; // only for simple type where the key is not a string
 const String _record_deleted = "deleted"; // boolean
 
 const String _main_store = "_main"; // main store name;
-class _Meta {
 
+class _Meta {
   int version;
   int sembastVersion = 1;
 
@@ -112,10 +117,7 @@ class _Meta {
   _Meta(this.version);
 
   Map toMap() {
-    var map = {
-      _db_version: version,
-      _db_sembast_version: sembastVersion
-    };
+    var map = {_db_version: version, _db_sembast_version: sembastVersion};
     return map;
   }
 
@@ -129,7 +131,6 @@ class _Meta {
 /// Database transaction
 ///
 class Transaction {
-
   final int id;
 
   // make the completer async as the Transaction following
@@ -145,7 +146,6 @@ class Transaction {
     return "txn ${id}${_completer.isCompleted ? ' completed' : ''}";
   }
 }
-
 
 class _CompositeFilter extends Filter {
   bool isAnd; // if false it is OR
@@ -186,16 +186,17 @@ class _CompositeFilter extends Filter {
   }
 }
 
-
 class _FilterOperation {
   final int value;
   const _FilterOperation._(this.value);
   static const _FilterOperation EQUAL = const _FilterOperation._(1);
   static const _FilterOperation NOT_EQUAL = const _FilterOperation._(2);
   static const _FilterOperation LESS_THAN = const _FilterOperation._(3);
-  static const _FilterOperation LESS_THAN_OR_EQUAL = const _FilterOperation._(4);
+  static const _FilterOperation LESS_THAN_OR_EQUAL =
+      const _FilterOperation._(4);
   static const _FilterOperation GREATER_THAN = const _FilterOperation._(5);
-  static const _FilterOperation GREATER_THAN_OR_EQUAL = const _FilterOperation._(6);
+  static const _FilterOperation GREATER_THAN_OR_EQUAL =
+      const _FilterOperation._(6);
   static const _FilterOperation IN = const _FilterOperation._(7);
   @override
   String toString() {
@@ -218,7 +219,6 @@ class _FilterOperation {
         throw "${this} not supported";
     }
   }
-
 }
 
 class _ByKeyFilter extends Filter {
@@ -304,13 +304,15 @@ abstract class Filter {
     return new _FilterPredicate(field, _FilterOperation.LESS_THAN, value);
   }
   factory Filter.lessThanOrEquals(String field, value) {
-    return new _FilterPredicate(field, _FilterOperation.LESS_THAN_OR_EQUAL, value);
+    return new _FilterPredicate(
+        field, _FilterOperation.LESS_THAN_OR_EQUAL, value);
   }
   factory Filter.greaterThan(String field, value) {
     return new _FilterPredicate(field, _FilterOperation.GREATER_THAN, value);
   }
   factory Filter.greaterThanOrEquals(String field, value) {
-    return new _FilterPredicate(field, _FilterOperation.GREATER_THAN_OR_EQUAL, value);
+    return new _FilterPredicate(
+        field, _FilterOperation.GREATER_THAN_OR_EQUAL, value);
   }
   factory Filter.inList(String field, List value) {
     return new _FilterPredicate(field, _FilterOperation.IN, value);
@@ -319,7 +321,6 @@ abstract class Filter {
   factory Filter.or(List<Filter> filters) => new _CompositeFilter.or(filters);
   factory Filter.and(List<Filter> filters) => new _CompositeFilter.and(filters);
   factory Filter.byKey(key) => new _ByKeyFilter(key);
-
 }
 
 class Finder {
@@ -332,6 +333,7 @@ class Finder {
   set sortOrder(SortOrder sortOrder) {
     sortOrders = [sortOrder];
   }
+
 //  bool match(Record record) {
 //    if (record.deleted) {
 //      return false;
@@ -357,9 +359,11 @@ class Finder {
   }
 
   Finder clone({int limit}) {
-    return new Finder(filter: filter, sortOrders: sortOrders, //
-    limit: limit == null ? this.limit : limit, //
-    offset: offset);
+    return new Finder(
+        filter: filter,
+        sortOrders: sortOrders, //
+        limit: limit == null ? this.limit : limit, //
+        offset: offset);
   }
 
   @override
@@ -367,4 +371,3 @@ class Finder {
     return "filter: ${filter}, sort: ${sortOrders}";
   }
 }
-
