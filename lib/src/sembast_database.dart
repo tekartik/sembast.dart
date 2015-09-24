@@ -542,6 +542,8 @@ class Database {
           }).then((_) {
             // auto compaction
             // allow for 20% of lost lines
+            // make sure _meta is known before compacting
+            _meta = meta;
             if (obsoleteLines > 5 && (obsoleteLines / totalLines > 0.20)) {
               return compact();
             }

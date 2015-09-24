@@ -149,4 +149,58 @@ void defineTests(FileSystem fs) {
       });
     });
   });
+
+  group('format_import', () {
+    setUp(() {
+      return fs.newFile(dbPath).delete().catchError((_) {});
+    });
+
+    tearDown(() {});
+
+    test('open_version_2', () async {
+      await writeContent(fs, dbPath, [
+        JSON.encode({"version": 2, "sembast": 1})
+      ]);
+      return factory.openDatabase(dbPath).then((Database db) {
+        expect(db.version, 2);
+      });
+    });
+
+    test('open_no_compact', () async {
+      String line = JSON.encode({"key": 1, "value": 2});
+      // Compact is needed after 6 times the same record
+      await writeContent(fs, dbPath, [
+        JSON.encode({"version": 2, "sembast": 1}),
+        line,
+        line,
+        line,
+        line,
+        line,
+        line
+      ]);
+      Database db = await factory.openDatabase(dbPath);
+      expect(await db.get(1), 2);
+      List<String> lines = await readContent(fs, dbPath);
+      expect(lines.length, 7);
+    });
+
+    test('open_compact', () async {
+      String line = JSON.encode({"key": 1, "value": 2});
+      // Compact is needed after 6 times the same record
+      await writeContent(fs, dbPath, [
+        JSON.encode({"version": 2, "sembast": 1}),
+        line,
+        line,
+        line,
+        line,
+        line,
+        line,
+        line
+      ]);
+      Database db = await factory.openDatabase(dbPath);
+      expect(await db.get(1), 2);
+      List<String> lines = await readContent(fs, dbPath);
+      expect(lines.length, 2);
+    });
+  });
 }
