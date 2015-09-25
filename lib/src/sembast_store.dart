@@ -91,12 +91,21 @@ class Store {
     });
   }
 
-  void _setRecordInMemory(Record record) {
+  ///
+  /// return true if it existed before
+  ///
+  bool _setRecordInMemory(Record record) {
+    bool exists = false;
     if (record.deleted) {
       record.store._records.remove(record.key);
+      exists = true;
     } else {
+      if (record.store._records[record.key] != null) {
+        exists = true;
+      }
       record.store._records[record.key] = record;
     }
+    return exists;
   }
 
   void _loadRecord(Record record) {
@@ -260,6 +269,17 @@ class Store {
   void _rollback() {
     // clear map;
     _txnRecords = null;
+  }
+
+  Map toJson() {
+    Map map = {};
+    if (name != null) {
+      map["name"] = name;
+    }
+    if (_records != null) {
+      map["count"] = _records.length;
+    }
+    return map;
   }
 
   @override

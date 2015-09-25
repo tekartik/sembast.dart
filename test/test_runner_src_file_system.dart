@@ -337,6 +337,10 @@ void defineTests(FileSystem fs) {
           });
         });
       });
+
+      test('rename and open', () {
+
+      });
     });
   });
 }

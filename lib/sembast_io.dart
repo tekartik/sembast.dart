@@ -10,8 +10,6 @@ import 'src/io/io_file_system.dart';
 /// In memory implementation
 class IoDatabaseFactory extends FsDatabaseFactory {
   IoDatabaseFactory() : super(ioFileSystem);
-
-  bool get persistent => true;
 }
 
 final IoDatabaseFactory ioDatabaseFactory = new IoDatabaseFactory();

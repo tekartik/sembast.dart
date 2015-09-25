@@ -145,7 +145,8 @@ class FsDatabaseFactory implements DatabaseFactory {
     return new _FsDatabaseStorage(fs, path).delete();
   }
 
-  bool get persistent => true;
+  @override
+  bool get hasStorage => true;
 }
 
 //final FsDatabaseFactory ioDatabaseFactory = new FsDatabaseFactory();

@@ -177,5 +177,25 @@ void defineTests(DatabaseFactory factory) {
         });
       });
     });
+
+    group('format', () {
+      Database db;
+
+      setUp(() {
+        return factory.deleteDatabase(dbPath).then((_) {});
+      });
+
+      tearDown(() {
+        if (db != null) {
+          db.close();
+        }
+      });
+
+      test('export', () async {
+        Database db = await factory.openDatabase(dbPath);
+        expect(
+            db.toJson()["exportStat"], factory.hasStorage ? isNotNull : isNull);
+      });
+    });
   });
 }

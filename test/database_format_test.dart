@@ -71,9 +71,15 @@ void defineTests(FileSystem fs) {
         });
       });
     });
+  });
+
+  group('compact', () {
+    setUp(() {
+      return fs.newFile(dbPath).delete().catchError((_) {});
+    });
 
     // tmp
-    test('compact twice same record', () {
+    test('twice same record', () {
       return factory.openDatabase(dbPath).then((Database db) {
         return db.put("hi", 1).then((_) {
           return db.put("hi", 1);
@@ -97,56 +103,80 @@ void defineTests(FileSystem fs) {
       return records;
     }
 
-    test('auto auto compact by count', () {
-      return factory.openDatabase(dbPath).then((Database db) {
-        // write 6
-        return db.putRecords(generate(6)).then((_) {
-          // update 5
-          return db.putRecords(generate(5)).then((_) {});
-        }).then((_) {
-          return db.reOpen().then((_) {
-            return readContent(fs, dbPath).then((List<String> lines) {
-              expect(lines.length, 12);
-            });
-          });
-        }).then((_) {
-          // update 1 more to trigger auto compact
-          return db.putRecords(generate(1)).then((_) {});
-        }).then((_) {
-          return db.reOpen().then((_) {
-            return readContent(fs, dbPath).then((List<String> lines) {
-              expect(lines.length, 7);
-            });
-          });
-        });
-      });
+    test('auto_by_count', () async {
+      Database db = await factory.openDatabase(dbPath);
+      // write 6
+      await db.putRecords(generate(6));
+      // update 5
+      await db.putRecords(generate(5));
+
+      List<String> lines = await readContent(fs, dbPath);
+
+      DatabaseExportStat exportStat = getDatabaseExportStat(db);
+      expect(exportStat.compactCount, 0);
+      expect(exportStat.lineCount, 12);
+      expect(exportStat.obsoleteLineCount, 5);
+
+      await db.reOpen();
+
+      exportStat = getDatabaseExportStat(db);
+      expect(exportStat.compactCount, 0);
+      expect(exportStat.lineCount, 12);
+      expect(exportStat.obsoleteLineCount, 5);
+
+      // update 1 more to trigger auto compact
+      await db.putRecords(generate(1));
+
+      await db.reOpen();
+
+      exportStat = getDatabaseExportStat(db);
+      expect(exportStat.compactCount, 1);
+      expect(exportStat.lineCount, 7);
+      expect(exportStat.obsoleteLineCount, 0);
+    });
+
+    test('auto_by_count/reopon', () async {
+      Database db = await factory.openDatabase(dbPath);
+      await db.putRecords(generate(6));
+      await db.putRecords(generate(6));
+
+      await db.reOpen();
+
+      DatabaseExportStat exportStat = getDatabaseExportStat(db);
+      expect(exportStat.compactCount, 1);
+      expect(exportStat.lineCount, 7);
+      expect(exportStat.obsoleteLineCount, 0);
     });
 
     // tmp
-    test('auto auto compact by ratio', () {
+    test('auto_by_ratio', () async {
       // 20% +
-      return factory.openDatabase(dbPath).then((Database db) {
-        // write 30
-        return db.putRecords(generate(30)).then((_) {
-          // update 7 (that's 19.4% of 37
-          return db.putRecords(generate(7)).then((_) {});
-        }).then((_) {
-          return db.reOpen().then((_) {
-            return readContent(fs, dbPath).then((List<String> lines) {
-              expect(lines.length, 38);
-            });
-          });
-        }).then((_) {
-          // update 1 more to trigger auto compact
-          return db.putRecords(generate(1)).then((_) {});
-        }).then((_) {
-          return db.reOpen().then((_) {
-            return readContent(fs, dbPath).then((List<String> lines) {
-              expect(lines.length, 31);
-            });
-          });
-        });
-      });
+      Database db = await factory.openDatabase(dbPath);
+      // write 30
+      await db.putRecords(generate(30));
+      // update 7 (that's 19.4% of 37
+      await db.putRecords(generate(7));
+
+      DatabaseExportStat exportStat = getDatabaseExportStat(db);
+      expect(exportStat.compactCount, 0);
+      expect(exportStat.lineCount, 38);
+      expect(exportStat.obsoleteLineCount, 7);
+
+      await db.reOpen();
+
+      exportStat = getDatabaseExportStat(db);
+      expect(exportStat.compactCount, 0);
+      expect(exportStat.lineCount, 38);
+      expect(exportStat.obsoleteLineCount, 7);
+
+      // update 1 more to trigger auto compact
+      await db.putRecords(generate(1));
+      await db.reOpen();
+
+      exportStat = getDatabaseExportStat(db);
+      //expect(exportStat.compactCount, 1);
+      expect(exportStat.lineCount, 31);
+      expect(exportStat.obsoleteLineCount, 0);
     });
   });
 
@@ -182,6 +212,11 @@ void defineTests(FileSystem fs) {
       expect(await db.get(1), 2);
       List<String> lines = await readContent(fs, dbPath);
       expect(lines.length, 7);
+
+      DatabaseExportStat exportStat = getDatabaseExportStat(db);
+      expect(exportStat.compactCount, 0);
+      expect(exportStat.lineCount, 7);
+      expect(exportStat.obsoleteLineCount, 5);
     });
 
     test('open_compact', () async {
@@ -201,6 +236,12 @@ void defineTests(FileSystem fs) {
       expect(await db.get(1), 2);
       List<String> lines = await readContent(fs, dbPath);
       expect(lines.length, 2);
+
+      //devPrintJson(db.toJson());
+      DatabaseExportStat exportStat = getDatabaseExportStat(db);
+      expect(exportStat.compactCount, 1);
+      expect(exportStat.lineCount, 2);
+      expect(exportStat.obsoleteLineCount, 0);
     });
   });
 }

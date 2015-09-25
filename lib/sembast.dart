@@ -35,7 +35,10 @@ class DatabaseMode {
 }
 
 abstract class DatabaseFactory {
-  bool get persistent;
+  ///
+  /// True if it has an associated storage (fs)
+  ///
+  bool get hasStorage;
 
   ///
   /// Open a new of existing database

@@ -8,6 +8,7 @@ import 'package:sembast/src/file_system.dart';
 import 'package:sembast/src/sembast_fs.dart';
 import 'package:path/path.dart';
 import 'dart:convert';
+import 'dart:math';
 
 // just for mirror
 class _TestUtils {}
@@ -37,10 +38,12 @@ String testOutDbPath(FileSystem fs) {
 String testOutPath(FileSystem fs) {
   //String DATA_FOLDER = 'data';
   //String OUT_FOLDER = 'out';
+  bool _isIo = fs.toString() == "io";
   String _rootPath() {
-    if (fs.toString() == "io") {
+    if (_isIo) {
       final String _testScriptPath =
           (reflectClass(_TestUtils).owner as LibraryMirror).uri.toFilePath();
+
       return dirname(_testScriptPath);
     } else {
       if (fs.scriptFile != null) {
@@ -52,7 +55,14 @@ String testOutPath(FileSystem fs) {
 
   //String dataPath = join(_rootPath(), DATA_FOLDER);
   //String outDataPath = join(dataPath, OUT_FOLDER);
-  return join(_rootPath(), "tmp");
+
+  if (_isIo) {
+    // to allow multiple tests
+    int rand = new Random(new DateTime.now().millisecondsSinceEpoch).nextInt(1 << 32 - 1);
+    return join(_rootPath(), "tmp", rand.toString());
+  } else {
+    return join(_rootPath(), "tmp");
+  }
 }
 
 Future<List<Record>> recordStreamToList(Stream<Record> stream) {
@@ -85,4 +95,12 @@ Future writeContent(FileSystem fs, String filePath, List<String> lines) async {
     sink.writeln(line);
   }
   await sink.close();
+}
+
+DatabaseExportStat getDatabaseExportStat(Database db) {
+  return new DatabaseExportStat.fromJson(db.toJson()["exportStat"]);
+}
+
+devPrintJson(Map json) {
+  print(const JsonEncoder.withIndent("  ").convert(json));
 }

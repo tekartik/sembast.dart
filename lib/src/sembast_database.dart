@@ -88,9 +88,11 @@ class Database {
     });
   }
 
-  Future inTransaction(action()) {
+  Future inTransaction(action()) async {
     //devPrint("z: ${Zone.current[_zoneRootKey]}");
     //devPrint("z: ${Zone.current[_zoneChildKey]}");
+
+    var actionResult;
 
     // not in transaction yet
     if (!_inTransaction) {
@@ -109,7 +111,7 @@ class Database {
 
       var result;
       var err;
-      runZoned(
+      await runZoned(
           () {
             // execute and commit
             if (LOGV) {
@@ -155,51 +157,27 @@ class Database {
           txn._completer.complete();
         }
       });
-      return actionCompleter.future;
-    } else {
-      return new Future.sync(action);
-//      if (LOGV) {
-//        logger.fine("inTxn ${transaction} start");
-//      }
-//      // in child transaction
-//      // no commit yet
-//      if ((_txnChildCompleter == null) || (_txnChildCompleter.isCompleted)) {
-//        _txnChildCompleter = new Completer();
-//      } else {
-//        return _txnChildCompleter.future.then((_) {
-//          return inTransaction(action);
-//        });
-//      }
-//
-//      Completer actionCompleter = _txnChildCompleter;
-//
-//      _done() {
-//        if (LOGV) {
-//          logger.fine("inTxn ${transaction} done");
-//        }
-//        actionCompleter.complete();
-//      }
-//      devPrint("inner ${transaction}");
-//      return runZoned(() {
-//        return new Future.sync(action);
-//      }, zoneValues: {
-//        _zoneChildKey: true
-//      }, onError: (e, st) {
-//        print("$e");
-//        print("$st");
-//        _done();
-//        devPrint("inner ${transaction} error");
-//      }).whenComplete(() {
-//        _done();
-//        devPrint("inner ${transaction} done");
-//
-//      });
 
+
+      actionResult = await actionCompleter.future;
+    } else {
+      actionResult = await new Future.sync(action);
     }
+
+    // need compact?
+    if (_storage.supported) {
+      if (_needCompact) {
+        //await compact();
+        //print(_exportStat.toJson());
+      }
+    }
+
+    return actionResult;
+
   }
 
-  void _setRecordInMemory(Record record) {
-    record.store._setRecordInMemory(record);
+  bool _setRecordInMemory(Record record) {
+    return record.store._setRecordInMemory(record);
   }
 
   void _loadRecord(Record record) {
@@ -210,39 +188,46 @@ class Database {
   /// Compact the database (work in progress)
   ///
   Future compact() {
-    return newTransaction(() {
+    return newTransaction(() async {
       if (_storage.supported) {
         DatabaseStorage tmpStorage = _storage.tmpStorage;
-        return tmpStorage.delete().then((_) {
-          return tmpStorage.findOrCreate().then((_) {
-            List<String> lines = [];
-            lines.add(JSON.encode(_meta.toMap()));
-            stores.forEach((Store store) {
-              store._records.values.forEach((Record record) {
-                Map map = record._toMap();
-                var encoded;
-                try {
-                  encoded = JSON.encode(map);
-                } catch (e, st) {
-                  print(map);
-                  print(e);
-                  print(st);
-                  rethrow;
-                }
-                lines.add(encoded);
-              });
-            });
-            return tmpStorage.appendLines(lines);
-          });
-        }).then((_) {
-          return _storage.tmpRecover();
-        });
+        // new stat with compact + 1
+        DatabaseExportStat exportStat = new DatabaseExportStat()
+          ..compactCount = _exportStat.compactCount + 1;
+        await tmpStorage.delete();
+        await tmpStorage.findOrCreate();
+
+        List<String> lines = [];
+        _addLine(Map map) {
+          var encoded;
+          try {
+            encoded = JSON.encode(map);
+          } catch (e, st) {
+            // usefull for debugging...
+            print(map);
+            print(e);
+            print(st);
+            rethrow;
+          }
+          exportStat.lineCount++;
+          lines.add(encoded);
+        }
+
+        _addLine(_meta.toMap());
+        for (Store store in stores) {
+          for (Record record in store._records.values) {
+            _addLine(record._toMap());
+          }
+        }
+        await tmpStorage.appendLines(lines);
+        await _storage.tmpRecover();
+        _exportStat = exportStat;
       }
     });
   }
 
   // future or not
-  _commit() {
+  _commit() async {
     List<Record> txnRecords = [];
     for (Store store in stores) {
       if (store._txnRecords != null) {
@@ -253,9 +238,17 @@ class Database {
     // end of commit
     _saveInMemory() {
       for (Record record in txnRecords) {
-        _setRecordInMemory(record);
+        bool exists = _setRecordInMemory(record);
+        // Try to estimated if compact will be needed
+        if (_storage.supported) {
+          if (exists) {
+            _exportStat.obsoleteLineCount++;
+          }
+          _exportStat.lineCount++;
+        }
       }
     }
+
     if (_storage.supported) {
       if (txnRecords.isNotEmpty) {
         List<String> lines = [];
@@ -274,9 +267,8 @@ class Database {
           }
           lines.add(encoded);
         }
-        return _storage.appendLines(lines).then((_) {
-          _saveInMemory();
-        });
+        await _storage.appendLines(lines);
+        _saveInMemory();
       }
     } else {
       _saveInMemory();
@@ -433,6 +425,7 @@ class Database {
       }
       return new Future.value(this);
     }
+
     return runZoned(() {
       _Meta meta;
 
@@ -442,11 +435,12 @@ class Database {
           result = onVersionChanged(this, oldVersion, newVersion);
         }
 
-        return new Future.value(result).then((_) {
+        return new Future.value(result).then((_) async {
           meta = new _Meta(newVersion);
 
           if (_storage.supported) {
-            return _storage.appendLine(JSON.encode(meta.toMap()));
+            await _storage.appendLine(JSON.encode(meta.toMap()));
+            _exportStat.lineCount++;
           }
         });
       }
@@ -511,6 +505,10 @@ class Database {
         }
       }
 
+      // create _exportStat
+      if (_storage.supported) {
+        _exportStat = new DatabaseExportStat();
+      }
       return _findOrCreate().then((_) {
         if (_storage.supported) {
           // empty stores
@@ -518,13 +516,12 @@ class Database {
           _stores = new Map();
           _checkMainStore();
 
-          int totalLines = 0;
-          int obsoleteLines = 0;
+          _exportStat = new DatabaseExportStat();
 
           //bool needCompact = false;
 
           return _storage.readLines().forEach((String line) {
-            totalLines++;
+            _exportStat.lineCount++;
             // evesrything is JSON
             Map map = JSON.decode(line);
 
@@ -535,17 +532,17 @@ class Database {
               // record?
               Record record = new Record._fromMap(this, map);
               if (_hasRecord(record)) {
-                obsoleteLines++;
+                _exportStat.obsoleteLineCount++;
               }
               _loadRecord(record);
             }
-          }).then((_) {
+          }).then((_) async {
             // auto compaction
             // allow for 20% of lost lines
             // make sure _meta is known before compacting
             _meta = meta;
-            if (obsoleteLines > 5 && (obsoleteLines / totalLines > 0.20)) {
-              return compact();
+            if (_needCompact) {
+              await compact();
             }
           }).then((_) => _openDone());
         } else {
@@ -569,12 +566,72 @@ class Database {
     // return new Future.value();
   }
 
-  Map toDebugMap() {
-    return {"path": path, "version": version, "stores": _stores};
+  Map toJson() {
+    Map map = new Map();
+    if (path != null) {
+      map["path"] = path;
+    }
+    if (version != null) {
+      map["version"] = version;
+    }
+    if (_stores != null) {
+      List stores = [];
+      for (Store store in _stores.values) {
+        stores.add(store.toJson());
+      }
+      map["stores"] = stores;
+    }
+    if (_exportStat != null) {
+      map["exportStat"] = _exportStat.toJson();
+    }
+    return map;
+  }
+
+  DatabaseExportStat _exportStat;
+  bool get _needCompact {
+    return (_exportStat.obsoleteLineCount > 5 &&
+        (_exportStat.obsoleteLineCount / _exportStat.lineCount > 0.20));
   }
 
   @override
   String toString() {
-    return toDebugMap().toString();
+    return toJson().toString();
+  }
+}
+
+class DatabaseExportStat {
+  /// number of line in the export
+  int lineCount = 0;
+
+  /// number of lines that are obsolete
+  int obsoleteLineCount = 0; // line that might have
+  /// Number of time it has been compacted since being opened
+  int compactCount = 0;
+
+  DatabaseExportStat();
+
+  DatabaseExportStat.fromJson(Map map) {
+    if (map["lineCount"] != null) {
+      lineCount = map["lineCount"];
+    }
+    if (map["compactCount"] != null) {
+      compactCount = map["compactCount"];
+    }
+    if (map["obsoleteLineCount"] != null) {
+      obsoleteLineCount = map["obsoleteLineCount"];
+    }
+  }
+  Map toJson() {
+    Map map = new Map();
+    if (lineCount != null) {
+      map["lineCount"] = lineCount;
+    }
+    if (obsoleteLineCount != null) {
+      map["obsoleteLineCount"] = obsoleteLineCount;
+    }
+    if (compactCount != null) {
+      map["compactCount"] = compactCount;
+    }
+    return map;
   }
 }
