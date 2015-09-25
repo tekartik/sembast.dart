@@ -188,8 +188,6 @@ void defineTests(FileSystem fs) {
       // update 5
       await db.putRecords(generate(5));
 
-      List<String> lines = await readContent(fs, dbPath);
-
       DatabaseExportStat exportStat = getDatabaseExportStat(db);
       expect(exportStat.compactCount, 0);
       expect(exportStat.lineCount, 12);

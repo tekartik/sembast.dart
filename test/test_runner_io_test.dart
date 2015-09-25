@@ -5,8 +5,6 @@ import 'package:test/test.dart';
 import 'package:sembast/sembast_io.dart';
 import 'package:sembast/src/io/io_file_system.dart';
 import 'test_runner_src_fs.dart' as test_runner_fs;
-import 'package:sembast/sembast_io.dart';
-import 'test_runner_all_test.dart' as all;
 
 void main() {
   test('fs', () {

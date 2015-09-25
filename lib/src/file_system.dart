@@ -270,4 +270,3 @@ abstract class File extends FileSystemEntity {
   IOSink openWrite({FileMode mode: FileMode.WRITE, Encoding encoding: UTF8});
 }
 
-Map fsTreeToJson(Directory directory) {}
