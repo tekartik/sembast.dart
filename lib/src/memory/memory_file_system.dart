@@ -113,7 +113,7 @@ class _MemoryDirectoryImpl extends _MemoryFileSystemEntityImpl {
   @override
   _MemoryDirectoryImpl createSync(bool recursive) {
     _MemoryFileSystemEntityImpl impl = existingImpl;
-    if (!_checkExists(impl)) {
+    if (!_checkFileExists(impl)) {
       if (!recursive) {
         throw new _MemoryFileSystemException(
             path, "Creation failed", _noSuchPathError);
@@ -144,8 +144,11 @@ class _MemoryFileImpl extends _MemoryFileSystemEntityImpl {
   Stream<List<int>> openRead() {
     var impl = existingImpl;
     StreamController ctlr = new StreamController(sync: true);
-    new Future.sync(() {
-      if (impl != null) {
+    new Future.sync(() async {
+      if (!_checkExists()) {
+        ctlr.addError(new _MemoryFileSystemException(
+            path, "Cannot open file", _noSuchPathError));
+      } else {
         impl.openCount++;
         if (impl.content != null) {
           impl.content.forEach((String line) {
@@ -153,12 +156,13 @@ class _MemoryFileImpl extends _MemoryFileSystemEntityImpl {
             ctlr.add('\n'.codeUnits);
           });
         }
+        try {
+          await close();
+        } catch (e) {
+          ctlr.addError(e);
+        }
       }
-      return close().catchError((e) {
-        ctlr.addError(e);
-      }).then((_) {
-        ctlr.close();
-      });
+      ctlr.close();
     });
     return ctlr.stream;
   }
@@ -207,7 +211,7 @@ class _MemoryFileImpl extends _MemoryFileSystemEntityImpl {
 
   _MemoryFileImpl createSync(bool recursive) {
     var impl = existingImpl;
-    if (_checkExists(impl)) {
+    if (_checkFileExists(impl)) {
       throw 'cannot create ${this}. already exists';
     }
     _MemoryDirectoryImpl parentImpl = _parent.createSync(recursive);
@@ -224,6 +228,13 @@ class _MemoryFileImpl extends _MemoryFileSystemEntityImpl {
     }
     return this;
   }
+}
+
+bool _checkFileExists(_MemoryFileSystemEntityImpl impl) {
+  if (impl == null) {
+    return false;
+  }
+  return impl._exists;
 }
 
 abstract class _MemoryFileSystemEntityImpl {
@@ -273,8 +284,12 @@ abstract class _MemoryFileSystemEntityImpl {
   Future<bool> exists() {
     return new Future.sync(() {
       _MemoryFileSystemEntityImpl impl = existingImpl;
-      return _checkExists(impl);
+      return _checkFileExists(impl);
     });
+  }
+
+  bool _checkExists() {
+    return _checkFileExists(existingImpl);
   }
 
   String segment;
@@ -289,13 +304,6 @@ abstract class _MemoryFileSystemEntityImpl {
   int openCount = 0;
   bool get closed => (openCount == 0);
 
-  bool _checkExists(_MemoryFileSystemEntityImpl impl) {
-    if (impl == null) {
-      return false;
-    }
-    return impl._exists;
-  }
-
   //
   // File implementation
   //
@@ -305,7 +313,7 @@ abstract class _MemoryFileSystemEntityImpl {
         throw new _MemoryFileSystemException(path, "Deletion failed");
       }
       _MemoryFileSystemEntityImpl impl = existingImpl;
-      if (!_checkExists(impl)) {
+      if (!_checkFileExists(impl)) {
         throw new _MemoryFileSystemException(
             path, "Deletion failed", _noSuchPathError);
       }
@@ -322,7 +330,7 @@ abstract class _MemoryFileSystemEntityImpl {
         throw new _MemoryFileSystemException(path, "Rename failed");
       }
       _MemoryFileSystemEntityImpl impl = existingImpl;
-      if (!_checkExists(impl)) {
+      if (!_checkFileExists(impl)) {
         throw new _MemoryFileSystemException(
             path, "Rename failed", _noSuchPathError);
       }
@@ -381,9 +389,9 @@ abstract class _MemoryFileSystemEntityImpl {
 
   Future close() {
     return new Future.sync(() {
-      if (!_exists) {
+      if (!_checkExists()) {
         throw new _MemoryFileSystemException(
-            path, "Cannot open file", _noSuchPathError);
+            path, "Cannot close file", _noSuchPathError);
       }
       openCount--;
     });

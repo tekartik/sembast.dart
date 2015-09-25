@@ -338,8 +338,13 @@ void defineTests(FileSystem fs) {
         });
       });
 
-      test('rename and open', () {
-
+      test('rename and read', () async {
+        File file = await createFileName("test");
+        await writeContent(file, ["test1"]);
+        String path2 = namePath("test2");
+        File file2 = await file.rename(path2);
+        List<String> content = await readContent(file2);
+        expect(content, ["test1"]);
       });
     });
   });

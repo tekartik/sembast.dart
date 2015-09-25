@@ -125,6 +125,8 @@ class Database {
                 }
               });
             }).catchError((e, st) {
+              //print(e);
+              //print(st);
               logger.severe("txn error $e");
               logger.finest(e);
               logger.finest(st);
@@ -139,6 +141,8 @@ class Database {
           },
           zoneValues: {_zoneTransactionKey: txn.id},
           onError: (e, st) {
+            //print(e);
+            //print(st);
             logger.severe("txn zone error $e");
             logger.finest(e);
             logger.finest(st);
@@ -158,22 +162,21 @@ class Database {
         }
       });
 
-
       actionResult = await actionCompleter.future;
+
+      // the transaction is done
+      // need compact?
+      if (_storage.supported) {
+        if (_needCompact) {
+          await compact();
+          //print(_exportStat.toJson());
+        }
+      }
     } else {
       actionResult = await new Future.sync(action);
     }
 
-    // need compact?
-    if (_storage.supported) {
-      if (_needCompact) {
-        //await compact();
-        //print(_exportStat.toJson());
-      }
-    }
-
     return actionResult;
-
   }
 
   bool _setRecordInMemory(Record record) {
@@ -221,6 +224,12 @@ class Database {
         }
         await tmpStorage.appendLines(lines);
         await _storage.tmpRecover();
+        /*
+        print(_storage.toString());
+        await _storage.readLines().forEach((String line) {
+          print(line);
+        });
+        */
         _exportStat = exportStat;
       }
     });

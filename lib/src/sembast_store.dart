@@ -95,14 +95,10 @@ class Store {
   /// return true if it existed before
   ///
   bool _setRecordInMemory(Record record) {
-    bool exists = false;
+    bool exists = (record.store._records[record.key] != null);
     if (record.deleted) {
       record.store._records.remove(record.key);
-      exists = true;
     } else {
-      if (record.store._records[record.key] != null) {
-        exists = true;
-      }
       record.store._records[record.key] = record;
     }
     return exists;

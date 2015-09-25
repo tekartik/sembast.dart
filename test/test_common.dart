@@ -58,7 +58,8 @@ String testOutPath(FileSystem fs) {
 
   if (_isIo) {
     // to allow multiple tests
-    int rand = new Random(new DateTime.now().millisecondsSinceEpoch).nextInt(1 << 32 - 1);
+    int rand = new Random(new DateTime.now().millisecondsSinceEpoch)
+        .nextInt(1 << 32 - 1);
     return join(_rootPath(), "tmp", rand.toString());
   } else {
     return join(_rootPath(), "tmp");
