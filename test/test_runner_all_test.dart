@@ -7,6 +7,7 @@ import 'database_perf_test.dart' as database_perf_test;
 import 'database_test.dart' as database_test;
 import 'crud_test.dart' as crud_test;
 import 'record_test.dart' as record_test;
+import 'key_test.dart' as key_test;
 import 'find_test.dart' as find_test;
 import 'store_test.dart' as store_test;
 import 'transaction_test.dart' as transaction_test;
@@ -30,6 +31,7 @@ void defineTests(DatabaseFactory factory) {
   database_test.defineTests(factory);
   crud_test.defineTests(factory);
   record_test.defineTests(factory);
+  key_test.defineTests(factory);
   store_test.defineTests(factory);
   find_test.defineTests(factory);
   transaction_test.defineTests(factory);

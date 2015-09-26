@@ -94,7 +94,7 @@ _cloneKey(var key) {
   if (key is String) {
     return key;
   }
-  if (key is int) {
+  if (key is num) {
     return key;
   }
   if (key == null) {
