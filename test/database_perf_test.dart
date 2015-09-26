@@ -27,12 +27,15 @@ void defineTests(DatabaseFactory factory, int putCount,
       db.close();
     });
 
-    test('put/read $putCount', () {
+    test('put/read $putCount', () async {
       List<Future> futures = [];
       for (int i = 0; i < putCount; i++) {
         futures.add(db.put("value $i", i));
+        // let it breathe
+        //print(i);
+        await new Future.delayed(new Duration());
       }
-      return Future.wait(futures).then((_) {
+      await Future.wait(futures).then((_) {
         return db.count().then((int count) {
           expect(count, putCount);
         });
@@ -86,6 +89,9 @@ void defineTests(DatabaseFactory factory, int putCount,
             await db.getStore(store).put("test", key);
             break;
         }
+        // let it breathe
+        //print(i);
+        await new Future.delayed(new Duration(milliseconds: 0));
       }
     });
   });

@@ -1,3 +1,4 @@
+@TestOn("vm")
 @Timeout(const Duration(seconds: 120))
 library sembast.database_perf_test_slow;
 

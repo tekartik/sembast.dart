@@ -7,6 +7,8 @@ import 'package:sembast/sembast_memory.dart';
 import 'database_perf_test.dart' as database_perf_test;
 
 void main() {
-  database_perf_test.defineTests(memoryDatabaseFactory, 1000,
-      randomChoices: 20, randomCount: 50000);
+  // 1000 too high for dart2js => 500
+  // 10000 too high for dart2js => 5000
+  database_perf_test.defineTests(memoryDatabaseFactory, 500,
+      randomChoices: 15, randomCount: 5000);
 }

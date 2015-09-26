@@ -1,5 +1,5 @@
 name: sembast
-version: 1.1.1
+version: 1.1.2
 author: Alexandre Roux Tekartik <alex.tekartik.pub@gmail.com>
 description: Simple embedded file system database
 homepage: https://github.com/alextekartik/sembast.dart
@@ -8,8 +8,3 @@ dependencies:
   path: any
 dev_dependencies:
   test: any
-  tekartik_test:
-    git: git://github.com/alextekartik/tekartik_test.dart
-dependency_overrides:
-#  idb_shim:
-#    path: ../idb_shim.dart
