@@ -6,20 +6,22 @@ import 'package:sembast/src/sembast_fs.dart';
 import 'package:sembast/sembast.dart';
 import 'test_common.dart';
 import 'dart:convert';
+import 'dart:async';
 
 void main() {
-  defineTests(memoryFileSystem, null);
+  defineTests(memoryFileSystemContext);
 }
 
-
-
-void defineTests(FileSystem fs, String topPath) {
+void defineTests(FileSystemTestContext ctx) {
+  FileSystem fs = ctx.fs;
   DatabaseFactory factory = new FsDatabaseFactory(fs);
-  String getDbPath() => getTestDbPath(topPath);
+  String getDbPath() => ctx.outPath + ".db";
   String dbPath;
 
-  String _deleteDb() {
-
+  Future<String> prepareForDb() async {
+    dbPath = getDbPath();
+    await fs.newFile(dbPath).delete().catchError((_) {});
+    return dbPath;
   }
   group('basic format', () {
     setUp(() {
@@ -28,8 +30,8 @@ void defineTests(FileSystem fs, String topPath) {
 
     tearDown(() {});
 
-    test('open_no_version', () {
-      dbPath = getDbPath();
+    test('open_no_version', () async {
+      await prepareForDb();
       return factory.openDatabase(dbPath).then((Database db) {
         return readContent(fs, dbPath).then((List<String> lines) {
           expect(lines.length, 1);
@@ -38,7 +40,8 @@ void defineTests(FileSystem fs, String topPath) {
       });
     });
 
-    test('1 string record', () {
+    test('1 string record', () async {
+      await prepareForDb();
       return factory.openDatabase(dbPath).then((Database db) {
         return db.put("hi", 1);
       }).then((_) {
@@ -49,7 +52,8 @@ void defineTests(FileSystem fs, String topPath) {
       });
     });
 
-    test('twice same record', () {
+    test('twice same record', () async {
+      await prepareForDb();
       return factory.openDatabase(dbPath).then((Database db) {
         return db.put("hi", 1).then((_) {
           return db.put("hi", 1);
@@ -63,7 +67,8 @@ void defineTests(FileSystem fs, String topPath) {
       });
     });
 
-    test('1 map record', () {
+    test('1 map record', () async {
+      await prepareForDb();
       return factory.openDatabase(dbPath).then((Database db) {
         return db.put({'test': 2}, 1);
       }).then((_) {
@@ -78,7 +83,8 @@ void defineTests(FileSystem fs, String topPath) {
     });
   });
 
-  group('exportStat', () {
+  group('exportStat', () async {
+    await prepareForDb();
     setUp(() {
       return fs.newFile(dbPath).delete().catchError((_) {});
     });
@@ -110,12 +116,9 @@ void defineTests(FileSystem fs, String topPath) {
     });
   });
 
-  group('compact', () {
-    setUp(() {
-      return fs.newFile(dbPath).delete().catchError((_) {});
-    });
-
+  group('compact', () async {
     test('compact_and_write', () async {
+      await prepareForDb();
       Database db = await factory.openDatabase(dbPath);
       await db.put("test1", 1);
       await db.compact();
@@ -127,6 +130,7 @@ void defineTests(FileSystem fs, String topPath) {
     });
 
     test('compact_and_reopen', () async {
+      await prepareForDb();
       Database db = await factory.openDatabase(dbPath);
       await db.put("test1", 1);
       await db.compact();
@@ -139,7 +143,8 @@ void defineTests(FileSystem fs, String topPath) {
     });
 
     // tmp
-    test('twice same record', () {
+    test('twice same record', () async {
+      await prepareForDb();
       return factory.openDatabase(dbPath).then((Database db) {
         return db.put("hi", 1).then((_) {
           return db.put("hi", 1);
@@ -164,6 +169,7 @@ void defineTests(FileSystem fs, String topPath) {
     }
 
     test('auto_by_count', () async {
+      await prepareForDb();
       Database db = await factory.openDatabase(dbPath);
       // write 6
       await db.putRecords(generate(6));
@@ -187,6 +193,7 @@ void defineTests(FileSystem fs, String topPath) {
     });
 
     test('auto_by_count/delete', () async {
+      await prepareForDb();
       Database db = await factory.openDatabase(dbPath);
       // write 6
       await db.putRecords(generate(6));
@@ -210,6 +217,7 @@ void defineTests(FileSystem fs, String topPath) {
     });
 
     test('auto_by_count/reopon', () async {
+      await prepareForDb();
       Database db = await factory.openDatabase(dbPath);
       await db.putRecords(generate(6));
       await db.putRecords(generate(6));
@@ -229,6 +237,7 @@ void defineTests(FileSystem fs, String topPath) {
 
     // tmp
     test('auto_by_ratio', () async {
+      await prepareForDb();
       // 20% +
       Database db = await factory.openDatabase(dbPath);
       // write 30
@@ -252,13 +261,8 @@ void defineTests(FileSystem fs, String topPath) {
   });
 
   group('format_import', () {
-    setUp(() {
-      return fs.newFile(dbPath).delete().catchError((_) {});
-    });
-
-    tearDown(() {});
-
     test('open_version_2', () async {
+      await prepareForDb();
       await writeContent(fs, dbPath, [
         JSON.encode({"version": 2, "sembast": 1})
       ]);
@@ -268,6 +272,7 @@ void defineTests(FileSystem fs, String topPath) {
     });
 
     test('open_no_compact', () async {
+      await prepareForDb();
       String line = JSON.encode({"key": 1, "value": 2});
       // Compact is needed after 6 times the same record
       await writeContent(fs, dbPath, [
@@ -291,6 +296,7 @@ void defineTests(FileSystem fs, String topPath) {
     });
 
     test('open_compact', () async {
+      await prepareForDb();
       String line = JSON.encode({"key": 1, "value": 2});
       // Compact is needed after 6 times the same record
       await writeContent(fs, dbPath, [

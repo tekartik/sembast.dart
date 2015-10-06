@@ -2,7 +2,6 @@ library sembast.key_test;
 
 // basically same as the io runner but with extra output
 import 'package:sembast/sembast.dart';
-import 'package:sembast/sembast_memory.dart';
 import 'test_common.dart';
 
 void main() {
@@ -10,8 +9,6 @@ void main() {
 }
 
 void defineTests(DatabaseTestContext ctx) {
-  DatabaseFactory factory = ctx.factory;
-
   group('key', () {
     Database db;
 
@@ -47,7 +44,7 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     test('double', () async {
-      double key = await db.put("test", 1.2);
+      await db.put("test", 1.2);
       expect(await db.get(1.2), "test");
       // next will increment
       int key1 = await db.put("test");
@@ -55,7 +52,7 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     test('double_rounded', () async {
-      double key = await db.put("test", 2.0);
+      await db.put("test", 2.0);
       expect(await db.get(2.0), "test");
       // next will increment
       int key1 = await db.put("test");

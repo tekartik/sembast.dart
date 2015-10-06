@@ -10,8 +10,6 @@ void main() {
 }
 
 void defineTests(DatabaseTestContext ctx) {
-  DatabaseFactory factory = ctx.factory;
-
   group('transaction', () {
     Database db;
 

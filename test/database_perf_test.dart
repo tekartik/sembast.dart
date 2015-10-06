@@ -12,8 +12,6 @@ void main() {
 
 void defineTests(DatabaseTestContext ctx, int putCount,
     {int randomCount: 10, int randomChoices: 10}) {
-  DatabaseFactory factory = ctx.factory;
-
   group('perf', () {
     Database db;
 
@@ -61,7 +59,6 @@ void defineTests(DatabaseTestContext ctx, int putCount,
     setUp(() async {
       db = await setupForTest(ctx);
     });
-
 
     tearDown(() {
       db.close();

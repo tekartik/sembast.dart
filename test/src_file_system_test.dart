@@ -9,10 +9,11 @@ import 'dart:convert';
 import 'test_common.dart';
 
 main() {
-  defineTests(memoryFileSystemTestContext);
+  defineTests(memoryFileSystemContext);
 }
+
 void defineTests(FileSystemTestContext ctx) {
-  FileSystem fs =ctx.fs;
+  FileSystem fs = ctx.fs;
   /*
   TODO
 
@@ -23,7 +24,6 @@ void defineTests(FileSystemTestContext ctx) {
 
   File nameFile(String name) => fs.newFile(namePath(name));
   Directory nameDir(String name) => fs.newDirectory(namePath(name));
-
 
   Future<File> createFile(File file) {
     return file.create(recursive: true).then((File file_) {
@@ -109,7 +109,7 @@ void defineTests(FileSystemTestContext ctx) {
   }
 
   setUp(() {
-    return clearOutFolder();
+    // return clearOutFolder();
   });
 
   tearDown(() {});
@@ -124,7 +124,8 @@ void defineTests(FileSystemTestContext ctx) {
         //expect(fs.scriptFile, isNotNull);
       });
 
-      test('type', () {
+      test('type', () async {
+        await clearOutFolder();
         return fs.type(namePath("test")).then((FileSystemEntityType type) {
           expect(type, FileSystemEntityType.NOT_FOUND);
         }).then((_) {
@@ -140,11 +141,13 @@ void defineTests(FileSystemTestContext ctx) {
     });
 
     group('dir', () {
-      test('dir exists', () {
+      test('dir exists', () async {
+        await clearOutFolder();
         return expectDirExists(nameDir("test"), false);
       });
 
-      solo_test('dir create', () {
+      test('dir create', () async {
+        await clearOutFolder();
         Directory dir = nameDir("test");
         return dir.create(recursive: true).then((_) {
           return expectDirExists(dir, true).then((_) {
@@ -154,7 +157,8 @@ void defineTests(FileSystemTestContext ctx) {
         });
       });
 
-      test('sub dir create', () {
+      test('sub dir create', () async {
+        await clearOutFolder();
         Directory mainDir = nameDir("test");
         Directory subDir = fs.newDirectory(join(mainDir.path, "test"));
 
@@ -163,7 +167,8 @@ void defineTests(FileSystemTestContext ctx) {
         });
       });
 
-      test('dir delete', () {
+      test('dir delete', () async {
+        await clearOutFolder();
         Directory dir = nameDir("test");
         return dir.delete(recursive: true).then((_) {
           fail('');
@@ -180,7 +185,8 @@ void defineTests(FileSystemTestContext ctx) {
         });
       });
 
-      test('sub dir delete', () {
+      test('sub dir delete', () async {
+        await clearOutFolder();
         Directory mainDir = nameDir("test");
         Directory subDir = nameDir(join(mainDir.path, "test"));
 
@@ -192,11 +198,13 @@ void defineTests(FileSystemTestContext ctx) {
       });
     });
     group('file', () {
-      test('file exists', () {
+      test('file exists', () async {
+        await clearOutFolder();
         return expectFileNameExists("test", false);
       });
 
-      test('file create', () {
+      test('file create', () async {
+        await clearOutFolder();
         return createFileName("test").then((File file) {
           return file.exists().then((bool exists) {
             expect(exists, true);
@@ -204,7 +212,8 @@ void defineTests(FileSystemTestContext ctx) {
         });
       });
 
-      test('file delete', () {
+      test('file delete', () async {
+        await clearOutFolder();
         File file = nameFile("test");
         return deleteFile(file).then((_) {
           fail('');
@@ -217,7 +226,8 @@ void defineTests(FileSystemTestContext ctx) {
         });
       });
 
-      test('file delete 2', () {
+      test('file delete 2', () async {
+        await clearOutFolder();
         File file = nameFile(join("sub", "test"));
         return deleteFile(file).then((_) {
           fail('');
@@ -230,7 +240,8 @@ void defineTests(FileSystemTestContext ctx) {
         });
       });
 
-      test('open read 1', () {
+      test('open read 1', () async {
+        await clearOutFolder();
         File file = nameFile("test");
         bool ok;
         return openRead(file).listen((_) {
@@ -252,7 +263,8 @@ void defineTests(FileSystemTestContext ctx) {
 //        }).asFuture();
       });
 
-      test('open write 1', () {
+      test('open write 1', () async {
+        await clearOutFolder();
         File file = nameFile("test");
         IOSink sink = openWrite(file);
         //sink.writeln("test");
@@ -263,7 +275,8 @@ void defineTests(FileSystemTestContext ctx) {
         });
       });
 
-      test('open write 2', () {
+      test('open write 2', () async {
+        await clearOutFolder();
         return createFileName("test").then((File file) {
           IOSink sink = openWrite(file);
           sink.writeln("test");
@@ -275,7 +288,8 @@ void defineTests(FileSystemTestContext ctx) {
         });
       });
 
-      test('open write 3', () {
+      test('open write 3', () async {
+        await clearOutFolder();
         return createFileName("test").then((File file) {
           return writeContent(file, ["test1"]).then((_) {
             // override existing
@@ -288,7 +302,8 @@ void defineTests(FileSystemTestContext ctx) {
         });
       });
 
-      test('open append 1', () {
+      test('open append 1', () async {
+        await clearOutFolder();
         File file = nameFile("test");
         IOSink sink = openAppend(file);
         //sink.writeln("test");
@@ -299,7 +314,8 @@ void defineTests(FileSystemTestContext ctx) {
         });
       });
 
-      test('open append 2', () {
+      test('open append 2', () async {
+        await clearOutFolder();
         return createFileName("test").then((File file) {
           IOSink sink = openAppend(file);
           sink.writeln("test");
@@ -311,7 +327,8 @@ void defineTests(FileSystemTestContext ctx) {
         });
       });
 
-      test('open append 3', () {
+      test('open append 3', () async {
+        await clearOutFolder();
         return createFileName("test").then((File file) {
           return writeContent(file, ["test1"]).then((_) {
             return appendContent(file, ["test2"]).then((_) {
@@ -323,7 +340,8 @@ void defineTests(FileSystemTestContext ctx) {
         });
       });
 
-      test('rename', () {
+      test('rename', () async {
+        await clearOutFolder();
         return createFileName("test").then((File file) {
           return file.rename(namePath("test2")).then((File renamed) {
             return expectFileExists(renamed).then((_) {
@@ -333,7 +351,8 @@ void defineTests(FileSystemTestContext ctx) {
         });
       });
 
-      test('rename to existing', () {
+      test('rename to existing', () async {
+        await clearOutFolder();
         return createFileName("test").then((File file) {
           String path2 = namePath("test2");
           return createFile(fs.newFile(path2)).then((_) {
@@ -347,6 +366,7 @@ void defineTests(FileSystemTestContext ctx) {
       });
 
       test('rename and read', () async {
+        await clearOutFolder();
         File file = await createFileName("test");
         await writeContent(file, ["test1"]);
         String path2 = namePath("test2");

@@ -1,27 +1,30 @@
-library tekartik_sembast.io_test_common;
+library sembast.test.io_test_common;
 
 import 'dart:mirrors';
 import 'package:path/path.dart';
-import 'dart:io';
 import 'package:dev_test/test.dart';
 import 'test_common.dart';
 import 'package:sembast/sembast_io.dart';
 import 'package:sembast/src/io/io_file_system.dart';
 
 // For test in memory
-IoDatabaseTestContext get ioDatabaseContext => new IoDatabaseTestContext()..factory = ioDatabaseFactory;
+IoDatabaseTestContext get ioDatabaseContext =>
+    new IoDatabaseTestContext()..factory = ioDatabaseFactory;
 
 class IoDatabaseTestContext extends FsDatabaseTestContext {
   String get dbPath => testOutPath + ".db";
 }
 
-IoFileSystemTestContext get ioFileSystemTestContext => new IoFileSystemTestContext()..fs = ioFileSystem;
+IoFileSystemTestContext get ioFileSystemContext =>
+    new IoFileSystemTestContext()..fs = ioFileSystem;
+
 class IoFileSystemTestContext extends FileSystemTestContext {
   String get outPath => testOutPath;
 }
+
 class _TestUtils {
   static final String scriptPath =
-  (reflectClass(_TestUtils).owner as LibraryMirror).uri.toFilePath();
+      (reflectClass(_TestUtils).owner as LibraryMirror).uri.toFilePath();
 }
 
 String get testScriptPath => _TestUtils.scriptPath;
@@ -34,6 +37,7 @@ String getTestOutPath([List<String> parts]) {
   }
   return join(testOutTopPath, joinAll(parts));
 }
+/*
 
 String clearTestOutPath([List<String> parts]) {
   String outPath = getTestOutPath(parts);
@@ -42,3 +46,4 @@ String clearTestOutPath([List<String> parts]) {
   } catch (e) {}
   return outPath;
 }
+*/

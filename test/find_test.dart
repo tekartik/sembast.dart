@@ -2,7 +2,6 @@ library sembast.find_test;
 
 // basically same as the io runner but with extra output
 import 'package:sembast/sembast.dart';
-import 'package:sembast/sembast_memory.dart';
 import 'test_common.dart';
 
 void main() {
@@ -10,8 +9,6 @@ void main() {
 }
 
 void defineTests(DatabaseTestContext ctx) {
-  DatabaseFactory factory = ctx.factory;
-
   group('find', () {
     Database db;
     Store store;
