@@ -3,7 +3,6 @@ library sembast.database_perf_test_slow;
 
 // basically same as the io runner but with extra output
 import 'test_common.dart';
-import 'package:sembast/sembast_memory.dart';
 import 'database_perf_test.dart' as database_perf_test;
 
 void main() {

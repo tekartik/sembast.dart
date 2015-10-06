@@ -1,6 +1,5 @@
 library sembast.database_format_test;
 
-import 'package:sembast/src/memory/memory_file_system.dart';
 import 'package:sembast/src/file_system.dart';
 import 'package:sembast/src/sembast_fs.dart';
 import 'package:sembast/sembast.dart';

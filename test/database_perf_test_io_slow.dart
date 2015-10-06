@@ -4,7 +4,6 @@ library sembast.database_perf_test_slow;
 
 // basically same as the io runner but with extra output
 import 'package:test/test.dart';
-import 'package:sembast/sembast_io.dart';
 import 'database_perf_test.dart' as database_perf_test;
 import "io_test_common.dart";
 
