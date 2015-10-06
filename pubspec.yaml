@@ -8,3 +8,7 @@ dependencies:
   path: any
 dev_dependencies:
   test: any
+dependency_overrides:
+  dev_test:
+    path: /media/ssd/devx/git/github.com/alextekartik/dev_test.dart
+#    git: https://github.com/alextekartik/dev_test.dart

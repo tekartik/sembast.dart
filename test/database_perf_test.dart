@@ -1,26 +1,24 @@
 library sembast.database_perf_test;
 
 // basically same as the io runner but with extra output
-import 'package:test/test.dart';
 import 'package:sembast/sembast.dart';
-import 'package:sembast/sembast_memory.dart';
 import 'dart:async';
 import 'test_common.dart';
 import 'dart:math';
 
 void main() {
-  defineTests(memoryDatabaseFactory, 10);
+  defineTests(memoryDatabaseContext, 10);
 }
 
-void defineTests(DatabaseFactory factory, int putCount,
+void defineTests(DatabaseTestContext ctx, int putCount,
     {int randomCount: 10, int randomChoices: 10}) {
+  DatabaseFactory factory = ctx.factory;
+
   group('perf', () {
     Database db;
 
-    setUp(() {
-      return setupForTest(factory).then((Database database) {
-        db = database;
-      });
+    setUp(() async {
+      db = await setupForTest(ctx);
     });
 
     tearDown(() {
@@ -60,11 +58,10 @@ void defineTests(DatabaseFactory factory, int putCount,
   group('perf', () {
     Database db;
 
-    setUp(() {
-      return setupForTest(factory).then((Database database) {
-        db = database;
-      });
+    setUp(() async {
+      db = await setupForTest(ctx);
     });
+
 
     tearDown(() {
       db.close();

@@ -2,20 +2,28 @@ library sembast.io_file_system_test;
 
 // basically same as the io runner but with extra output
 //import 'package:tekartik_test/test_config.dart';
-import 'package:test/test.dart';
 import 'package:sembast/src/file_system.dart';
 import 'dart:async';
 import 'package:path/path.dart';
 import 'dart:convert';
 import 'test_common.dart';
 
-void defineTests(FileSystem fs) {
-  String outDataPath = testOutPath(fs);
+main() {
+  defineTests(memoryFileSystemTestContext);
+}
+void defineTests(FileSystemTestContext ctx) {
+  FileSystem fs =ctx.fs;
+  /*
+  TODO
 
-  String namePath(String name) => join(outDataPath, name);
+  String outDataPath = testOutPath(fs);
+*/
+
+  String namePath(String name) => join(ctx.outPath, name);
 
   File nameFile(String name) => fs.newFile(namePath(name));
   Directory nameDir(String name) => fs.newDirectory(namePath(name));
+
 
   Future<File> createFile(File file) {
     return file.create(recursive: true).then((File file_) {
@@ -71,7 +79,7 @@ void defineTests(FileSystem fs) {
     });
   }
   Future clearOutFolder() {
-    return deleteDirectory(fs.newDirectory(outDataPath))
+    return deleteDirectory(fs.newDirectory(ctx.outPath))
         .catchError((FileSystemException e, st) {
       //devPrint("${e}\n${st}");
     });
@@ -136,7 +144,7 @@ void defineTests(FileSystem fs) {
         return expectDirExists(nameDir("test"), false);
       });
 
-      test('dir create', () {
+      solo_test('dir create', () {
         Directory dir = nameDir("test");
         return dir.create(recursive: true).then((_) {
           return expectDirExists(dir, true).then((_) {

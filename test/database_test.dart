@@ -1,18 +1,20 @@
 library sembast.database_test;
 
 // basically same as the io runner but with extra output
-import 'package:test/test.dart';
 import 'package:sembast/sembast_memory.dart';
 import 'package:sembast/sembast.dart';
-import 'test_common.dart' as common;
+import 'test_common.dart';
 
 void main() {
-  defineTests(memoryDatabaseFactory);
+  defineTests(memoryDatabaseContext);
 }
 
-void defineTests(DatabaseFactory factory) {
+void defineTests(DatabaseTestContext ctx) {
+  DatabaseFactory factory = ctx.factory;
+  String dbPath;
+
   group('database', () {
-    String dbPath = common.testOutFactoryDbPath(factory);
+    dbPath = ctx.dbPath;
 
     group('open', () {
       Database db;

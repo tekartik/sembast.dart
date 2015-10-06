@@ -1,18 +1,61 @@
 library sembast.database_test;
 
-import 'dart:mirrors';
 // basically same as the io runner but with extra output
+import 'package:sembast/src/memory/memory_file_system.dart';
 import 'package:sembast/sembast.dart';
 import 'dart:async';
 import 'package:sembast/src/file_system.dart';
+import 'package:dev_test/test.dart';
+export 'package:dev_test/test.dart';
+import 'package:sembast/sembast_memory.dart';
+import 'package:sembast/sembast.dart';
 import 'package:sembast/src/sembast_fs.dart';
 import 'package:path/path.dart';
 import 'dart:convert';
 import 'dart:math';
 
-// just for mirror
-class _TestUtils {}
+// For test in memory
+DatabaseTestContext get memoryDatabaseContext => new DatabaseTestContext()..factory = memoryDatabaseFactory;
+FsDatabaseTestContext get memoryFsDatabaseContext => new FsDatabaseTestContext()..factory = new FsDatabaseFactory(memoryFileSystem);
 
+class FsDatabaseTestContext extends DatabaseTestContext {
+
+}
+
+class DatabaseTestContext {
+  DatabaseFactory factory;
+
+  String get dbPath => joinAll(testDescriptions) + ".db";
+
+}
+
+// FileSystem context
+class FileSystemTestContext {
+  FileSystem fs;
+  String get outPath => fs.currentDirectory.path;
+}
+
+FileSystemTestContext get memoryFileSystemTestContext => new FileSystemTestContext()..fs = memoryFileSystem;
+
+String getTestDbPath(String topPath) {
+  String sub = joinAll(testDescriptions) + ".db";
+  if (topPath == null) {
+    return sub;
+  }
+  return join(topPath, sub);
+}
+
+Future<Database> setupForTest(DatabaseTestContext ctx) async {
+  DatabaseFactory factory = ctx.factory;
+  String dbPath = ctx.dbPath;
+  await factory.deleteDatabase(dbPath);
+  return factory.openDatabase(dbPath);
+}
+
+Future<Database> setupDbPathForTest(DatabaseFactory factory, String topPath) {
+
+}
+/*
 Future<Database> setupForTest(DatabaseFactory factory, [String path]) {
   if (path == null) {
     path = testOutFactoryDbPath(factory);
@@ -21,7 +64,9 @@ Future<Database> setupForTest(DatabaseFactory factory, [String path]) {
     return factory.openDatabase(path);
   });
 }
+*/
 
+/*
 String testOutFactoryDbPath(DatabaseFactory factory) {
   if (factory is FsDatabaseFactory) {
     FileSystem fs = factory.fs;
@@ -30,11 +75,15 @@ String testOutFactoryDbPath(DatabaseFactory factory) {
     return "test.db";
   }
 }
+*/
 
+/*
 String testOutDbPath(FileSystem fs) {
   return join(testOutPath(fs), "test.db");
 }
+*/
 
+/*
 String testOutPath(FileSystem fs) {
   //String DATA_FOLDER = 'data';
   //String OUT_FOLDER = 'out';
@@ -65,6 +114,7 @@ String testOutPath(FileSystem fs) {
     return join(_rootPath(), "tmp");
   }
 }
+*/
 
 Future<List<Record>> recordStreamToList(Stream<Record> stream) {
   List<Record> records = [];

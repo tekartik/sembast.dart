@@ -19,3 +19,6 @@ data/out
 
 # Include when developing application packages.
 pubspec.lock
+
+# Build by tests
+test/out

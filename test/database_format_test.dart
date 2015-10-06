@@ -1,7 +1,5 @@
 library sembast.database_format_test;
 
-// basically same as the io runner but with extra output
-import 'package:test/test.dart';
 import 'package:sembast/src/memory/memory_file_system.dart';
 import 'package:sembast/src/file_system.dart';
 import 'package:sembast/src/sembast_fs.dart';
@@ -10,21 +8,28 @@ import 'test_common.dart';
 import 'dart:convert';
 
 void main() {
-  defineTests(memoryFileSystem);
+  defineTests(memoryFileSystem, null);
 }
 
-void defineTests(FileSystem fs) {
-  DatabaseFactory factory = new FsDatabaseFactory(fs);
-  String dbPath = testOutDbPath(fs);
 
+
+void defineTests(FileSystem fs, String topPath) {
+  DatabaseFactory factory = new FsDatabaseFactory(fs);
+  String getDbPath() => getTestDbPath(topPath);
+  String dbPath;
+
+  String _deleteDb() {
+
+  }
   group('basic format', () {
     setUp(() {
-      return fs.newFile(dbPath).delete().catchError((_) {});
+      //return fs.newFile(dbPath).delete().catchError((_) {});
     });
 
     tearDown(() {});
 
     test('open_no_version', () {
+      dbPath = getDbPath();
       return factory.openDatabase(dbPath).then((Database db) {
         return readContent(fs, dbPath).then((List<String> lines) {
           expect(lines.length, 1);

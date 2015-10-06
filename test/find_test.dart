@@ -1,32 +1,28 @@
 library sembast.find_test;
 
 // basically same as the io runner but with extra output
-import 'package:test/test.dart';
 import 'package:sembast/sembast.dart';
 import 'package:sembast/sembast_memory.dart';
 import 'test_common.dart';
 
 void main() {
-  defineTests(memoryDatabaseFactory);
+  defineTests(memoryDatabaseContext);
 }
 
-void defineTests(DatabaseFactory factory) {
-  //Database db;
+void defineTests(DatabaseTestContext ctx) {
+  DatabaseFactory factory = ctx.factory;
 
   group('find', () {
     Database db;
     Store store;
     Record record1, record2, record3;
-    setUp(() {
-      return setupForTest(factory).then((Database database) {
-        db = database;
-      }).then((_) {
-        store = db.mainStore;
-        record1 = new Record(store, "hi", 1);
-        record2 = new Record(store, "ho", 2);
-        record3 = new Record(store, "ha", 3);
-        return db.putRecords([record1, record2, record3]);
-      });
+    setUp(() async {
+      db = await setupForTest(ctx);
+      store = db.mainStore;
+      record1 = new Record(store, "hi", 1);
+      record2 = new Record(store, "ho", 2);
+      record3 = new Record(store, "ha", 3);
+      return db.putRecords([record1, record2, record3]);
     });
 
     tearDown(() {
@@ -217,16 +213,13 @@ void defineTests(DatabaseFactory factory) {
       Database db;
       Store store;
       Record record1, record2, record3;
-      setUp(() {
-        return setupForTest(factory).then((Database database) {
-          db = database;
-        }).then((_) {
-          store = db.mainStore;
-          record1 = new Record(store, {"text": "hi", "value": 1}, 1);
-          record2 = new Record(store, {"text": "ho", "value": 2}, 2);
-          record3 = new Record(store, {"text": "ha", "value": 2}, 3);
-          return db.putRecords([record1, record2, record3]);
-        });
+      setUp(() async {
+        db = await setupForTest(ctx);
+        store = db.mainStore;
+        record1 = new Record(store, {"text": "hi", "value": 1}, 1);
+        record2 = new Record(store, {"text": "ho", "value": 2}, 2);
+        record3 = new Record(store, {"text": "ha", "value": 2}, 3);
+        return db.putRecords([record1, record2, record3]);
       });
 
       tearDown(() {

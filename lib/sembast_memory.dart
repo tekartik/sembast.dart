@@ -2,6 +2,8 @@ library sembast.memory;
 
 import 'dart:async';
 import 'sembast.dart';
+import 'src/sembast_fs.dart';
+
 //import 'package:tekartik_core/dev_utils.dart';
 
 /// In memory implementation

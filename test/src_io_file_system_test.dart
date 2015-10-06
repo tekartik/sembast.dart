@@ -2,9 +2,10 @@
 library sembast.io_file_system_test;
 
 // basically same as the io runner but with extra output
-import 'package:test/test.dart';
+import 'io_test_common.dart';
+import 'test_common.dart';
 import 'package:sembast/src/io/io_file_system.dart';
-import 'test_runner_src_file_system.dart' as fs;
+import 'src_file_system_test.dart' as fs;
 
 void main() {
   defineTests();
@@ -31,5 +32,5 @@ void defineTests() {
     });
   });
 
-  fs.defineTests(ioFileSystem);
+  fs.defineTests(ioFileSystemTestContext);
 }

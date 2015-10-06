@@ -12,27 +12,28 @@ import 'find_test.dart' as find_test;
 import 'store_test.dart' as store_test;
 import 'transaction_test.dart' as transaction_test;
 import 'package:sembast/sembast.dart';
-import 'test_runner_src_file_system.dart' as src_file_system_test;
+import 'src_file_system_test.dart' as src_file_system_test;
 import 'database_format_test.dart' as database_format_test;
+import 'test_common.dart';
 
 // default use memory
 void main() {
-  defineFileSystemTests(memoryFileSystem);
-  defineTests(new FsDatabaseFactory(memoryFileSystem));
+  defineFileSystemTests(memoryFileSystem, null);
+  defineTests(memoryFsDatabaseContext);
 }
 
-void defineFileSystemTests(FileSystem fs) {
+void defineFileSystemTests(FileSystem fs, String topPath) {
   src_file_system_test.defineTests(fs);
-  database_format_test.defineTests(fs);
+  database_format_test.defineTests(fs, topPath);
 }
 
-void defineTests(DatabaseFactory factory) {
-  database_perf_test.defineTests(factory, 10);
-  database_test.defineTests(factory);
-  crud_test.defineTests(factory);
-  record_test.defineTests(factory);
-  key_test.defineTests(factory);
-  store_test.defineTests(factory);
-  find_test.defineTests(factory);
-  transaction_test.defineTests(factory);
+void defineTests(DatabaseTestContext ctx) {
+  database_perf_test.defineTests(ctx, 10);
+  database_test.defineTests(ctx);
+  crud_test.defineTests(ctx);
+  record_test.defineTests(ctx);
+  key_test.defineTests(ctx);
+  store_test.defineTests(ctx);
+  find_test.defineTests(ctx);
+  transaction_test.defineTests(ctx);
 }
