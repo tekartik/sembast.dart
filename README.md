@@ -3,6 +3,8 @@
 sembast db stands for
 **S**imple **Emb**edded **A**pplication **St**ore **d**ata**b**ase
 
+[![Build Status](https://travis-ci.org/alextekartik/sembast.dart.svg?branch=master)](https://travis-ci.org/alextekartik/sembast.dart)
+
 ## General
 
 Yet another persistent store database solution for single process io applications.
@@ -146,4 +148,5 @@ test its algorithms using Dart VM and not Dartium
     await transaction.completed;
 
 ## Build status
-[![Build Status](https://drone.io/github.com/alextekartik/sembast.dart/status.png)](https://drone.io/github.com/alextekartik/sembast.dart/latest)
+
+Travis: [![Build Status](https://travis-ci.org/alextekartik/sembast.dart.svg?branch=master)](https://travis-ci.org/alextekartik/sembast.dart)
