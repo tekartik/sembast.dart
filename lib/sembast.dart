@@ -303,6 +303,12 @@ abstract class Filter {
   factory Filter.notEqual(String field, value) {
     return new _FilterPredicate(field, _FilterOperation.NOT_EQUAL, value);
   }
+  factory Filter.notNull(String field) {
+    return new _FilterPredicate(field, _FilterOperation.NOT_EQUAL, null);
+  }
+  factory Filter.isNull(String field) {
+    return new _FilterPredicate(field, _FilterOperation.EQUAL, null);
+  }
   factory Filter.lessThan(String field, value) {
     return new _FilterPredicate(field, _FilterOperation.LESS_THAN, value);
   }

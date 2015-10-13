@@ -269,6 +269,16 @@ void defineTests(DatabaseTestContext ctx) {
         finder.sortOrders = [new SortOrder("text", true, true)];
         records = await store.findRecords(finder);
         expect(records, [record2, record1]);
+
+        // is null
+        finder = new Finder(filter: new Filter.isNull("text"));
+        records = await store.findRecords(finder);
+        expect(records, [record1]);
+
+        // not null
+        finder = new Finder(filter: new Filter.notNull("text"));
+        records = await store.findRecords(finder);
+        expect(records, [record2]);
       });
     });
   });
