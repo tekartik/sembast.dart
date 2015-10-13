@@ -82,10 +82,9 @@ void defineTests(FileSystemTestContext ctx) {
     });
   });
 
-  group('exportStat', () async {
-    await prepareForDb();
-    setUp(() {
-      return fs.newFile(dbPath).delete().catchError((_) {});
+  group('exportStat', () {
+    setUp(() async {
+      await prepareForDb();
     });
 
     test('add/put/delete', () async {
@@ -115,7 +114,7 @@ void defineTests(FileSystemTestContext ctx) {
     });
   });
 
-  group('compact', () async {
+  group('compact', () {
     test('compact_and_write', () async {
       await prepareForDb();
       Database db = await factory.openDatabase(dbPath);

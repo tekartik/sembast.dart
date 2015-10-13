@@ -4,13 +4,18 @@ part of sembast;
 /// Sort order
 ///
 class SortOrder {
-  final bool ascending;
+  final bool ascending; // default true
   final String field;
+  final bool nullLast; // default false
 
   ///
   /// default is [ascending] = true
   ///
-  SortOrder(this.field, [bool ascending]) : ascending = ascending != false;
+  /// user withParam
+  SortOrder(this.field, [bool ascending, bool nullLast])
+      : ascending = ascending != false,
+        nullLast = nullLast == true;
+
   int compare(Record record1, Record record2) {
     int result = compareAscending(record1, record2);
     return ascending ? result : -result;
@@ -20,19 +25,34 @@ class SortOrder {
     var value1 = record1[field];
     var value2 = record2[field];
     if (value1 == null) {
-      return -1;
+      if (value2 == null) {
+        return 0;
+      }
+      if (nullLast) {
+        return 1;
+      } else {
+        return -1;
+      }
     } else if (value2 == null) {
-      return 1;
+      if (nullLast) {
+        return -1;
+      } else {
+        return 1;
+      }
     }
     return value1.compareTo(value2);
   }
 
   Map toDebugMap() {
-    return {field: ascending ? "asc" : "desc"};
+    Map map = {field: ascending ? "asc" : "desc"};
+    if (nullLast == true) {
+      map['nullLast'] = true;
+    }
+    return map;
   }
 
   @override
   String toString() {
-    return "${field} ${ascending ? 'asc' : 'desc'}";
+    return toDebugMap.toString();
   }
 }

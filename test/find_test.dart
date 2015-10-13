@@ -11,6 +11,13 @@ void main() {
 void defineTests(DatabaseTestContext ctx) {
   group('find', () {
     Database db;
+
+    _tearDown() {
+      if (db != null) {
+        db.close();
+        db = null;
+      }
+    }
     Store store;
     Record record1, record2, record3;
     setUp(() async {
@@ -22,9 +29,7 @@ void defineTests(DatabaseTestContext ctx) {
       return db.putRecords([record1, record2, record3]);
     });
 
-    tearDown(() {
-      db.close();
-    });
+    tearDown(_tearDown);
 
     test('equal', () {
       Finder finder = new Finder();
@@ -219,9 +224,7 @@ void defineTests(DatabaseTestContext ctx) {
         return db.putRecords([record1, record2, record3]);
       });
 
-      tearDown(() {
-        db.close();
-      });
+      tearDown(_tearDown);
 
       test('sort', () {
         Finder finder = new Finder();
@@ -246,6 +249,26 @@ void defineTests(DatabaseTestContext ctx) {
             expect(records[2], record3);
           });
         });
+      });
+    });
+
+    group('find_null', () {
+      test('first_last', () async {
+        db = await setupForTest(ctx);
+        store = db.mainStore;
+        record1 = new Record(store, {"text": null}, 1);
+        record2 = new Record(store, {"text": "hi"}, 2);
+        await db.putRecords([record1, record2]);
+
+        Finder finder = new Finder();
+        finder.sortOrders = [new SortOrder("text", true)];
+        List<Record> records = await store.findRecords(finder);
+        expect(records, [record1, record2]);
+
+        finder = new Finder();
+        finder.sortOrders = [new SortOrder("text", true, true)];
+        records = await store.findRecords(finder);
+        expect(records, [record2, record1]);
       });
     });
   });
