@@ -74,6 +74,9 @@ abstract class FileSystemEntity implements fs.FileSystemEntity {
 
   @override
   String toString() => ioFileSystemEntity.toString();
+
+  @override
+  _IoFileSystem get fileSystem => _fs;
 }
 
 class _IoOSError implements fs.OSError {

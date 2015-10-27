@@ -202,6 +202,9 @@ abstract class FileSystemEntity {
    * type, the operation fails and the future completes with an exception.
    */
   Future<FileSystemEntity> rename(String newPath);
+
+  /// Get the [FileSystem] from a file system entity
+  FileSystem get fileSystem;
 }
 
 abstract class Directory extends FileSystemEntity {

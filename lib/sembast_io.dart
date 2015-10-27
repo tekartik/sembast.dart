@@ -7,12 +7,13 @@ import 'src/sembast_fs.dart';
 
 import 'src/io/io_file_system.dart';
 
-/// In memory implementation
+/// The factory
+final IoDatabaseFactory ioDatabaseFactory = new IoDatabaseFactory();
+
+/// Io file system implementation
 class IoDatabaseFactory extends FsDatabaseFactory {
   IoDatabaseFactory() : super(ioFileSystem);
 }
-
-final IoDatabaseFactory ioDatabaseFactory = new IoDatabaseFactory();
 
 ///
 /// Use directly [IoDatabaseFactory.openDatabase]

@@ -490,6 +490,9 @@ abstract class _MemoryFileSystemEntity implements fs.FileSystemEntity {
 
   @override
   String toString() => impl.toString();
+
+  @override
+  _MemoryFileSystem get fileSystem => _fs;
 }
 
 class _MemoryDirectory extends _MemoryFileSystemEntity implements fs.Directory {

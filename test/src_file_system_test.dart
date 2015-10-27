@@ -157,6 +157,11 @@ void defineTests(FileSystemTestContext ctx) {
         });
       });
 
+      test('fileSystem', () {
+        Directory dir = nameDir("test");
+        expect(dir.fileSystem, fs);
+      });
+
       test('sub dir create', () async {
         await clearOutFolder();
         Directory mainDir = nameDir("test");

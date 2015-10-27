@@ -2,6 +2,16 @@ library sembast.memory;
 
 import 'dart:async';
 import 'sembast.dart';
+import 'src/sembast_fs.dart';
+import 'src/memory/memory_file_system.dart';
+
+/// The pure memory factory
+final MemoryDatabaseFactory memoryDatabaseFactory =
+    new MemoryDatabaseFactory._();
+
+/// The memory with a simulated file system factory
+final MemoryFsDatabaseFactory memoryFsDatabaseFactory =
+    new MemoryFsDatabaseFactory();
 
 /// In memory implementation
 class MemoryDatabaseFactory implements DatabaseFactory {
@@ -53,9 +63,6 @@ class MemoryDatabaseFactory implements DatabaseFactory {
   bool get hasStorage => false;
 }
 
-final MemoryDatabaseFactory memoryDatabaseFactory =
-    new MemoryDatabaseFactory._();
-
 ///
 /// Open a new database in memory
 ///
@@ -92,4 +99,9 @@ class _MemoryDatabaseStorage extends DatabaseStorage {
 
   @override
   Future tmpRecover() => null;
+}
+
+/// The simulated fs factory class
+class MemoryFsDatabaseFactory extends FsDatabaseFactory {
+  MemoryFsDatabaseFactory() : super(memoryFileSystem);
 }
