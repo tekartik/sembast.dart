@@ -212,7 +212,9 @@ class _MemoryFileImpl extends _MemoryFileSystemEntityImpl {
   _MemoryFileImpl createSync(bool recursive) {
     var impl = existingImpl;
     if (_checkFileExists(impl)) {
-      throw 'cannot create ${this}. already exists';
+      // ok to create
+      // throw 'cannot create ${this}. already exists';
+      return impl;
     }
     _MemoryDirectoryImpl parentImpl = _parent.createSync(recursive);
     if (impl == null) {

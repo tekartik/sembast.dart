@@ -9,7 +9,9 @@ import 'dart:convert';
 import 'test_common.dart';
 
 main() {
-  defineTests(memoryFileSystemContext);
+  group('memory', () {
+    defineTests(memoryFileSystemContext);
+  });
 }
 
 void defineTests(FileSystemTestContext ctx) {
@@ -34,16 +36,14 @@ void defineTests(FileSystemTestContext ctx) {
 
   Future<File> createFileName(String name) => createFile(nameFile(name));
 
-  Future expectDirExists(Directory dir, [bool exists = true]) {
-    return dir.exists().then((bool exists_) {
-      expect(exists_, exists);
-    });
+  Future expectDirExists(Directory dir, [bool exists = true]) async {
+    bool exists_ = await dir.exists();
+    expect(exists_, exists);
   }
 
-  Future expectFileExists(File file, [bool exists = true]) {
-    return file.exists().then((bool exists_) {
-      expect(exists_, exists);
-    });
+  Future expectFileExists(File file, [bool exists = true]) async {
+    bool exists_ = await file.exists();
+    expect(exists_, exists);
   }
 
   Future<File> expectFileNameExists(String name, [bool exists = true]) =>
@@ -143,18 +143,25 @@ void defineTests(FileSystemTestContext ctx) {
     group('dir', () {
       test('dir exists', () async {
         await clearOutFolder();
-        return expectDirExists(nameDir("test"), false);
+        await expectDirExists(nameDir("test"), false);
       });
 
       test('dir create', () async {
         await clearOutFolder();
         Directory dir = nameDir("test");
-        return dir.create(recursive: true).then((_) {
-          return expectDirExists(dir, true).then((_) {
-            // second time fine too
-            return dir.create(recursive: true);
-          });
-        });
+        Directory dir2 = nameDir("test");
+        expect(await fs.isDirectory(dir.path), isFalse);
+        await dir.create(recursive: true);
+        await expectDirExists(dir, true);
+        await expectDirExists(dir2, true);
+        expect(await fs.isDirectory(dir.path), isTrue);
+
+        // create another object
+        dir = nameDir("test");
+        await expectDirExists(dir, true);
+
+        // second time fine too
+        await dir.create(recursive: true);
       });
 
       test('fileSystem', () {
@@ -210,11 +217,17 @@ void defineTests(FileSystemTestContext ctx) {
 
       test('file create', () async {
         await clearOutFolder();
-        return createFileName("test").then((File file) {
-          return file.exists().then((bool exists) {
-            expect(exists, true);
-          });
-        });
+        File file = nameFile("test");
+        expect(await file.exists(), isFalse);
+        expect(await fs.isFile(file.path), isFalse);
+        File createdFile = await createFile(file);
+        expect(await fs.isFile(file.path), isTrue);
+        expect(await createdFile.exists(), isTrue);
+        expect(await file.exists(), isTrue);
+
+        // create twice ok
+        File createdFile2 = await createFile(file);
+        expect(await createdFile2.exists(), isTrue);
       });
 
       test('file delete', () async {
@@ -378,6 +391,23 @@ void defineTests(FileSystemTestContext ctx) {
         File file2 = await file.rename(path2);
         List<String> content = await readContent(file2);
         expect(content, ["test1"]);
+      });
+
+      test('create_write_then_create', () async {
+        await clearOutFolder();
+        File file = nameFile("test");
+        file = await createFile(file);
+        IOSink sink = openWrite(file);
+        sink.writeln("test");
+        await sink.close();
+
+        // create again
+        file = await createFile(file);
+        List<String> lines = [];
+        await openReadLines(file).listen((String line) {
+          lines.add(line);
+        }).asFuture();
+        expect(lines, ['test']);
       });
     });
   });

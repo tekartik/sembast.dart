@@ -30,7 +30,7 @@ void defineTests() {
     test('isFile', () {
       return FileSystemEntity.isFile("test").then((bool isFile) {});
     });
-  });
 
-  fs.defineTests(ioFileSystemContext);
+    fs.defineTests(ioFileSystemContext);
+  });
 }
