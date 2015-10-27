@@ -78,8 +78,8 @@ void defineTests(FileSystemTestContext ctx) {
       return dir_;
     });
   }
-  Future clearOutFolder() {
-    return deleteDirectory(fs.newDirectory(ctx.outPath))
+  Future clearOutFolder() async {
+    await deleteDirectory(fs.newDirectory(ctx.outPath))
         .catchError((FileSystemException e, st) {
       //devPrint("${e}\n${st}");
     });
@@ -141,6 +141,22 @@ void defineTests(FileSystemTestContext ctx) {
     });
 
     group('dir', () {
+      test('new', () {
+        Directory dir = fs.newDirectory("dummy");
+        expect(dir.path, "dummy");
+        dir = fs.newDirectory(r"\root/dummy");
+        expect(dir.path, r"\root/dummy");
+        dir = fs.newDirectory(r"\");
+        expect(dir.path, r"\");
+        dir = fs.newDirectory(r"");
+        expect(dir.path, r"");
+        try {
+          dir = fs.newDirectory(null);
+          fail("should fail");
+        } on ArgumentError catch (_) {
+          // Invalid argument(s): null is not a String
+        }
+      });
       test('dir exists', () async {
         await clearOutFolder();
         await expectDirExists(nameDir("test"), false);
@@ -182,34 +198,60 @@ void defineTests(FileSystemTestContext ctx) {
       test('dir delete', () async {
         await clearOutFolder();
         Directory dir = nameDir("test");
-        return dir.delete(recursive: true).then((_) {
-          fail('');
-        }, onError: (FileSystemException e) {}).then((_) {
-          return expectDirExists(dir, false);
-        }).then((_) {
-          return dir.create(recursive: true).then((_) {
-            return expectDirExists(dir, true).then((_) {});
-          }).then((_) {
-            return dir.delete(recursive: true).then((_) {
-              return expectDirExists(dir, false);
-            });
-          });
-        });
+
+        try {
+          await dir.delete(recursive: true);
+          fail("shoud fail");
+        } on FileSystemException catch (_) {
+          // FileSystemException: Deletion failed, path = '/media/ssd/devx/git/sembast.dart/test/out/io/fs/dir/dir delete/test' (OS Error: No such file or directory, errno = 2)
+          // FileSystemException: Deletion failed, path = 'current/test' (OS Error: No such file or directory, errno = 2)
+        }
+
+        await expectDirExists(dir, false);
+
+        await dir.create(recursive: true);
+        await expectDirExists(dir, true);
+        await dir.delete(recursive: true);
+        await expectDirExists(dir, false);
       });
 
       test('sub dir delete', () async {
         await clearOutFolder();
         Directory mainDir = nameDir("test");
-        Directory subDir = nameDir(join(mainDir.path, "test"));
+        Directory subDir = fs.newDirectory(join(mainDir.path, "test"));
 
-        return subDir.create(recursive: true).then((_) {
-          return mainDir.delete(recursive: true).then((_) {
-            return expectDirExists(subDir, false);
-          });
-        });
+        // not recursive
+        await subDir.create(recursive: true);
+
+        try {
+          await mainDir.delete();
+          fail("shoud fail");
+        } on FileSystemException catch (_) {
+          // FileSystemException: Deletion failed, path = '/media/ssd/devx/git/sembast.dart/test/out/io/fs/dir/sub dir delete/test' (OS Error: Directory not empty, errno = 39)
+          // FileSystemException: Deletion failed, path = 'current/test' (OS Error: Directory is not empty, errno = 39)
+        }
+        await expectDirExists(mainDir, true);
+        await mainDir.delete(recursive: true);
+        await expectDirExists(mainDir, false);
       });
     });
     group('file', () {
+      test('new', () {
+        File file = fs.newFile("dummy");
+        expect(file.path, "dummy");
+        file = fs.newFile(r"\root/dummy");
+        expect(file.path, r"\root/dummy");
+        file = fs.newFile(r"\");
+        expect(file.path, r"\");
+        file = fs.newFile(r"");
+        expect(file.path, r"");
+        try {
+          file = fs.newFile(null);
+          fail("should fail");
+        } on ArgumentError catch (_) {
+          // Invalid argument(s): null is not a String
+        }
+      });
       test('file exists', () async {
         await clearOutFolder();
         return expectFileNameExists("test", false);
@@ -233,52 +275,52 @@ void defineTests(FileSystemTestContext ctx) {
       test('file delete', () async {
         await clearOutFolder();
         File file = nameFile("test");
-        return deleteFile(file).then((_) {
-          fail('');
-        }, onError: (FileSystemException e) {}).then((_) {
-          return expectFileExists(file, false).then((_) {
-            return createFile(file);
-          }).then((_) {
-            return expectFileExists(file, true);
-          });
-        });
+
+        try {
+          await deleteFile(file);
+          fail('should fail');
+        } on FileSystemException catch (_) {
+          // FileSystemException: Deletion failed, path = '/media/ssd/devx/git/sembast.dart/test/out/io/fs/file/file delete/test' (OS Error: No such file or directory, errno = 2)
+          // FileSystemException: Deletion failed, path = 'current/test' (OS Error: No such file or directory, errno = 2)
+        }
+        await expectFileExists(file, false);
+        await createFile(file);
+        await expectFileExists(file, true);
+        await deleteFile(file);
+        await expectFileExists(file, false);
       });
 
       test('file delete 2', () async {
         await clearOutFolder();
         File file = nameFile(join("sub", "test"));
-        return deleteFile(file).then((_) {
-          fail('');
-        }, onError: (FileSystemException e) {}).then((_) {
-          return expectFileExists(file, false).then((_) {
-            return createFile(file);
-          }).then((_) {
-            return expectFileExists(file, true);
-          });
-        });
+
+        try {
+          await deleteFile(file);
+          fail('should fail');
+        } on FileSystemException catch (_) {
+          // FileSystemException: Deletion failed, path = '/media/ssd/devx/git/sembast.dart/test/out/io/fs/file/file delete/test' (OS Error: No such file or directory, errno = 2)
+          // FileSystemException: Deletion failed, path = 'current/test' (OS Error: No such file or directory, errno = 2)
+        }
+        await expectFileExists(file, false);
+        await createFile(file);
+        await expectFileExists(file, true);
+        await deleteFile(file);
+        await expectFileExists(file, false);
       });
 
       test('open read 1', () async {
         await clearOutFolder();
         File file = nameFile("test");
         bool ok;
-        return openRead(file).listen((_) {
-          fail('');
-        }, onError: (e) {
-          //devPrint(e);
-        }, onDone: () {
-          // devPrint('done');
-        }).asFuture().catchError((e) {
-          //devPrint(e);
-          ok = true;
-        }).then((_) {
-          expect(ok, isTrue);
-        });
-//        return openRead(file).listen((_) {
-//          fail('');
-//        }, onError: (e) {
-//          devPrint(e);
-//        }).asFuture();
+        var e;
+          await openRead(file).listen((_) => {}, onError:(_) {
+          print(_);
+          }).asFuture().catchError((e_) {
+            // FileSystemException: Cannot open file, path = '/media/ssd/devx/git/sembast.dart/test/out/io/fs/file/open read 1/test' (OS Error: No such file or directory, errno = 2)
+            // FileSystemException: Cannot open file, path = 'current/test' (OS Error: No such file or directory, errno = 2)
+            e = e_;
+          });
+         expect(e, isNotNull);
       });
 
       test('open write 1', () async {
@@ -286,11 +328,13 @@ void defineTests(FileSystemTestContext ctx) {
         File file = nameFile("test");
         IOSink sink = openWrite(file);
         //sink.writeln("test");
-        return sink.close().then((_) {
-          fail('');
-        }, onError: (FileSystemException e, st) {
-          //devPrint("${e}");
-        });
+        try {
+          await sink.close();
+          fail('should fail');
+        } on FileSystemException catch (_) {
+          // FileSystemException: Cannot open file, path = '/media/ssd/devx/git/sembast.dart/test/out/io/fs/file/open write 1/test' (OS Error: No such file or directory, errno = 2)
+          // FileSystemException: Cannot open file, path = 'current/test' (OS Error: No such file or directory, errno = 2)
+        };
       });
 
       test('open write 2', () async {
@@ -325,11 +369,14 @@ void defineTests(FileSystemTestContext ctx) {
         File file = nameFile("test");
         IOSink sink = openAppend(file);
         //sink.writeln("test");
-        return sink.close().then((_) {
-          fail('');
-        }, onError: (FileSystemException e, st) {
-          //devPrint("${e}");
-        });
+        try {
+          await sink.close();
+          fail('should fail');
+        } on FileSystemException catch (_) {
+          // FileSystemException: Cannot open file, path = '/media/ssd/devx/git/sembast.dart/test/out/io/fs/file/open write 1/test' (OS Error: No such file or directory, errno = 2)
+          // FileSystemException: Cannot open file, path = 'current/test' (OS Error: No such file or directory, errno = 2)
+        };
+
       });
 
       test('open append 2', () async {
@@ -409,6 +456,26 @@ void defineTests(FileSystemTestContext ctx) {
         }).asFuture();
         expect(lines, ['test']);
       });
+
+      test('depp_create_write_then_create', () async {
+        await clearOutFolder();
+        File file = nameFile(join("test", "sub", "yet another"));
+        file = await createFile(file);
+        IOSink sink = openWrite(file);
+        sink.writeln("test");
+        await sink.close();
+
+        // create again
+        file = await createFile(file);
+        List<String> lines = [];
+
+        file = nameFile(join("test", "sub", "yet another"));
+        await openReadLines(file).listen((String line) {
+          lines.add(line);
+        }).asFuture();
+        expect(lines, ['test']);
+      });
+
     });
   });
 }

@@ -1,7 +1,7 @@
 library sembast.memory_file_system;
 
 import '../file_system.dart' as fs;
-
+import 'memory_file_system_impl.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'package:path/path.dart';
@@ -80,7 +80,7 @@ class _MemoryDirectoryImpl extends _MemoryFileSystemEntityImpl {
     _MemoryFileSystemEntityImpl child = getChild(segment);
     if (child == null || (!(child is _MemoryDirectoryImpl))) {
       // create tmp dir object
-      child = new _MemoryDirectoryImpl(this, segment);
+      child = new MemoryDirectoryImpl(this, segment);
     }
     if (isLastSegment) {
       return child;
@@ -98,7 +98,7 @@ class _MemoryDirectoryImpl extends _MemoryFileSystemEntityImpl {
       _MemoryFileSystemEntityImpl child = getChild(segment);
       if (child == null || (!(child is _MemoryFileImpl))) {
         // create tmp dir object
-        child = new _MemoryFileImpl(this, segment);
+        child = new MemoryFileImpl(this, segment);
       }
       return child;
     }
@@ -342,7 +342,7 @@ abstract class _MemoryFileSystemEntityImpl {
 
       String newSegment = basename(newPath);
       if (impl is _MemoryFileImpl) {
-        _MemoryFileImpl newImpl = new _MemoryFileImpl(impl._parent, newSegment);
+        _MemoryFileImpl newImpl = new MemoryFileImpl(impl._parent, newSegment);
 
         newImpl.content = impl.content;
 
@@ -416,12 +416,13 @@ class _MemoryIOSink implements fs.IOSink {
   Future close() => impl.close();
 }
 
-class _MemoryFileSystem implements fs.FileSystem {
-  _MemoryFileSystem() {
-    rootDir._exists = true;
-  }
 
-  _MemoryDirectoryImpl rootDir = new _MemoryDirectoryImpl(null, null);
+class _MemoryFileSystem implements fs.FileSystem {
+  MemoryFileSystemImpl _impl = new MemoryFileSystemImpl();
+
+  _MemoryFileSystem();
+
+  // _MemoryDirectoryImpl rootDir = new MemoryDirectoryImpl(null, null);
 
   _MemoryDirectoryImpl getDirFromPath(String path) {
     if (path == null) {
@@ -432,12 +433,12 @@ class _MemoryFileSystem implements fs.FileSystem {
 
   @override
   fs.File newFile(String path) {
-    return new _MemoryFile(rootDir.getFileFromPath(path));
+    return new _MemoryFile(path);
   }
 
   @override
   fs.Directory newDirectory(String path) {
-    return new _MemoryDirectory(getDirFromPath(path));
+    return new _MemoryDirectory(path);
   }
 
   @override
@@ -455,18 +456,17 @@ class _MemoryFileSystem implements fs.FileSystem {
   }
 
   @override
-  Future<fs.FileSystemEntityType> type(String path, {bool followLinks: true}) {
-    return new Future.sync(() {
-      _MemoryFileSystemEntityImpl impl = rootDir.getChildEntityFromPath(path);
-      if (impl != null) {
-        return impl._type;
+  Future<fs.FileSystemEntityType> type(String path, {bool followLinks: true}) async {
+      MemoryFileSystemEntityImpl entityImpl = _impl.getEntity(path);
+      if (entityImpl != null) {
+        return entityImpl.type;
       }
       return fs.FileSystemEntityType.NOT_FOUND;
-    });
+
   }
 
   @override
-  _MemoryDirectory get currentDirectory => newDirectory("current");
+  _MemoryDirectory get currentDirectory => newDirectory(_impl.currentPath);
 
   @override
   _MemoryFile get scriptFile => null;
@@ -476,35 +476,43 @@ class _MemoryFileSystem implements fs.FileSystem {
 }
 
 abstract class _MemoryFileSystemEntity implements fs.FileSystemEntity {
-  _MemoryFileSystemEntityImpl impl;
 
   @override
-  Future<bool> exists() => impl.exists();
+  final String path;
+
+  _MemoryFileSystemEntity(this.path) {
+    if (path == null) {
+      throw new ArgumentError.notNull("path");
+    }
+  }
+
+  @override
+  Future<bool> exists() async => _fs._impl.exists(path);
 
   // don't care about recursive
   @override
-  Future<fs.FileSystemEntity> delete({bool recursive: false}) //
-      =>
-      impl.delete().then((_MemoryFileSystemEntityImpl impl) => this);
+  Future<fs.FileSystemEntity> delete({bool recursive: false}) async {
+
+    _fs._impl.delete(path, recursive: recursive);
+    return this;
+  }
+
 
   @override
-  String get path => impl.path;
-
-  @override
-  String toString() => impl.toString();
+  String toString() => path;
 
   @override
   _MemoryFileSystem get fileSystem => _fs;
 }
 
 class _MemoryDirectory extends _MemoryFileSystemEntity implements fs.Directory {
-  _MemoryDirectoryImpl get dirImpl => impl;
-  _MemoryDirectory(_MemoryDirectoryImpl impl) {
-    this.impl = impl;
-  }
 
-  @override Future<_MemoryDirectory> create({bool recursive: false}) =>
-      dirImpl.create(recursive).then((_) => this);
+  _MemoryDirectory(String path) : super(path);
+
+  @override Future<_MemoryDirectory> create({bool recursive: false}) async {
+    _fs._impl.createDirectory(path, recursive: recursive);
+    return this;
+  }
 
   @override
   Future<fs.FileSystemEntity> rename(String newPath) //
@@ -514,37 +522,34 @@ class _MemoryDirectory extends _MemoryFileSystemEntity implements fs.Directory {
 }
 
 class _MemoryFile extends _MemoryFileSystemEntity implements fs.File {
-  _MemoryFileImpl get fileImpl => impl;
+  //_MemoryFileImpl get fileImpl => impl;
 
-  _MemoryFile(_MemoryFileImpl impl) {
-    this.impl = impl;
-  }
+  _MemoryFile(String path) : super(path);
 
   // don't care about recursive
   @override
-  Future<fs.File> create({bool recursive: false}) //
-      =>
-      fileImpl
-          .create(recursive)
-          .then((_MemoryFileSystemEntityImpl impl) => this);
+  Future<fs.File> create({bool recursive: false}) async {
+    _fs._impl.createFile(path, recursive: recursive);
+    return this;
+  }
 
   // don't care about start end
   @override
-  Stream<List<int>> openRead([int start, int end]) //
-      =>
-      fileImpl.openRead();
+  Stream<List<int>> openRead([int start, int end]) =>
+    _fs._impl.openRead(path);
+
 
   // don't care about encoding - assume UTF8
   @override
   fs.IOSink openWrite(
           {fs.FileMode mode: fs.FileMode.WRITE, Encoding encoding: UTF8}) //
-      =>
-      fileImpl.openWrite(mode);
+  =>
+  _fs._impl.openWrite(path, mode: mode);
 
   @override
-  Future<fs.FileSystemEntity> rename(String newPath) //
-      =>
-      impl
-          .rename(newPath)
-          .then((_MemoryFileSystemEntityImpl impl) => new _MemoryFile(impl));
+  Future<fs.FileSystemEntity> rename(String newPath) async
+  {
+    MemoryFileSystemEntityImpl renamed = _fs._impl.rename(path, newPath);
+    return new _MemoryFile(renamed.path);
+  }
 }
