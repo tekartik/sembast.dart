@@ -87,7 +87,7 @@ main() {
         fs.delete(join(separator, "dummy"));
         fail("should fail");
       } on FileSystemException catch (e) {
-        expect((e as FileSystemException).osError.errorCode, 2);
+        expect(e.osError.errorCode, 2);
       }
 
       // not empty

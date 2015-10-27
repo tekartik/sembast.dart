@@ -311,16 +311,15 @@ void defineTests(FileSystemTestContext ctx) {
       test('open read 1', () async {
         await clearOutFolder();
         File file = nameFile("test");
-        bool ok;
         var e;
-          await openRead(file).listen((_) => {}, onError:(_) {
+        await openRead(file).listen((_) => {}, onError: (_) {
           print(_);
-          }).asFuture().catchError((e_) {
-            // FileSystemException: Cannot open file, path = '/media/ssd/devx/git/sembast.dart/test/out/io/fs/file/open read 1/test' (OS Error: No such file or directory, errno = 2)
-            // FileSystemException: Cannot open file, path = 'current/test' (OS Error: No such file or directory, errno = 2)
-            e = e_;
-          });
-         expect(e, isNotNull);
+        }).asFuture().catchError((e_) {
+          // FileSystemException: Cannot open file, path = '/media/ssd/devx/git/sembast.dart/test/out/io/fs/file/open read 1/test' (OS Error: No such file or directory, errno = 2)
+          // FileSystemException: Cannot open file, path = 'current/test' (OS Error: No such file or directory, errno = 2)
+          e = e_;
+        });
+        expect(e, isNotNull);
       });
 
       test('open write 1', () async {
@@ -334,7 +333,8 @@ void defineTests(FileSystemTestContext ctx) {
         } on FileSystemException catch (_) {
           // FileSystemException: Cannot open file, path = '/media/ssd/devx/git/sembast.dart/test/out/io/fs/file/open write 1/test' (OS Error: No such file or directory, errno = 2)
           // FileSystemException: Cannot open file, path = 'current/test' (OS Error: No such file or directory, errno = 2)
-        };
+        }
+        ;
       });
 
       test('open write 2', () async {
@@ -375,8 +375,8 @@ void defineTests(FileSystemTestContext ctx) {
         } on FileSystemException catch (_) {
           // FileSystemException: Cannot open file, path = '/media/ssd/devx/git/sembast.dart/test/out/io/fs/file/open write 1/test' (OS Error: No such file or directory, errno = 2)
           // FileSystemException: Cannot open file, path = 'current/test' (OS Error: No such file or directory, errno = 2)
-        };
-
+        }
+        ;
       });
 
       test('open append 2', () async {
@@ -475,7 +475,6 @@ void defineTests(FileSystemTestContext ctx) {
         }).asFuture();
         expect(lines, ['test']);
       });
-
     });
   });
 }
