@@ -300,7 +300,7 @@ class MemoryFileSystemImpl {
     MemoryFileSystemEntityImpl fileImpl = getEntity(path);
     // if it exists we're fine
     if (fileImpl is MemoryFileImpl) {
-      ctlr.addStream((fileImpl as MemoryFileImpl).openRead()).then((_) {
+      ctlr.addStream(fileImpl.openRead()).then((_) {
         ctlr.close();
       });
     } else {
@@ -312,7 +312,7 @@ class MemoryFileSystemImpl {
 
   fs.IOSink openWrite(String path, {fs.FileMode mode: fs.FileMode.WRITE}) {
     _TmpSink sink;
-    StreamController ctlr = new StreamController(sync: true);
+    //StreamController ctlr = new StreamController(sync: true);
     MemoryFileSystemEntityImpl fileImpl = getEntity(path);
     // if it exists we're fine
     if (fileImpl == null) {
@@ -360,7 +360,7 @@ class MemoryFileSystemImpl {
     if (entityImpl != null && (!(entityImpl is MemoryRootDirectoryImpl))) {
       if (entityImpl is MemoryDirectoryImpl) {
         if (recursive != true &&
-            ((entityImpl as MemoryDirectoryImpl).children.isNotEmpty)) {
+            (entityImpl.children.isNotEmpty)) {
           throw new _MemoryFileSystemException(path, "Deletion failed",
               new MemoryOSError(39, "Directory is not empty"));
         }
@@ -402,7 +402,7 @@ class MemoryFileSystemImpl {
       if (entityImpl is MemoryFileImpl) {
         newEntityImpl = new MemoryFileImpl(newParentImpl, segment);
         (newEntityImpl as MemoryFileImpl).content =
-            (entityImpl as MemoryFileImpl).content;
+            entityImpl.content;
       } else {
         newEntityImpl = new MemoryDirectoryImpl(newParentImpl, segment);
       }
