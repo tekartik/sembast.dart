@@ -34,6 +34,9 @@ class DatabaseMode {
   const DatabaseMode._internal(this._mode);
 }
 
+///
+/// The database factory that allow opening database
+///
 abstract class DatabaseFactory {
   ///
   /// True if it has an associated storage (fs)
@@ -60,7 +63,11 @@ abstract class DatabaseFactory {
   //Stream<String> getData(String path);
 }
 
+///
 /// Storage implementation
+///
+/// where the database is read/written to if needed
+///
 abstract class DatabaseStorage {
   String get path;
   bool get supported;
@@ -77,17 +84,25 @@ abstract class DatabaseStorage {
   Future appendLine(String line) => appendLines([line]);
 }
 
+///
 /// Exceptions
+///
 class DatabaseException implements Exception {
-  static int BAD_PARAM = 0;
-  static int DATABASE_NOT_FOUND = 1;
+  static int errBadParam = 0;
+  static int errDatabaseNotFound = 1;
+
+  @deprecated
+  static int BAD_PARAM = errBadParam;
+  @deprecated
+  static int DATABASE_NOT_FOUND = errDatabaseNotFound;
+
   final int _code;
   final String _message;
   int get code => _code;
   String get message => _message;
-  DatabaseException.badParam(this._message) : _code = BAD_PARAM;
+  DatabaseException.badParam(this._message) : _code = errBadParam;
   DatabaseException.databaseNotFound(this._message)
-      : _code = DATABASE_NOT_FOUND;
+      : _code = errDatabaseNotFound;
 
   String toString() => "[${_code}] ${_message}";
 }
@@ -332,6 +347,9 @@ abstract class Filter {
   factory Filter.byKey(key) => new _ByKeyFilter(key);
 }
 
+///
+/// Helper to define one or multiple filters
+///
 class Finder {
   Filter filter;
   int offset;

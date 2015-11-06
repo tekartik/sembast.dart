@@ -1,7 +1,6 @@
 syntax: glob
 # Don’t commit the following directories created by pub.
 build/
-packages/
 .packages
 .buildlog
 .pub/
@@ -22,3 +21,4 @@ pubspec.lock
 
 # Build by tests
 test/out
+test_out

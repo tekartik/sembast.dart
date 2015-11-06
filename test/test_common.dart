@@ -27,6 +27,12 @@ class DatabaseTestContext {
   DatabaseFactory factory;
 
   String get dbPath => joinAll(testDescriptions) + ".db";
+
+  // Delete the existing and open the database
+  Future<Database> open() async {
+    await factory.deleteDatabase(dbPath);
+    return factory.openDatabase(dbPath);
+  }
 }
 
 // FileSystem context
@@ -38,12 +44,7 @@ class FileSystemTestContext {
 FileSystemTestContext get memoryFileSystemContext =>
     new FileSystemTestContext()..fs = memoryFileSystem;
 
-Future<Database> setupForTest(DatabaseTestContext ctx) async {
-  DatabaseFactory factory = ctx.factory;
-  String dbPath = ctx.dbPath;
-  await factory.deleteDatabase(dbPath);
-  return factory.openDatabase(dbPath);
-}
+Future<Database> setupForTest(DatabaseTestContext ctx) => ctx.open();
 
 Future<List<Record>> recordStreamToList(Stream<Record> stream) {
   List<Record> records = [];

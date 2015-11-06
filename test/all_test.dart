@@ -8,6 +8,7 @@ import 'key_test.dart' as key_test;
 import 'find_test.dart' as find_test;
 import 'store_test.dart' as store_test;
 import 'transaction_test.dart' as transaction_test;
+import 'exception_test.dart' as exception_test;
 import 'src_file_system_test.dart' as src_file_system_test;
 import 'database_format_test.dart' as database_format_test;
 import 'test_common.dart';
@@ -32,4 +33,5 @@ void defineTests(DatabaseTestContext ctx) {
   store_test.defineTests(ctx);
   find_test.defineTests(ctx);
   transaction_test.defineTests(ctx);
+  exception_test.defineTests(ctx);
 }

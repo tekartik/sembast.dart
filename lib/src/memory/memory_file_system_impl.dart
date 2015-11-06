@@ -359,8 +359,7 @@ class MemoryFileSystemImpl {
     }
     if (entityImpl != null && (!(entityImpl is MemoryRootDirectoryImpl))) {
       if (entityImpl is MemoryDirectoryImpl) {
-        if (recursive != true &&
-            (entityImpl.children.isNotEmpty)) {
+        if (recursive != true && (entityImpl.children.isNotEmpty)) {
           throw new _MemoryFileSystemException(path, "Deletion failed",
               new MemoryOSError(39, "Directory is not empty"));
         }
@@ -401,8 +400,7 @@ class MemoryFileSystemImpl {
 
       if (entityImpl is MemoryFileImpl) {
         newEntityImpl = new MemoryFileImpl(newParentImpl, segment);
-        (newEntityImpl as MemoryFileImpl).content =
-            entityImpl.content;
+        (newEntityImpl as MemoryFileImpl).content = entityImpl.content;
       } else {
         newEntityImpl = new MemoryDirectoryImpl(newParentImpl, segment);
       }

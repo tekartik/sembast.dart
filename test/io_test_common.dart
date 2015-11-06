@@ -29,7 +29,7 @@ class _TestUtils {
 
 String get testScriptPath => _TestUtils.scriptPath;
 String get testOutPath => getTestOutPath(testDescriptions);
-String get testOutTopPath => join(dirname(_TestUtils.scriptPath), "out");
+String get testOutTopPath => join(dirname(testScriptPath), "test_out");
 
 String getTestOutPath([List<String> parts]) {
   if (parts == null) {

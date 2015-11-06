@@ -111,49 +111,37 @@ class Database {
 
       var result;
       var err;
-      await runZoned(
-          () {
-            // execute and commit
+
+      // complex error handling...
+      // make the transaction is properly reported above in the outer
+      // transaction
+      _handleErr(e) {
+        if (!actionCompleter.isCompleted) {
+          err = e;
+          //return new Future.error(e);
+          _transactions.remove(txn.id);
+          _clearTxnData();
+          txn._completer.complete();
+          actionCompleter.completeError(err);
+        }
+      }
+
+      await runZoned(() {
+        // execute and commit
+        if (LOGV) {
+          logger.fine("begin transaction");
+        }
+        return new Future.sync(action).then((_result) {
+          return new Future.sync(_commit).then((_) {
+            result = _result;
             if (LOGV) {
-              logger.fine("begin transaction");
+              logger.fine("commit transaction");
             }
-            return new Future.sync(action).then((_result) {
-              return new Future.sync(_commit).then((_) {
-                result = _result;
-                if (LOGV) {
-                  logger.fine("commit transaction");
-                }
-              });
-            }).catchError((e, st) {
-              //print(e);
-              //print(st);
-              logger.severe("txn error $e");
-              logger.finest(e);
-              logger.finest(st);
-              //txn._completer.completeError(e);
-              err = e;
-              //return new Future.error(e);
-              _transactions.remove(txn.id);
-              _clearTxnData();
-              txn._completer.complete();
-              actionCompleter.completeError(err);
-            });
-          },
-          zoneValues: {_zoneTransactionKey: txn.id},
-          onError: (e, st) {
-            //print(e);
-            //print(st);
-            logger.severe("txn zone error $e");
-            logger.finest(e);
-            logger.finest(st);
-            //txn._completer.completeError(e);
-            err = e;
-            //return new Future.error(e);
-            _transactions.remove(txn.id);
-            _clearTxnData();
-            txn._completer.complete();
-            actionCompleter.completeError(err);
-          }).whenComplete(() {
+          });
+        }).catchError((e, st) {
+          _handleErr(e);
+        });
+      }, zoneValues: {_zoneTransactionKey: txn.id}).whenComplete(() {
         if (!actionCompleter.isCompleted) {
           _transactions.remove(txn.id);
           _clearTxnData();
