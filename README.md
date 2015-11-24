@@ -65,7 +65,7 @@ Actions can be group in transaction for consistency and optimization (single wri
       await db.put('value1');
       await db.put('value2');
     });
-    
+
 ### Simple wrapping into a Record object
 
 A record object holds the record content and key
@@ -118,8 +118,7 @@ for an infinite number of stores where a developer would store entity specific d
       // here we know we have a single record
       // .. you'll get dog and cat here
     }).asFuture();
-    
-   
+
 ### idb_shim
 
 The project idb_shim provides a shim allowing accessing it using the IndexedDB api. The benefit is to be able to write the logic/synchronization part of the database layer and 
