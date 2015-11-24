@@ -21,9 +21,7 @@ class MemoryDatabaseFactory implements DatabaseFactory {
       OnVersionChangedFunction onVersionChanged,
       DatabaseMode mode}) {
     Database db;
-    if (path == null) {
-      db = _defaultDatabase;
-    } else {
+    if (path != null) {
       db = _databases[path];
     }
 
@@ -34,9 +32,7 @@ class MemoryDatabaseFactory implements DatabaseFactory {
     return db
         .open(version: version, onVersionChanged: onVersionChanged, mode: mode)
         .then((Database db) {
-      if (path == null) {
-        _defaultDatabase = db;
-      } else {
+      if (path != null) {
         _databases[path] = db;
       }
       return db;
@@ -48,15 +44,13 @@ class MemoryDatabaseFactory implements DatabaseFactory {
 
   @override
   Future deleteDatabase(String path) {
-    if (path == null) {
-      _defaultDatabase = null;
-    } else {
+    if (path != null) {
       _databases.remove(path);
     }
     return new Future.value();
   }
 
-  Database _defaultDatabase;
+  //Database _defaultDatabase;
   Map<String, Database> _databases = new Map();
 
   @override
