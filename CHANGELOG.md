@@ -1,3 +1,7 @@
+## 1.3.1
+
+* Add support for import/export
+
 ## 1.2.2
 
 * Add for support for isNull and notNull filter

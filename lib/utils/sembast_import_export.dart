@@ -3,20 +3,25 @@ library sembast.utils.sembast_import_export;
 import '../sembast.dart';
 import 'dart:async';
 
-const String _db_version = "version";
-const String _exportSignatureVersion = "sembast_export";
+const String _dbVersion = "version";
+const String _exportSignatureKey = "sembast_export";
 const String _stores = "stores";
 const String _name = "name"; // for store
 const String _keys = "keys"; // list
 const String _values = "values"; // list
 
+const int _exportSignatureVersion = 1;
+
+///
+/// Return the data in an exported format that (can be JSONify)
+///
 Future<Map> exportDatabase(Database db) async {
   return db.newTransaction(() async {
     Map export = {
       // our export signature
-      _exportSignatureVersion: 1,
+      _exportSignatureKey: _exportSignatureVersion,
       // the db version
-      _db_version: db.version
+      _dbVersion: db.version
     };
 
     List<Map> storesExport = [];
@@ -46,4 +51,40 @@ Future<Map> exportDatabase(Database db) async {
     }
     return export;
   });
+}
+
+///
+/// Import the exported data into a new database
+///
+Future<Database> importDatabase(
+    Map srcData, DatabaseFactory dstFactory, String dstPath) async {
+  await dstFactory.deleteDatabase(dstPath);
+
+  // check signature
+  if (srcData[_exportSignatureKey] != _exportSignatureVersion) {
+    throw new FormatException('invalid export format');
+  }
+
+  int version = srcData[_dbVersion];
+
+  Database db = await dstFactory.openDatabase(dstPath,
+      version: version, mode: DatabaseMode.EMPTY);
+
+  await db.inTransaction(() {
+    List<Map> storesExport = srcData[_stores];
+    if (storesExport != null) {
+      for (Map storeExport in storesExport) {
+        String storeName = storeExport[_name];
+
+        List keys = storeExport[_keys];
+        List values = storeExport[_values];
+
+        Store store = db.getStore(storeName);
+        for (int i = 0; i < keys.length; i++) {
+          store.put(values[i], keys[i]);
+        }
+      }
+    }
+  });
+  return db;
 }

@@ -9,23 +9,33 @@ void main() {
 }
 
 void defineTests(DatabaseTestContext ctx) {
-  group('basic format', () {
+  group('import_export', () {
     tearDown(() {});
 
+    _checkExportImport(Database db, Map expectedExport) async {
+      Map export_ = await exportDatabase(db);
+      expect(export_, expectedExport);
+
+      // import and reexport to test content
+      String importDbPath = ctx.dbPath + "_import.db";
+      Database importedDb =
+          await importDatabase(export_, ctx.factory, importDbPath);
+      expect(await exportDatabase(importedDb), expectedExport);
+    }
     test('no_version', () async {
       Database db = await ctx.open();
-      expect(await exportDatabase(db), {'sembast_export': 1, 'version': 1});
+      await _checkExportImport(db, {'sembast_export': 1, 'version': 1});
     });
 
     test('version_2', () async {
       Database db = await ctx.open(2);
-      expect(await exportDatabase(db), {'sembast_export': 1, 'version': 2});
+      await _checkExportImport(db, {'sembast_export': 1, 'version': 2});
     });
 
     test('1_string_record', () async {
       Database db = await ctx.open();
       await db.put("hi", 1);
-      expect(await exportDatabase(db), {
+      await _checkExportImport(db, {
         'sembast_export': 1,
         'version': 1,
         'stores': [
@@ -42,7 +52,7 @@ void defineTests(DatabaseTestContext ctx) {
       Database db = await ctx.open();
       await db.delete(await db.put("hi", 1));
       // deleted record not exported
-      expect(await exportDatabase(db), {'sembast_export': 1, 'version': 1});
+      await _checkExportImport(db, {'sembast_export': 1, 'version': 1});
     });
 
     test('1_record_in_2_stores', () async {
@@ -50,7 +60,7 @@ void defineTests(DatabaseTestContext ctx) {
       db.getStore('store1');
       Store store2 = db.getStore('store2');
       await store2.put("hi", 1);
-      expect(await exportDatabase(db), {
+      await _checkExportImport(db, {
         'sembast_export': 1,
         'version': 1,
         'stores': [
@@ -67,7 +77,7 @@ void defineTests(DatabaseTestContext ctx) {
       Database db = await ctx.open();
       await db.put("hi", 1);
       await db.put("hi", 1);
-      expect(await exportDatabase(db), {
+      await _checkExportImport(db, {
         'sembast_export': 1,
         'version': 1,
         'stores': [
@@ -85,7 +95,7 @@ void defineTests(DatabaseTestContext ctx) {
 
       await db.put({'test': 2}, 1);
 
-      expect(await exportDatabase(db), {
+      await _checkExportImport(db, {
         'sembast_export': 1,
         'version': 1,
         'stores': [
