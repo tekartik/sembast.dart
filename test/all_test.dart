@@ -11,6 +11,7 @@ import 'transaction_test.dart' as transaction_test;
 import 'exception_test.dart' as exception_test;
 import 'src_file_system_test.dart' as src_file_system_test;
 import 'database_format_test.dart' as database_format_test;
+import 'database_import_export_test.dart' as database_import_export_test;
 import 'test_common.dart';
 
 // default use memory
@@ -34,4 +35,5 @@ void defineTests(DatabaseTestContext ctx) {
   find_test.defineTests(ctx);
   transaction_test.defineTests(ctx);
   exception_test.defineTests(ctx);
+  database_import_export_test.defineTests(ctx);
 }

@@ -29,9 +29,9 @@ class DatabaseTestContext {
   String get dbPath => joinAll(testDescriptions) + ".db";
 
   // Delete the existing and open the database
-  Future<Database> open() async {
+  Future<Database> open([int version]) async {
     await factory.deleteDatabase(dbPath);
-    return factory.openDatabase(dbPath);
+    return factory.openDatabase(dbPath, version: version);
   }
 }
 

@@ -27,16 +27,23 @@ class Database {
 
   Database([this._storage]);
 
+  // not used
+  @deprecated
   Future onUpgrade(int oldVersion, int newVersion) {
     // default is to clear everything
     return new Future.value();
   }
 
+  // not used
+  @deprecated
   Future onDowngrade(int oldVersion, int newVersion) {
     // default is to clear everything
     return new Future.value();
   }
 
+  ///
+  /// put a value in the main store
+  ///
   Future put(var value, [var key]) {
     return _mainStore.put(value, key);
   }
@@ -78,6 +85,9 @@ class Database {
   static const _zoneTransactionKey = "sembast.txn"; // transaction key
   //static const _zoneChildKey = "sembast.txn.child"; // bool
 
+  ///
+  /// execute the action in a new transaction
+  ///
   Future newTransaction(action()) {
     if (!_inTransaction) {
       return inTransaction(action);
@@ -88,6 +98,10 @@ class Database {
     });
   }
 
+  ///
+  /// execute the action in a transaction
+  /// use the current if any
+  ///
   Future inTransaction(action()) async {
     //devPrint("z: ${Zone.current[_zoneRootKey]}");
     //devPrint("z: ${Zone.current[_zoneChildKey]}");
@@ -281,6 +295,9 @@ class Database {
     return record._clone(store: store);
   }
 
+  ///
+  /// Put a record
+  ///
   Future<Record> putRecord(Record record) {
     return inTransaction(() {
       return _putRecord(_cloneAndFix(record));
@@ -294,6 +311,9 @@ class Database {
     return mainStore.getRecord(key);
   }
 
+  ///
+  /// Put a list or records
+  ///
   Future<List<Record>> putRecords(List<Record> records) {
     return inTransaction(() {
       List<Record> toPut = [];
@@ -324,14 +344,23 @@ class Database {
     return records;
   }
 
+  ///
+  /// get a value by key in the main store
+  ///
   Future get(var key) {
     return _mainStore.get(key);
   }
 
+  ///
+  /// count all records in the main store
+  ///
   Future<int> count() {
     return _mainStore.count();
   }
 
+  ///
+  /// delete a record by key in the main store
+  ///
   Future delete(var key) {
     return _mainStore.delete(key);
   }
@@ -340,9 +369,9 @@ class Database {
     return record.store._has(record.key);
   }
 
-  /**
-   * reload from file system
-   */
+  ///
+  /// reload
+  //
   Future reOpen(
       {int version,
       OnVersionChangedFunction onVersionChanged,
@@ -383,6 +412,7 @@ class Database {
 
   ///
   /// get or create a store
+  /// an empty store will not be persistent
   ///
   Store getStore(String storeName) {
     Store store;
@@ -397,6 +427,9 @@ class Database {
     return store;
   }
 
+  ///
+  /// clear and delete a store
+  ///
   Future deleteStore(String storeName) {
     Store store = findStore(storeName);
     if (store == null) {
@@ -411,6 +444,9 @@ class Database {
     }
   }
 
+  ///
+  /// open a database
+  ///
   Future open(
       {int version,
       OnVersionChangedFunction onVersionChanged,

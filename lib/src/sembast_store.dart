@@ -2,6 +2,10 @@ part of sembast;
 
 class Store {
   final Database database;
+
+  ///
+  /// Store name
+  ///
   final String name;
   // for key generation
   int _lastIntKey = 0;
@@ -13,6 +17,9 @@ class Store {
 
   Store._(this.database, this.name);
 
+  ///
+  /// return the key
+  ///
   Future put(var value, [var key]) {
     return database.inTransaction(() {
       Record record = new Record._(this, key, value, false);
@@ -25,6 +32,9 @@ class Store {
     });
   }
 
+  ///
+  /// stream all the records
+  ///
   Stream<Record> get records {
     StreamController<Record> ctlr = new StreamController();
     inTransaction(() {
@@ -61,6 +71,9 @@ class Store {
     });
   }
 
+  ///
+  /// find the first matching record
+  ///
   Future<Record> findRecord(Finder finder) {
     if (finder.limit != 1) {
       finder = finder.clone(limit: 1);
@@ -73,6 +86,9 @@ class Store {
     });
   }
 
+  ///
+  /// find all records
+  ///
   Future<List<Record>> findRecords(Finder finder) {
     return inTransaction(() {
       List<Record> result;
@@ -115,6 +131,10 @@ class Store {
     }
   }
 
+  ///
+  /// execture the actions in a transaction
+  /// use the current if any
+  ///
   Future inTransaction(Future action()) {
     return database.inTransaction(action);
   }
@@ -177,6 +197,9 @@ class Store {
     return record;
   }
 
+  ///
+  /// get a record by key
+  ///
   Future<Record> getRecord(var key) {
     Record record = _getRecord(key);
     if (record != null) {
@@ -187,6 +210,9 @@ class Store {
     return new Future.value(record);
   }
 
+  ///
+  /// Get all records from a list of keys
+  ///
   Future<List<Record>> getRecords(List keys) {
     List<Record> records = [];
 
@@ -202,6 +228,9 @@ class Store {
     return new Future.value(records);
   }
 
+  ///
+  /// get a value from a key
+  ///
   Future get(var key) {
     return getRecord(key).then((Record record) {
       if (record != null) {
@@ -211,6 +240,9 @@ class Store {
     });
   }
 
+  ///
+  /// count all records
+  ///
   Future<int> count([Filter filter]) {
     return inTransaction(() {
       int count = 0;
@@ -221,6 +253,9 @@ class Store {
     });
   }
 
+  ///
+  /// delete a record by key
+  ///
   Future delete(var key) {
     return inTransaction(() {
       Record record = _getRecord(key);
@@ -236,7 +271,9 @@ class Store {
     });
   }
 
+  ///
   /// return the list of deleted keys
+  ///
   Future deleteAll(Iterable keys) {
     return inTransaction(() {
       List<Record> updates = [];
@@ -267,6 +304,9 @@ class Store {
     _txnRecords = null;
   }
 
+  ///
+  /// debug json
+  ///
   Map toJson() {
     Map map = {};
     if (name != null) {
@@ -283,6 +323,8 @@ class Store {
     return "${name}";
   }
 
+  ///
+  /// delete all records in a store
   ///
   /// TODO: decide on return value
   ///
