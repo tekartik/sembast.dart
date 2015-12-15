@@ -3,7 +3,7 @@
 sembast db stands for
 **S**imple **Emb**edded **A**pplication **St**ore **d**ata**b**ase
 
-[![Build Status](https://travis-ci.org/alextekartik/sembast.dart.svg?branch=master)](https://travis-ci.org/alextekartik/sembast.dart)
+[![Build Status](https://travis-ci.org/tekartik/sembast.dart.svg?branch=master)](https://travis-ci.org/tekartik/sembast.dart)
 
 ## General
 
