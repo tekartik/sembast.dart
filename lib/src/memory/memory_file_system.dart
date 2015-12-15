@@ -25,16 +25,14 @@ class _MemoryFileSystem implements fs.FileSystem {
 
   @override
   Future<bool> isFile(String path) {
-    return type(path, followLinks: true).then((fs.FileSystemEntityType type) {
-      return type == fs.FileSystemEntityType.FILE;
-    });
+    return type(path, followLinks: true).then(
+        (fs.FileSystemEntityType type) => type == fs.FileSystemEntityType.FILE);
   }
 
   @override
   Future<bool> isDirectory(String path) {
-    return type(path, followLinks: true).then((fs.FileSystemEntityType type) {
-      return type == fs.FileSystemEntityType.DIRECTORY;
-    });
+    return type(path, followLinks: true).then((fs.FileSystemEntityType type) =>
+        type == fs.FileSystemEntityType.DIRECTORY);
   }
 
   @override
@@ -123,7 +121,7 @@ class _MemoryFile extends _MemoryFileSystemEntity implements fs.File {
       _fs._impl.openWrite(path, mode: mode);
 
   @override
-  Future<fs.FileSystemEntity> rename(String newPath) async {
+  Future<fs.File> rename(String newPath) async {
     MemoryFileSystemEntityImpl renamed = _fs._impl.rename(path, newPath);
     return new _MemoryFile(renamed.path);
   }

@@ -60,14 +60,13 @@ abstract class FileSystemEntity implements fs.FileSystemEntity {
   static Future<bool> isDirectory(String path) => _fs.isDirectory(path);
 
   @override
-  Future<bool> exists() => _wrap(ioFileSystemEntity.exists());
+  Future<bool> exists() => _wrap(ioFileSystemEntity.exists()) as Future<bool>;
 
   @override
   Future<fs.FileSystemEntity> delete({bool recursive: false}) //
       =>
-      _wrap(ioFileSystemEntity
-          .delete(recursive: recursive)
-          .then((io.FileSystemEntity ioFileSystemEntity) => this));
+      _wrap(ioFileSystemEntity.delete(recursive: recursive))
+          .then((io.FileSystemEntity ioFileSystemEntity) => this);
 
   @override
   String get path => ioFileSystemEntity.path;
@@ -138,9 +137,8 @@ class _IoFileSystem implements fs.FileSystem {
   @override
   Future<fs.FileSystemEntityType> type(String path, {bool followLinks: true}) //
       =>
-      _wrap(io.FileSystemEntity
-          .type(path, followLinks: true)
-          .then((io.FileSystemEntityType ioType) => fsFileType(ioType)));
+      _wrap(io.FileSystemEntity.type(path, followLinks: true))
+          .then((io.FileSystemEntityType ioType) => fsFileType(ioType));
 
   @override
   Directory get currentDirectory => io.Directory.current == null
@@ -175,16 +173,15 @@ class Directory extends FileSystemEntity implements fs.Directory {
   @override
   Future<Directory> create({bool recursive: false}) //
       =>
-      _wrap(ioDir
-          .create(recursive: recursive)
-          .then((io.Directory ioDir) => this));
+      _wrap(ioDir.create(recursive: recursive))
+          .then((io.Directory ioDir) => this);
 
   @override
   Future<FileSystemEntity> rename(String newPath) //
       =>
-      _wrap(ioFileSystemEntity.rename(newPath).then(
+      _wrap(ioFileSystemEntity.rename(newPath)).then(
           (io.FileSystemEntity ioFileSystemEntity) =>
-              new Directory(ioFileSystemEntity.path)));
+              new Directory(ioFileSystemEntity.path));
 }
 
 class File extends FileSystemEntity implements fs.File {
@@ -205,7 +202,7 @@ class File extends FileSystemEntity implements fs.File {
   @override
   Future<fs.File> create({bool recursive: false}) //
       =>
-      _wrap(ioFile.create(recursive: recursive).then((io.File ioFile) => this));
+      _wrap(ioFile.create(recursive: recursive)).then((io.File ioFile) => this);
 
   @override
   Stream<List<int>> openRead([int start, int end]) //
@@ -220,9 +217,9 @@ class File extends FileSystemEntity implements fs.File {
           ioFile.openWrite(mode: _fileMode(mode), encoding: encoding));
 
   @override
-  Future<FileSystemEntity> rename(String newPath) //
+  Future<File> rename(String newPath) //
       =>
-      _wrap(ioFileSystemEntity.rename(newPath).then(
+      _wrap(ioFileSystemEntity.rename(newPath)).then(
           (io.FileSystemEntity ioFileSystemEntity) =>
-              new File(ioFileSystemEntity.path)));
+              new File(ioFileSystemEntity.path));
 }

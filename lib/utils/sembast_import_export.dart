@@ -15,7 +15,7 @@ const int _exportSignatureVersion = 1;
 ///
 /// Return the data in an exported format that (can be JSONify)
 ///
-Future<Map> exportDatabase(Database db) async {
+Future<Map> exportDatabase(Database db) {
   return db.newTransaction(() async {
     Map export = {
       // our export signature
@@ -50,7 +50,7 @@ Future<Map> exportDatabase(Database db) async {
       export[_stores] = storesExport;
     }
     return export;
-  });
+  }) as Future<Map>;
 }
 
 ///
@@ -71,7 +71,7 @@ Future<Database> importDatabase(
       version: version, mode: DatabaseMode.EMPTY);
 
   await db.inTransaction(() {
-    List<Map> storesExport = srcData[_stores];
+    List<Map> storesExport = srcData[_stores] as List<Map>;
     if (storesExport != null) {
       for (Map storeExport in storesExport) {
         String storeName = storeExport[_name];

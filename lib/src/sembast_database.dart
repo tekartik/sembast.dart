@@ -301,7 +301,7 @@ class Database {
   Future<Record> putRecord(Record record) {
     return inTransaction(() {
       return _putRecord(_cloneAndFix(record));
-    });
+    }) as Future<Record>;
   }
 
   ///
@@ -321,7 +321,7 @@ class Database {
         toPut.add(_cloneAndFix(record));
       }
       return _putRecords(toPut);
-    });
+    }) as Future<List<Record>>;
   }
 
   ///
@@ -447,7 +447,7 @@ class Database {
   ///
   /// open a database
   ///
-  Future open(
+  Future<Database> open(
       {int version,
       OnVersionChangedFunction onVersionChanged,
       DatabaseMode mode}) {
@@ -589,7 +589,7 @@ class Database {
     }).catchError((e, st) {
       //devPrint("$e $st");
       throw e;
-    });
+    }) as Future<Database>;
   }
 
   void close() {

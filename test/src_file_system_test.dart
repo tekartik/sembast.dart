@@ -27,11 +27,10 @@ void defineTests(FileSystemTestContext ctx) {
   File nameFile(String name) => fs.newFile(namePath(name));
   Directory nameDir(String name) => fs.newDirectory(namePath(name));
 
-  Future<File> createFile(File file) {
-    return file.create(recursive: true).then((File file_) {
-      expect(file, file_);
-      return file_;
-    });
+  Future<File> createFile(File file) async {
+    File file_ = await file.create(recursive: true);
+    expect(file, file_); // identical
+    return file_;
   }
 
   Future<File> createFileName(String name) => createFile(nameFile(name));
@@ -46,7 +45,7 @@ void defineTests(FileSystemTestContext ctx) {
     expect(exists_, exists);
   }
 
-  Future<File> expectFileNameExists(String name, [bool exists = true]) =>
+  Future expectFileNameExists(String name, [bool exists = true]) =>
       expectFileExists(nameFile(name), exists);
 
   Stream<List<int>> openRead(File file) {
@@ -54,7 +53,9 @@ void defineTests(FileSystemTestContext ctx) {
   }
 
   Stream<String> openReadLines(File file) {
-    return openRead(file).transform(UTF8.decoder).transform(new LineSplitter());
+    return openRead(file)
+        .transform(UTF8.decoder as StreamTransformer<List<int>, String>)
+        .transform(new LineSplitter()) as Stream<String>;
   }
 
   IOSink openWrite(File file) {
@@ -66,17 +67,18 @@ void defineTests(FileSystemTestContext ctx) {
   }
 
   Future<File> deleteFile(File file) {
-    return file.delete(recursive: true).then((File file_) {
+    return (file.delete(recursive: true) as Future<File>).then((File file_) {
       expect(file, file_);
       return file_;
-    });
+    }) as Future<File>;
   }
 
   Future<Directory> deleteDirectory(Directory dir) {
-    return dir.delete(recursive: true).then((Directory dir_) {
+    return (dir.delete(recursive: true) as Future<Directory>)
+        .then((Directory dir_) {
       expect(dir, dir_);
       return dir_;
-    });
+    }) as Future<Directory>;
   }
   Future clearOutFolder() async {
     await deleteDirectory(fs.newDirectory(ctx.outPath))
@@ -89,7 +91,7 @@ void defineTests(FileSystemTestContext ctx) {
     List<String> content = [];
     return openReadLines(file).listen((String line) {
       content.add(line);
-    }).asFuture(content);
+    }).asFuture(content) as Future<List<String>>;
   }
 
   Future writeContent(File file, List<String> content) {
@@ -312,7 +314,7 @@ void defineTests(FileSystemTestContext ctx) {
         await clearOutFolder();
         File file = nameFile("test");
         var e;
-        await openRead(file).listen((_) => {}, onError: (_) {
+        await openRead(file).listen((_) {}, onError: (_) {
           print(_);
         }).asFuture().catchError((e_) {
           // FileSystemException: Cannot open file, path = '/media/ssd/devx/git/sembast.dart/test/out/io/fs/file/open read 1/test' (OS Error: No such file or directory, errno = 2)

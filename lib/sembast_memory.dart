@@ -19,7 +19,7 @@ class MemoryDatabaseFactory implements DatabaseFactory {
   Future<Database> openDatabase(String path,
       {int version,
       OnVersionChangedFunction onVersionChanged,
-      DatabaseMode mode}) {
+      DatabaseMode mode}) async {
     Database db;
     if (path != null) {
       db = _databases[path];
@@ -29,14 +29,13 @@ class MemoryDatabaseFactory implements DatabaseFactory {
       db = new Database(new _MemoryDatabaseStorage(this, path));
     }
 
-    return db
-        .open(version: version, onVersionChanged: onVersionChanged, mode: mode)
-        .then((Database db) {
-      if (path != null) {
-        _databases[path] = db;
-      }
-      return db;
-    });
+    await db.open(
+        version: version, onVersionChanged: onVersionChanged, mode: mode);
+
+    if (path != null) {
+      _databases[path] = db;
+    }
+    return db;
   }
 
   // make it private

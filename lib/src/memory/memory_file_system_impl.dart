@@ -71,7 +71,7 @@ class MemoryFileImpl extends MemoryFileSystemEntityImpl {
       : super(parent, fs.FileSystemEntityType.FILE, segment);
 
   Stream<List<int>> openRead() {
-    StreamController ctlr = new StreamController(sync: true);
+    StreamController<List<int>> ctlr = new StreamController(sync: true);
     new Future.sync(() async {
       openCount++;
       if (content != null) {
@@ -296,7 +296,7 @@ class MemoryFileSystemImpl {
   }
 
   Stream<List<int>> openRead(String path) {
-    StreamController ctlr = new StreamController(sync: true);
+    var ctlr = new StreamController<List<int>>(sync: true);
     MemoryFileSystemEntityImpl fileImpl = getEntity(path);
     // if it exists we're fine
     if (fileImpl is MemoryFileImpl) {

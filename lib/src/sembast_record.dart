@@ -82,7 +82,8 @@ class Record {
   @override
   int get hashCode => key == null ? 0 : key.hashCode;
 
-  operator ==(o) {
+  @override
+  bool operator ==(o) {
     if (o is Record) {
       return key == null ? false : (key == o.key);
     }

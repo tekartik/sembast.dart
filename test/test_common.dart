@@ -31,7 +31,7 @@ class DatabaseTestContext {
   // Delete the existing and open the database
   Future<Database> open([int version]) async {
     await factory.deleteDatabase(dbPath);
-    return factory.openDatabase(dbPath, version: version);
+    return await factory.openDatabase(dbPath, version: version);
   }
 }
 
@@ -61,11 +61,11 @@ Future<List<String>> readContent(FileSystem fs, String filePath) {
   return fs
       .newFile(filePath)
       .openRead()
-      .transform(UTF8.decoder)
+      .transform(UTF8.decoder as StreamTransformer<List<int>, String>)
       .transform(new LineSplitter())
       .listen((String line) {
     content.add(line);
-  }).asFuture(content);
+  }).asFuture(content) as Future<List<String>>;
 }
 
 Future writeContent(FileSystem fs, String filePath, List<String> lines) async {

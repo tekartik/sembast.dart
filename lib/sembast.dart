@@ -171,11 +171,11 @@ class _CompositeFilter extends Filter {
   List<Filter> filters;
 
   _CompositeFilter.or(this.filters)
-      : super._(),
-        isAnd = false;
+      : isAnd = false,
+        super._();
   _CompositeFilter.and(this.filters)
-      : super._(),
-        isAnd = true;
+      : isAnd = true,
+        super._();
 
   @override
   bool match(Record record) {

@@ -271,4 +271,14 @@ abstract class File extends FileSystemEntity {
    *  [IOSink] has been created.
    */
   IOSink openWrite({FileMode mode: FileMode.WRITE, Encoding encoding: UTF8});
+
+  /**
+   * Renames this file. Returns a `Future<File>` that completes
+   * with a [File] instance for the renamed file.
+   *
+   * If [newPath] identifies an existing file, that file is
+   * replaced. If [newPath] identifies an existing directory, the
+   * operation fails and the future completes with an exception.
+   */
+  Future<File> rename(String newPath);
 }

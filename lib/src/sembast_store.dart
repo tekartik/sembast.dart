@@ -83,7 +83,7 @@ class Store {
         return records.first;
       }
       return null;
-    });
+    }) as Future<Record>;
   }
 
   ///
@@ -100,11 +100,10 @@ class Store {
       });
 
       // sort
-      result.sort((Record record1, record2) {
-        return finder.compare(record1, record2);
-      });
+      result
+          .sort((Record record1, record2) => finder.compare(record1, record2));
       return result;
-    });
+    }) as Future<List<Record>>;
   }
 
   ///
@@ -135,7 +134,7 @@ class Store {
   /// execture the actions in a transaction
   /// use the current if any
   ///
-  Future inTransaction(Future action()) {
+  Future inTransaction(action()) {
     return database.inTransaction(action);
   }
 
@@ -250,7 +249,7 @@ class Store {
         count++;
       });
       return count;
-    });
+    }) as Future<int>;
   }
 
   ///
