@@ -5,6 +5,7 @@ build/
 .buildlog
 .pub/
 .idea/
+.atom/
 tmp/
 packages
 data/out
