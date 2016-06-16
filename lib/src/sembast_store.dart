@@ -83,7 +83,7 @@ class Store {
         return records.first;
       }
       return null;
-    }) as Future<Record>;
+    });
   }
 
   ///

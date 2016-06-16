@@ -42,7 +42,7 @@ void defineTests(DatabaseTestContext ctx) {
             .then((Database db) {
           fail("should fail");
         }).catchError((DatabaseException e) {
-          expect(e.code, DatabaseException.DATABASE_NOT_FOUND);
+          expect(e.code, DatabaseException.errDatabaseNotFound);
         });
       });
 

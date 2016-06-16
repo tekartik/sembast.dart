@@ -48,9 +48,12 @@ Future<Database> setupForTest(DatabaseTestContext ctx) => ctx.open();
 
 Future<List<Record>> recordStreamToList(Stream<Record> stream) {
   List<Record> records = [];
-  return stream.listen((Record record) {
-    records.add(record);
-  }).asFuture().then((_) => records);
+  return stream
+      .listen((Record record) {
+        records.add(record);
+      })
+      .asFuture()
+      .then((_) => records);
 }
 
 ///
@@ -61,11 +64,11 @@ Future<List<String>> readContent(FileSystem fs, String filePath) {
   return fs
       .newFile(filePath)
       .openRead()
-      .transform(UTF8.decoder as StreamTransformer<List<int>, String>)
+      .transform(UTF8.decoder)
       .transform(new LineSplitter())
       .listen((String line) {
     content.add(line);
-  }).asFuture(content) as Future<List<String>>;
+  }).asFuture(content);
 }
 
 Future writeContent(FileSystem fs, String filePath, List<String> lines) async {

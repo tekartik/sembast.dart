@@ -57,8 +57,8 @@ void defineTests(DatabaseTestContext ctx) {
       Record record1 = new Record(store, "hi", 1);
       Record record2 = new Record(store, "ho", 2);
       Record record3 = new Record(store, "ha", 3);
-      return db.putRecords([record1, record2, record3])
-          .then((List<Record> inserted) {
+      return db.putRecords([record1, record2, record3]).then(
+          (List<Record> inserted) {
         expect(inserted.length, 3);
         expect(inserted[0].key, 1);
 

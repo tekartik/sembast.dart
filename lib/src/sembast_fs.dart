@@ -49,7 +49,9 @@ class _FsDatabaseStorage extends DatabaseStorage {
           }
         }).then((bool done) {
           if (!done) {
-            return file.create(recursive: true).then((File file) {})
+            return file
+                .create(recursive: true)
+                .then((File file) {})
                 .catchError((e) {
               return fs.isFile(path).then((isFile) {
                 if (!isFile) {
@@ -101,8 +103,8 @@ class _FsDatabaseStorage extends DatabaseStorage {
   Stream<String> readLines() {
     return file
         .openRead()
-        .transform(UTF8.decoder as StreamTransformer<List<int>, String>)
-        .transform(new LineSplitter()) as Stream<String>;
+        .transform(UTF8.decoder)
+        .transform(new LineSplitter());
   }
 
   Future appendLines(List<String> lines) {

@@ -85,7 +85,8 @@ abstract class _MemoryFileSystemEntity implements fs.FileSystemEntity {
 class _MemoryDirectory extends _MemoryFileSystemEntity implements fs.Directory {
   _MemoryDirectory(String path) : super(path);
 
-  @override Future<_MemoryDirectory> create({bool recursive: false}) async {
+  @override
+  Future<_MemoryDirectory> create({bool recursive: false}) async {
     _fs._impl.createDirectory(path, recursive: recursive);
     return this;
   }

@@ -53,9 +53,7 @@ void defineTests(FileSystemTestContext ctx) {
   }
 
   Stream<String> openReadLines(File file) {
-    return openRead(file)
-        .transform(UTF8.decoder as StreamTransformer<List<int>, String>)
-        .transform(new LineSplitter()) as Stream<String>;
+    return openRead(file).transform(UTF8.decoder).transform(new LineSplitter());
   }
 
   IOSink openWrite(File file) {
@@ -70,7 +68,7 @@ void defineTests(FileSystemTestContext ctx) {
     return (file.delete(recursive: true) as Future<File>).then((File file_) {
       expect(file, file_);
       return file_;
-    }) as Future<File>;
+    });
   }
 
   Future<Directory> deleteDirectory(Directory dir) {
@@ -78,7 +76,7 @@ void defineTests(FileSystemTestContext ctx) {
         .then((Directory dir_) {
       expect(dir, dir_);
       return dir_;
-    }) as Future<Directory>;
+    });
   }
   Future clearOutFolder() async {
     await deleteDirectory(fs.newDirectory(ctx.outPath))
@@ -91,7 +89,7 @@ void defineTests(FileSystemTestContext ctx) {
     List<String> content = [];
     return openReadLines(file).listen((String line) {
       content.add(line);
-    }).asFuture(content) as Future<List<String>>;
+    }).asFuture(content);
   }
 
   Future writeContent(File file, List<String> content) {
@@ -314,13 +312,16 @@ void defineTests(FileSystemTestContext ctx) {
         await clearOutFolder();
         File file = nameFile("test");
         var e;
-        await openRead(file).listen((_) {}, onError: (_) {
-          print(_);
-        }).asFuture().catchError((e_) {
-          // FileSystemException: Cannot open file, path = '/media/ssd/devx/git/sembast.dart/test/out/io/fs/file/open read 1/test' (OS Error: No such file or directory, errno = 2)
-          // FileSystemException: Cannot open file, path = 'current/test' (OS Error: No such file or directory, errno = 2)
-          e = e_;
-        });
+        await openRead(file)
+            .listen((_) {}, onError: (_) {
+              print(_);
+            })
+            .asFuture()
+            .catchError((e_) {
+              // FileSystemException: Cannot open file, path = '/media/ssd/devx/git/sembast.dart/test/out/io/fs/file/open read 1/test' (OS Error: No such file or directory, errno = 2)
+              // FileSystemException: Cannot open file, path = 'current/test' (OS Error: No such file or directory, errno = 2)
+              e = e_;
+            });
         expect(e, isNotNull);
       });
 

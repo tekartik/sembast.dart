@@ -86,12 +86,15 @@ void defineTests(DatabaseTestContext ctx) {
       Store store = db.getStore("test");
       return store.put("hi").then((int key) {
         int count = 0;
-        return store.records.listen((Record record) {
-          expect(record.value, "hi");
-          count++;
-        }).asFuture().then((_) {
-          expect(count, 1);
-        });
+        return store.records
+            .listen((Record record) {
+              expect(record.value, "hi");
+              count++;
+            })
+            .asFuture()
+            .then((_) {
+              expect(count, 1);
+            });
       });
     });
   });
