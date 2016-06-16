@@ -8,5 +8,5 @@ dartanalyzer --fatal-warnings \
   lib/sembast_io.dart \
   lib/sembast_memory.dart \
 
-pub run test -p vm,firefox
-# -j 1
+pub run test -p vm
+pub run test -p firefox -j 1
