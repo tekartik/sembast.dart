@@ -22,6 +22,7 @@ void defineTests(FileSystemTestContext ctx) {
     await fs.newFile(dbPath).delete().catchError((_) {});
     return dbPath;
   }
+
   group('basic format', () {
     setUp(() {
       //return fs.newFile(dbPath).delete().catchError((_) {});

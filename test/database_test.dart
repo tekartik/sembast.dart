@@ -121,6 +121,7 @@ void defineTests(DatabaseTestContext ctx) {
           _oldVersion = oldVersion;
           _newVersion = newVersion;
         }
+
         return factory
             .openDatabase(dbPath,
                 version: 1, onVersionChanged: _onVersionChanged)
@@ -138,6 +139,7 @@ void defineTests(DatabaseTestContext ctx) {
           _onVersionChanged(Database db, int oldVersion, int newVersion) {
             fail("not changed");
           }
+
           return db
               .reOpen(onVersionChanged: _onVersionChanged)
               .then((Database db) {
@@ -166,6 +168,7 @@ void defineTests(DatabaseTestContext ctx) {
             _oldVersion = oldVersion;
             _newVersion = newVersion;
           }
+
           return db
               .reOpen(version: 2, onVersionChanged: _onVersionChanged)
               .then((Database db) {

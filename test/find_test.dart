@@ -18,6 +18,7 @@ void defineTests(DatabaseTestContext ctx) {
         db = null;
       }
     }
+
     Store store;
     Record record1, record2, record3;
     setUp(() async {

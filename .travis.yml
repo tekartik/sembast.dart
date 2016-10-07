@@ -1,10 +1,10 @@
 language: dart
-with_content_shell: true
+sudo: required
+dist: trusty
 dart:
   - stable
   - dev
-sudo: false
-before_install:
-  - export DISPLAY=:99.0
-  - sh -e /etc/init.d/xvfb start
-script: ./tool/travis.sh
+before_script:
+  - source $(pub run chrome_travis:env_rc)
+script:
+  - tool/travis.sh

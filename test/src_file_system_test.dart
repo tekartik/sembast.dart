@@ -78,6 +78,7 @@ void defineTests(FileSystemTestContext ctx) {
       return dir_;
     });
   }
+
   Future clearOutFolder() async {
     await deleteDirectory(fs.newDirectory(ctx.outPath))
         .catchError((FileSystemException e, st) {

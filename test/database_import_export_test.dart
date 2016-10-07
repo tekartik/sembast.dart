@@ -22,6 +22,7 @@ void defineTests(DatabaseTestContext ctx) {
           await importDatabase(export_, ctx.factory, importDbPath);
       expect(await exportDatabase(importedDb), expectedExport);
     }
+
     test('no_version', () async {
       Database db = await ctx.open();
       await _checkExportImport(db, {'sembast_export': 1, 'version': 1});
