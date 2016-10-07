@@ -148,4 +148,4 @@ test its algorithms using Dart VM and not Dartium
 
 ## Build status
 
-Travis: [![Build Status](https://travis-ci.org/alextekartik/sembast.dart.svg?branch=master)](https://travis-ci.org/alextekartik/sembast.dart)
+Travis: [![Build Status](https://travis-ci.org/tekartik/sembast.dart.svg?branch=master)](https://travis-ci.org/tekartik/sembast.dart)
