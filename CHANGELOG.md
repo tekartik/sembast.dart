@@ -1,3 +1,7 @@
+## 1.3.6
+
+* Strong mode support 
+
 ## 1.3.1
 
 * Add support for import/export
