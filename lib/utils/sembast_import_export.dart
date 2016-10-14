@@ -16,7 +16,7 @@ const int _exportSignatureVersion = 1;
 /// Return the data in an exported format that (can be JSONify)
 ///
 Future<Map> exportDatabase(Database db) {
-  return db.newTransaction(() async {
+  return db.inTransaction(() async {
     Map export = {
       // our export signature
       _exportSignatureKey: _exportSignatureVersion,

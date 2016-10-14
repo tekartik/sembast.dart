@@ -4,6 +4,7 @@ library sembast;
 import 'package:logging/logging.dart';
 import 'dart:async';
 import 'dart:convert';
+import 'package:synchronized/synchronized.dart';
 
 part 'src/sembast_database.dart';
 part 'src/sembast_store.dart';

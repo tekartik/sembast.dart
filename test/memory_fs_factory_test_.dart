@@ -1,4 +1,3 @@
-@TestOn("vm")
 library sembast.test.memory_fs_factory_test_;
 
 import 'all_test.dart';

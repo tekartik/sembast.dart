@@ -210,11 +210,13 @@ void defineTests(DatabaseTestContext ctx) {
         }).then((_) {
           expect(db.transaction.id, 1);
         });
-        return db.newTransaction(() {
-          expect(db.transaction.id, 2);
-        }).then((_) {
-          expect(db.transaction, null);
-        });
+        if (!sembastUseSynchronized) {
+          return db.newTransaction(() {
+            expect(db.transaction.id, 2);
+          }).then((_) {
+            expect(db.transaction, null);
+          });
+        }
       }).then((_) {
         expect(db.transaction, null);
       });

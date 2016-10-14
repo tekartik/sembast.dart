@@ -97,6 +97,9 @@ void defineTests(DatabaseTestContext ctx) {
               // for now txn records are first
               expect(records[0], record);
               expect(records[3], record3);
+              // expect(records[3], record);
+              // expect(records[0], record1);
+
             });
           }).then((_) {
             return store.count().then((int count) {

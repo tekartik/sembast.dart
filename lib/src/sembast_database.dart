@@ -1,10 +1,16 @@
 part of sembast;
 
+bool _useSynchronized = true;
+bool get sembastUseSynchronized => _useSynchronized;
+@deprecated
+set sembastUseSynchronized(bool useSynchronized) => _useSynchronized = useSynchronized;
+
 class Database {
   static Logger logger = new Logger("Sembast");
   final bool LOGV = logger.isLoggable(Level.FINEST);
 
   final DatabaseStorage _storage;
+  final SynchronizedLock lock = new SynchronizedLock();
 
   String get path => _storage.path;
 
@@ -67,17 +73,35 @@ class Database {
   //Completer _txnChildCompleter;
 
   int get _currentZoneTxnId => Zone.current[_zoneTransactionKey];
-  bool get _inTransaction => _currentZoneTxnId != null;
+  bool get _inTransactionOld => _currentZoneTxnId != null;
+  bool get _inTransaction {
+    if (!sembastUseSynchronized) {
+      return _inTransactionOld;
+    } else {
+      return lock.inZone;
+    }
+  }
 
   ///
   /// get the current zone transaction
   ///
-  Transaction get transaction {
+  Transaction get transactionOld {
     int txnId = _currentZoneTxnId;
     if (txnId == null) {
       return null;
     } else {
       return _transactions[_currentZoneTxnId];
+    }
+  }
+
+  Transaction _transaction;
+
+  //@Deprecated("don't use")
+  Transaction get transaction {
+    if (!sembastUseSynchronized) {
+      return transactionOld;
+    } else {
+      return _transaction;
     }
   }
 
@@ -87,22 +111,151 @@ class Database {
 
   ///
   /// execute the action in a new transaction
+  /// to be deprecated
   ///
+  // @deprecated
   Future newTransaction(action()) {
+    if (!sembastUseSynchronized) {
+      return newTransactionOld(action);
+    }
+    return inTransaction(action);
+  }
+
+  Future newTransactionOld(action()) {
     if (!_inTransaction) {
       return inTransaction(action);
     }
     Transaction txn = transaction;
     return txn.completed.then((_) {
-      return newTransaction(action);
+      return newTransactionOld(action);
     });
   }
+
 
   ///
   /// execute the action in a transaction
   /// use the current if any
   ///
   Future inTransaction(action()) async {
+    if (!sembastUseSynchronized) {
+      return inTransactionOld(action);
+    }
+    //devPrint("z: ${Zone.current[_zoneRootKey]}");
+    //devPrint("z: ${Zone.current[_zoneChildKey]}");
+
+    if (lock.inZone) {
+      return lock.synchronized(action);
+    }
+    return lock.synchronized(() async {
+      // Compatibility add transaction
+      _transaction = new Transaction._(++_txnId);
+
+      var actionResult;
+      try {
+        actionResult = await new Future.sync(action);
+      } catch (e) {
+        await _clearTxnData();
+        rethrow;
+      }
+      await _commit();
+      _clearTxnData();
+
+      // the transaction is done
+      // need compact?
+      if (_storage.supported) {
+        if (_needCompact) {
+          await compact();
+          //print(_exportStat.toJson());
+        }
+      }
+
+      // Compatibility remove transaction
+      _transaction = null;
+
+      return actionResult;
+    });
+    /*
+    var actionResult;
+
+    // not in transaction yet
+    if (!_inTransaction) {
+      if ((_txnRootCompleter == null) || (_txnRootCompleter.isCompleted)) {
+        _txnRootCompleter = new Completer();
+      } else {
+        return _txnRootCompleter.future.then((_) {
+          return inTransaction(action);
+        });
+      }
+
+      Completer actionCompleter = _txnRootCompleter;
+
+      Transaction txn = new Transaction._(++_txnId);
+      _transactions[txn.id] = txn;
+
+      var result;
+      var err;
+
+      // complex error handling...
+      // make the transaction is properly reported above in the outer
+      // transaction
+      _handleErr(e) {
+        if (!actionCompleter.isCompleted) {
+          err = e;
+          //return new Future.error(e);
+          _transactions.remove(txn.id);
+          _clearTxnData();
+          txn._completer.complete();
+          actionCompleter.completeError(err);
+        }
+      }
+
+      await runZoned(() {
+        // execute and commit
+        if (LOGV) {
+          logger.fine("begin transaction");
+        }
+        return new Future.sync(action).then((_result) {
+          return new Future.sync(_commit).then((_) {
+            result = _result;
+            if (LOGV) {
+              logger.fine("commit transaction");
+            }
+          });
+        }).catchError((e, st) {
+          _handleErr(e);
+        });
+      }, zoneValues: {_zoneTransactionKey: txn.id}).whenComplete(() {
+        if (!actionCompleter.isCompleted) {
+          _transactions.remove(txn.id);
+          _clearTxnData();
+          actionCompleter.complete(result);
+          txn._completer.complete();
+        }
+      });
+
+      actionResult = await actionCompleter.future;
+
+      // the transaction is done
+      // need compact?
+      if (_storage.supported) {
+        if (_needCompact) {
+          await compact();
+          //print(_exportStat.toJson());
+        }
+      }
+    } else {
+      actionResult = await new Future.sync(action);
+    }
+
+    return actionResult;
+    */
+  }
+
+  ///
+  /// execute the action in a transaction
+  /// use the current if any
+  ///
+  Future inTransactionOld(action()) async {
     //devPrint("z: ${Zone.current[_zoneRootKey]}");
     //devPrint("z: ${Zone.current[_zoneChildKey]}");
 
@@ -193,7 +346,7 @@ class Database {
   /// Compact the database (work in progress)
   ///
   Future compact() {
-    return newTransaction(() async {
+    return inTransaction(() async {
       if (_storage.supported) {
         DatabaseStorage tmpStorage = _storage.tmpStorage;
         // new stat with compact + 1
