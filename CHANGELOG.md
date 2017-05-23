@@ -1,7 +1,8 @@
-## 1.3.6
+## 1.3.7
 
 * Strong mode support 
 * support for setting record field directly
+* fix support for dart 1.24
 
 ## 1.3.1
 
