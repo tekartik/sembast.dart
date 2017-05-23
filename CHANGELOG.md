@@ -1,6 +1,7 @@
 ## 1.3.6
 
 * Strong mode support 
+* support for setting record field directly
 
 ## 1.3.1
 

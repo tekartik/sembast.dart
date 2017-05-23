@@ -254,7 +254,7 @@ class _ByKeyFilter extends Filter {
 
   @override
   String toString() {
-    return "${Field.KEY} = ${key}";
+    return "${Field.key} = ${key}";
   }
 }
 
@@ -296,6 +296,8 @@ class _FilterPredicate extends Filter {
   }
 }
 
+///
+/// Filter for searching into the database
 abstract class Filter {
   static bool matchRecord(Filter filter, Record record) {
     if (filter != null) {

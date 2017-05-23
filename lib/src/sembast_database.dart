@@ -3,7 +3,8 @@ part of sembast;
 bool _useSynchronized = true;
 bool get sembastUseSynchronized => _useSynchronized;
 @deprecated
-set sembastUseSynchronized(bool useSynchronized) => _useSynchronized = useSynchronized;
+set sembastUseSynchronized(bool useSynchronized) =>
+    _useSynchronized = useSynchronized;
 
 class Database {
   static Logger logger = new Logger("Sembast");
@@ -130,7 +131,6 @@ class Database {
       return newTransactionOld(action);
     });
   }
-
 
   ///
   /// execute the action in a transaction
@@ -465,6 +465,13 @@ class Database {
   }
 
   ///
+  /// Get a store record
+  ///
+  Future<Record> getStoreRecord(Store store, var key) {
+    return store.getRecord(key);
+  }
+
+  ///
   /// Put a list or records
   ///
   Future<List<Record>> putRecords(List<Record> records) {
@@ -482,6 +489,13 @@ class Database {
   ///
   Future<List<Record>> findRecords(Finder finder) {
     return mainStore.findRecords(finder);
+  }
+
+  ///
+  /// find records in the given [store]
+  ///
+  Future<List<Record>> findStoreRecords(Store store, Finder finder) {
+    return store.findRecords(finder);
   }
 
   Record _putRecord(Record record) {
@@ -516,6 +530,20 @@ class Database {
   ///
   Future delete(var key) {
     return _mainStore.delete(key);
+  }
+
+  ///
+  /// delete a [record]
+  ///
+  Future deleteRecord(Record record) {
+    return record.store.delete(record.key);
+  }
+
+  ///
+  /// delete a record by key in the main store
+  ///
+  Future deleteStoreRecord(Store store, var key) {
+    return store.delete(key);
   }
 
   bool _hasRecord(Record record) {

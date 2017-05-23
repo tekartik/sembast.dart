@@ -1,5 +1,5 @@
 name: sembast
-version: 1.3.5
+version: 1.3.6
 author: Alexandre Roux Tekartik <alex.tekartik.pub@gmail.com>
 description: Simple embedded file system database
 homepage: https://github.com/tekartik/sembast.dart

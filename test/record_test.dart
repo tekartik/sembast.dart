@@ -20,14 +20,19 @@ void defineTests(DatabaseTestContext ctx) {
       db.close();
     });
 
+    test('field', () {
+      expect(Field.key, "_key");
+      expect(Field.value, "_value");
+    });
+
     test('properties', () {
       Store store = db.mainStore;
       Record record = new Record(store, "hi", 1);
       expect(record.store, store);
       expect(record.key, 1);
       expect(record.value, "hi");
-      expect(record[Field.VALUE], "hi");
-      expect(record[Field.KEY], 1);
+      expect(record[Field.value], "hi");
+      expect(record[Field.key], 1);
 
       record =
           new Record(store, {"text": "hi", "int": 1, "bool": true}, "mykey");
@@ -35,11 +40,18 @@ void defineTests(DatabaseTestContext ctx) {
       expect(record.store, store);
       expect(record.key, "mykey");
       expect(record.value, {"text": "hi", "int": 1, "bool": true});
-      expect(record[Field.VALUE], record.value);
-      expect(record[Field.KEY], record.key);
+      expect(record[Field.value], record.value);
+      expect(record[Field.key], record.key);
       expect(record["text"], "hi");
       expect(record["int"], 1);
       expect(record["bool"], true);
+
+      record["bool"] = false;
+      expect(record["bool"], isFalse);
+      record[Field.key] = "newkey";
+      record[Field.value] = "newvalue";
+      expect(record.key, "newkey");
+      expect(record.value, "newvalue");
     });
 
     test('put database', () {

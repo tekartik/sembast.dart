@@ -4,8 +4,23 @@ part of sembast;
 /// Special field access
 ///
 class Field {
+  /*
+  static const String value = "_value";
+  static const String key = "_key";
   static String VALUE = "_value";
   static String KEY = "_key";
+
+  */
+  static String value = "_value";
+  static String key = "_key";
+
+  // use value instead
+  @deprecated
+  static String VALUE = value;
+
+  // use key instead
+  @deprecated
+  static String KEY = key;
 }
 
 ///
@@ -19,16 +34,33 @@ class Record {
 
   final Store _store;
   var _key; // not final as can be set during auto key generation
-  final _value;
+  var _value;
   bool _deleted;
 
-  operator [](var field) {
-    if (field == Field.VALUE) {
+  ///
+  /// get the value of the specified [field]
+  ///
+  operator [](String field) {
+    if (field == Field.value) {
       return value;
-    } else if (field == Field.KEY) {
+    } else if (field == Field.key) {
       return key;
+    } else {
+      return value[field];
     }
-    return value[field];
+  }
+
+  ///
+  /// set the [value] of the specified [field]
+  ///
+  void operator []=(String field, var value) {
+    if (field == Field.value) {
+      _value = value;
+    } else if (field == Field.key) {
+      _key = value;
+    } else {
+      _value[field] = value;
+    }
   }
 
   Record._fromMap(Database db, Map map)
@@ -44,6 +76,9 @@ class Record {
     return new Record._(store == null ? _store : store, _key, _value, _deleted);
   }
 
+  ///
+  /// check whether the map specified looks like a record
+  ///
   static bool isMapRecord(Map map) {
     var key = map[_record_key];
     return (key != null);
@@ -77,7 +112,14 @@ class Record {
     return _toMap().toString();
   }
 
-  Record(this._store, this._value, [this._key]) : _deleted = null;
+  ///
+  /// Create a record in a given [store] with a given [value] and
+  /// an optional [key]
+  ///
+  Record(Store store, dynamic value, [dynamic key])
+      : this._store = store,
+        this._value = value,
+        this._key = key;
 
   @override
   int get hashCode => key == null ? 0 : key.hashCode;

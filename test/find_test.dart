@@ -34,20 +34,20 @@ void defineTests(DatabaseTestContext ctx) {
 
     test('equal', () {
       Finder finder = new Finder();
-      finder.filter = new Filter.equal(Field.VALUE, "hi");
+      finder.filter = new Filter.equal(Field.value, "hi");
       return store.findRecords(finder).then((List<Record> records) {
         expect(records.length, 1);
         expect(records[0], record1);
       }).then((_) {
         Finder finder = new Finder();
-        finder.filter = new Filter.equal(Field.VALUE, "ho");
+        finder.filter = new Filter.equal(Field.value, "ho");
         return store.findRecords(finder).then((List<Record> records) {
           expect(records.length, 1);
           expect(records[0], record2);
         });
       }).then((_) {
         Finder finder = new Finder();
-        finder.filter = new Filter.equal(Field.VALUE, "hum");
+        finder.filter = new Filter.equal(Field.value, "hum");
         return store.findRecords(finder).then((List<Record> records) {
           expect(records.length, 0);
         });
@@ -57,7 +57,7 @@ void defineTests(DatabaseTestContext ctx) {
     test('in_transaction', () {
       return db.inTransaction(() {
         Finder finder = new Finder();
-        finder.filter = new Filter.equal(Field.VALUE, "hi");
+        finder.filter = new Filter.equal(Field.value, "hi");
         return store.findRecords(finder).then((List<Record> records) {
           expect(records.length, 1);
           expect(records[0], record1);
@@ -65,7 +65,7 @@ void defineTests(DatabaseTestContext ctx) {
           Record record = new Record(store, "he", 4);
 
           return db.putRecord(record).then((_) {
-            finder.filter = new Filter.equal(Field.VALUE, "he");
+            finder.filter = new Filter.equal(Field.value, "he");
             return store.findRecords(finder).then((List<Record> records) {
               expect(records.length, 1);
               expect(records[0], record);
@@ -74,7 +74,7 @@ void defineTests(DatabaseTestContext ctx) {
         }).then((_) {
           // delete ho
           return store.delete(2).then((_) {
-            finder.filter = new Filter.equal(Field.VALUE, "ho");
+            finder.filter = new Filter.equal(Field.value, "ho");
             return store.findRecords(finder).then((List<Record> records) {
               expect(records.length, 0);
             });
@@ -99,7 +99,6 @@ void defineTests(DatabaseTestContext ctx) {
               expect(records[3], record3);
               // expect(records[3], record);
               // expect(records[0], record1);
-
             });
           }).then((_) {
             return store.count().then((int count) {
@@ -123,7 +122,7 @@ void defineTests(DatabaseTestContext ctx) {
 
         // delete ho
         return store.delete(2).then((_) {
-          finder.filter = new Filter.equal(Field.VALUE, "ho");
+          finder.filter = new Filter.equal(Field.value, "ho");
           return store.findRecords(finder).then((List<Record> records) {
             expect(records.length, 0);
           });
@@ -133,40 +132,40 @@ void defineTests(DatabaseTestContext ctx) {
 
     test('less_greater', () {
       Finder finder = new Finder();
-      finder.filter = new Filter.lessThan(Field.VALUE, "hi");
+      finder.filter = new Filter.lessThan(Field.value, "hi");
       return store.findRecords(finder).then((List<Record> records) {
         expect(records.length, 1);
         expect(records[0], record3);
       }).then((_) {
         Finder finder = new Finder();
-        finder.filter = new Filter.greaterThan(Field.VALUE, "hi");
+        finder.filter = new Filter.greaterThan(Field.value, "hi");
         return store.findRecords(finder).then((List<Record> records) {
           expect(records.length, 1);
           expect(records[0], record2);
         });
       }).then((_) {
         Finder finder = new Finder();
-        finder.filter = new Filter.greaterThan(Field.VALUE, "hum");
+        finder.filter = new Filter.greaterThan(Field.value, "hum");
         return store.findRecords(finder).then((List<Record> records) {
           expect(records.length, 0);
         });
       }).then((_) {
         Finder finder = new Finder();
-        finder.filter = new Filter.greaterThanOrEquals(Field.VALUE, "ho");
+        finder.filter = new Filter.greaterThanOrEquals(Field.value, "ho");
         return store.findRecords(finder).then((List<Record> records) {
           expect(records.length, 1);
           expect(records[0], record2);
         });
       }).then((_) {
         Finder finder = new Finder();
-        finder.filter = new Filter.lessThanOrEquals(Field.VALUE, "ha");
+        finder.filter = new Filter.lessThanOrEquals(Field.value, "ha");
         return store.findRecords(finder).then((List<Record> records) {
           expect(records.length, 1);
           expect(records[0], record3);
         });
       }).then((_) {
         Finder finder = new Finder();
-        finder.filter = new Filter.inList(Field.VALUE, ["ho"]);
+        finder.filter = new Filter.inList(Field.value, ["ho"]);
         return store.findRecords(finder).then((List<Record> records) {
           expect(records.length, 1);
           expect(records[0], record2);
@@ -177,8 +176,8 @@ void defineTests(DatabaseTestContext ctx) {
     test('composite', () {
       Finder finder = new Finder();
       finder.filter = new Filter.and([
-        new Filter.lessThan(Field.VALUE, "ho"),
-        new Filter.greaterThan(Field.VALUE, "ha")
+        new Filter.lessThan(Field.value, "ho"),
+        new Filter.greaterThan(Field.value, "ha")
       ]);
       return store.findRecords(finder).then((List<Record> records) {
         expect(records.length, 1);
@@ -186,8 +185,8 @@ void defineTests(DatabaseTestContext ctx) {
       }).then((_) {
         Finder finder = new Finder();
         finder.filter = new Filter.or([
-          new Filter.lessThan(Field.VALUE, "hi"),
-          new Filter.greaterThan(Field.VALUE, "hum")
+          new Filter.lessThan(Field.value, "hi"),
+          new Filter.greaterThan(Field.value, "hum")
         ]);
         return store.findRecords(finder).then((List<Record> records) {
           expect(records.length, 1);
@@ -198,14 +197,14 @@ void defineTests(DatabaseTestContext ctx) {
 
     test('sort', () {
       Finder finder = new Finder();
-      finder.sortOrder = new SortOrder(Field.VALUE, true);
+      finder.sortOrder = new SortOrder(Field.value, true);
       return store.findRecords(finder).then((List<Record> records) {
         expect(records.length, 3);
         expect(records[0], record3);
         expect(records[1], record1);
         expect(records[2], record2);
       }).then((_) {
-        finder.sortOrder = new SortOrder(Field.VALUE, false);
+        finder.sortOrder = new SortOrder(Field.value, false);
         return store.findRecords(finder).then((List<Record> records) {
           expect(records.length, 3);
           expect(records[0], record2);
