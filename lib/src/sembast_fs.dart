@@ -25,10 +25,12 @@ class _FsDatabaseStorage extends DatabaseStorage {
   String get path => file.path;
 
   @override
-  Future delete() {
-    return file.exists().then((exists) {
-      return file.delete(recursive: true).catchError((_) {});
-    });
+  Future delete() async {
+    if (await file.exists()) {
+      try {
+        await file.delete(recursive: true);
+      } catch (_) {}
+    }
   }
 
   @override
@@ -37,34 +39,28 @@ class _FsDatabaseStorage extends DatabaseStorage {
   }
 
   @override
-  Future findOrCreate() {
-    return fs.isFile(path).then((isFile) {
-      if (!isFile) {
-        // try to recover from tmp file
-        return new Future.sync(() {
-          if (isTmp == true) {
-            return false;
-          } else {
-            return tmpRecover();
-          }
-        }).then((bool done) {
-          if (!done) {
-            return file
-                .create(recursive: true)
-                .then((File file) {})
-                .catchError((e) {
-              return fs.isFile(path).then((isFile) {
-                if (!isFile) {
-                  throw e;
-                }
-              });
-            });
-          } else {
-            // ok found fine
-          }
-        });
+  Future findOrCreate() async {
+    if (!(await fs.isFile(path))) {
+      bool done;
+      // try to recover from tmp file
+      if (isTmp == true) {
+        done = false;
+      } else {
+        done = await tmpRecover();
       }
-    });
+
+      if (!done) {
+        try {
+          File _file = await file.create(recursive: true);
+        } catch (e) {
+          if (!(await fs.isFile(path))) {
+            rethrow;
+          }
+        }
+      } else {
+        // ok found fine
+      }
+    }
   }
 
   String get tmpPath => join(dirname(path), "~${basename(path)}");
@@ -74,30 +70,27 @@ class _FsDatabaseStorage extends DatabaseStorage {
     return new _FsDatabaseStorage(fs, tmpPath)..isTmp = true;
   }
 
-  @override
-  Future<bool> tmpRecover() {
-    return new Future.sync(() {
-      return fs.isFile(tmpPath).then((bool isFile) {
-        log.info("Recovering from ${tmpPath}");
 
-        if (isFile) {
-          return file.delete().catchError((e) {
-            print('fail to delete');
-            print(e);
-            return true;
-          }).whenComplete(() {
-            return fs
-                .newFile(tmpPath)
-                .rename(file.path)
-                .then((File renamedFile) {
-              // ok
-              return true;
-            });
-          });
-        }
-        return false;
-      });
-    });
+  @override
+  Future<bool> tmpRecover() async {
+    bool isFile = await fs.isFile(tmpPath);
+    log.info("Recovering from ${tmpPath}");
+
+    if (isFile) {
+      try {
+        await file.delete();
+      } catch (e) {
+        print('fail to delete');
+        print(e);
+        //return true;
+      }
+      await fs.newFile(tmpPath).rename(file.path);
+
+      // ok
+      return true;
+    } else {
+      return false;
+    }
   }
 
   Stream<String> readLines() {
@@ -150,15 +143,3 @@ class FsDatabaseFactory implements DatabaseFactory {
   @override
   bool get hasStorage => true;
 }
-
-//final FsDatabaseFactory ioDatabaseFactory = new FsDatabaseFactory();
-///
-/// Open a new of existing database
-///
-/// [path] is the location of the database
-/// [version] is the version expected, if not null and if the existing version is different, onVersionChanged is called
-/// if [failIfNotFound] is true, open will return a null database if not found
-/// if [empty] is true, the existing database
-//Future<Database> openIoDatabase(String path, {int version, OnVersionChangedFunction onVersionChanged, DatabaseMode mode: DatabaseMode.CREATE}) {
-//  return ioDatabaseFactory.openDatabase(path, version: version, onVersionChanged: onVersionChanged, mode: mode);
-//}
