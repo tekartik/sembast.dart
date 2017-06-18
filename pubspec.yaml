@@ -1,5 +1,5 @@
 name: sembast
-version: 1.3.7
+version: 1.3.8
 author: Alexandre Roux Tekartik <alex.tekartik.pub@gmail.com>
 description: Simple embedded file system database
 homepage: https://github.com/tekartik/sembast.dart
@@ -16,3 +16,4 @@ dev_dependencies:
   chrome_travis:
     git: git://github.com/tekartik/chrome_travis.dart
     version: '>=0.1.3'
+  browser: any

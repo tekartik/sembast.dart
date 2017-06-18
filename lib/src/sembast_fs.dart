@@ -51,7 +51,7 @@ class _FsDatabaseStorage extends DatabaseStorage {
 
       if (!done) {
         try {
-          File _file = await file.create(recursive: true);
+          await file.create(recursive: true);
         } catch (e) {
           if (!(await fs.isFile(path))) {
             rethrow;
@@ -69,7 +69,6 @@ class _FsDatabaseStorage extends DatabaseStorage {
   DatabaseStorage get tmpStorage {
     return new _FsDatabaseStorage(fs, tmpPath)..isTmp = true;
   }
-
 
   @override
   Future<bool> tmpRecover() async {

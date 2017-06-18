@@ -1,3 +1,7 @@
+## 1.3.8
+
+* Add web example to test ddc support
+
 ## 1.3.7
 
 * Strong mode support 
