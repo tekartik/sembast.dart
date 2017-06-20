@@ -1,6 +1,7 @@
-## 1.3.8
+## 1.3.9
 
 * Add web example to test ddc support
+* Fix transaction
 
 ## 1.3.7
 

@@ -169,6 +169,9 @@ class Database {
         }
       }
 
+      // Mark transaction complete
+      _transaction._completer.complete();
+
       // Compatibility remove transaction
       _transaction = null;
 

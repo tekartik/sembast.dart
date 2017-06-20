@@ -44,16 +44,22 @@ void defineTests(DatabaseTestContext ctx) {
       });
     });
 
-    test('put/clear/get in transaction', () {
-      return db.inTransaction(() {
+    test('put/clear/get in transaction', () async {
+      Transaction txn;
+      await db.inTransaction(() {
+        txn = db.transaction;
         return db.put("hi", 1).then((_) {
           return db.mainStore.clear().then((_) {
             return db.get(1).then((String value) {
               expect(value, null);
+              expect(txn.isCompleted, isFalse);
             });
           });
         });
       });
+      expect(txn.isCompleted, isTrue);
+      await txn.completed;
+      expect(txn.isCompleted, isTrue);
     });
 
     test('put in transaction', () {
