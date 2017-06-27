@@ -253,5 +253,38 @@ void defineTests(DatabaseTestContext ctx) {
         });
       });
     });
+
+    test('transaction timing', () async {
+      //sembastUseSynchronized = false;
+
+      _do() async {
+        StringBuffer sb = new StringBuffer();
+        new Future(() {
+          sb.write('1');
+        });
+
+        await db.inTransaction(() async {
+          // first action is delayed
+          sb.write('2');
+
+          var future = new Future(() {
+            sb.write('4');
+          });
+          // not the second one
+          await db.inTransaction(() async {
+            sb.write('3');
+          });
+          await future;
+        });
+
+        //print(sb);
+        expect(sb.toString(), "1234");
+      }
+
+      //sembastUseSynchronized = false;
+      //await _do();
+      //sembastUseSynchronized = true;
+      await _do();
+    });
   });
 }

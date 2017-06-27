@@ -136,123 +136,128 @@ class Database {
   /// execute the action in a transaction
   /// use the current if any
   ///
-  Future inTransaction(action()) async {
+  Future inTransaction(action()) {
     if (!sembastUseSynchronized) {
       return inTransactionOld(action);
     }
+
     //devPrint("z: ${Zone.current[_zoneRootKey]}");
     //devPrint("z: ${Zone.current[_zoneChildKey]}");
 
     if (lock.inZone) {
       return lock.synchronized(action);
     }
-    return lock.synchronized(() async {
-      // Compatibility add transaction
-      _transaction = new Transaction._(++_txnId);
+    // delay first action
+    return new Future(() {
+      return lock.synchronized(() async {
+        // Compatibility add transaction
+        _transaction = new Transaction._(++_txnId);
 
-      var actionResult;
-      try {
-        actionResult = await new Future.sync(action);
-      } catch (e) {
-        await _clearTxnData();
-        rethrow;
-      }
-      await _commit();
-      _clearTxnData();
+        _transactionCleanUp() {
+          // Mark transaction complete, ignore error
+          _transaction._completer.complete();
 
-      // the transaction is done
-      // need compact?
-      if (_storage.supported) {
-        if (_needCompact) {
-          await compact();
-          //print(_exportStat.toJson());
+          // Compatibility remove transaction
+          _transaction = null;
         }
-      }
 
-      // Mark transaction complete
-      _transaction._completer.complete();
-
-      // Compatibility remove transaction
-      _transaction = null;
-
-      return actionResult;
-    });
-    /*
-    var actionResult;
-
-    // not in transaction yet
-    if (!_inTransaction) {
-      if ((_txnRootCompleter == null) || (_txnRootCompleter.isCompleted)) {
-        _txnRootCompleter = new Completer();
-      } else {
-        return _txnRootCompleter.future.then((_) {
-          return inTransaction(action);
-        });
-      }
-
-      Completer actionCompleter = _txnRootCompleter;
-
-      Transaction txn = new Transaction._(++_txnId);
-      _transactions[txn.id] = txn;
-
-      var result;
-      var err;
-
-      // complex error handling...
-      // make the transaction is properly reported above in the outer
-      // transaction
-      _handleErr(e) {
-        if (!actionCompleter.isCompleted) {
-          err = e;
-          //return new Future.error(e);
-          _transactions.remove(txn.id);
+        var actionResult;
+        try {
+          actionResult = await new Future.sync(action);
+          await _commit();
+        } catch (e) {
           _clearTxnData();
-          txn._completer.complete();
-          actionCompleter.completeError(err);
+          _transactionCleanUp();
+          rethrow;
         }
-      }
 
-      await runZoned(() {
-        // execute and commit
-        if (LOGV) {
-          logger.fine("begin transaction");
+        _clearTxnData();
+
+        // the transaction is done
+        // need compact?
+        if (_storage.supported) {
+          if (_needCompact) {
+            await compact();
+            //print(_exportStat.toJson());
+          }
         }
-        return new Future.sync(action).then((_result) {
-          return new Future.sync(_commit).then((_) {
-            result = _result;
-            if (LOGV) {
-              logger.fine("commit transaction");
-            }
-          });
-        }).catchError((e, st) {
-          _handleErr(e);
-        });
-      }, zoneValues: {_zoneTransactionKey: txn.id}).whenComplete(() {
-        if (!actionCompleter.isCompleted) {
-          _transactions.remove(txn.id);
-          _clearTxnData();
-          actionCompleter.complete(result);
-          txn._completer.complete();
-        }
+
+        _transactionCleanUp();
+
+        return actionResult;
       });
-
-      actionResult = await actionCompleter.future;
-
-      // the transaction is done
-      // need compact?
-      if (_storage.supported) {
-        if (_needCompact) {
-          await compact();
-          //print(_exportStat.toJson());
-        }
-      }
-    } else {
-      actionResult = await new Future.sync(action);
-    }
-
-    return actionResult;
-    */
+    });
   }
+
+  /*
+  ///
+  /// execute the action in a transaction
+  /// does not work as the first action is too immediate
+  ///
+  Future inTransactionImmediate(action()) {
+    if (!sembastUseSynchronized) {
+      return inTransactionOld(action);
+    }
+    
+    //devPrint("z: ${Zone.current[_zoneRootKey]}");
+    //devPrint("z: ${Zone.current[_zoneChildKey]}");
+
+    if (lock.inZone) {
+      return lock.synchronized(action);
+    }
+    return lock.synchronized(() {
+        // Compatibility add transaction
+        _transaction = new Transaction._(++_txnId);
+
+        var error;
+
+        _transactionCleanUp() {
+          if (error == null) {
+            _transaction._completer.complete();
+          } else {
+            _transaction._completer.completeError(error);
+          }
+
+          // Compatibility remove transaction
+          _transaction = null;
+        }
+
+
+        var actionResult;
+        try {
+          actionResult = action();
+        } catch (e) {
+          _clearTxnData();
+          _transactionCleanUp();
+          rethrow;
+        }
+
+        Future commitFuture;
+        if (actionResult is Future) {
+          commitFuture = actionResult.then((_) {
+            return _commit();
+          });
+        } else {
+          commitFuture = _commit();
+        }
+
+        return commitFuture.then((_) {
+          _clearTxnData();
+          if (_storage.supported) {
+            if (_needCompact) {
+              return compact().then((_) {
+                _transactionCleanUp();
+                return actionResult;
+              });
+            }
+          } else {
+            _transactionCleanUp();
+            return actionResult;
+          }
+        });
+    });
+  }
+   */
 
   ///
   /// execute the action in a transaction
