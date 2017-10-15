@@ -1,3 +1,7 @@
+## 1.4.1
+
+* Update synchronized dependency
+
 ## 1.3.9
 
 * Add web example to test ddc support
