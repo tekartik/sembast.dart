@@ -28,6 +28,11 @@ class DatabaseMode {
 
   /// The mode for emptying the existing content if any
   static const EMPTY = const DatabaseMode._internal(2);
+
+  /// This mode will never fails
+  /// Corrupted database will be deleted
+  static const NEVER_FAILS = const DatabaseMode._internal(3);
+
   final int _mode;
 
   int get mode => _mode;

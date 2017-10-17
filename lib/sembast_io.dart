@@ -23,7 +23,7 @@ class IoDatabaseFactory extends FsDatabaseFactory {
 Future<Database> openIoDatabase(String path,
     {int version,
     OnVersionChangedFunction onVersionChanged,
-    DatabaseMode mode: DatabaseMode.CREATE}) {
+    DatabaseMode mode}) {
   return ioDatabaseFactory.openDatabase(path,
       version: version, onVersionChanged: onVersionChanged, mode: mode);
 }

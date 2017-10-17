@@ -338,4 +338,33 @@ void defineTests(FileSystemTestContext ctx) {
       expect(exportStat.obsoleteLineCount, 0);
     });
   });
+
+  group("corrupted", () {
+
+    test('corrupted', () async {
+      await prepareForDb();
+      await writeContent(fs, dbPath, ["corrupted"]);
+
+      Future _deleteFile(String path) {
+        return fs.newFile(path).delete();
+      }
+
+      Database db;
+      try {
+        db = await factory.openDatabase(dbPath);
+      } on FormatException catch (_) {
+        await _deleteFile(dbPath);
+        db = await factory.openDatabase(dbPath);
+      }
+      expect(db.version, 1);
+    });
+
+    test('corrupted_open_empty', () async {
+      await prepareForDb();
+      await writeContent(fs, dbPath, ["corrupted"]);
+      Database db =
+          await factory.openDatabase(dbPath, mode: DatabaseMode.EMPTY);
+      expect(db.version, 1);
+    });
+  });
 }

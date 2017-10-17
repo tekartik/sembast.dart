@@ -1,11 +1,5 @@
 part of sembast;
 
-bool _useSynchronized = true;
-bool get sembastUseSynchronized => _useSynchronized;
-@deprecated
-set sembastUseSynchronized(bool useSynchronized) =>
-    _useSynchronized = useSynchronized;
-
 class Database {
   static Logger logger = new Logger("Sembast");
   final bool LOGV = logger.isLoggable(Level.FINEST);
@@ -18,12 +12,12 @@ class Database {
   //int _rev = 0;
   // incremental for each transaction
   int _txnId = 0;
-  Map<int, Transaction> _transactions = new Map();
 
   _Meta _meta;
   int get version => _meta.version;
 
   bool _opened = false;
+  DatabaseMode _openMode;
 
   Store get mainStore => _mainStore;
 
@@ -70,77 +64,18 @@ class Database {
     _clearTxnData();
   }
 
-  Completer _txnRootCompleter;
-  //Completer _txnChildCompleter;
-
-  int get _currentZoneTxnId => Zone.current[_zoneTransactionKey];
-  bool get _inTransactionOld => _currentZoneTxnId != null;
-  bool get _inTransaction {
-    if (!sembastUseSynchronized) {
-      return _inTransactionOld;
-    } else {
-      return lock.inZone;
-    }
-  }
-
-  ///
-  /// get the current zone transaction
-  ///
-  Transaction get transactionOld {
-    int txnId = _currentZoneTxnId;
-    if (txnId == null) {
-      return null;
-    } else {
-      return _transactions[_currentZoneTxnId];
-    }
-  }
+  bool get _inTransaction => lock.inZone;
 
   Transaction _transaction;
 
   //@Deprecated("don't use")
-  Transaction get transaction {
-    if (!sembastUseSynchronized) {
-      return transactionOld;
-    } else {
-      return _transaction;
-    }
-  }
-
-  // for transaction
-  static const _zoneTransactionKey = "sembast.txn"; // transaction key
-  //static const _zoneChildKey = "sembast.txn.child"; // bool
-
-  ///
-  /// execute the action in a new transaction
-  /// to be deprecated
-  ///
-  // @deprecated
-  Future newTransaction(action()) {
-    if (!sembastUseSynchronized) {
-      return newTransactionOld(action);
-    }
-    return inTransaction(action);
-  }
-
-  Future newTransactionOld(action()) {
-    if (!_inTransaction) {
-      return inTransaction(action);
-    }
-    Transaction txn = transaction;
-    return txn.completed.then((_) {
-      return newTransactionOld(action);
-    });
-  }
+  Transaction get transaction => _transaction;
 
   ///
   /// execute the action in a transaction
   /// use the current if any
   ///
   Future inTransaction(action()) {
-    if (!sembastUseSynchronized) {
-      return inTransactionOld(action);
-    }
-
     //devPrint("z: ${Zone.current[_zoneRootKey]}");
     //devPrint("z: ${Zone.current[_zoneChildKey]}");
 
@@ -187,159 +122,6 @@ class Database {
         return actionResult;
       });
     });
-  }
-
-  /*
-  ///
-  /// execute the action in a transaction
-  /// does not work as the first action is too immediate
-  ///
-  Future inTransactionImmediate(action()) {
-    if (!sembastUseSynchronized) {
-      return inTransactionOld(action);
-    }
-    
-    //devPrint("z: ${Zone.current[_zoneRootKey]}");
-    //devPrint("z: ${Zone.current[_zoneChildKey]}");
-
-    if (lock.inZone) {
-      return lock.synchronized(action);
-    }
-    return lock.synchronized(() {
-        // Compatibility add transaction
-        _transaction = new Transaction._(++_txnId);
-
-        var error;
-
-        _transactionCleanUp() {
-          if (error == null) {
-            _transaction._completer.complete();
-          } else {
-            _transaction._completer.completeError(error);
-          }
-
-          // Compatibility remove transaction
-          _transaction = null;
-        }
-
-
-        var actionResult;
-        try {
-          actionResult = action();
-        } catch (e) {
-          _clearTxnData();
-          _transactionCleanUp();
-          rethrow;
-        }
-
-        Future commitFuture;
-        if (actionResult is Future) {
-          commitFuture = actionResult.then((_) {
-            return _commit();
-          });
-        } else {
-          commitFuture = _commit();
-        }
-
-        return commitFuture.then((_) {
-          _clearTxnData();
-          if (_storage.supported) {
-            if (_needCompact) {
-              return compact().then((_) {
-                _transactionCleanUp();
-                return actionResult;
-              });
-            }
-          } else {
-            _transactionCleanUp();
-            return actionResult;
-          }
-        });
-    });
-  }
-   */
-
-  ///
-  /// execute the action in a transaction
-  /// use the current if any
-  ///
-  Future inTransactionOld(action()) async {
-    //devPrint("z: ${Zone.current[_zoneRootKey]}");
-    //devPrint("z: ${Zone.current[_zoneChildKey]}");
-
-    var actionResult;
-
-    // not in transaction yet
-    if (!_inTransaction) {
-      if ((_txnRootCompleter == null) || (_txnRootCompleter.isCompleted)) {
-        _txnRootCompleter = new Completer();
-      } else {
-        return _txnRootCompleter.future.then((_) {
-          return inTransaction(action);
-        });
-      }
-
-      Completer actionCompleter = _txnRootCompleter;
-
-      Transaction txn = new Transaction._(++_txnId);
-      _transactions[txn.id] = txn;
-
-      var result;
-      var err;
-
-      // complex error handling...
-      // make the transaction is properly reported above in the outer
-      // transaction
-      _handleErr(e) {
-        if (!actionCompleter.isCompleted) {
-          err = e;
-          //return new Future.error(e);
-          _transactions.remove(txn.id);
-          _clearTxnData();
-          txn._completer.complete();
-          actionCompleter.completeError(err);
-        }
-      }
-
-      await runZoned(() {
-        // execute and commit
-        if (LOGV) {
-          logger.fine("begin transaction");
-        }
-        return new Future.sync(action).then((_result) {
-          return new Future.sync(_commit).then((_) {
-            result = _result;
-            if (LOGV) {
-              logger.fine("commit transaction");
-            }
-          });
-        }).catchError((e, st) {
-          _handleErr(e);
-        });
-      }, zoneValues: {_zoneTransactionKey: txn.id}).whenComplete(() {
-        if (!actionCompleter.isCompleted) {
-          _transactions.remove(txn.id);
-          _clearTxnData();
-          actionCompleter.complete(result);
-          txn._completer.complete();
-        }
-      });
-
-      actionResult = await actionCompleter.future;
-
-      // the transaction is done
-      // need compact?
-      if (_storage.supported) {
-        if (_needCompact) {
-          await compact();
-          //print(_exportStat.toJson());
-        }
-      }
-    } else {
-      actionResult = await new Future.sync(action);
-    }
-
-    return actionResult;
   }
 
   bool _setRecordInMemory(Record record) {
@@ -565,9 +347,13 @@ class Database {
       {int version,
       OnVersionChangedFunction onVersionChanged,
       DatabaseMode mode}) {
-    close();
-    return open(
-        version: version, onVersionChanged: onVersionChanged, mode: mode);
+    return lock.synchronized(() {
+      close();
+      // Reuse same open mode unless specified
+      return open(
+          version: version, onVersionChanged: onVersionChanged, mode: mode ?? this._openMode);
+    });
+
   }
 
   void _checkMainStore() {
@@ -640,6 +426,10 @@ class Database {
       {int version,
       OnVersionChangedFunction onVersionChanged,
       DatabaseMode mode}) {
+
+    // Default mode
+    _openMode = mode ??= DatabaseMode.CREATE;
+
     if (_opened) {
       if (path != this.path) {
         throw new DatabaseException.badParam(
@@ -648,26 +438,25 @@ class Database {
       return new Future.value(this);
     }
 
-    return runZoned(() {
+    return lock.synchronized(() async {
       _Meta meta;
 
-      Future _handleVersionChanged(int oldVersion, int newVersion) {
+      Future _handleVersionChanged(int oldVersion, int newVersion) async {
         var result;
         if (onVersionChanged != null) {
           result = onVersionChanged(this, oldVersion, newVersion);
         }
+        meta = new _Meta(newVersion);
 
-        return new Future.value(result).then((_) async {
-          meta = new _Meta(newVersion);
+        if (_storage.supported) {
+          await _storage.appendLine(JSON.encode(meta.toMap()));
+          _exportStat.lineCount++;
+        }
 
-          if (_storage.supported) {
-            await _storage.appendLine(JSON.encode(meta.toMap()));
-            _exportStat.lineCount++;
-          }
-        });
+        return result;
       }
 
-      Future _openDone() {
+      Future _openDone() async {
         // make sure mainStore is created
         _checkMainStore();
 
@@ -703,27 +492,25 @@ class Database {
         _opened = true;
 
         if (needVersionChanged) {
-          return _handleVersionChanged(oldVersion, version).then((_) {
-            _meta = meta;
-            return this;
-          });
-        } else {
-          _meta = meta;
-          return new Future.value(this);
+          await _handleVersionChanged(oldVersion, version);
         }
+        _meta = meta;
+        return this;
       }
 
       //_path = path;
-      Future _findOrCreate() {
+      Future _findOrCreate() async {
         if (mode == DatabaseMode.EXISTING) {
-          return _storage.find().then((bool found) {
-            if (!found) {
-              throw new DatabaseException.databaseNotFound(
-                  "Database (open existing only) ${path} not found");
-            }
-          });
+          bool found = await _storage.find();
+          if (!found) {
+            throw new DatabaseException.databaseNotFound(
+                "Database (open existing only) ${path} not found");
+          }
         } else {
-          return _storage.findOrCreate();
+          if (mode == DatabaseMode.EMPTY) {
+            await _storage.delete();
+          }
+          await _storage.findOrCreate();
         }
       }
 
@@ -731,21 +518,35 @@ class Database {
       if (_storage.supported) {
         _exportStat = new DatabaseExportStat();
       }
-      return _findOrCreate().then((_) {
-        if (_storage.supported) {
-          // empty stores
-          _mainStore = null;
-          _stores = new Map();
-          _checkMainStore();
+      await _findOrCreate();
+      if (_storage.supported) {
+        // empty stores
+        _mainStore = null;
+        _stores = new Map();
+        _checkMainStore();
 
-          _exportStat = new DatabaseExportStat();
+        _exportStat = new DatabaseExportStat();
 
-          //bool needCompact = false;
+        //bool needCompact = false;
+        bool stop = false;
 
-          return _storage.readLines().forEach((String line) {
+        await _storage.readLines().forEach((String line) {
+          if (!stop) {
             _exportStat.lineCount++;
-            // evesrything is JSON
-            Map map = JSON.decode(line);
+
+            Map map;
+
+            try {
+              // everything is JSON
+              map = JSON.decode(line);
+            } on FormatException catch (_) {
+              if (_openMode == DatabaseMode.NEVER_FAILS) {
+                stop = true;
+                return;
+              } else {
+                rethrow;
+              }
+            }
 
             if (_Meta.isMapMeta(map)) {
               // meta?
@@ -758,27 +559,26 @@ class Database {
               }
               _loadRecord(record);
             }
-          }).then((_) async {
-            // auto compaction
-            // allow for 20% of lost lines
-            // make sure _meta is known before compacting
-            _meta = meta;
-            if (_needCompact) {
-              await compact();
-            }
-          }).then((_) => _openDone());
-        } else {
-          // ensure main store exists
-          // but do not erase previous data
-          _checkMainStore();
-          meta = _meta;
-          return _openDone();
+          }
+        });
+        // auto compaction
+        // allow for 20% of lost lines
+        // make sure _meta is known before compacting
+        _meta = meta;
+        if (_needCompact) {
+          await compact();
         }
-      });
-    }).catchError((e, st) {
-      //devPrint("$e $st");
-      throw e;
-    }) as Future<Database>;
+
+        return await _openDone();
+      } else {
+        // ensure main store exists
+        // but do not erase previous data
+        _checkMainStore();
+        meta = _meta;
+        return _openDone();
+      }
+    });
+
   }
 
   void close() {
