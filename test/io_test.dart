@@ -40,13 +40,42 @@ void main() {
 
         await db.put("value", "key");
 
-        print(await new io.File(dbPath).readAsString());
+        //print(await new io.File(dbPath).readAsString());
 
         try {
           await db.reOpen();
           fail("should fail");
         } on FormatException catch (_) {
           await db.reOpen(mode: DatabaseMode.NEVER_FAILS);
+          // version cannot be read anymore...
+          expect(db.version, 1);
+        }
+        db.close();
+      });
+
+      test('missing new line after 1 record', () async {
+        await prepareForDb();
+
+        await new io.File(dbPath).writeAsString(
+            JSON.encode({"version": 2, "sembast": 1}) + "\n"
+                + JSON.encode({'key': 1, 'value': 'test1'}) + "\n"
+            + JSON.encode({'key': 2, 'value': 'test2'}));
+        Database db = await ioDatabaseFactory.openDatabase(dbPath);
+        expect(db.version, 2);
+
+        await db.put("value3");
+
+        //print(await new io.File(dbPath).readAsString());
+
+        try {
+          await db.reOpen();
+          fail("should fail");
+        } on FormatException catch (_) {
+          await db.reOpen(mode: DatabaseMode.NEVER_FAILS);
+          List<String> lines = await readContent(fs, dbPath);
+          // Only the first line remains
+          expect(lines.length, 2);
+          expect(JSON.decode(lines[1]), {'key': 1, 'value': 'test1'});
         }
         db.close();
       });

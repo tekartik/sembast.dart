@@ -1,6 +1,7 @@
-## 1.4.1
+## 1.5.0
 
 * Update synchronized dependency
+* Add DatabaseMode.NEVER_FAILS that will ignore the file once a corrupted record is encountered
 
 ## 1.3.9
 

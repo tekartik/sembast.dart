@@ -79,8 +79,7 @@ class _FsDatabaseStorage extends DatabaseStorage {
       try {
         await file.delete();
       } catch (e) {
-        print('fail to delete');
-        print(e);
+        log.warning('fail to delete $e');
         //return true;
       }
       await fs.newFile(tmpPath).rename(file.path);

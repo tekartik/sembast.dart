@@ -136,7 +136,7 @@ class Database {
   /// Compact the database (work in progress)
   ///
   Future compact() {
-    return inTransaction(() async {
+    return lock.synchronized(() async {
       if (_storage.supported) {
         DatabaseStorage tmpStorage = _storage.tmpStorage;
         // new stat with compact + 1
@@ -528,10 +528,10 @@ class Database {
         _exportStat = new DatabaseExportStat();
 
         //bool needCompact = false;
-        bool stop = false;
+        bool corrupted = false;
 
         await _storage.readLines().forEach((String line) {
-          if (!stop) {
+          if (!corrupted) {
             _exportStat.lineCount++;
 
             Map map;
@@ -541,7 +541,7 @@ class Database {
               map = JSON.decode(line);
             } on FormatException catch (_) {
               if (_openMode == DatabaseMode.NEVER_FAILS) {
-                stop = true;
+                corrupted = true;
                 return;
               } else {
                 rethrow;
@@ -561,12 +561,19 @@ class Database {
             }
           }
         });
-        // auto compaction
-        // allow for 20% of lost lines
-        // make sure _meta is known before compacting
-        _meta = meta;
-        if (_needCompact) {
-          await compact();
+        // if corrupted and not even meta
+        // delete it
+        if (corrupted && meta == null) {
+          await _storage.delete();
+          await _storage.findOrCreate();
+        } else {
+          // auto compaction
+          // allow for 20% of lost lines
+          // make sure _meta is known before compacting
+          _meta = meta;
+          if (_needCompact || corrupted) {
+            await compact();
+          }
         }
 
         return await _openDone();
