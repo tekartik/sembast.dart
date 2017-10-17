@@ -11,6 +11,7 @@ import 'package:sembast/sembast_io.dart';
 import 'package:sembast/src/io/io_file_system.dart';
 import 'package:sembast/src/file_system.dart';
 import 'dart:io' as io;
+
 void main() {
   group("io", () {
     test('fs', () {
@@ -26,7 +27,10 @@ void main() {
 
       Future<String> prepareForDb() async {
         dbPath = getDbPath();
-        await fs.newDirectory(dirname(dbPath)).create(recursive: true).catchError((_) {});
+        await fs
+            .newDirectory(dirname(dbPath))
+            .create(recursive: true)
+            .catchError((_) {});
         await fs.newFile(dbPath).delete().catchError((_) {});
         return dbPath;
       }
@@ -34,7 +38,8 @@ void main() {
       test('missing new line', () async {
         await prepareForDb();
 
-        await new io.File(dbPath).writeAsString(JSON.encode({"version": 2, "sembast": 1}));
+        await new io.File(dbPath)
+            .writeAsString(JSON.encode({"version": 2, "sembast": 1}));
         Database db = await ioDatabaseFactory.openDatabase(dbPath);
         expect(db.version, 2);
 
@@ -57,9 +62,11 @@ void main() {
         await prepareForDb();
 
         await new io.File(dbPath).writeAsString(
-            JSON.encode({"version": 2, "sembast": 1}) + "\n"
-                + JSON.encode({'key': 1, 'value': 'test1'}) + "\n"
-            + JSON.encode({'key': 2, 'value': 'test2'}));
+            JSON.encode({"version": 2, "sembast": 1}) +
+                "\n" +
+                JSON.encode({'key': 1, 'value': 'test1'}) +
+                "\n" +
+                JSON.encode({'key': 2, 'value': 'test2'}));
         Database db = await ioDatabaseFactory.openDatabase(dbPath);
         expect(db.version, 2);
 

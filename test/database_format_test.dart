@@ -340,7 +340,6 @@ void defineTests(FileSystemTestContext ctx) {
   });
 
   group("corrupted", () {
-
     test('corrupted', () async {
       await prepareForDb();
       await writeContent(fs, dbPath, ["corrupted"]);

@@ -351,9 +351,10 @@ class Database {
       close();
       // Reuse same open mode unless specified
       return open(
-          version: version, onVersionChanged: onVersionChanged, mode: mode ?? this._openMode);
+          version: version,
+          onVersionChanged: onVersionChanged,
+          mode: mode ?? this._openMode);
     });
-
   }
 
   void _checkMainStore() {
@@ -426,7 +427,6 @@ class Database {
       {int version,
       OnVersionChangedFunction onVersionChanged,
       DatabaseMode mode}) {
-
     // Default mode
     _openMode = mode ??= DatabaseMode.CREATE;
 
@@ -585,7 +585,6 @@ class Database {
         return _openDone();
       }
     });
-
   }
 
   void close() {
