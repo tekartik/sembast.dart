@@ -19,5 +19,10 @@ main() async {
     if (random.nextInt(100) == 0) {
       await future;
     }
+
+    if (random.nextInt(1000) == 0) {
+      print('reopening');
+      await db.reOpen();
+    }
   }
 }
