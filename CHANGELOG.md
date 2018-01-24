@@ -1,3 +1,7 @@
+## 1.6.0
+
+* Add bool support <https://github.com/tekartik/sembast.dart/pull/4>
+
 ## 1.5.0
 
 * Update synchronized dependency
