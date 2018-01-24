@@ -157,6 +157,9 @@ _cloneValue(var value) {
   if (value is String) {
     return value;
   }
+  if (value is bool) {
+    return value;
+  }
   if (value is num) {
     return value;
   }
