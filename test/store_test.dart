@@ -79,6 +79,14 @@ void defineTests(DatabaseTestContext ctx) {
             expect(value, "ho");
           });
         });
+      }).then((_) {
+        return store1.put(true, 2).then((int key) {
+          expect(key, 2);
+        });
+      }).then((_) {
+        return store1.get(2).then((bool value) {
+          expect(value, true);
+        });
       });
     });
 
