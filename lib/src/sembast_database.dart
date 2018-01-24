@@ -343,7 +343,7 @@ class Database {
   ///
   /// reload
   //
-  Future reOpen(
+  Future<Database> reOpen(
       {int version,
       OnVersionChangedFunction onVersionChanged,
       DatabaseMode mode}) {

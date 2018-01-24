@@ -80,7 +80,7 @@ void defineTests(DatabaseTestContext ctx) {
           expect(got[1].key, 3);
         });
       }).then((_) {
-        return store.deleteAll([1, 4, 2]).then((List keys) {
+        return store.deleteAll([1, 4, 2]).then((keys) {
           expect(keys, [1, 2]);
           return store.count().then((count) {
             expect(count, 1);

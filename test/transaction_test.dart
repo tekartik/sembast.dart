@@ -27,7 +27,7 @@ void defineTests(DatabaseTestContext ctx) {
       futures.add(db.put("hi", 1));
       expect(db.transaction, isNull);
       // here the value should not be loaded yet
-      futures.add(db.get(1).then((String value) {
+      futures.add(db.get(1).then((value) {
         expect(db.transaction, isNull);
         expect(value, null);
       }));
@@ -38,7 +38,7 @@ void defineTests(DatabaseTestContext ctx) {
       return db.put("hi", 1).then((_) {
         expect(db.transaction, isNull);
         // here the value should not be loaded yet
-        return db.get(1).then((String value) {
+        return db.get(1).then((value) {
           expect(db.transaction, isNull);
         });
       });
@@ -50,7 +50,7 @@ void defineTests(DatabaseTestContext ctx) {
         txn = db.transaction;
         return db.put("hi", 1).then((_) {
           return db.mainStore.clear().then((_) {
-            return db.get(1).then((String value) {
+            return db.get(1).then((value) {
               expect(value, null);
               expect(txn.isCompleted, isFalse);
             });
@@ -66,7 +66,7 @@ void defineTests(DatabaseTestContext ctx) {
       List<Future> futures = [];
       futures.add(db.inTransaction(() {
         return db.put("hi", 1).then((_) {
-          return db.get(1).then((String value) {
+          return db.get(1).then((value) {
             expect(value, "hi");
           });
         });
@@ -74,13 +74,13 @@ void defineTests(DatabaseTestContext ctx) {
 
       // here we are in a transaction so it will wait for the other to finish
       futures.add(db.inTransaction(() {
-        return db.get(1).then((String value) {
+        return db.get(1).then((value) {
           expect(value, "hi");
         });
       }));
 
       // here the value should not be loaded yet
-      futures.add(db.get(1).then((String value) {
+      futures.add(db.get(1).then((value) {
         expect(value, null);
       }));
       return Future.wait(futures);
@@ -90,7 +90,7 @@ void defineTests(DatabaseTestContext ctx) {
       return db.inTransaction(() {
         return db.inTransaction(() {
           return db.put("hi", 1).then((_) {
-            return db.get(1).then((String value) {
+            return db.get(1).then((value) {
               expect(value, "hi");
             });
           });
@@ -103,7 +103,7 @@ void defineTests(DatabaseTestContext ctx) {
         return db.inTransaction(() {
           return db.inTransaction(() {
             return db.put("hi", 1).then((_) {
-              return db.get(1).then((String value) {
+              return db.get(1).then((value) {
                 expect(value, "hi");
               });
             });
@@ -116,11 +116,11 @@ void defineTests(DatabaseTestContext ctx) {
       return db.inTransaction(() {
         return db.put("hi", 1).then((_) {
           // still here
-          return db.get(1).then((String value) {
+          return db.get(1).then((value) {
             expect(value, "hi");
           }).then((_) {
             db.rollback();
-            return db.get(1).then((String value) {
+            return db.get(1).then((value) {
               expect(value, null);
             });
           });
@@ -128,7 +128,7 @@ void defineTests(DatabaseTestContext ctx) {
       }).then((_) {
         // put something else to make sure the txn has been cleaned
         return db.put("ho", 2).then((_) {
-          return db.get(1).then((String value) {
+          return db.get(1).then((value) {
             expect(value, null);
           });
         });
@@ -140,11 +140,11 @@ void defineTests(DatabaseTestContext ctx) {
         return db.inTransaction(() {
           return db.delete(1).then((_) {
             // still here
-            return db.get(1).then((String value) {
+            return db.get(1).then((value) {
               expect(value, null);
             }).then((_) {
               db.rollback();
-              return db.get(1).then((String value) {
+              return db.get(1).then((value) {
                 expect(value, "hi");
               });
             });
@@ -152,7 +152,7 @@ void defineTests(DatabaseTestContext ctx) {
         }).then((_) {
           // put something else to make sure the txn has been cleaned
           return db.put("ho", 2).then((_) {
-            return db.get(1).then((String value) {
+            return db.get(1).then((value) {
               expect(value, "hi");
             });
           });
@@ -164,7 +164,7 @@ void defineTests(DatabaseTestContext ctx) {
       return db.inTransaction(() {
         return db.put("hi", 1).then((_) {
           // still here
-          return db.get(1).then((String value) {
+          return db.get(1).then((value) {
             expect(value, "hi");
           }).then((_) {
             throw "some failure";
@@ -175,7 +175,7 @@ void defineTests(DatabaseTestContext ctx) {
       }).then((_) {
         // put something else to make sure the txn has been cleaned
         return db.put("ho", 2).then((_) {
-          return db.get(1).then((String value) {
+          return db.get(1).then((value) {
             expect(value, null);
           });
         });

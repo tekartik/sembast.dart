@@ -60,7 +60,7 @@ abstract class FileSystemEntity implements fs.FileSystemEntity {
   static Future<bool> isDirectory(String path) => _fs.isDirectory(path);
 
   @override
-  Future<bool> exists() => _wrap(ioFileSystemEntity.exists()) as Future<bool>;
+  Future<bool> exists() => _wrap(ioFileSystemEntity.exists());
 
   @override
   Future<fs.FileSystemEntity> delete({bool recursive: false}) //
@@ -107,7 +107,7 @@ class _IoFileSystemException implements fs.FileSystemException {
   String toString() => ioFse.toString();
 }
 
-Future _wrap(Future future) {
+Future<T> _wrap<T>(Future<T> future) {
   return future.catchError((e) {
     if (e is io.FileSystemException) {
       throw new _IoFileSystemException(e);
