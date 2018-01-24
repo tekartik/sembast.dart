@@ -70,6 +70,22 @@ void defineTests(DatabaseTestContext ctx) {
           expect(value, "ho");
         });
       }).then((_) {
+        return store1.put(true, 2).then((int key) {
+          expect(key, 2);
+        });
+      }).then((_) {
+        return store1.get(2).then((bool value) {
+          expect(value, true);
+        });
+      }).then((_) {
+        return store2.put(false, 2).then((int key) {
+          expect(key, 2);
+        });
+      }).then((_) {
+        return store2.get(2).then((bool value) {
+          expect(value, false);
+        });
+      }).then((_) {
         return db.reOpen().then((_) {
           return store1.get(1).then((String value) {
             expect(value, "hi");
@@ -78,14 +94,6 @@ void defineTests(DatabaseTestContext ctx) {
           return store2.get(1).then((String value) {
             expect(value, "ho");
           });
-        });
-      }).then((_) {
-        return store1.put(true, 2).then((int key) {
-          expect(key, 2);
-        });
-      }).then((_) {
-        return store1.get(2).then((bool value) {
-          expect(value, true);
         });
       });
     });
