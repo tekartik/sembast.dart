@@ -23,3 +23,6 @@ pubspec.lock
 # Build by tests
 test/out
 test_out
+
+# Local files
+.local/
