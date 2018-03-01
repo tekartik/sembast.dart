@@ -130,8 +130,8 @@ class _Meta {
   int sembastVersion = 1;
 
   _Meta.fromMap(Map map) {
-    version = map[_db_version];
-    sembastVersion = map[_db_sembast_version];
+    version = map[_db_version] as int;
+    sembastVersion = map[_db_sembast_version] as int;
   }
 
   static bool isMapMeta(Map map) {
@@ -275,19 +275,28 @@ class _FilterPredicate extends Filter {
       return false;
     }
 
+    int _safeCompare(dynamic value1, dynamic value2) {
+      try {
+        if (value1 is Comparable && value2 is Comparable) {
+          return Comparable.compare(value1, value2);
+        }
+      } catch (_) {}
+      return 0;
+    }
+
     switch (operation) {
       case _FilterOperation.EQUAL:
         return record[field] == value;
       case _FilterOperation.NOT_EQUAL:
         return record[field] != value;
       case _FilterOperation.LESS_THAN:
-        return Comparable.compare(record[field], value) < 0;
+        return _safeCompare(record[field], value) < 0;
       case _FilterOperation.LESS_THAN_OR_EQUAL:
-        return Comparable.compare(record[field], value) <= 0;
+        return _safeCompare(record[field], value) <= 0;
       case _FilterOperation.GREATER_THAN:
-        return Comparable.compare(record[field], value) > 0;
+        return _safeCompare(record[field], value) > 0;
       case _FilterOperation.GREATER_THAN_OR_EQUAL:
-        return Comparable.compare(record[field], value) >= 0;
+        return _safeCompare(record[field], value) >= 0;
       case _FilterOperation.IN:
         return (value as List).contains(record[field]);
       default:

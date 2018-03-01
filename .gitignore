@@ -1,5 +1,6 @@
 syntax: glob
 # Don’t commit the following directories created by pub.
+.dart_tool/
 build/
 .packages
 .buildlog

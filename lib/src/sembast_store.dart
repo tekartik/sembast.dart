@@ -157,8 +157,11 @@ class Store {
       record._key = ++_lastIntKey;
     } else {
       // update last int key in case auto gen is needed again
-      if (record._key is int && record.key > _lastIntKey) {
-        _lastIntKey = record.key;
+      if (record._key is int) {
+        int intKey = record._key;
+        if (intKey > _lastIntKey) {
+          _lastIntKey = intKey;
+        }
       }
     }
 
@@ -193,7 +196,7 @@ class Store {
     if (database.LOGV) {
       Database.logger.fine("${database.transaction} get ${record} key ${key}");
     }
-    return record;
+    return record as Record;
   }
 
   ///

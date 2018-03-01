@@ -82,7 +82,7 @@ Future writeContent(FileSystem fs, String filePath, List<String> lines) async {
 }
 
 DatabaseExportStat getDatabaseExportStat(Database db) {
-  return new DatabaseExportStat.fromJson(db.toJson()["exportStat"]);
+  return new DatabaseExportStat.fromJson(db.toJson()["exportStat"] as Map);
 }
 
 devPrintJson(Map json) {

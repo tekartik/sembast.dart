@@ -46,7 +46,8 @@ class _MemoryFileSystem implements fs.FileSystem {
   }
 
   @override
-  _MemoryDirectory get currentDirectory => newDirectory(_impl.currentPath);
+  _MemoryDirectory get currentDirectory =>
+      newDirectory(_impl.currentPath) as _MemoryDirectory;
 
   @override
   _MemoryFile get scriptFile => null;

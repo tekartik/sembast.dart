@@ -64,7 +64,7 @@ class Record {
   }
 
   Record._fromMap(Database db, Map map)
-      : _store = db.getStore(map[_store_name]),
+      : _store = db.getStore(map[_store_name] as String),
         _key = map[_record_key],
         _value = map[_record_value],
         _deleted = map[_record_deleted] == true;

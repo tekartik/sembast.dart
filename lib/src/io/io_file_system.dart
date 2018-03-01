@@ -143,19 +143,19 @@ class _IoFileSystem implements fs.FileSystem {
   @override
   Directory get currentDirectory => io.Directory.current == null
       ? null
-      : newDirectory(io.Directory.current.path);
+      : newDirectory(io.Directory.current.path) as Directory;
 
   @override
   File get scriptFile => io.Platform.script == null
       ? null
-      : newFile(io.Platform.script.toFilePath());
+      : newFile(io.Platform.script.toFilePath()) as File;
 
   @override
   String toString() => "io";
 }
 
 class Directory extends FileSystemEntity implements fs.Directory {
-  io.Directory get ioDir => ioFileSystemEntity;
+  io.Directory get ioDir => ioFileSystemEntity as io.Directory;
 
   /**
    * Creates a [Directory] object.
@@ -185,7 +185,7 @@ class Directory extends FileSystemEntity implements fs.Directory {
 }
 
 class File extends FileSystemEntity implements fs.File {
-  io.File get ioFile => ioFileSystemEntity;
+  io.File get ioFile => ioFileSystemEntity as io.File;
   /**
    * Creates a [File] object.
    *

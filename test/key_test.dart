@@ -23,7 +23,7 @@ void defineTests(DatabaseTestContext ctx) {
     test('null', () async {
       int key = await db.put("test");
       expect(key, 1);
-      key = await db.put("test");
+      key = await db.put("test") as int;
       expect(key, 2);
     });
 
@@ -31,7 +31,7 @@ void defineTests(DatabaseTestContext ctx) {
       int key = await db.put("test", 2);
       expect(key, 2);
       // next will increment
-      key = await db.put("test");
+      key = await db.put("test") as int;
       expect(key, 3);
     });
 

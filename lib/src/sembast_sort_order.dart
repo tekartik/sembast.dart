@@ -40,7 +40,10 @@ class SortOrder {
         return 1;
       }
     }
-    return value1.compareTo(value2);
+    if (value1 is Comparable) {
+      return value1.compareTo(value2);
+    }
+    return 0;
   }
 
   Map toDebugMap() {

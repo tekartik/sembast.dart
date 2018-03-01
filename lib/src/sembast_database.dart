@@ -147,9 +147,11 @@ class Database {
 
         List<String> lines = [];
         _addLine(Map map) {
-          var encoded;
+          String encoded;
           try {
             encoded = JSON.encode(map);
+            exportStat.lineCount++;
+            lines.add(encoded);
           } catch (e, st) {
             // usefull for debugging...
             print(map);
@@ -157,8 +159,6 @@ class Database {
             print(st);
             rethrow;
           }
-          exportStat.lineCount++;
-          lines.add(encoded);
         }
 
         _addLine(_meta.toMap());
@@ -210,16 +210,16 @@ class Database {
         // writable record
         for (Record record in txnRecords) {
           Map map = record._toMap();
-          var encoded;
+          String encoded;
           try {
             encoded = JSON.encode(map);
+            lines.add(encoded);
           } catch (e, st) {
             print(map);
             print(e);
             print(st);
             rethrow;
           }
-          lines.add(encoded);
         }
         await _storage.appendLines(lines);
         _saveInMemory();
@@ -456,7 +456,7 @@ class Database {
         return result;
       }
 
-      Future _openDone() async {
+      Future<Database> _openDone() async {
         // make sure mainStore is created
         _checkMainStore();
 
@@ -538,8 +538,8 @@ class Database {
 
             try {
               // everything is JSON
-              map = JSON.decode(line);
-            } on FormatException catch (_) {
+              map = JSON.decode(line) as Map;
+            } on Exception catch (_) {
               if (_openMode == DatabaseMode.NEVER_FAILS) {
                 corrupted = true;
                 return;
@@ -640,13 +640,13 @@ class DatabaseExportStat {
 
   DatabaseExportStat.fromJson(Map map) {
     if (map["lineCount"] != null) {
-      lineCount = map["lineCount"];
+      lineCount = map["lineCount"] as int;
     }
     if (map["compactCount"] != null) {
-      compactCount = map["compactCount"];
+      compactCount = map["compactCount"] as int;
     }
     if (map["obsoleteLineCount"] != null) {
-      obsoleteLineCount = map["obsoleteLineCount"];
+      obsoleteLineCount = map["obsoleteLineCount"] as int;
     }
   }
   Map toJson() {

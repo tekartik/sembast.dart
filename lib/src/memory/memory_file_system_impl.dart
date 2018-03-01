@@ -336,7 +336,7 @@ class MemoryFileSystemImpl {
     return createDirectoryBySegments(segments, recursive: recursive);
   }
 
-  createFile(String path, {bool recursive: false}) {
+  MemoryFileImpl createFile(String path, {bool recursive: false}) {
     // Go up one by one
     List<String> segments = getSegments(path);
 
