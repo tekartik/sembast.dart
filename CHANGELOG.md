@@ -1,3 +1,7 @@
+## 1.6.1
+
+* Add `implicit-cast: false` support
+
 ## 1.6.0
 
 * Add bool support <https://github.com/tekartik/sembast.dart/pull/4>
