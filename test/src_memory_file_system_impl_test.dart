@@ -26,7 +26,7 @@ main() {
 
       // at root
       String path = join(separator, "test");
-      MemoryDirectoryImpl dir = fs.createDirectory(path);
+      MemoryDirectoryImpl dir = fs.createDirectory(path) as MemoryDirectoryImpl;
       expect(dir.segment, "test");
       expect(dir.path, path);
       expect(dir, fs.getEntity(path));
@@ -51,7 +51,8 @@ main() {
 
       // at root
       MemoryDirectoryImpl dir =
-          fs.createDirectory(join(separator, "test", "sub"), recursive: true);
+          fs.createDirectory(join(separator, "test", "sub"), recursive: true)
+              as MemoryDirectoryImpl;
 
       dir = fs.getEntity(join(separator, "test", "sub")) as MemoryDirectoryImpl;
       expect(dir.segment, "sub");
@@ -69,7 +70,7 @@ main() {
 
       // at root
       String path = join(separator, "test");
-      MemoryDirectoryImpl dir = fs.createDirectory(path);
+      MemoryDirectoryImpl dir = fs.createDirectory(path) as MemoryDirectoryImpl;
 
       // get it
       dir = fs.getEntity(path) as MemoryDirectoryImpl;

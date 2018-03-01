@@ -157,8 +157,9 @@ class Store {
       record._key = ++_lastIntKey;
     } else {
       // update last int key in case auto gen is needed again
-      if (record._key is int) {
-        int intKey = record._key;
+      var recordKey = record._key;
+      if (recordKey is int) {
+        int intKey = recordKey;
         if (intKey > _lastIntKey) {
           _lastIntKey = intKey;
         }

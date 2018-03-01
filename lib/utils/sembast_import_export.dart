@@ -65,7 +65,7 @@ Future<Database> importDatabase(
     throw new FormatException('invalid export format');
   }
 
-  int version = srcData[_dbVersion];
+  int version = srcData[_dbVersion] as int;
 
   Database db = await dstFactory.openDatabase(dstPath,
       version: version, mode: DatabaseMode.EMPTY);
@@ -74,10 +74,10 @@ Future<Database> importDatabase(
     List<Map> storesExport = srcData[_stores] as List<Map>;
     if (storesExport != null) {
       for (Map storeExport in storesExport) {
-        String storeName = storeExport[_name];
+        String storeName = storeExport[_name] as String;
 
-        List keys = storeExport[_keys];
-        List values = storeExport[_values];
+        List keys = storeExport[_keys] as List;
+        List values = storeExport[_values] as List;
 
         Store store = db.getStore(storeName);
         for (int i = 0; i < keys.length; i++) {
