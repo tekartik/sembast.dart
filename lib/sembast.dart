@@ -5,6 +5,7 @@ import 'package:logging/logging.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'package:sembast/src/database.dart';
+import 'package:sembast/src/sembast_sort_order.dart';
 import 'package:sembast/src/sort_order.dart';
 import 'package:synchronized/synchronized.dart';
 import 'src/transaction.dart';
@@ -385,7 +386,7 @@ class Finder {
     int result = 0;
     if (sortOrders != null) {
       for (SortOrder order in sortOrders) {
-        result = order.compare(record1, record2);
+        result = (order as SembastSortOrder).compare(record1, record2);
         // stop as soon as they differ
         if (result != 0) {
           break;
