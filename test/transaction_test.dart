@@ -3,6 +3,7 @@ library sembast.transaction_test;
 // basically same as the io runner but with extra output
 import 'package:sembast/sembast.dart';
 import 'dart:async';
+import 'package:sembast/src/database.dart';
 import 'test_common.dart';
 
 void main() {
@@ -11,10 +12,10 @@ void main() {
 
 void defineTests(DatabaseTestContext ctx) {
   group('transaction', () {
-    Database db;
+    SembastDatabase db;
 
     setUp(() async {
-      db = await setupForTest(ctx);
+      db = await setupForTest(ctx) as SembastDatabase;
     });
 
     tearDown(() {

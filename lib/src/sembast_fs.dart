@@ -6,6 +6,7 @@ import '../sembast.dart';
 import 'package:path/path.dart';
 import 'package:logging/logging.dart';
 import 'file_system.dart';
+import 'package:sembast/src/database.dart';
 
 class _FsDatabaseStorage extends DatabaseStorage {
   final FileSystem fs;
@@ -128,7 +129,7 @@ class FsDatabaseFactory implements DatabaseFactory {
       {int version,
       OnVersionChangedFunction onVersionChanged,
       DatabaseMode mode}) {
-    Database db = new Database(new _FsDatabaseStorage(fs, path));
+    Database db = new SembastDatabase(new _FsDatabaseStorage(fs, path));
     return db.open(
         version: version, onVersionChanged: onVersionChanged, mode: mode);
   }

@@ -26,7 +26,7 @@ class Store {
 
       _putRecord(record);
       if (database.LOGV) {
-        Database.logger.fine("${database.transaction} put ${record}");
+        Database.logger.fine("${(database as SembastDatabase).transaction} put ${record}");
       }
       return record.key;
     });
@@ -195,7 +195,7 @@ class Store {
       record = _records[key];
     }
     if (database.LOGV) {
-      Database.logger.fine("${database.transaction} get ${record} key ${key}");
+      Database.logger.fine("${(database as SembastDatabase).transaction} get ${record} key ${key}");
     }
     return record as Record;
   }

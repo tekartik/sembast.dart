@@ -4,7 +4,9 @@ library sembast;
 import 'package:logging/logging.dart';
 import 'dart:async';
 import 'dart:convert';
+import 'package:sembast/src/database.dart';
 import 'package:synchronized/synchronized.dart';
+import 'src/transaction.dart';
 
 part 'src/sembast_database.dart';
 part 'src/sembast_store.dart';
@@ -154,21 +156,11 @@ class _Meta {
 ///
 /// Database transaction
 ///
-class Transaction {
-  final int id;
+abstract class Transaction {
+  int get id;
 
-  // make the completer async as the Transaction following
-  // action is not a priority
-  Completer _completer = new Completer();
-  Transaction._(this.id);
-
-  bool get isCompleted => _completer.isCompleted;
-  Future get completed => _completer.future;
-
-  @override
-  String toString() {
-    return "txn ${id}${_completer.isCompleted ? ' completed' : ''}";
-  }
+  bool get isCompleted;
+  Future get completed;
 }
 
 class _CompositeFilter extends Filter {

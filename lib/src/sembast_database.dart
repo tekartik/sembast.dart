@@ -1,6 +1,6 @@
 part of sembast;
 
-class Database {
+abstract class Database {
   static Logger logger = new Logger("Sembast");
   final bool LOGV = logger.isLoggable(Level.FINEST);
 
@@ -28,20 +28,6 @@ class Database {
 
   Database([this._storage]);
 
-  // not used
-  @deprecated
-  Future onUpgrade(int oldVersion, int newVersion) {
-    // default is to clear everything
-    return new Future.value();
-  }
-
-  // not used
-  @deprecated
-  Future onDowngrade(int oldVersion, int newVersion) {
-    // default is to clear everything
-    return new Future.value();
-  }
-
   ///
   /// put a value in the main store
   ///
@@ -66,9 +52,10 @@ class Database {
 
   bool get _inTransaction => lock.inZone;
 
-  Transaction _transaction;
+  SembastTransaction _transaction;
 
-  //@Deprecated("don't use")
+  // deprecate 2018-03-05
+  @deprecated
   Transaction get transaction => _transaction;
 
   ///
@@ -86,11 +73,11 @@ class Database {
     return new Future(() {
       return lock.synchronized(() async {
         // Compatibility add transaction
-        _transaction = new Transaction._(++_txnId);
+        _transaction = new SembastTransaction(++_txnId);
 
         _transactionCleanUp() {
           // Mark transaction complete, ignore error
-          _transaction._completer.complete();
+          _transaction.completer.complete();
 
           // Compatibility remove transaction
           _transaction = null;
@@ -367,7 +354,7 @@ class Database {
     if (storeName == null) {
       return _mainStore = _addStore(_main_store);
     } else {
-      Store store = new Store._(this, storeName);
+      Store store = new Store._(this as SembastDatabase, storeName);
       _stores[storeName] = store;
       return store;
     }

@@ -1,6 +1,7 @@
 library sembast.memory;
 
 import 'dart:async';
+import 'package:sembast/src/database.dart';
 import 'sembast.dart';
 import 'src/sembast_fs.dart';
 import 'src/memory/memory_file_system.dart';
@@ -26,7 +27,7 @@ class MemoryDatabaseFactory implements DatabaseFactory {
     }
 
     if (db == null) {
-      db = new Database(new _MemoryDatabaseStorage(this, path));
+      db = new SembastDatabase(new _MemoryDatabaseStorage(this, path));
     }
 
     await db.open(
