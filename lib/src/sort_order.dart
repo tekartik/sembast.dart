@@ -1,4 +1,4 @@
-part of sembast;
+import 'package:sembast/sembast.dart';
 
 ///
 /// Sort order

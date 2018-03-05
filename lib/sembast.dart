@@ -5,13 +5,15 @@ import 'package:logging/logging.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'package:sembast/src/database.dart';
+import 'package:sembast/src/sort_order.dart';
 import 'package:synchronized/synchronized.dart';
 import 'src/transaction.dart';
+
+export 'package:sembast/src/sort_order.dart';
 
 part 'src/sembast_database.dart';
 part 'src/sembast_store.dart';
 part 'src/sembast_record.dart';
-part 'src/sembast_sort_order.dart';
 
 /// can return a future or not
 typedef OnVersionChangedFunction(Database db, int oldVersion, int newVersion);
