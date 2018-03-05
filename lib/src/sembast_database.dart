@@ -13,7 +13,7 @@ abstract class Database {
   // incremental for each transaction
   int _txnId = 0;
 
-  _Meta _meta;
+  Meta _meta;
   int get version => _meta.version;
 
   bool _opened = false;
@@ -54,7 +54,7 @@ abstract class Database {
 
   SembastTransaction _transaction;
 
-  // deprecate 2018-03-05
+  // deprecated since 2018-03-05 1.7.0
   @deprecated
   Transaction get transaction => _transaction;
 
@@ -352,7 +352,7 @@ abstract class Database {
 
   Store _addStore(String storeName) {
     if (storeName == null) {
-      return _mainStore = _addStore(_main_store);
+      return _mainStore = _addStore(dbMainStore);
     } else {
       Store store = new Store._(this as SembastDatabase, storeName);
       _stores[storeName] = store;
@@ -415,7 +415,7 @@ abstract class Database {
       OnVersionChangedFunction onVersionChanged,
       DatabaseMode mode}) {
     // Default mode
-    _openMode = mode ??= DatabaseMode.CREATE;
+    _openMode = mode ??= databaseModeDefault;
 
     if (_opened) {
       if (path != this.path) {
@@ -426,14 +426,14 @@ abstract class Database {
     }
 
     return lock.synchronized(() async {
-      _Meta meta;
+      Meta meta;
 
       Future _handleVersionChanged(int oldVersion, int newVersion) async {
         var result;
         if (onVersionChanged != null) {
           result = onVersionChanged(this, oldVersion, newVersion);
         }
-        meta = new _Meta(newVersion);
+        meta = new Meta(newVersion);
 
         if (_storage.supported) {
           await _storage.appendLine(JSON.encode(meta.toMap()));
@@ -450,7 +450,7 @@ abstract class Database {
         // Set current meta
         // so that it is an old value during onVersionChanged
         if (meta == null) {
-          meta = new _Meta(0);
+          meta = new Meta(0);
         }
         if (_meta == null) {
           _meta = meta;
@@ -467,7 +467,7 @@ abstract class Database {
           if (version == null) {
             version = 1;
           }
-          meta = new _Meta(version);
+          meta = new Meta(version);
         } else {
           // no specific version requested or same
           if ((version != null) && (version != oldVersion)) {
@@ -487,14 +487,14 @@ abstract class Database {
 
       //_path = path;
       Future _findOrCreate() async {
-        if (mode == DatabaseMode.EXISTING) {
+        if (mode == databaseModeExisting) {
           bool found = await _storage.find();
           if (!found) {
             throw new DatabaseException.databaseNotFound(
                 "Database (open existing only) ${path} not found");
           }
         } else {
-          if (mode == DatabaseMode.EMPTY) {
+          if (mode == databaseModeEmpty) {
             await _storage.delete();
           }
           await _storage.findOrCreate();
@@ -527,7 +527,7 @@ abstract class Database {
               // everything is JSON
               map = JSON.decode(line) as Map;
             } on Exception catch (_) {
-              if (_openMode == DatabaseMode.NEVER_FAILS) {
+              if (_openMode == databaseModeNeverFails) {
                 corrupted = true;
                 return;
               } else {
@@ -535,9 +535,9 @@ abstract class Database {
               }
             }
 
-            if (_Meta.isMapMeta(map)) {
+            if (Meta.isMapMeta(map)) {
               // meta?
-              meta = new _Meta.fromMap(map);
+              meta = new Meta.fromMap(map);
             } else if (Record.isMapRecord(map)) {
               // record?
               Record record = new Record._fromMap(this, map);

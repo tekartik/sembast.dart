@@ -38,7 +38,7 @@ void defineTests(DatabaseTestContext ctx) {
 
       test('open_existing_no_version', () {
         return factory
-            .openDatabase(dbPath, mode: DatabaseMode.EXISTING)
+            .openDatabase(dbPath, mode: databaseModeExisting)
             .then((Database db) {
           fail("should fail");
         }).catchError((DatabaseException e) {
@@ -198,7 +198,10 @@ void defineTests(DatabaseTestContext ctx) {
       test('export', () async {
         Database db = await factory.openDatabase(dbPath);
         expect(
-            db.toJson()["exportStat"], factory.hasStorage ? isNotNull : isNull);
+            // ignore: deprecated_member_use
+            db.toJson()["exportStat"],
+            // ignore: deprecated_member_use
+            factory.hasStorage ? isNotNull : isNull);
       });
     });
   });

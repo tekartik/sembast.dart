@@ -48,10 +48,10 @@ void main() {
         //print(await new io.File(dbPath).readAsString());
 
         try {
-          await db.reOpen();
+          await db.reOpen(mode: databaseModeCreate);
           fail("should fail");
         } on FormatException catch (_) {
-          await db.reOpen(mode: DatabaseMode.NEVER_FAILS);
+          await db.reOpen(mode: databaseModeNeverFails);
           // version cannot be read anymore...
           expect(db.version, 1);
         }
@@ -75,10 +75,10 @@ void main() {
         //print(await new io.File(dbPath).readAsString());
 
         try {
-          await db.reOpen();
+          await db.reOpen(mode: databaseModeCreate);
           fail("should fail");
         } on FormatException catch (_) {
-          await db.reOpen(mode: DatabaseMode.NEVER_FAILS);
+          await db.reOpen(mode: databaseModeNeverFails);
           List<String> lines = await readContent(fs, dbPath);
           // Only the first line remains
           expect(lines.length, 2);

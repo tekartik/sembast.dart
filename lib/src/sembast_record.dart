@@ -64,10 +64,10 @@ class Record {
   }
 
   Record._fromMap(Database db, Map map)
-      : _store = db.getStore(map[_store_name] as String),
-        _key = map[_record_key],
-        _value = map[_record_value],
-        _deleted = map[_record_deleted] == true;
+      : _store = db.getStore(map[dbStoreNameKey] as String),
+        _key = map[dbRecordKey],
+        _value = map[dbRecordValueKey],
+        _deleted = map[dbRecordDeletedKey] == true;
 
   ///
   /// allow overriding store to clean for main store
@@ -80,7 +80,7 @@ class Record {
   /// check whether the map specified looks like a record
   ///
   static bool isMapRecord(Map map) {
-    var key = map[_record_key];
+    var key = map[dbRecordKey];
     return (key != null);
   }
 
@@ -90,20 +90,20 @@ class Record {
 
   Map _toBaseMap() {
     Map map = {};
-    map[_record_key] = key;
+    map[dbRecordKey] = key;
 
     if (deleted == true) {
-      map[_record_deleted] = true;
+      map[dbRecordDeletedKey] = true;
     }
-    if (store != null && store.name != _main_store) {
-      map[_store_name] = store.name;
+    if (store != null && store.name != dbMainStore) {
+      map[dbStoreNameKey] = store.name;
     }
     return map;
   }
 
   Map _toMap() {
     Map map = _toBaseMap();
-    map[_record_value] = value;
+    map[dbRecordValueKey] = value;
     return map;
   }
 

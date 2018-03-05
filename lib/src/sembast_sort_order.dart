@@ -1,8 +1,6 @@
 import 'package:sembast/sembast.dart';
 
-
 class SembastSortOrder implements SortOrder {
-
   final bool ascending; // default true
   final String field;
   final bool nullLast; // default false

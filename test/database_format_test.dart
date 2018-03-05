@@ -361,8 +361,7 @@ void defineTests(FileSystemTestContext ctx) {
     test('corrupted_open_empty', () async {
       await prepareForDb();
       await writeContent(fs, dbPath, ["corrupted"]);
-      Database db =
-          await factory.openDatabase(dbPath, mode: DatabaseMode.EMPTY);
+      Database db = await factory.openDatabase(dbPath, mode: databaseModeEmpty);
       expect(db.version, 1);
     });
   });

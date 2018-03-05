@@ -26,7 +26,8 @@ class Store {
 
       _putRecord(record);
       if (database.LOGV) {
-        Database.logger.fine("${(database as SembastDatabase).transaction} put ${record}");
+        Database.logger
+            .fine("${(database as SembastDatabase).transaction} put ${record}");
       }
       return record.key;
     });
@@ -75,8 +76,8 @@ class Store {
   /// find the first matching record
   ///
   Future<Record> findRecord(Finder finder) {
-    if (finder.limit != 1) {
-      finder = finder.clone(limit: 1);
+    if ((finder as SembastFinder).limit != 1) {
+      finder = (finder as SembastFinder).clone(limit: 1);
     }
     return findRecords(finder).then((List<Record> records) {
       if (records.isNotEmpty) {
@@ -95,13 +96,13 @@ class Store {
 
       result = [];
 
-      _forEachRecords(finder.filter, (Record record) {
+      _forEachRecords((finder as SembastFinder).filter, (Record record) {
         result.add(record);
       });
 
       // sort
-      result
-          .sort((Record record1, record2) => finder.compare(record1, record2));
+      result.sort((Record record1, record2) =>
+          (finder as SembastFinder).compare(record1, record2));
       return result;
     }) as Future<List<Record>>;
   }
@@ -195,7 +196,8 @@ class Store {
       record = _records[key];
     }
     if (database.LOGV) {
-      Database.logger.fine("${(database as SembastDatabase).transaction} get ${record} key ${key}");
+      Database.logger.fine(
+          "${(database as SembastDatabase).transaction} get ${record} key ${key}");
     }
     return record as Record;
   }

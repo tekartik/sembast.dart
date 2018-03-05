@@ -1,3 +1,6 @@
+## 1.7.0
+
+* mode NEVER_FAILS is the new default
 ## 1.6.1
 
 * Add `implicit-cast: false` support

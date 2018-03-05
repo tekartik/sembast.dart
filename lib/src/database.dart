@@ -6,5 +6,4 @@ class SembastDatabase extends Database {
   @override
   // ignore: deprecated_member_use
   Transaction get transaction => super.transaction;
-
 }
