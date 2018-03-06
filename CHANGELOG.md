@@ -1,6 +1,6 @@
 ## 1.7.0
 
-* mode NEVER_FAILS is the new default
+* mode `databaseModeNeverFails` is the new default
 * API cleanup and add deprecations
 
 ## 1.6.1
