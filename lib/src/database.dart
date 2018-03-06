@@ -62,9 +62,14 @@ abstract class Database extends StoreExecutor {
   ///
   Future deleteRecord(Record record);
 
+  ///
+  /// The current transaction when in inTransaction
+  /// Might be deprecated soon
+  Transaction get transaction;
+
   // deprecated since 2018-03-05 1.7.0
   @deprecated
-  Transaction get transaction;
+  Map toJson();
 
   ///
   /// Close the database

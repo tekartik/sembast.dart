@@ -3,7 +3,6 @@ library sembast.transaction_test;
 // basically same as the io runner but with extra output
 import 'package:sembast/sembast.dart';
 import 'dart:async';
-import 'package:sembast/src/database.dart';
 import 'package:sembast/src/database_impl.dart';
 import 'test_common.dart';
 

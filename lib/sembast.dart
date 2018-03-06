@@ -48,8 +48,6 @@ abstract class DatabaseFactory {
   ///
   /// True if it has an associated storage (fs)
   ///
-  // deprecated since 2018-03-05 1.7.0
-  @deprecated
   bool get hasStorage;
 
   ///
