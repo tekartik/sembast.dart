@@ -1,45 +1,30 @@
-part of sembast;
+import 'package:sembast/sembast.dart';
+import 'package:sembast/src/record.dart';
+import 'package:sembast/src/sembast_impl.dart';
 
-///
-/// Special field access
-///
-class Field {
-  /*
-  static const String value = "_value";
-  static const String key = "_key";
-  static String VALUE = "_value";
-  static String KEY = "_key";
+class SembastRecord implements Record {
+  @override
+  dynamic key;
 
-  */
-  static String value = "_value";
-  static String key = "_key";
-
-  // use value instead
-  @deprecated
-  static String VALUE = value;
-
-  // use key instead
-  @deprecated
-  static String KEY = key;
-}
-
-///
-/// Records
-///
-class Record {
-  get key => _key;
+  @override
   get value => _value;
+
+  @override
   bool get deleted => _deleted == true;
+
+  set deleted(bool deleted) => _deleted = deleted;
+
+  @override
   Store get store => _store;
 
   final Store _store;
-  var _key; // not final as can be set during auto key generation
   var _value;
   bool _deleted;
 
   ///
   /// get the value of the specified [field]
   ///
+  @override
   operator [](String field) {
     if (field == Field.value) {
       return value;
@@ -53,27 +38,29 @@ class Record {
   ///
   /// set the [value] of the specified [field]
   ///
+  @override
   void operator []=(String field, var value) {
     if (field == Field.value) {
       _value = value;
     } else if (field == Field.key) {
-      _key = value;
+      key = value;
     } else {
       _value[field] = value;
     }
   }
 
-  Record._fromMap(Database db, Map map)
+  SembastRecord.fromMap(Database db, Map map)
       : _store = db.getStore(map[dbStoreNameKey] as String),
-        _key = map[dbRecordKey],
+        key = map[dbRecordKey],
         _value = map[dbRecordValueKey],
         _deleted = map[dbRecordDeletedKey] == true;
 
   ///
   /// allow overriding store to clean for main store
   ///
-  Record _clone({Store store}) {
-    return new Record._(store == null ? _store : store, _key, _value, _deleted);
+  Record clone({Store store}) {
+    return new SembastRecord.copy(
+        store == null ? _store : store, key, _value, _deleted);
   }
 
   ///
@@ -84,8 +71,8 @@ class Record {
     return (key != null);
   }
 
-  Record._(this._store, var key, var _value, [this._deleted])
-      : _key = _cloneKey(key),
+  SembastRecord.copy(this._store, var key, var _value, [this._deleted])
+      : key = _cloneKey(key),
         _value = _cloneValue(_value);
 
   Map _toBaseMap() {
@@ -101,7 +88,8 @@ class Record {
     return map;
   }
 
-  Map _toMap() {
+  // The actual map written to disk
+  Map toMap() {
     Map map = _toBaseMap();
     map[dbRecordValueKey] = value;
     return map;
@@ -109,17 +97,17 @@ class Record {
 
   @override
   String toString() {
-    return _toMap().toString();
+    return toMap().toString();
   }
 
   ///
   /// Create a record in a given [store] with a given [value] and
   /// an optional [key]
   ///
-  Record(Store store, dynamic value, [dynamic key])
+  SembastRecord(Store store, dynamic value, [dynamic key])
       : this._store = store,
         this._value = value,
-        this._key = key;
+        this.key = key;
 
   @override
   int get hashCode => key == null ? 0 : key.hashCode;
@@ -143,8 +131,9 @@ _cloneKey(var key) {
   if (key == null) {
     return key;
   }
-  throw new DatabaseException.badParam(
-      "key ${key} not supported${key != null ? ' type:${key.runtimeType}' : ''}");
+  throw new DatabaseException.badParam("key ${key} not supported${key != null
+      ? ' type:${key.runtimeType}'
+      : ''}");
 }
 
 _cloneValue(var value) {
@@ -167,5 +156,6 @@ _cloneValue(var value) {
     return value;
   }
   throw new DatabaseException.badParam(
-      "value ${value} not supported${value != null ? ' type:${value.runtimeType}' : ''}");
+      "value ${value} not supported${value != null ? ' type:${value
+          .runtimeType}' : ''}");
 }

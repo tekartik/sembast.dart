@@ -22,7 +22,7 @@ class Store {
   ///
   Future put(var value, [var key]) {
     return database.inTransaction(() {
-      Record record = new Record._(this, key, value, false);
+      Record record = new SembastRecord.copy(this, key, value, false);
 
       _putRecord(record);
       if (database.LOGV) {
@@ -155,10 +155,10 @@ class Store {
     assert(record.store == this);
     // auto-gen key if needed
     if (record.key == null) {
-      record._key = ++_lastIntKey;
+      (record as SembastRecord).key = ++_lastIntKey;
     } else {
       // update last int key in case auto gen is needed again
-      var recordKey = record._key;
+      var recordKey = record.key;
       if (recordKey is int) {
         int intKey = recordKey;
         if (intKey > _lastIntKey) {
@@ -268,8 +268,8 @@ class Store {
         return null;
       } else {
         // clone to keep the existing as is
-        Record clone = record._clone();
-        clone._deleted = true;
+        Record clone = (record as SembastRecord).clone();
+        (clone as SembastRecord).deleted = true;
         _putRecord(clone);
         return key;
       }
@@ -286,8 +286,8 @@ class Store {
       for (var key in keys) {
         Record record = _getRecord(key);
         if (record != null) {
-          Record clone = record._clone();
-          clone._deleted = true;
+          Record clone = (record as SembastRecord).clone();
+          (clone as SembastRecord).deleted = true;
           updates.add(clone);
           deletedKeys.add(key);
         }

@@ -151,7 +151,7 @@ abstract class Database {
         _addLine(_meta.toMap());
         for (Store store in stores) {
           for (Record record in store._records.values) {
-            _addLine(record._toMap());
+            _addLine((record as SembastRecord).toMap());
           }
         }
         await tmpStorage.appendLines(lines);
@@ -196,7 +196,7 @@ abstract class Database {
 
         // writable record
         for (Record record in txnRecords) {
-          Map map = record._toMap();
+          Map map = (record as SembastRecord).toMap();
           String encoded;
           try {
             encoded = JSON.encode(map);
@@ -222,7 +222,7 @@ abstract class Database {
     if (store == null) {
       store = mainStore;
     }
-    return record._clone(store: store);
+    return (record as SembastRecord).clone(store: store);
   }
 
   ///
@@ -538,9 +538,9 @@ abstract class Database {
             if (Meta.isMapMeta(map)) {
               // meta?
               meta = new Meta.fromMap(map);
-            } else if (Record.isMapRecord(map)) {
+            } else if (SembastRecord.isMapRecord(map)) {
               // record?
-              Record record = new Record._fromMap(this, map);
+              Record record = new SembastRecord.fromMap(this, map);
               if (_hasRecord(record)) {
                 _exportStat.obsoleteLineCount++;
               }
