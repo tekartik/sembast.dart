@@ -2,6 +2,7 @@ library sembast.memory;
 
 import 'dart:async';
 import 'package:sembast/src/database.dart';
+import 'package:sembast/src/storage.dart';
 import 'sembast.dart';
 import 'src/sembast_fs.dart';
 import 'src/memory/memory_file_system.dart';

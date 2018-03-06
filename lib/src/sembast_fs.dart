@@ -7,6 +7,7 @@ import 'package:path/path.dart';
 import 'package:logging/logging.dart';
 import 'file_system.dart';
 import 'package:sembast/src/database.dart';
+import 'package:sembast/src/storage.dart';
 
 class _FsDatabaseStorage extends DatabaseStorage {
   final FileSystem fs;

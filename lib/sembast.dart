@@ -12,6 +12,7 @@ import 'package:sembast/src/finder.dart';
 import 'package:sembast/src/meta.dart';
 import 'package:sembast/src/sembast_impl.dart';
 import 'package:sembast/src/sort_order.dart';
+import 'package:sembast/src/storage.dart';
 import 'package:synchronized/synchronized.dart';
 
 import 'src/transaction.dart';
@@ -76,35 +77,6 @@ abstract class DatabaseFactory {
   /// Delete a database if existing
   ///
   Future deleteDatabase(String path);
-}
-
-///
-/// Storage implementation
-///
-/// where the database is read/written to if needed
-///
-abstract class DatabaseStorage {
-  String get path;
-
-  bool get supported;
-
-  DatabaseStorage();
-
-  DatabaseStorage get tmpStorage;
-
-  Future tmpRecover();
-
-  Future delete();
-
-  Future<bool> find();
-
-  Future findOrCreate();
-
-  Stream<String> readLines();
-
-  Future appendLines(List<String> lines);
-
-  Future appendLine(String line) => appendLines([line]);
 }
 
 ///

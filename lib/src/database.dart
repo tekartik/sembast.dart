@@ -1,4 +1,5 @@
 import 'package:sembast/sembast.dart';
+import 'package:sembast/src/storage.dart';
 
 class SembastDatabase extends Database {
   SembastDatabase(DatabaseStorage _storage) : super(_storage);
