@@ -1,6 +1,8 @@
 import 'package:sembast/sembast.dart';
+import 'package:sembast/src/database_impl.dart';
 import 'package:sembast/src/record.dart';
 import 'package:sembast/src/sembast_impl.dart';
+import 'package:sembast/src/database.dart';
 
 class SembastRecord implements Record {
   @override
@@ -50,7 +52,8 @@ class SembastRecord implements Record {
   }
 
   SembastRecord.fromMap(Database db, Map map)
-      : _store = db.getStore(map[dbStoreNameKey] as String),
+      : _store =
+            (db as SembastDatabase).getStore(map[dbStoreNameKey] as String),
         key = map[dbRecordKey],
         _value = map[dbRecordValueKey],
         _deleted = map[dbRecordDeletedKey] == true;

@@ -86,7 +86,7 @@ void defineTests(DatabaseTestContext ctx) {
           expect(value, false);
         });
       }).then((_) {
-        return db.reOpen().then((_) {
+        return reOpen(db).then((_) {
           return store1.get(1).then((value) {
             expect(value, "hi");
           });

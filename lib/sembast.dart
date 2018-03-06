@@ -2,32 +2,20 @@ library sembast;
 
 //import 'package:tekartik_core/dev_utils.dart';
 import 'dart:async';
-import 'dart:convert';
 
-import 'package:logging/logging.dart';
 import 'package:sembast/sembast.dart';
 import 'package:sembast/src/database.dart';
 import 'package:sembast/src/database_mode.dart';
 import 'package:sembast/src/filter.dart';
 import 'package:sembast/src/finder.dart';
-import 'package:sembast/src/meta.dart';
-import 'package:sembast/src/record_impl.dart';
-import 'package:sembast/src/sembast_impl.dart';
 import 'package:sembast/src/sort_order.dart';
-import 'package:sembast/src/storage.dart';
-import 'package:synchronized/synchronized.dart';
-
-import 'src/transaction_impl.dart';
 
 export 'package:sembast/src/database_mode.dart' show DatabaseMode;
 export 'package:sembast/src/sort_order.dart';
+
+export 'src/database.dart';
 export 'src/record.dart';
-
-part 'src/sembast_database.dart';
-
-
-
-part 'src/sembast_store.dart';
+export 'src/store.dart';
 
 /// can return a future or not
 typedef OnVersionChangedFunction(Database db, int oldVersion, int newVersion);

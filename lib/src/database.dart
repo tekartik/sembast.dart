@@ -1,10 +1,73 @@
+import 'dart:async';
+
 import 'package:sembast/sembast.dart';
-import 'package:sembast/src/storage.dart';
 
-class SembastDatabase extends Database {
-  SembastDatabase(DatabaseStorage _storage) : super(_storage);
+abstract class Database extends StoreExecutor {
+  /// Version of the database
+  int get version;
 
-  @override
-  // ignore: deprecated_member_use
-  Transaction get transaction => super.transaction;
+  /// Database  path
+  String get path;
+
+  ///
+  /// execute the action in a transaction
+  /// use the current if any
+  ///
+  Future<T> inTransaction<T>(FutureOr<T> action());
+
+  /// All the stores in the database
+  Iterable<Store> get stores;
+
+  /// The main store used
+  Store get mainStore;
+
+  ///
+  /// get or create a store
+  /// an empty store will not be persistent
+  ///
+  Store getStore(String storeName);
+
+  ///
+  /// clear and delete a store
+  ///
+  Future deleteStore(String storeName);
+
+  ///
+  /// find existing store
+  ///
+  Store findStore(String storeName);
+
+  // deprecated since 2018-03-05 1.7.0
+  // use [Store.getRecord]
+  @deprecated
+  Future<Record> getStoreRecord(Store store, var key);
+
+  // deprecated since 2018-03-05 1.7.0
+  // use [Store.findRecord]
+  @deprecated
+  Future<List<Record>> findStoreRecords(Store store, Finder finder);
+
+  ///
+  /// Put a record
+  ///
+  Future<Record> putRecord(Record record);
+
+  ///
+  /// Put a list or records
+  ///
+  Future<List<Record>> putRecords(List<Record> records);
+
+  ///
+  /// delete a [record]
+  ///
+  Future deleteRecord(Record record);
+
+  // deprecated since 2018-03-05 1.7.0
+  @deprecated
+  Transaction get transaction;
+
+  ///
+  /// Close the database
+  ///
+  close();
 }

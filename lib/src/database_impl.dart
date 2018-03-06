@@ -1,6 +1,17 @@
-part of sembast;
+import 'dart:async';
+import 'dart:convert';
+import 'package:logging/logging.dart';
+import 'package:sembast/sembast.dart';
+import 'package:sembast/src/meta.dart';
+import 'package:sembast/src/record_impl.dart';
+import 'package:sembast/src/sembast_impl.dart';
+import 'package:sembast/src/storage.dart';
+import 'database.dart';
+import 'package:sembast/src/store_impl.dart';
+import 'package:sembast/src/transaction_impl.dart';
+import 'package:synchronized/synchronized.dart';
 
-abstract class Database {
+class SembastDatabase implements Database {
   static Logger logger = new Logger("Sembast");
   final bool LOGV = logger.isLoggable(Level.FINEST);
 
@@ -19,6 +30,7 @@ abstract class Database {
   bool _opened = false;
   DatabaseMode _openMode;
 
+  @override
   Store get mainStore => _mainStore;
 
   Store _mainStore;
@@ -26,11 +38,12 @@ abstract class Database {
 
   Iterable<Store> get stores => _stores.values;
 
-  Database([this._storage]);
+  SembastDatabase([this._storage]);
 
   ///
   /// put a value in the main store
   ///
+  @override
   Future put(var value, [var key]) {
     return _mainStore.put(value, key);
   }
@@ -38,31 +51,33 @@ abstract class Database {
   void _clearTxnData() {
 // remove temp data in all store
     for (Store store in stores) {
-      store._rollback();
+      (store as SembastStore).rollback();
     }
   }
 
   void rollback() {
     // only valid in a transaction
-    if (!_inTransaction) {
+    if (!isInTransaction) {
       throw new Exception("not in transaction");
     }
     _clearTxnData();
   }
 
-  bool get _inTransaction => lock.inZone;
+  bool get isInTransaction => lock.inZone;
 
   SembastTransaction _transaction;
 
-  // deprecated since 2018-03-05 1.7.0
-  @deprecated
+  SembastTransaction get currentTransaction => _transaction;
+
+  @override
   Transaction get transaction => _transaction;
 
   ///
   /// execute the action in a transaction
   /// use the current if any
   ///
-  Future inTransaction(action()) {
+  @override
+  Future<T> inTransaction<T>(FutureOr<T> action()) {
     //devPrint("z: ${Zone.current[_zoneRootKey]}");
     //devPrint("z: ${Zone.current[_zoneChildKey]}");
 
@@ -83,7 +98,7 @@ abstract class Database {
           _transaction = null;
         }
 
-        var actionResult;
+        T actionResult;
         try {
           actionResult = await new Future.sync(action);
           await _commit();
@@ -111,12 +126,12 @@ abstract class Database {
     });
   }
 
-  bool _setRecordInMemory(Record record) {
-    return record.store._setRecordInMemory(record);
+  bool setRecordInMemory(Record record) {
+    return _recordStore(record).setRecordInMemory(record);
   }
 
-  void _loadRecord(Record record) {
-    record.store._loadRecord(record);
+  void loadRecord(Record record) {
+    _recordStore(record).loadRecord(record);
   }
 
   ///
@@ -150,7 +165,7 @@ abstract class Database {
 
         _addLine(_meta.toMap());
         for (Store store in stores) {
-          for (Record record in store._records.values) {
+          for (Record record in (store as SembastStore).recordMap.values) {
             _addLine((record as SembastRecord).toMap());
           }
         }
@@ -171,15 +186,15 @@ abstract class Database {
   _commit() async {
     List<Record> txnRecords = [];
     for (Store store in stores) {
-      if (store._txnRecords != null) {
-        txnRecords.addAll(store._txnRecords.values);
+      if ((store as SembastStore).txnRecords != null) {
+        txnRecords.addAll((store as SembastStore).txnRecords.values);
       }
     }
 
     // end of commit
     _saveInMemory() {
       for (Record record in txnRecords) {
-        bool exists = _setRecordInMemory(record);
+        bool exists = setRecordInMemory(record);
         // Try to estimated if compact will be needed
         if (_storage.supported) {
           if (exists) {
@@ -228,10 +243,11 @@ abstract class Database {
   ///
   /// Put a record
   ///
+  @override
   Future<Record> putRecord(Record record) {
     return inTransaction(() {
-      return _putRecord(_cloneAndFix(record));
-    }) as Future<Record>;
+      return txnPutRecord(_cloneAndFix(record));
+    });
   }
 
   ///
@@ -244,6 +260,7 @@ abstract class Database {
   ///
   /// Get a store record
   ///
+  @override
   Future<Record> getStoreRecord(Store store, var key) {
     return store.getRecord(key);
   }
@@ -251,14 +268,15 @@ abstract class Database {
   ///
   /// Put a list or records
   ///
+  @override
   Future<List<Record>> putRecords(List<Record> records) {
     return inTransaction(() {
       List<Record> toPut = [];
       for (Record record in records) {
         toPut.add(_cloneAndFix(record));
       }
-      return _putRecords(toPut);
-    }) as Future<List<Record>>;
+      return txnPutRecords(toPut);
+    });
   }
 
   ///
@@ -268,22 +286,28 @@ abstract class Database {
     return mainStore.findRecords(finder);
   }
 
+  @override
+  Future<Record> findRecord(Finder finder) {
+    return mainStore.findRecord(finder);
+  }
+
   ///
   /// find records in the given [store]
   ///
+  @override
   Future<List<Record>> findStoreRecords(Store store, Finder finder) {
     return store.findRecords(finder);
   }
 
-  Record _putRecord(Record record) {
-    return record.store._putRecord(record);
+  Record txnPutRecord(Record record) {
+    return _recordStore(record).txnPutRecord(record);
   }
 
   // record must have been clone before
-  List<Record> _putRecords(List<Record> records) {
+  List<Record> txnPutRecords(List<Record> records) {
     // temp records
     for (Record record in records) {
-      _putRecord(record);
+      txnPutRecord(record);
     }
     return records;
   }
@@ -298,13 +322,14 @@ abstract class Database {
   ///
   /// count all records in the main store
   ///
-  Future<int> count() {
-    return _mainStore.count();
+  Future<int> count([Filter filter]) {
+    return _mainStore.count(filter);
   }
 
   ///
   /// delete a record by key in the main store
   ///
+  @override
   Future delete(var key) {
     return _mainStore.delete(key);
   }
@@ -312,6 +337,7 @@ abstract class Database {
   ///
   /// delete a [record]
   ///
+  @override
   Future deleteRecord(Record record) {
     return record.store.delete(record.key);
   }
@@ -324,7 +350,7 @@ abstract class Database {
   }
 
   bool _hasRecord(Record record) {
-    return record.store._has(record.key);
+    return _recordStore(record).hasKey(record.key);
   }
 
   ///
@@ -354,7 +380,7 @@ abstract class Database {
     if (storeName == null) {
       return _mainStore = _addStore(dbMainStore);
     } else {
-      Store store = new Store._(this as SembastDatabase, storeName);
+      Store store = new SembastStore(this, storeName);
       _stores[storeName] = store;
       return store;
     }
@@ -363,6 +389,7 @@ abstract class Database {
   ///
   /// find existing store
   ///
+  @override
   Store findStore(String storeName) {
     Store store;
     if (storeName == null) {
@@ -377,6 +404,7 @@ abstract class Database {
   /// get or create a store
   /// an empty store will not be persistent
   ///
+  @override
   Store getStore(String storeName) {
     Store store;
     if (storeName == null) {
@@ -393,6 +421,7 @@ abstract class Database {
   ///
   /// clear and delete a store
   ///
+  @override
   Future deleteStore(String storeName) {
     Store store = findStore(storeName);
     if (store == null) {
@@ -544,7 +573,7 @@ abstract class Database {
               if (_hasRecord(record)) {
                 _exportStat.obsoleteLineCount++;
               }
-              _loadRecord(record);
+              loadRecord(record);
             }
           }
         });
@@ -574,7 +603,7 @@ abstract class Database {
     });
   }
 
-  void close() {
+  close() {
     _opened = false;
     //_mainStore = null;
     //_meta = null;
@@ -592,7 +621,7 @@ abstract class Database {
     if (_stores != null) {
       List stores = [];
       for (Store store in _stores.values) {
-        stores.add(store.toJson());
+        stores.add((store as SembastStore).toJson());
       }
       map["stores"] = stores;
     }
@@ -650,3 +679,5 @@ class DatabaseExportStat {
     return map;
   }
 }
+
+SembastStore _recordStore(Record record) => record.store as SembastStore;

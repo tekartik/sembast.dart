@@ -66,16 +66,6 @@ void defineTests(DatabaseTestContext ctx) {
           });
         });
       });
-
-      test('open_then_open_no_version', () {
-        return factory.openDatabase(dbPath, version: 1).then((Database db) {
-          return db.reOpen().then((Database db) {
-            expect(db.path, dbPath);
-            expect(db.version, 1);
-            db.close();
-          });
-        });
-      });
     });
 
     group('onVersionChanged', () {
@@ -132,76 +122,6 @@ void defineTests(DatabaseTestContext ctx) {
           expect(db.path, dbPath);
           db.close();
         });
-      });
-
-      test('open_then_open_no_version_or_same_version', () {
-        return factory.openDatabase(dbPath, version: 1).then((Database db) {
-          _onVersionChanged(Database db, int oldVersion, int newVersion) {
-            fail("not changed");
-          }
-
-          return db
-              .reOpen(onVersionChanged: _onVersionChanged)
-              .then((Database db) {
-            expect(db.path, dbPath);
-            expect(db.version, 1);
-            db.close();
-          }).then((_) {
-            return db
-                .reOpen(version: 1, onVersionChanged: _onVersionChanged)
-                .then((Database db) {
-              expect(db.path, dbPath);
-              expect(db.version, 1);
-              db.close();
-            });
-          });
-        });
-      });
-
-      test('open_then_open_new_version', () {
-        return factory.openDatabase(dbPath, version: 1).then((Database db) {
-// save to make sure we've been through
-          int _oldVersion;
-          int _newVersion;
-          _onVersionChanged(Database db, int oldVersion, int newVersion) {
-            expect(db.version, oldVersion);
-            _oldVersion = oldVersion;
-            _newVersion = newVersion;
-          }
-
-          return db
-              .reOpen(version: 2, onVersionChanged: _onVersionChanged)
-              .then((Database db) {
-            expect(_oldVersion, 1);
-            expect(_newVersion, 2);
-            expect(db.path, dbPath);
-            expect(db.version, 2);
-            db.close();
-          });
-        });
-      });
-    });
-
-    group('format', () {
-      Database db;
-
-      setUp(() {
-        return factory.deleteDatabase(dbPath).then((_) {});
-      });
-
-      tearDown(() {
-        if (db != null) {
-          db.close();
-        }
-      });
-
-      test('export', () async {
-        Database db = await factory.openDatabase(dbPath);
-        expect(
-            // ignore: deprecated_member_use
-            db.toJson()["exportStat"],
-            // ignore: deprecated_member_use
-            factory.hasStorage ? isNotNull : isNull);
       });
     });
   });

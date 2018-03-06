@@ -1,5 +1,5 @@
 import 'package:sembast/sembast.dart';
-import 'package:sembast/src/sembast_sort_order.dart';
+import 'package:sembast/src/sort_order_impl.dart';
 
 ///
 /// Helper to define one or multiple filters

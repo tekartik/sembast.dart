@@ -1,7 +1,7 @@
 library sembast.memory;
 
 import 'dart:async';
-import 'package:sembast/src/database.dart';
+import 'package:sembast/src/database_impl.dart';
 import 'package:sembast/src/storage.dart';
 import 'sembast.dart';
 import 'src/sembast_fs.dart';
@@ -22,7 +22,7 @@ class MemoryDatabaseFactory implements DatabaseFactory {
       {int version,
       OnVersionChangedFunction onVersionChanged,
       DatabaseMode mode}) async {
-    Database db;
+    SembastDatabase db;
     if (path != null) {
       db = _databases[path];
     }
@@ -52,7 +52,7 @@ class MemoryDatabaseFactory implements DatabaseFactory {
   }
 
   //Database _defaultDatabase;
-  Map<String, Database> _databases = new Map();
+  Map<String, SembastDatabase> _databases = new Map();
 
   @override
   bool get hasStorage => false;

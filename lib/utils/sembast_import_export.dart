@@ -50,7 +50,7 @@ Future<Map> exportDatabase(Database db) {
       export[_stores] = storesExport;
     }
     return export;
-  }) as Future<Map>;
+  });
 }
 
 ///

@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:path/path.dart';
 import 'package:sembast/sembast.dart';
 import 'package:sembast/sembast_io.dart';
+import 'package:sembast/src/database_impl.dart';
 
 main() async {
   Database db = await ioDatabaseFactory
@@ -22,7 +23,7 @@ main() async {
 
     if (random.nextInt(1000) == 0) {
       print('reopening');
-      await db.reOpen();
+      await (db as SembastDatabase).reOpen();
     }
   }
 }
