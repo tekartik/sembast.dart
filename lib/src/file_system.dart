@@ -270,7 +270,7 @@ abstract class File extends FileSystemEntity {
    *  has an [:encoding:] property which can be changed after the
    *  [IOSink] has been created.
    */
-  IOSink openWrite({FileMode mode: FileMode.WRITE, Encoding encoding: UTF8});
+  IOSink openWrite({FileMode mode: FileMode.WRITE, Encoding encoding: utf8});
 
   /**
    * Renames this file. Returns a `Future<File>` that completes

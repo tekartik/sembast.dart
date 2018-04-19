@@ -39,7 +39,7 @@ void main() {
         await prepareForDb();
 
         await new io.File(dbPath)
-            .writeAsString(JSON.encode({"version": 2, "sembast": 1}));
+            .writeAsString(json.encode({"version": 2, "sembast": 1}));
         Database db = await ioDatabaseFactory.openDatabase(dbPath);
         expect(db.version, 2);
 
@@ -62,11 +62,11 @@ void main() {
         await prepareForDb();
 
         await new io.File(dbPath).writeAsString(
-            JSON.encode({"version": 2, "sembast": 1}) +
+            json.encode({"version": 2, "sembast": 1}) +
                 "\n" +
-                JSON.encode({'key': 1, 'value': 'test1'}) +
+                json.encode({'key': 1, 'value': 'test1'}) +
                 "\n" +
-                JSON.encode({'key': 2, 'value': 'test2'}));
+                json.encode({'key': 2, 'value': 'test2'}));
         Database db = await ioDatabaseFactory.openDatabase(dbPath);
         expect(db.version, 2);
 
@@ -82,7 +82,7 @@ void main() {
           List<String> lines = await readContent(fs, dbPath);
           // Only the first line remains
           expect(lines.length, 2);
-          expect(JSON.decode(lines[1]), {'key': 1, 'value': 'test1'});
+          expect(json.decode(lines[1]), {'key': 1, 'value': 'test1'});
         }
         db.close();
       });

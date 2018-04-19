@@ -118,7 +118,7 @@ class _MemoryFile extends _MemoryFileSystemEntity implements fs.File {
   // don't care about encoding - assume UTF8
   @override
   fs.IOSink openWrite(
-          {fs.FileMode mode: fs.FileMode.WRITE, Encoding encoding: UTF8}) //
+          {fs.FileMode mode: fs.FileMode.WRITE, Encoding encoding: utf8}) //
       =>
       _fs._impl.openWrite(path, mode: mode);
 

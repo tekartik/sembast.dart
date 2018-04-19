@@ -65,7 +65,7 @@ Future<List<String>> readContent(FileSystem fs, String filePath) {
   return fs
       .newFile(filePath)
       .openRead()
-      .transform(UTF8.decoder)
+      .transform(utf8.decoder)
       .transform(new LineSplitter())
       .listen((String line) {
     content.add(line);

@@ -211,7 +211,7 @@ class File extends FileSystemEntity implements fs.File {
 
   @override
   fs.IOSink openWrite(
-          {fs.FileMode mode: fs.FileMode.WRITE, Encoding encoding: UTF8}) //
+          {fs.FileMode mode: fs.FileMode.WRITE, Encoding encoding: utf8}) //
       =>
       new _IoIOSink(
           ioFile.openWrite(mode: _fileMode(mode), encoding: encoding));

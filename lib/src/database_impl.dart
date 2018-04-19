@@ -151,7 +151,7 @@ class SembastDatabase implements Database {
         _addLine(Map map) {
           String encoded;
           try {
-            encoded = JSON.encode(map);
+            encoded = json.encode(map);
             exportStat.lineCount++;
             lines.add(encoded);
           } catch (e, st) {
@@ -214,7 +214,7 @@ class SembastDatabase implements Database {
           Map map = (record as SembastRecord).toMap();
           String encoded;
           try {
-            encoded = JSON.encode(map);
+            encoded = json.encode(map);
             lines.add(encoded);
           } catch (e, st) {
             print(map);
@@ -465,7 +465,7 @@ class SembastDatabase implements Database {
         meta = new Meta(newVersion);
 
         if (_storage.supported) {
-          await _storage.appendLine(JSON.encode(meta.toMap()));
+          await _storage.appendLine(json.encode(meta.toMap()));
           _exportStat.lineCount++;
         }
 
@@ -554,7 +554,7 @@ class SembastDatabase implements Database {
 
             try {
               // everything is JSON
-              map = JSON.decode(line) as Map;
+              map = json.decode(line) as Map;
             } on Exception catch (_) {
               if (_openMode == databaseModeNeverFails) {
                 corrupted = true;

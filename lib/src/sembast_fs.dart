@@ -97,7 +97,7 @@ class _FsDatabaseStorage extends DatabaseStorage {
   Stream<String> readLines() {
     return file
         .openRead()
-        .transform(UTF8.decoder)
+        .transform(utf8.decoder)
         .transform(new LineSplitter());
   }
 

@@ -35,7 +35,7 @@ void defineTests(FileSystemTestContext ctx) {
       await factory.openDatabase(dbPath);
       List<String> lines = await readContent(fs, dbPath);
       expect(lines.length, 1);
-      expect(JSON.decode(lines.first), {"version": 1, "sembast": 1});
+      expect(json.decode(lines.first), {"version": 1, "sembast": 1});
     });
 
     test('open_version_2', () async {
@@ -43,7 +43,7 @@ void defineTests(FileSystemTestContext ctx) {
       await factory.openDatabase(dbPath, version: 2);
       List<String> lines = await readContent(fs, dbPath);
       expect(lines.length, 1);
-      expect(JSON.decode(lines.first), {"version": 2, "sembast": 1});
+      expect(json.decode(lines.first), {"version": 2, "sembast": 1});
     });
 
     test('1 string record', () async {
@@ -53,7 +53,7 @@ void defineTests(FileSystemTestContext ctx) {
       }).then((_) {
         return readContent(fs, dbPath).then((List<String> lines) {
           expect(lines.length, 2);
-          expect(JSON.decode(lines[1]), {'key': 1, 'value': 'hi'});
+          expect(json.decode(lines[1]), {'key': 1, 'value': 'hi'});
         });
       });
     });
@@ -67,7 +67,7 @@ void defineTests(FileSystemTestContext ctx) {
       List<String> lines = await readContent(fs, dbPath);
       expect(lines.length, 2);
       expect(
-          JSON.decode(lines[1]), {'store': 'store2', 'key': 1, 'value': 'hi'});
+          json.decode(lines[1]), {'store': 'store2', 'key': 1, 'value': 'hi'});
     });
 
     test('twice same record', () async {
@@ -79,8 +79,8 @@ void defineTests(FileSystemTestContext ctx) {
       }).then((_) {
         return readContent(fs, dbPath).then((List<String> lines) {
           expect(lines.length, 3);
-          expect(JSON.decode(lines[1]), {'key': 1, 'value': 'hi'});
-          expect(JSON.decode(lines[2]), {'key': 1, 'value': 'hi'});
+          expect(json.decode(lines[1]), {'key': 1, 'value': 'hi'});
+          expect(json.decode(lines[2]), {'key': 1, 'value': 'hi'});
         });
       });
     });
@@ -92,7 +92,7 @@ void defineTests(FileSystemTestContext ctx) {
       }).then((_) {
         return readContent(fs, dbPath).then((List<String> lines) {
           expect(lines.length, 2);
-          expect(JSON.decode(lines[1]), {
+          expect(json.decode(lines[1]), {
             'key': 1,
             'value': {'test': 2}
           });
@@ -105,7 +105,7 @@ void defineTests(FileSystemTestContext ctx) {
     test('open_version_2', () async {
       await prepareForDb();
       await writeContent(fs, dbPath, [
-        JSON.encode({"version": 2, "sembast": 1})
+        json.encode({"version": 2, "sembast": 1})
       ]);
       return factory.openDatabase(dbPath).then((Database db) {
         expect(db.version, 2);
