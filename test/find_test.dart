@@ -259,6 +259,12 @@ void defineTests(DatabaseTestContext ctx) {
         var records = await store.findRecords(finder);
         expect(records.length, 1);
         expect(records[0], record1);
+
+        finder = new Finder(limit: 4);
+        records = await store.findRecords(finder);
+        expect(records.length, 3);
+        expect(records[0], record1);
+        expect(records[2], record3);
       });
 
       test('offset', () async {
@@ -267,6 +273,10 @@ void defineTests(DatabaseTestContext ctx) {
         expect(records.length, 2);
         expect(records[0], record2);
         expect(records[1], record3);
+
+        finder = new Finder(offset: 4);
+        records = await store.findRecords(finder);
+        expect(records.length, 0);
       });
 
       test('limit_offset', () async {
@@ -274,6 +284,11 @@ void defineTests(DatabaseTestContext ctx) {
         var records = await store.findRecords(finder);
         expect(records.length, 1);
         expect(records[0], record2);
+
+        finder = new Finder(limit: 2, offset: 2);
+        records = await store.findRecords(finder);
+        expect(records.length, 1);
+        expect(records[0], record3);
       });
     });
 

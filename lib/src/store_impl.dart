@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 import 'package:sembast/sembast.dart';
 import 'database_impl.dart';
 import 'package:sembast/src/finder.dart';
@@ -115,11 +116,11 @@ class SembastStore implements Store {
 
       // offset
       if (sembastFinder.offset != null) {
-        result = result.sublist(sembastFinder.offset);
+        result = result.sublist(min(sembastFinder.offset, result.length));
       }
       // limit
       if (sembastFinder.limit != null) {
-        result = result.sublist(0, sembastFinder.limit);
+        result = result.sublist(0, min(sembastFinder.limit, result.length));
       }
       return result;
     });
