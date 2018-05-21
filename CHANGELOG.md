@@ -3,6 +3,7 @@
 * fix flutter cast issue
 * fix limit/offset implementation
 * Update synchronized dependency
+* make all constants lowercase
 
 ## 1.7.0
 
