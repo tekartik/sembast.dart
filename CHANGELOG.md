@@ -1,3 +1,9 @@
+## 1.8.0
+
+* fix flutter cast issue
+* fix limit/offset implementation
+* Update synchronized dependency
+
 ## 1.7.0
 
 * mode `databaseModeNeverFails` is the new default

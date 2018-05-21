@@ -253,6 +253,28 @@ void defineTests(DatabaseTestContext ctx) {
           });
         });
       });
+
+      test('limit', () async {
+        var finder = new Finder(limit: 1);
+        var records = await store.findRecords(finder);
+        expect(records.length, 1);
+        expect(records[0], record1);
+      });
+
+      test('offset', () async {
+        var finder = new Finder(offset: 1);
+        var records = await store.findRecords(finder);
+        expect(records.length, 2);
+        expect(records[0], record2);
+        expect(records[1], record3);
+      });
+
+      test('limit_offset', () async {
+        var finder = new Finder(limit: 1, offset: 1);
+        var records = await store.findRecords(finder);
+        expect(records.length, 1);
+        expect(records[0], record2);
+      });
     });
 
     group('find_null', () {

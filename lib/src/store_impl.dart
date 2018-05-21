@@ -102,15 +102,25 @@ class SembastStore implements Store {
     return inTransaction(() {
       List<Record> result;
 
+      var sembastFinder = finder as SembastFinder;
       result = [];
 
-      _forEachRecords((finder as SembastFinder).filter, (Record record) {
+      _forEachRecords(sembastFinder.filter, (Record record) {
         result.add(record);
       });
 
       // sort
       result.sort((Record record1, record2) =>
           (finder as SembastFinder).compare(record1, record2));
+
+      // offset
+      if (sembastFinder.offset != null) {
+        result = result.sublist(sembastFinder.offset);
+      }
+      // limit
+      if (sembastFinder.limit != null) {
+        result = result.sublist(0, sembastFinder.limit);
+      }
       return result;
     });
   }
