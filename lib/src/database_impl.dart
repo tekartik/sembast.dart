@@ -67,9 +67,11 @@ class SembastDatabase implements Database {
 
   SembastTransaction _transaction;
 
+  // @deprecated
   SembastTransaction get currentTransaction => _transaction;
 
   @override
+  // @deprecated
   Transaction get transaction => _transaction;
 
   ///
