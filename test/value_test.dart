@@ -1,0 +1,101 @@
+library sembast.value_test;
+
+// basically same as the io runner but with extra output
+import 'dart:async';
+import 'package:sembast/sembast.dart';
+import 'test_common.dart';
+
+void main() {
+  defineTests(memoryDatabaseContext);
+}
+
+void defineTests(DatabaseTestContext ctx) {
+  group('value', () {
+    Database db;
+
+    setUp(() async {
+      db = await setupForTest(ctx);
+    });
+
+    tearDown(() {
+      db.close();
+    });
+
+    test('null', () async {
+      expect(await db.containsKey(1), isFalse);
+      await db.put(null);
+
+      Future _check() async {
+        expect(await db.containsKey(1), isTrue);
+        expect(await db.get(1), isNull);
+      }
+
+      await _check();
+      db = await reOpen(db);
+      await _check();
+    });
+
+    test('int', () async {
+      expect(await db.containsKey(1), isFalse);
+      await db.put(1234);
+      Future _check() async {
+        int value = await db.get(1);
+        expect(await db.containsKey(1), isTrue);
+        expect(value, 1234);
+      }
+
+      await _check();
+      db = await reOpen(db);
+      await _check();
+    });
+
+    test('double', () async {
+      expect(await db.containsKey(1), isFalse);
+      await db.put(1234.5678);
+      Future _check() async {
+        double value = await db.get(1);
+        expect(await db.containsKey(1), isTrue);
+        expect(value, closeTo(1234.5678, 0.0001));
+      }
+
+      await _check();
+      db = await reOpen(db);
+      await _check();
+    });
+
+    test('String', () async {
+      expect(await db.containsKey(1), isFalse);
+      await db.put("hello") as int;
+      Future _check() async {
+        String value = await db.get(1);
+        expect(await db.containsKey(1), isTrue);
+        expect(value, "hello");
+      }
+
+      await _check();
+      db = await reOpen(db);
+      await _check();
+    });
+
+    test('Map', () async {
+      Map<String, dynamic> map = {
+        'int': 1234,
+        'null': null,
+        'double': 1234.5678,
+        'String': 'hello',
+        'nested': {'sub': 4321}
+      };
+      expect(await db.containsKey(1), isFalse);
+      await db.put(map) as int;
+      Future _check() async {
+        Map<String, dynamic> value = await db.get(1);
+        expect(await db.containsKey(1), isTrue);
+        expect(value, map);
+      }
+
+      await _check();
+      db = await reOpen(db);
+      await _check();
+    });
+  });
+}

@@ -5,6 +5,7 @@ import 'database_test.dart' as database_test;
 import 'crud_test.dart' as crud_test;
 import 'record_test.dart' as record_test;
 import 'key_test.dart' as key_test;
+import 'value_test.dart' as value_test;
 import 'find_test.dart' as find_test;
 import 'store_test.dart' as store_test;
 import 'transaction_test.dart' as transaction_test;
@@ -31,6 +32,7 @@ void defineTests(DatabaseTestContext ctx) {
   crud_test.defineTests(ctx);
   record_test.defineTests(ctx);
   key_test.defineTests(ctx);
+  value_test.defineTests(ctx);
   store_test.defineTests(ctx);
   find_test.defineTests(ctx);
   transaction_test.defineTests(ctx);

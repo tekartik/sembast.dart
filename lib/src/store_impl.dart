@@ -112,7 +112,7 @@ class SembastStore implements Store {
       result.sort((Record record1, record2) =>
           (finder as SembastFinder).compare(record1, record2));
       return result;
-    }) as Future<List<Record>>;
+    });
   }
 
   ///
@@ -144,9 +144,8 @@ class SembastStore implements Store {
   /// execture the actions in a transaction
   /// use the current if any
   ///
-  Future inTransaction(action()) {
-    return database.inTransaction(action);
-  }
+  Future<T> inTransaction<T>(FutureOr<T> action()) =>
+      database.inTransaction(action);
 
   // Use Database.putRecord instead
   @deprecated
@@ -268,7 +267,7 @@ class SembastStore implements Store {
         count++;
       });
       return count;
-    }) as Future<int>;
+    });
   }
 
   ///
@@ -311,6 +310,13 @@ class SembastStore implements Store {
         database.txnPutRecords(updates);
       }
       return deletedKeys;
+    });
+  }
+
+  @override
+  Future<bool> containsKey(key) {
+    return inTransaction(() {
+      return hasKey(key);
     });
   }
 

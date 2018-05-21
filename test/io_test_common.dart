@@ -1,6 +1,5 @@
 library sembast.test.io_test_common;
 
-import 'dart:mirrors';
 import 'package:path/path.dart';
 import 'package:dev_test/test.dart';
 import 'test_common.dart';
@@ -22,14 +21,8 @@ class IoFileSystemTestContext extends FileSystemTestContext {
   String get outPath => testOutPath;
 }
 
-class _TestUtils {
-  static final String scriptPath =
-      (reflectClass(_TestUtils).owner as LibraryMirror).uri.toFilePath();
-}
-
-String get testScriptPath => _TestUtils.scriptPath;
 String get testOutPath => getTestOutPath(testDescriptions);
-String get testOutTopPath => join(dirname(testScriptPath), "test_out");
+String get testOutTopPath => join(".dart_tool", "sembast");
 
 String getTestOutPath([List<String> parts]) {
   if (parts == null) {

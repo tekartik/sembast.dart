@@ -7,6 +7,7 @@ import 'package:sembast/sembast.dart';
 abstract class StoreExecutor {
   ///
   /// get a value from a key
+  /// null if not found or if value null
   ///
   Future get(var key);
 
@@ -34,6 +35,9 @@ abstract class StoreExecutor {
   /// find all records
   ///
   Future<List<Record>> findRecords(Finder finder);
+
+  /// new in 1.7.1
+  Future<bool> containsKey(var key);
 }
 
 abstract class Store extends StoreExecutor {

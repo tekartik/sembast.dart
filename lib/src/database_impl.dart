@@ -84,46 +84,46 @@ class SembastDatabase implements Database {
     if (lock.inZone) {
       return lock.synchronized(action);
     }
-    // delay first action
-    return new Future(() {
-      return lock.synchronized(() async {
-        // Compatibility add transaction
-        _transaction = new SembastTransaction(++_txnId);
 
-        _transactionCleanUp() {
-          // Mark transaction complete, ignore error
-          _transaction.completer.complete();
+    Future<T> newTransaction() async {
+      // Compatibility add transaction
+      _transaction = new SembastTransaction(++_txnId);
 
-          // Compatibility remove transaction
-          _transaction = null;
-        }
+      _transactionCleanUp() {
+        // Mark transaction complete, ignore error
+        _transaction.completer.complete();
 
-        T actionResult;
-        try {
-          actionResult = await new Future.sync(action);
-          await _commit();
-        } catch (e) {
-          _clearTxnData();
-          _transactionCleanUp();
-          rethrow;
-        }
+        // Compatibility remove transaction
+        _transaction = null;
+      }
 
+      T actionResult;
+      try {
+        actionResult = await new Future.sync(action);
+        await _commit();
+      } catch (e) {
         _clearTxnData();
-
-        // the transaction is done
-        // need compact?
-        if (_storage.supported) {
-          if (_needCompact) {
-            await compact();
-            //print(_exportStat.toJson());
-          }
-        }
-
         _transactionCleanUp();
+        rethrow;
+      }
 
-        return actionResult;
-      });
-    });
+      _clearTxnData();
+
+      // the transaction is done
+      // need compact?
+      if (_storage.supported) {
+        if (_needCompact) {
+          await compact();
+          //print(_exportStat.toJson());
+        }
+      }
+
+      _transactionCleanUp();
+
+      return actionResult;
+    }
+
+    return lock.synchronized(newTransaction);
   }
 
   bool setRecordInMemory(Record record) {
@@ -641,6 +641,9 @@ class SembastDatabase implements Database {
   String toString() {
     return toJson().toString();
   }
+
+  @override
+  Future<bool> containsKey(key) => _mainStore.containsKey(key);
 }
 
 class DatabaseExportStat {
