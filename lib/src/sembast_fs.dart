@@ -102,7 +102,7 @@ class _FsDatabaseStorage extends DatabaseStorage {
   }
 
   Future appendLines(List<String> lines) {
-    IOSink sink = file.openWrite(mode: FileMode.APPEND);
+    IOSink sink = file.openWrite(mode: FileMode.append);
 
     lines.forEach((String line) {
       sink.writeln(line);

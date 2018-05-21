@@ -14,12 +14,12 @@ _IoFileSystem get ioFileSystem => _fs;
 
 io.FileMode _fileMode(fs.FileMode fsFileMode) {
   switch (fsFileMode) {
-    case fs.FileMode.WRITE:
-      return io.FileMode.WRITE;
-    case fs.FileMode.READ:
-      return io.FileMode.READ;
-    case fs.FileMode.APPEND:
-      return io.FileMode.APPEND;
+    case fs.FileMode.write:
+      return io.FileMode.write;
+    case fs.FileMode.read:
+      return io.FileMode.read;
+    case fs.FileMode.append:
+      return io.FileMode.append;
     default:
       throw null;
   }
@@ -27,12 +27,12 @@ io.FileMode _fileMode(fs.FileMode fsFileMode) {
 
 fs.FileSystemEntityType fsFileType(io.FileSystemEntityType type) {
   switch (type) {
-    case io.FileSystemEntityType.FILE:
-      return fs.FileSystemEntityType.FILE;
-    case io.FileSystemEntityType.DIRECTORY:
-      return fs.FileSystemEntityType.DIRECTORY;
-    case io.FileSystemEntityType.NOT_FOUND:
-      return fs.FileSystemEntityType.NOT_FOUND;
+    case io.FileSystemEntityType.file:
+      return fs.FileSystemEntityType.file;
+    case io.FileSystemEntityType.directory:
+      return fs.FileSystemEntityType.directory;
+    case io.FileSystemEntityType.notFound:
+      return fs.FileSystemEntityType.notFound;
     default:
       throw type;
   }
@@ -211,7 +211,7 @@ class File extends FileSystemEntity implements fs.File {
 
   @override
   fs.IOSink openWrite(
-          {fs.FileMode mode: fs.FileMode.WRITE, Encoding encoding: utf8}) //
+          {fs.FileMode mode: fs.FileMode.write, Encoding encoding: utf8}) //
       =>
       new _IoIOSink(
           ioFile.openWrite(mode: _fileMode(mode), encoding: encoding));

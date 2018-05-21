@@ -42,7 +42,7 @@ class _MemoryFileSystemException implements fs.FileSystemException {
 class MemoryDirectoryImpl extends MemoryFileSystemEntityImpl {
   Map<String, MemoryFileSystemEntityImpl> children = {};
   MemoryDirectoryImpl(MemoryDirectoryImpl parent, String segment)
-      : super(parent, fs.FileSystemEntityType.DIRECTORY, segment);
+      : super(parent, fs.FileSystemEntityType.directory, segment);
 
   MemoryFileSystemEntityImpl getEntity(List<String> segments) {
     if (segments.isEmpty) {
@@ -68,7 +68,7 @@ class MemoryFileImpl extends MemoryFileSystemEntityImpl {
   List<String> content;
 
   MemoryFileImpl(MemoryDirectoryImpl parent, String segment)
-      : super(parent, fs.FileSystemEntityType.FILE, segment);
+      : super(parent, fs.FileSystemEntityType.file, segment);
 
   Stream<List<int>> openRead() {
     StreamController<List<int>> ctlr = new StreamController(sync: true);
@@ -97,17 +97,17 @@ class MemoryFileImpl extends MemoryFileSystemEntityImpl {
     _MemoryIOSink sink = new _MemoryIOSink(this);
     openCount++;
     switch (mode) {
-      case fs.FileMode.WRITE:
+      case fs.FileMode.write:
         // erase content
         content = [];
         break;
-      case fs.FileMode.APPEND:
+      case fs.FileMode.append:
         // nothing to do
         if (content == null) {
           content = [];
         }
         break;
-      case fs.FileMode.READ:
+      case fs.FileMode.read:
         throw 'mode READ not support for openWrite ${this}';
       default:
         throw null;
@@ -310,14 +310,14 @@ class MemoryFileSystemImpl {
     return ctlr.stream;
   }
 
-  fs.IOSink openWrite(String path, {fs.FileMode mode: fs.FileMode.WRITE}) {
+  fs.IOSink openWrite(String path, {fs.FileMode mode: fs.FileMode.write}) {
     _TmpSink sink;
     //StreamController ctlr = new StreamController(sync: true);
     MemoryFileSystemEntityImpl fileImpl = getEntity(path);
     // if it exists we're fine
     if (fileImpl == null) {
       // create if needed
-      if (mode == fs.FileMode.WRITE || mode == fs.FileMode.APPEND) {
+      if (mode == fs.FileMode.write || mode == fs.FileMode.append) {
         fileImpl = createFile(path);
       }
     }
@@ -420,7 +420,7 @@ class MemoryFileSystemImpl {
       if (impl != null) {
         return impl.type;
       }
-      return fs.FileSystemEntityType.NOT_FOUND;
+      return fs.FileSystemEntityType.notFound;
     });
   }
 

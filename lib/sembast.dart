@@ -10,7 +10,14 @@ import 'package:sembast/src/filter.dart';
 import 'package:sembast/src/finder.dart';
 import 'package:sembast/src/sort_order.dart';
 
-export 'package:sembast/src/database_mode.dart' show DatabaseMode;
+export 'package:sembast/src/database_mode.dart'
+    show
+        DatabaseMode,
+        databaseModeCreate,
+        databaseModeDefault,
+        databaseModeEmpty,
+        databaseModeExisting,
+        databaseModeNeverFails;
 export 'package:sembast/src/sort_order.dart';
 
 export 'src/database.dart';
@@ -19,27 +26,6 @@ export 'src/store.dart';
 
 /// can return a future or not
 typedef OnVersionChangedFunction(Database db, int oldVersion, int newVersion);
-
-/// The database is created if not found
-// ignore: deprecated_member_use
-const databaseModeCreate = DatabaseMode.CREATE;
-
-/// Open an existing database, fail otherwise
-// ignore: deprecated_member_use
-const databaseModeExisting = DatabaseMode.EXISTING;
-
-/// The mode for opening an existing database
-// ignore: deprecated_member_use
-const databaseModeEmpty = DatabaseMode.EMPTY;
-
-/// This mode will never fails
-/// Corrupted database will be deleted
-/// This is the default
-// ignore: deprecated_member_use
-const databaseModeNeverFails = DatabaseMode.NEVER_FAILS;
-
-/// Default open mode [databaseModeNeverFails]
-const databaseModeDefault = databaseModeNeverFails;
 
 ///
 /// The database factory that allow opening database

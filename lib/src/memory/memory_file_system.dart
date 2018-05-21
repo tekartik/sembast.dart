@@ -26,13 +26,13 @@ class _MemoryFileSystem implements fs.FileSystem {
   @override
   Future<bool> isFile(String path) {
     return type(path, followLinks: true).then(
-        (fs.FileSystemEntityType type) => type == fs.FileSystemEntityType.FILE);
+        (fs.FileSystemEntityType type) => type == fs.FileSystemEntityType.file);
   }
 
   @override
   Future<bool> isDirectory(String path) {
     return type(path, followLinks: true).then((fs.FileSystemEntityType type) =>
-        type == fs.FileSystemEntityType.DIRECTORY);
+        type == fs.FileSystemEntityType.directory);
   }
 
   @override
@@ -42,7 +42,7 @@ class _MemoryFileSystem implements fs.FileSystem {
     if (entityImpl != null) {
       return entityImpl.type;
     }
-    return fs.FileSystemEntityType.NOT_FOUND;
+    return fs.FileSystemEntityType.notFound;
   }
 
   @override
@@ -118,7 +118,7 @@ class _MemoryFile extends _MemoryFileSystemEntity implements fs.File {
   // don't care about encoding - assume UTF8
   @override
   fs.IOSink openWrite(
-          {fs.FileMode mode: fs.FileMode.WRITE, Encoding encoding: utf8}) //
+          {fs.FileMode mode: fs.FileMode.write, Encoding encoding: utf8}) //
       =>
       _fs._impl.openWrite(path, mode: mode);
 

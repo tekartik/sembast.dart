@@ -75,7 +75,7 @@ Future<List<String>> readContent(FileSystem fs, String filePath) {
 Future writeContent(FileSystem fs, String filePath, List<String> lines) async {
   File file = fs.newFile(filePath);
   await file.create(recursive: true);
-  IOSink sink = file.openWrite(mode: FileMode.WRITE);
+  IOSink sink = file.openWrite(mode: FileMode.write);
   for (String line in lines) {
     sink.writeln(line);
   }

@@ -57,11 +57,11 @@ void defineTests(FileSystemTestContext ctx) {
   }
 
   IOSink openWrite(File file) {
-    return file.openWrite(mode: FileMode.WRITE);
+    return file.openWrite(mode: FileMode.write);
   }
 
   IOSink openAppend(File file) {
-    return file.openWrite(mode: FileMode.APPEND);
+    return file.openWrite(mode: FileMode.append);
   }
 
   Future<File> deleteFile(File file) {
@@ -128,7 +128,7 @@ void defineTests(FileSystemTestContext ctx) {
       test('type', () async {
         await clearOutFolder();
         return fs.type(namePath("test")).then((FileSystemEntityType type) {
-          expect(type, FileSystemEntityType.NOT_FOUND);
+          expect(type, FileSystemEntityType.notFound);
         }).then((_) {
           return fs.isFile(namePath("test")).then((bool isFile) {
             expect(isFile, false);

@@ -4,24 +4,24 @@
 class DatabaseMode {
   // use [databaseModeCreate] instead
   // deprecate since 2018-03-05 1.7.0
-  @deprecated
-  static const CREATE = const DatabaseMode._internal(0);
+  @Deprecated("Use databaseModeCreate")
+  static const CREATE = databaseModeCreate;
 
   // use [databaseModeEmpty] instead
   // deprecate since 2018-03-05 1.7.0
-  @deprecated
-  static const EXISTING = const DatabaseMode._internal(1);
+  @Deprecated("Use databaseModeExisting")
+  static const EXISTING = databaseModeExisting;
 
   /// The mode for emptying the existing content if any
   // use [databaseModeCreate] instead
   // deprecate since 2018-03-05 1.7.0
-  @deprecated
-  static const EMPTY = const DatabaseMode._internal(2);
+  @Deprecated("Use databaseModeEmpty")
+  static const EMPTY = databaseModeEmpty;
 
   // use [databaseModeNeverFails] instead
   // deprecate since 2018-03-05 1.7.0
-  @deprecated
-  static const NEVER_FAILS = const DatabaseMode._internal(3);
+  @Deprecated("Use databaseModeNeverFails")
+  static const NEVER_FAILS = databaseModeNeverFails;
 
   final int _mode;
 
@@ -38,3 +38,20 @@ class DatabaseMode {
     return false;
   }
 }
+
+/// The database is created if not found
+const databaseModeCreate = const DatabaseMode._internal(0);
+
+/// Open an existing database, fail otherwise
+const databaseModeExisting = const DatabaseMode._internal(1);
+
+/// The mode for opening an existing database
+const databaseModeEmpty = const DatabaseMode._internal(2);
+
+/// This mode will never fails
+/// Corrupted database will be deleted
+/// This is the default
+const databaseModeNeverFails = const DatabaseMode._internal(3);
+
+/// Default open mode [databaseModeNeverFails]
+const databaseModeDefault = databaseModeNeverFails;
