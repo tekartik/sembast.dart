@@ -172,14 +172,17 @@ class SembastStore implements Store {
   }
 
   Record txnPutRecord(Record record) {
+    var sembastRecord = record as SembastRecord;
     assert(record.store == this);
+
     if (!checkValue(record.value)) {
       throw new ArgumentError.value(record.value, null,
           "invalid type ${record.value.runtimeType} for record ${record}");
     }
+
     // auto-gen key if needed
     if (record.key == null) {
-      (record as SembastRecord).key = ++_lastIntKey;
+      sembastRecord.key = ++_lastIntKey;
     } else {
       // update last int key in case auto gen is needed again
       var recordKey = record.key;

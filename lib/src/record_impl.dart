@@ -38,13 +38,15 @@ class SembastRecord implements Record {
     }
   }
 
+  set value(value) => _value = sanitizeValue(value);
+
   ///
   /// set the [value] of the specified [field]
   ///
   @override
   void operator []=(String field, var value) {
     if (field == Field.value) {
-      _value = value;
+      this.value = value;
     } else if (field == Field.key) {
       key = value;
     } else {
@@ -92,7 +94,7 @@ class SembastRecord implements Record {
     return map;
   }
 
-  // The actual map written to disk
+// The actual map written to disk
   Map toMap() {
     Map map = _toBaseMap();
     map[dbRecordValueKey] = value;
@@ -142,7 +144,7 @@ _cloneKey(var key) {
 
 _cloneValue(var value) {
   if (value is Map) {
-    return new Map.from(value);
+    return new Map.from(value).cast<String, dynamic>();
   }
   if (value is List) {
     return new List.from(value);
