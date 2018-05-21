@@ -63,6 +63,20 @@ void defineTests(DatabaseTestContext ctx) {
       await _check();
     });
 
+    test('bool', () async {
+      expect(await db.containsKey(1), isFalse);
+      await db.put(true);
+      Future _check() async {
+        bool value = await db.get(1);
+        expect(await db.containsKey(1), isTrue);
+        expect(value, isTrue);
+      }
+
+      await _check();
+      db = await reOpen(db);
+      await _check();
+    });
+
     test('String', () async {
       expect(await db.containsKey(1), isFalse);
       await db.put("hello") as int;
@@ -83,7 +97,12 @@ void defineTests(DatabaseTestContext ctx) {
         'null': null,
         'double': 1234.5678,
         'String': 'hello',
-        'nested': {'sub': 4321}
+        'nested': {'sub': 4321},
+        'list': [
+          {
+            'nested': {'sub': 4321}
+          }
+        ]
       };
       expect(await db.containsKey(1), isFalse);
       await db.put(map) as int;

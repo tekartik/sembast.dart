@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:sembast/sembast.dart';
+import 'package:sembast/src/utils.dart';
 import 'database_impl.dart';
 import 'package:sembast/src/finder.dart';
 import 'package:sembast/src/record_impl.dart';
@@ -172,6 +173,10 @@ class SembastStore implements Store {
 
   Record txnPutRecord(Record record) {
     assert(record.store == this);
+    if (!checkValue(record.value)) {
+      throw new ArgumentError.value(record.value, null,
+          "invalid type ${record.value.runtimeType} for record ${record}");
+    }
     // auto-gen key if needed
     if (record.key == null) {
       (record as SembastRecord).key = ++_lastIntKey;
