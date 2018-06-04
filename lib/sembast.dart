@@ -90,8 +90,10 @@ abstract class Transaction {
   @deprecated
   int get id;
 
+  @deprecated
   bool get isCompleted;
 
+  @deprecated
   Future get completed;
 }
 

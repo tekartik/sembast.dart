@@ -1,5 +1,5 @@
 name: sembast
-version: 1.8.0
+version: 1.9.0-dev.1
 author: Alexandre Roux Tekartik <alex.tekartik.pub@gmail.com>
 description: Simple embedded file system database
 homepage: https://github.com/tekartik/sembast.dart
@@ -18,9 +18,3 @@ dev_dependencies:
     git: git://github.com/tekartik/chrome_travis.dart
     version: '>=0.1.3'
   browser: any
-
-# Uncomment the following in sdk 1.24+ to make pub serve
-# use dartdevc (webdev.dartlang.org/tools/dartdevc).
-web:
-  compiler:
-    debug: dartdevc
