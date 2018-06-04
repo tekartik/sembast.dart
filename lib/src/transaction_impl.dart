@@ -2,7 +2,6 @@ import 'dart:async';
 import 'package:sembast/sembast.dart';
 
 class SembastTransaction extends Transaction {
-  @deprecated
   int get id => _id;
 
   final int _id;

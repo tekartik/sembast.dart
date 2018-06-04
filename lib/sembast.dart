@@ -87,6 +87,7 @@ class DatabaseException implements Exception {
 /// Database transaction
 ///
 abstract class Transaction {
+  @deprecated
   int get id;
 
   bool get isCompleted;

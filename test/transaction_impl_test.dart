@@ -11,7 +11,7 @@ void main() {
 }
 
 void defineTests(DatabaseTestContext ctx) {
-  group('transaction', () {
+  group('currentTransaction', () {
     SembastDatabase db;
 
     setUp(() async {
@@ -24,12 +24,12 @@ void defineTests(DatabaseTestContext ctx) {
 
     test('put/get', () {
       List<Future> futures = [];
-      expect(db.transaction, isNull);
+      expect(db.currentTransaction, isNull);
       futures.add(db.put("hi", 1));
-      // expect(db.transaction, isNull);
+      // expect(db.currentTransaction, isNull);
       // here the value should not be loaded yet
       futures.add(db.get(1).then((value) {
-        //expect(db.transaction, isNull);
+        //expect(db.currentTransaction, isNull);
         expect(value, null);
       }));
       return Future.wait(futures);
@@ -37,18 +37,18 @@ void defineTests(DatabaseTestContext ctx) {
 
     test('put then get', () {
       return db.put("hi", 1).then((_) {
-        // expect(db.transaction, isNull);
+        // expect(db.currentTransaction, isNull);
         // here the value should not be loaded yet
         return db.get(1).then((value) {
-          // expect(db.transaction, isNull);
+          // expect(db.currentTransaction, isNull);
         });
       });
     });
 
-    test('put/clear/get in transaction', () async {
+    test('put/clear/get in currentTransaction', () async {
       Transaction txn;
       await db.inTransaction(() {
-        txn = db.transaction;
+        txn = db.currentTransaction;
         return db.put("hi", 1).then((_) {
           return db.mainStore.clear().then((_) {
             return db.get(1).then((value) {
@@ -111,67 +111,67 @@ void defineTests(DatabaseTestContext ctx) {
       });
     });
 
-    test('one transaction', () {
+    test('one currentTransaction', () {
       db.inTransaction(() {
-        expect(db.transaction.id, 1);
+        expect(db.currentTransaction.id, 1);
         return new Future.value().then((_) {
-          expect(db.transaction.id, 1);
+          expect(db.currentTransaction.id, 1);
         }).then((_) {
-          expect(db.transaction.id, 1);
+          expect(db.currentTransaction.id, 1);
         });
       }).then((_) {
-        expect(db.transaction, null);
+        expect(db.currentTransaction, null);
       });
     });
 
-    test('inner transaction', () {
+    test('inner currentTransaction', () {
       db.inTransaction(() {
-        expect(db.transaction.id, 1);
+        expect(db.currentTransaction.id, 1);
         return db.inTransaction(() {
-          expect(db.transaction.id, 1);
+          expect(db.currentTransaction.id, 1);
         }).then((_) {
-          expect(db.transaction.id, 1);
+          expect(db.currentTransaction.id, 1);
         });
       }).then((_) {
-        expect(db.transaction, null);
+        expect(db.currentTransaction, null);
       });
     });
 
-    test('inner new transaction', () {
+    test('inner new currentTransaction', () {
       db.inTransaction(() {
-        expect(db.transaction.id, 1);
+        expect(db.currentTransaction.id, 1);
         new Future.value().then((_) {
-          expect(db.transaction.id, 1);
+          expect(db.currentTransaction.id, 1);
         }).then((_) {
-          expect(db.transaction.id, 1);
+          expect(db.currentTransaction.id, 1);
         });
       }).then((_) {
-        expect(db.transaction, null);
+        expect(db.currentTransaction, null);
       });
     });
 
-    test('two transaction', () {
+    test('two currentTransaction', () {
       db.inTransaction(() {
-        expect(db.transaction.id, 1);
+        expect(db.currentTransaction.id, 1);
       }).then((_) {
-        // expect(db.transaction, null);
+        // expect(db.currentTransaction, null);
       });
       return db.inTransaction(() {
-        expect(db.transaction.id, 2);
+        expect(db.currentTransaction.id, 2);
       }).then((_) {
-        // expect(db.transaction, null);
+        // expect(db.currentTransaction, null);
       });
     });
 
-    test('two transaction follow', () {
+    test('two currentTransaction follow', () {
       db.inTransaction(() {
-        expect(db.transaction.id, 1);
+        expect(db.currentTransaction.id, 1);
       }).then((_) {
-        expect(db.transaction, null);
+        expect(db.currentTransaction, null);
         return db.inTransaction(() {
-          expect(db.transaction.id, 2);
+          expect(db.currentTransaction.id, 2);
         }).then((_) {
-          expect(db.transaction, null);
+          expect(db.currentTransaction, null);
         });
       });
     });

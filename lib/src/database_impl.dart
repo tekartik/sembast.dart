@@ -16,7 +16,7 @@ class SembastDatabase implements Database {
   final bool LOGV = logger.isLoggable(Level.FINEST);
 
   final DatabaseStorage _storage;
-  final SynchronizedLock lock = new SynchronizedLock();
+  final Lock lock = new Lock(reentrant: true);
 
   String get path => _storage.path;
 
@@ -55,15 +55,18 @@ class SembastDatabase implements Database {
     }
   }
 
+  // Check the current zone
+  bool get _isInTransaction => lock.inLock;
   void rollback() {
     // only valid in a transaction
-    if (!isInTransaction) {
+    if (!_isInTransaction) {
       throw new Exception("not in transaction");
     }
     _clearTxnData();
   }
 
-  bool get isInTransaction => lock.inZone;
+  // True if we are currently in the transaction
+  bool get isInTransaction => _isInTransaction;
 
   SembastTransaction _transaction;
 
@@ -71,7 +74,7 @@ class SembastDatabase implements Database {
   SembastTransaction get currentTransaction => _transaction;
 
   @override
-  // @deprecated
+  @deprecated
   Transaction get transaction => _transaction;
 
   ///
@@ -83,7 +86,7 @@ class SembastDatabase implements Database {
     //devPrint("z: ${Zone.current[_zoneRootKey]}");
     //devPrint("z: ${Zone.current[_zoneChildKey]}");
 
-    if (lock.inZone) {
+    if (_isInTransaction) {
       return lock.synchronized(action);
     }
 
