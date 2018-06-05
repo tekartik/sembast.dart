@@ -83,10 +83,12 @@ class DatabaseException implements Exception {
 
 //import 'package:tekartik_core/dev_utils.dart';
 
+abstract class StoreTransaction extends StoreExecutor {}
+
 ///
 /// Database transaction
 ///
-abstract class Transaction {
+abstract class Transaction implements StoreTransaction, TransactionExecutor {
   @deprecated
   int get id;
 

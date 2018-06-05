@@ -39,10 +39,10 @@ void defineTests(DatabaseTestContext ctx, int putCount,
     });
 
     test('put/read in transaction $putCount', () {
-      return db.inTransaction(() {
+      return db.transaction((txn) {
         List<Future> futures = [];
         for (int i = 0; i < putCount; i++) {
-          futures.add(db.put("value $i", i));
+          futures.add(txn.put("value $i", i));
         }
         return Future.wait(futures);
       }).then((_) {

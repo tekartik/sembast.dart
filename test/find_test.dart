@@ -2,6 +2,7 @@ library sembast.find_test;
 
 // basically same as the io runner but with extra output
 import 'package:sembast/sembast.dart';
+
 import 'test_common.dart';
 
 void main() {
@@ -55,16 +56,17 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     test('in_transaction', () {
-      return db.inTransaction(() {
+      return db.transaction((Transaction txn) {
+        var store = txn.mainStore;
         Finder finder = new Finder();
         finder.filter = new Filter.equal(Field.value, "hi");
         return store.findRecords(finder).then((List<Record> records) {
           expect(records.length, 1);
           expect(records[0], record1);
         }).then((_) {
-          Record record = new Record(store, "he", 4);
+          Record record = new Record(store.store, "he", 4);
 
-          return db.putRecord(record).then((_) {
+          return txn.putRecord(record).then((_) {
             finder.filter = new Filter.equal(Field.value, "he");
             return store.findRecords(finder).then((List<Record> records) {
               expect(records.length, 1);
@@ -84,14 +86,15 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     test('in_transaction no_filter', () {
-      return db.inTransaction(() {
+      return db.transaction((txn) {
+        StoreExecutor store = txn.mainStore;
         Finder finder = new Finder();
         return store.findRecords(finder).then((List<Record> records) {
           expect(records.length, 3);
           expect(records[0], record1);
         }).then((_) {
-          Record record = new Record(store, "he", 4);
-          return db.putRecord(record).then((_) {
+          Record record = new Record(store.store, "he", 4);
+          return txn.putRecord(record).then((_) {
             return store.findRecords(finder).then((List<Record> records) {
               expect(records.length, 4);
               // for now txn records are first
@@ -117,7 +120,8 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     test('delete_in_transaction', () {
-      return db.inTransaction(() {
+      return db.transaction((txn) {
+        var store = txn.mainStore;
         Finder finder = new Finder();
 
         // delete ho

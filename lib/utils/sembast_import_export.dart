@@ -16,7 +16,7 @@ const int _exportSignatureVersion = 1;
 /// Return the data in an exported format that (can be JSONify)
 ///
 Future<Map> exportDatabase(Database db) {
-  return db.inTransaction(() async {
+  return db.transaction((txn) async {
     Map export = {
       // our export signature
       _exportSignatureKey: _exportSignatureVersion,
@@ -27,11 +27,11 @@ Future<Map> exportDatabase(Database db) {
     List<Map> storesExport = [];
 
     // export all records from each store
-    for (Store store in db.stores) {
+    for (var store in txn.stores) {
       List keys = [];
       List values = [];
 
-      Map storeExport = {_name: store.name, _keys: keys, _values: values};
+      Map storeExport = {_name: store.store.name, _keys: keys, _values: values};
 
       await store.records.listen((Record record) {
         if (!record.deleted) {
@@ -70,7 +70,7 @@ Future<Database> importDatabase(
   Database db = await dstFactory.openDatabase(dstPath,
       version: version, mode: databaseModeEmpty);
 
-  await db.inTransaction(() {
+  await db.transaction((txn) {
     List<Map> storesExport = srcData[_stores] as List<Map>;
     if (storesExport != null) {
       for (Map storeExport in storesExport) {
@@ -79,7 +79,7 @@ Future<Database> importDatabase(
         List keys = storeExport[_keys] as List;
         List values = storeExport[_values] as List;
 
-        Store store = db.getStore(storeName);
+        var store = txn.getStore(storeName);
         for (int i = 0; i < keys.length; i++) {
           store.put(values[i], keys[i]);
         }

@@ -4,7 +4,9 @@ import 'package:sembast/sembast.dart';
 
 ///
 /// Method shared by Store and Database (main store)
-abstract class StoreExecutor {
+abstract class BaseExecutor {
+  Store get store;
+
   ///
   /// get a value from a key
   /// null if not found or if value null
@@ -40,12 +42,7 @@ abstract class StoreExecutor {
   Future<bool> containsKey(var key);
 }
 
-abstract class Store extends StoreExecutor {
-  ///
-  /// Store name
-  ///
-  String get name;
-
+abstract class StoreExecutor extends BaseExecutor {
   ///
   /// delete all records in a store
   ///
@@ -75,4 +72,11 @@ abstract class Store extends StoreExecutor {
   /// stream all the records
   ///
   Stream<Record> get records;
+}
+
+abstract class Store extends StoreExecutor {
+  ///
+  /// Store name
+  ///
+  String get name;
 }

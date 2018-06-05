@@ -1,15 +1,18 @@
 import 'dart:async';
 import 'dart:convert';
+
 import 'package:logging/logging.dart';
 import 'package:sembast/sembast.dart';
+import 'package:sembast/src/database.dart';
 import 'package:sembast/src/meta.dart';
 import 'package:sembast/src/record_impl.dart';
 import 'package:sembast/src/sembast_impl.dart';
 import 'package:sembast/src/storage.dart';
-import 'database.dart';
 import 'package:sembast/src/store_impl.dart';
 import 'package:sembast/src/transaction_impl.dart';
 import 'package:synchronized/synchronized.dart';
+
+import 'database.dart';
 
 class SembastDatabase implements Database {
   static Logger logger = new Logger("Sembast");
@@ -17,6 +20,7 @@ class SembastDatabase implements Database {
 
   final DatabaseStorage _storage;
   final Lock lock = new Lock(reentrant: true);
+  final Lock transactionLock = new Lock();
 
   String get path => _storage.path;
 
@@ -25,10 +29,14 @@ class SembastDatabase implements Database {
   int _txnId = 0;
 
   Meta _meta;
+
   int get version => _meta.version;
 
   bool _opened = false;
   DatabaseMode _openMode;
+
+  @override
+  Store get store => mainStore;
 
   @override
   Store get mainStore => _mainStore;
@@ -57,6 +65,7 @@ class SembastDatabase implements Database {
 
   // Check the current zone
   bool get _isInTransaction => lock.inLock;
+
   void rollback() {
     // only valid in a transaction
     if (!_isInTransaction) {
@@ -73,9 +82,8 @@ class SembastDatabase implements Database {
   // @deprecated
   SembastTransaction get currentTransaction => _transaction;
 
-  @override
-  @deprecated
-  Transaction get transaction => _transaction;
+  SembastTransaction get zoneTransaction =>
+      _isInTransaction ? currentTransaction : null;
 
   ///
   /// execute the action in a transaction
@@ -92,7 +100,7 @@ class SembastDatabase implements Database {
 
     Future<T> newTransaction() async {
       // Compatibility add transaction
-      _transaction = new SembastTransaction(++_txnId);
+      _transaction = new SembastTransaction(this, ++_txnId);
 
       _transactionCleanUp() {
         // Mark transaction complete, ignore error
@@ -251,7 +259,7 @@ class SembastDatabase implements Database {
   @override
   Future<Record> putRecord(Record record) {
     return inTransaction(() {
-      return txnPutRecord(_cloneAndFix(record));
+      return txnPutRecord(currentTransaction, _cloneAndFix(record));
     });
   }
 
@@ -280,7 +288,7 @@ class SembastDatabase implements Database {
       for (Record record in records) {
         toPut.add(_cloneAndFix(record));
       }
-      return txnPutRecords(toPut);
+      return txnPutRecords(currentTransaction, toPut);
     });
   }
 
@@ -304,15 +312,15 @@ class SembastDatabase implements Database {
     return store.findRecords(finder);
   }
 
-  Record txnPutRecord(Record record) {
-    return _recordStore(record).txnPutRecord(record);
+  Record txnPutRecord(SembastTransaction txn, Record record) {
+    return _recordStore(record).txnPutRecord(txn, record);
   }
 
   // record must have been clone before
-  List<Record> txnPutRecords(List<Record> records) {
+  List<Record> txnPutRecords(SembastTransaction txn, List<Record> records) {
     // temp records
     for (Record record in records) {
-      txnPutRecord(record);
+      txnPutRecord(txn, record);
     }
     return records;
   }
@@ -405,22 +413,29 @@ class SembastDatabase implements Database {
     return store;
   }
 
+  SembastTransactionStore txnFindStore(
+      SembastTransaction txn, String storeName) {
+    var store = findStore(storeName);
+    return txn.toExecutor(store);
+  }
+
   ///
   /// get or create a store
   /// an empty store will not be persistent
   ///
   @override
   Store getStore(String storeName) {
-    Store store;
-    if (storeName == null) {
-      store = _mainStore;
-    } else {
-      store = _stores[storeName];
-      if (store == null) {
-        store = _addStore(storeName);
-      }
+    var store = findStore(storeName);
+    if (store == null) {
+      store = _addStore(storeName);
     }
     return store;
+  }
+
+  SembastTransactionStore txnGetStore(
+      SembastTransaction txn, String storeName) {
+    var store = getStore(storeName);
+    return txn.toExecutor(store);
   }
 
   ///
@@ -438,6 +453,17 @@ class SembastDatabase implements Database {
           _stores.remove(storeName);
         }
       });
+    }
+  }
+
+  void txnDeleteStore(SembastTransaction txn, String storeName) {
+    var store = txnFindStore(txn, storeName);
+    if (store != null) {
+      store.store.txnClear(txn);
+      // do not delete main
+      if (store != mainStore) {
+        _stores.remove(storeName);
+      }
     }
   }
 
@@ -637,6 +663,7 @@ class SembastDatabase implements Database {
   }
 
   DatabaseExportStat _exportStat;
+
   bool get _needCompact {
     return (_exportStat.obsoleteLineCount > 5 &&
         (_exportStat.obsoleteLineCount / _exportStat.lineCount > 0.20));
@@ -649,6 +676,47 @@ class SembastDatabase implements Database {
 
   @override
   Future<bool> containsKey(key) => _mainStore.containsKey(key);
+
+  @override
+  Future<T> transaction<T>(
+      FutureOr<T> Function(Transaction transaction) action) async {
+    return transactionLock.synchronized(() async {
+      _transaction = new SembastTransaction(this, ++_txnId);
+
+      _transactionCleanUp() {
+        // Mark transaction complete, ignore error
+        _transaction.completer.complete();
+
+        // Compatibility remove transaction
+        _transaction = null;
+      }
+
+      T actionResult;
+      try {
+        actionResult = await new Future.sync(() => action(_transaction));
+        await _commit();
+      } catch (e) {
+        _clearTxnData();
+        _transactionCleanUp();
+        rethrow;
+      }
+
+      _clearTxnData();
+
+      // the transaction is done
+      // need compact?
+      if (_storage.supported) {
+        if (_needCompact) {
+          await compact();
+          //print(_exportStat.toJson());
+        }
+      }
+
+      _transactionCleanUp();
+
+      return actionResult;
+    });
+  }
 }
 
 class DatabaseExportStat {
@@ -673,6 +741,7 @@ class DatabaseExportStat {
       obsoleteLineCount = map["obsoleteLineCount"] as int;
     }
   }
+
   Map toJson() {
     Map map = new Map();
     if (lineCount != null) {
