@@ -40,6 +40,12 @@ abstract class BaseExecutor {
 
   /// new in 1.7.1
   Future<bool> containsKey(var key);
+
+  /// new in 1.9.0
+  Future<List> findKeys(Finder finder);
+
+  /// new in 1.9.0
+  Future findKey(Finder finder);
 }
 
 abstract class StoreExecutor extends BaseExecutor {

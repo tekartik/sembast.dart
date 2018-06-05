@@ -14,7 +14,9 @@ import 'package:synchronized/synchronized.dart';
 
 import 'database.dart';
 
-class SembastDatabase implements Database {
+class SembastDatabase extends Object
+    with DatabaseExecutorMixin
+    implements Database {
   static Logger logger = new Logger("Sembast");
   final bool LOGV = logger.isLoggable(Level.FINEST);
 
@@ -284,12 +286,17 @@ class SembastDatabase implements Database {
   @override
   Future<List<Record>> putRecords(List<Record> records) {
     return inTransaction(() {
-      List<Record> toPut = [];
-      for (Record record in records) {
-        toPut.add(_cloneAndFix(record));
-      }
-      return txnPutRecords(currentTransaction, toPut);
+      return txnPutRecords(currentTransaction, records);
     });
+  }
+
+  // in transaction
+  List<Record> txnPutRecords(SembastTransaction txn, List<Record> records) {
+    // temp records
+    for (Record record in records) {
+      txnPutRecord(txn, _cloneAndFix(record));
+    }
+    return records;
   }
 
   ///
@@ -314,15 +321,6 @@ class SembastDatabase implements Database {
 
   Record txnPutRecord(SembastTransaction txn, Record record) {
     return _recordStore(record).txnPutRecord(txn, record);
-  }
-
-  // record must have been clone before
-  List<Record> txnPutRecords(SembastTransaction txn, List<Record> records) {
-    // temp records
-    for (Record record in records) {
-      txnPutRecord(txn, record);
-    }
-    return records;
   }
 
   ///
@@ -363,7 +361,7 @@ class SembastDatabase implements Database {
   }
 
   bool _hasRecord(Record record) {
-    return _recordStore(record).hasKey(record.key);
+    return _recordStore(record).txnContainsKey(zoneTransaction, record.key);
   }
 
   ///
@@ -717,6 +715,12 @@ class SembastDatabase implements Database {
       return actionResult;
     });
   }
+
+  @override
+  SembastDatabase get database => this;
+
+  @override
+  Future clear() => mainStore.clear();
 }
 
 class DatabaseExportStat {

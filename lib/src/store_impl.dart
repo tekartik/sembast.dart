@@ -58,11 +58,8 @@ class SembastStore implements Store {
   @override
   Stream<Record> get records {
     StreamController<Record> ctlr = new StreamController();
-    inTransaction(() {
-      _feedController(currentTransaction, ctlr);
-    }).then((_) {
-      ctlr.close();
-    });
+    _feedController(zoneTransaction, ctlr);
+    ctlr.close();
     return ctlr.stream;
   }
 
@@ -114,6 +111,12 @@ class SembastStore implements Store {
   Future<Record> findRecord(Finder finder) async =>
       txnFindRecord(zoneTransaction, finder);
 
+  @override
+  Future findKey(Finder finder) async => (await findRecord(finder))?.key;
+
+  Future txnFindKey(SembastTransaction txn, Finder finder) async =>
+      (await txnFindRecord(txn, finder))?.key;
+
   Record txnFindRecord(SembastTransaction txn, Finder finder) {
     if ((finder as SembastFinder).limit != 1) {
       finder = (finder as SembastFinder).clone(limit: 1);
@@ -129,10 +132,8 @@ class SembastStore implements Store {
   /// find all records
   ///
   @override
-  Future<List<Record>> findRecords(Finder finder) {
-    return inTransaction(() {
-      return txnFindRecords(currentTransaction, finder);
-    });
+  Future<List<Record>> findRecords(Finder finder) async {
+    return txnFindRecords(zoneTransaction, finder);
   }
 
   List<Record> txnFindRecords(SembastTransaction txn, Finder finder) {
@@ -141,23 +142,34 @@ class SembastStore implements Store {
     var sembastFinder = finder as SembastFinder;
     result = [];
 
-    _forEachRecords(txn, sembastFinder.filter, (Record record) {
+    _forEachRecords(txn, sembastFinder?.filter, (Record record) {
       result.add(record);
     });
 
-    // sort
-    result.sort((Record record1, record2) =>
-        (finder as SembastFinder).compare(record1, record2));
+    if (finder != null) {
+      // sort
+      result.sort((Record record1, record2) =>
+          (finder as SembastFinder).compare(record1, record2));
 
-    // offset
-    if (sembastFinder.offset != null) {
-      result = result.sublist(min(sembastFinder.offset, result.length));
-    }
-    // limit
-    if (sembastFinder.limit != null) {
-      result = result.sublist(0, min(sembastFinder.limit, result.length));
+      // offset
+      if (sembastFinder.offset != null) {
+        result = result.sublist(min(sembastFinder.offset, result.length));
+      }
+      // limit
+      if (sembastFinder.limit != null) {
+        result = result.sublist(0, min(sembastFinder.limit, result.length));
+      }
     }
     return result;
+  }
+
+  @override
+  Future<List> findKeys(Finder finder) async =>
+      txnFindKeys(zoneTransaction, finder);
+
+  Future<List> txnFindKeys(SembastTransaction txn, Finder finder) async {
+    var records = await txnFindRecords(txn, finder);
+    return records.map((Record record) => record.key).toList();
   }
 
   ///
@@ -317,10 +329,8 @@ class SembastStore implements Store {
   /// count all records
   ///
   @override
-  Future<int> count([Filter filter]) {
-    return inTransaction(() {
-      return txnCount(currentTransaction, filter);
-    });
+  Future<int> count([Filter filter]) async {
+    return txnCount(zoneTransaction, filter);
   }
 
   int txnCount(SembastTransaction txn, Filter filter) {
@@ -383,19 +393,18 @@ class SembastStore implements Store {
   }
 
   @override
-  Future<bool> containsKey(key) {
-    return inTransaction(() {
-      return txnContainsKey(currentTransaction, key);
-    });
+  Future<bool> containsKey(key) async {
+    return txnContainsKey(zoneTransaction, key);
   }
 
-  //TODO handle transaction
   bool txnContainsKey(SembastTransaction txn, key) {
-    return hasKey(key);
-  }
-
-  bool hasKey(var key) {
-    return recordMap.containsKey(key);
+    if (recordMap.containsKey(key)) {
+      return true;
+    } else if (txn != null) {
+      return txnRecords.containsKey(key);
+    } else {
+      return false;
+    }
   }
 
   void rollback() {
@@ -425,20 +434,12 @@ class SembastStore implements Store {
   ///
   /// delete all records in a store
   ///
-  /// TODO: decide on return value
   ///
   @override
   Future clear() {
     return inTransaction(() {
       // first delete the one in transaction
-      return new Future.sync(() {
-        if (txnRecords != null) {
-          return deleteAll(new List.from(txnRecords.keys, growable: false));
-        }
-      }).then((_) {
-        Iterable keys = recordMap.keys;
-        return deleteAll(new List.from(keys, growable: false));
-      });
+      txnClear(currentTransaction);
     });
   }
 

@@ -26,11 +26,21 @@ abstract class TransactionExecutor extends DatabaseExecutor {
   StoreExecutor findStore(String storeName);
 }
 
-abstract class DatabaseExecutor extends BaseExecutor {
+abstract class DatabaseExecutor extends StoreExecutor {
   ///
   /// Put a record
   ///
   Future<Record> putRecord(Record record);
+
+  ///
+  /// Put a list or records
+  ///
+  Future<List<Record>> putRecords(List<Record> records);
+
+  ///
+  /// delete a [record]
+  ///
+  Future deleteRecord(Record record);
 }
 
 abstract class Database extends DatabaseExecutor {
@@ -77,16 +87,6 @@ abstract class Database extends DatabaseExecutor {
   // use [Store.findRecord]
   @deprecated
   Future<List<Record>> findStoreRecords(Store store, Finder finder);
-
-  ///
-  /// Put a list or records
-  ///
-  Future<List<Record>> putRecords(List<Record> records);
-
-  ///
-  /// delete a [record]
-  ///
-  Future deleteRecord(Record record);
 
   ///
   /// execute the action in a transaction

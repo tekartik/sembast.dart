@@ -5,9 +5,9 @@ import 'package:sembast/src/database_impl.dart';
 import 'package:sembast/src/store_impl.dart';
 
 abstract class DatabaseExecutorMixin
-    implements DatabaseExecutor, TransactionExecutor, StoreExecutor {
+    implements DatabaseExecutor, StoreExecutor {
   SembastDatabase get database;
-  SembastTransaction get transaction;
+  StoreExecutor get mainStore;
 
   @override
   Future<bool> containsKey(key) => mainStore.containsKey(key);
@@ -22,8 +22,14 @@ abstract class DatabaseExecutorMixin
   Future<Record> findRecord(Finder finder) => mainStore.findRecord(finder);
 
   @override
+  Future findKey(Finder finder) => mainStore.findKey(finder);
+
+  @override
   Future<List<Record>> findRecords(Finder finder) =>
       mainStore.findRecords(finder);
+
+  @override
+  Future<List> findKeys(Finder finder) => mainStore.findKeys(finder);
 
   @override
   Future get(key) => mainStore.get(key);
@@ -31,9 +37,6 @@ abstract class DatabaseExecutorMixin
   @override
   Future put(value, [key]) => mainStore.put(value, key);
 
-  @override
-  Future<Record> putRecord(Record record) async =>
-      database.txnPutRecord(transaction, record);
   @override
   Store get store => mainStore.store;
 
@@ -50,8 +53,17 @@ abstract class DatabaseExecutorMixin
   Stream<Record> get records => mainStore.records;
 }
 
+abstract class TransactionExecutorMixin implements TransactionExecutor {
+  SembastDatabase get database;
+  SembastTransaction get transaction;
+
+  @override
+  Future<Record> putRecord(Record record) async =>
+      database.txnPutRecord(transaction, record);
+}
+
 class SembastTransaction extends Object
-    with DatabaseExecutorMixin
+    with DatabaseExecutorMixin, TransactionExecutorMixin
     implements Transaction {
   final SembastDatabase database;
 
@@ -102,6 +114,14 @@ class SembastTransaction extends Object
   @override
   StoreExecutor getStore(String storeName) =>
       database.txnGetStore(this, storeName);
+
+  @override
+  Future deleteRecord(Record record) async =>
+      (record.store as SembastStore).txnDelete(this, record.key);
+
+  @override
+  Future<List<Record>> putRecords(List<Record> records) async =>
+      database.txnPutRecords(this, records);
 }
 
 class SembastTransactionStore implements StoreTransaction {
@@ -150,4 +170,11 @@ class SembastTransactionStore implements StoreTransaction {
 
   @override
   Stream<Record> get records => store.txnGetRecordsStream(transaction);
+
+  @override
+  Future findKey(Finder finder) => store.txnFindKey(transaction, finder);
+
+  @override
+  Future<List> findKeys(Finder finder) =>
+      store.txnFindKeys(transaction, finder);
 }
