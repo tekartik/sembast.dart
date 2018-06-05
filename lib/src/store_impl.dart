@@ -82,7 +82,7 @@ class SembastStore implements Store {
   _forEachRecords(
       SembastTransaction txn, Filter filter, void action(Record record)) {
 // handle record in transaction first
-    if (txn != null && txnRecords != null) {
+    if (_hasTransactionRecords(txn)) {
       txnRecords.values.forEach((Record record) {
         if (Filter.matchRecord(filter, record)) {
           action(record);
@@ -92,7 +92,7 @@ class SembastStore implements Store {
 
     // then the regular unless already in transaction
     recordMap.values.forEach((Record record) {
-      if (txn != null && txnRecords != null) {
+      if (_hasTransactionRecords(txn)) {
         if (txnRecords.keys.contains(record.key)) {
           // already handled
           return;
@@ -252,10 +252,8 @@ class SembastStore implements Store {
     var record;
 
     // look in current transaction
-    if (txn != null) {
-      if (txnRecords != null) {
-        record = txnRecords[key];
-      }
+    if (_hasTransactionRecords(txn)) {
+      record = txnRecords[key];
     }
 
     if (record == null) {
@@ -397,10 +395,14 @@ class SembastStore implements Store {
     return txnContainsKey(zoneTransaction, key);
   }
 
+  bool _hasTransactionRecords(SembastTransaction txn) {
+    return txn != null && txnRecords != null;
+  }
+
   bool txnContainsKey(SembastTransaction txn, key) {
     if (recordMap.containsKey(key)) {
       return true;
-    } else if (txn != null) {
+    } else if (_hasTransactionRecords(txn)) {
       return txnRecords.containsKey(key);
     } else {
       return false;
@@ -444,7 +446,7 @@ class SembastStore implements Store {
   }
 
   List txnClear(SembastTransaction txn) {
-    if (txnRecords != null) {
+    if (_hasTransactionRecords(txn)) {
       return txnDeleteAll(txn, new List.from(txnRecords.keys, growable: false));
     }
     Iterable keys = recordMap.keys;

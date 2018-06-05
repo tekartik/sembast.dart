@@ -64,6 +64,8 @@ void defineTests(DatabaseTestContext ctx) {
       var completer1 = new Completer();
       var completer2 = new Completer();
       futures.add(db.transaction((txn) async {
+        expect(await txn.containsKey(1), isFalse);
+
         await txn.put("hi", 1);
         completer1.complete();
 
