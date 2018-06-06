@@ -1,3 +1,8 @@
+## 1.9.0
+
+* Use new synchronized
+* New transaction API, deprecating the old one
+
 ## 1.8.0
 
 * fix flutter cast issue
