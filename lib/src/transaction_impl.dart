@@ -104,8 +104,9 @@ class SembastTransaction extends Object
       database.stores.map((store) => toExecutor(store));
 
   @override
-  Future deleteStore(String storeName) async =>
-      database.txnDeleteStore(this, storeName);
+  Future deleteStore(String storeName) async {
+    database.txnDeleteStore(this, storeName);
+  }
 
   @override
   StoreExecutor findStore(String storeName) =>

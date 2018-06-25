@@ -41,8 +41,9 @@ void defineTests(DatabaseTestContext ctx) {
             .openDatabase(dbPath, mode: databaseModeExisting)
             .then((Database db) {
           fail("should fail");
-        }).catchError((DatabaseException e) {
-          expect(e.code, DatabaseException.errDatabaseNotFound);
+        }).catchError((e) {
+          expect((e as DatabaseException).code,
+              DatabaseException.errDatabaseNotFound);
         });
       });
 

@@ -120,7 +120,7 @@ void defineTests(DatabaseTestContext ctx) {
             throw "some failure";
           });
         });
-      }).catchError((String err) {
+      }).catchError((err) {
         expect(err, "some failure");
       }).then((_) {
         // put something else to make sure the txn has been cleaned

@@ -161,7 +161,7 @@ abstract class MemoryFileSystemEntityImpl {
     parent.children.remove(segment);
   }
 
-  void close() {
+  Future close() async {
     openCount--;
   }
 

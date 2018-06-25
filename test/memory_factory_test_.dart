@@ -10,7 +10,7 @@ void main() {
     expect(
         memoryFileSystemContext.fs.runtimeType.toString(), "_MemoryFileSystem");
     expect(memoryDatabaseContext.factory,
-        new isInstanceOf<MemoryDatabaseFactory>());
+        const TypeMatcher<MemoryDatabaseFactory>());
   });
 
   defineMemoryDatabaseTests(memoryDatabaseContext);

@@ -64,24 +64,20 @@ void defineTests(FileSystemTestContext ctx) {
     return file.openWrite(mode: FileMode.append);
   }
 
-  Future<File> deleteFile(File file) {
-    return (file.delete(recursive: true) as Future<File>).then((File file_) {
-      expect(file, file_);
-      return file_;
-    });
+  Future<File> deleteFile(File file) async {
+    var file_ = await file.delete(recursive: true) as File;
+    expect(file, file_);
+    return file_;
   }
 
-  Future<Directory> deleteDirectory(Directory dir) {
-    return (dir.delete(recursive: true) as Future<Directory>)
-        .then((Directory dir_) {
-      expect(dir, dir_);
-      return dir_;
-    });
+  Future<Directory> deleteDirectory(Directory dir) async {
+    var dir_ = await dir.delete(recursive: true) as Future<Directory>;
+    expect(dir, dir_);
+    return dir_;
   }
 
   Future clearOutFolder() async {
-    await deleteDirectory(fs.newDirectory(ctx.outPath))
-        .catchError((FileSystemException e, st) {
+    await deleteDirectory(fs.newDirectory(ctx.outPath)).catchError((e, st) {
       //devPrint("${e}\n${st}");
     });
   }
