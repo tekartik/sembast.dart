@@ -100,8 +100,8 @@ class SembastTransaction extends Object
   Future clear() => mainStore.clear();
 
   @override
-  Iterable<StoreExecutor> get stores =>
-      database.stores.map((store) => toExecutor(store));
+  Iterable<SembastTransactionStore> get stores =>
+      database.stores.map(toExecutor);
 
   @override
   Future deleteStore(String storeName) async {

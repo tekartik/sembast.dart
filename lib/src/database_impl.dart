@@ -691,7 +691,7 @@ class SembastDatabase extends Object
 
       T actionResult;
       try {
-        actionResult = await new Future.sync(() => action(_transaction));
+        actionResult = await new Future<T>.sync(() => action(_transaction));
         await _commit();
       } catch (e) {
         _clearTxnData();
