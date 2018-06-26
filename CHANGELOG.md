@@ -2,7 +2,7 @@
 
 * Use new synchronized
 * New transaction API, deprecating the old one
-* dart2
+* dart2 only
 
 ## 1.8.0
 
