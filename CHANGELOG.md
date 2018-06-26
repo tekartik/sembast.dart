@@ -1,7 +1,6 @@
 ## 1.9.0
 
-* Use new synchronized
-* New transaction API, deprecating the old one
+* New transaction API
 * dart2 only
 
 ## 1.8.0

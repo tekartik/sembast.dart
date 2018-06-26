@@ -14,8 +14,6 @@ Inspired from IndexedDB, DataStore, WebSql, NeDB, Lawndart...
 
 ## Usage
 
-Sample usage are given using the experimental async/await feature for clarity. Same code can be done using Future
-
 ### Opening a database
 
 A database is a single file represented by a path in the file system
@@ -41,9 +39,9 @@ For quick usage, data can be written and read quickly using the put/get/delete a
     await db.put({'offline': true}, 'settings');
     
     // read values
-    String title = await db.get('title'); 
-    int version = await db.get('version');
-    Map settings = await db.get('settings');
+    String title = await db.get('title') as String; 
+    int version = await db.get('version') as int;
+    Map settings = await db.get('settings') as Map;
       
     // ...and delete
     await db.delete('version');
@@ -53,8 +51,8 @@ For quick usage, data can be written and read quickly using the put/get/delete a
 If no key is provided, the object is inserted with an auto-increment value
 
     // Auto incrementation is built-in
-    int key1 = await db.put('value1');
-    int key2 = await db.put('value2');
+    int key1 = await db.put('value1') as int;
+    int key2 = await db.put('value2') as int;
     // key1 = 1, key2 = 2...
 
 ### Transaction
