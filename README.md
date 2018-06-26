@@ -22,7 +22,7 @@ A database is a single file represented by a path in the file system
 
     // File path to a file in the same directory than the current script
     String dbPath = join(dirname(Platform.script.toFilePath()), "sample.db");
-    DatabaseFactory dbFactory = ioDatabaseFactory;
+    DatabaseFactory dbFactory = databaseFactoryIo;
     
     // We use the database factory to open the database
     Database db = await dbFactory.openDatabase(dbPath);
@@ -61,9 +61,9 @@ If no key is provided, the object is inserted with an auto-increment value
 
 Actions can be group in transaction for consistency and optimization (single write on the file system). If an error is thrown, the transaction is cancelled and the changes reverted
 
-    await db.inTransaction(() async {
-      await db.put('value1');
-      await db.put('value2');
+    await db.transaction((txn) async {
+      await txn.put('value1');
+      await txn.put('value2');
     });
 
 ### Simple wrapping into a Record object
@@ -83,10 +83,10 @@ A record object holds the record content and key
 (Work in progress) Filtering and sorting can be done on any field
 
     // Store some objects
-    await db.inTransaction(() async {
-      await db.put({'name': 'fish'});
-      await db.put({'name': 'cat'});
-      await db.put({'name': 'dog'});
+    await db.transaction((txn) async {
+      await txn.put({'name': 'fish'});
+      await txn.put({'name': 'cat'});
+      await txn.put({'name': 'dog'});
     });
       
     // Look for any animal "greater than" (alphabetically) 'cat'
@@ -125,7 +125,7 @@ The project idb_shim provides a shim allowing accessing it using the IndexedDB a
 test its algorithms using Dart VM and not Dartium
 
     // Idb factory based on sembast
-    IdbSembastFactory idbFactory = new IdbSembastFactory(ioDatabaseFactory);
+    IdbSembastFactory idbFactory = new IdbSembastFactory(databaseFactoryIo);
     
     String store = "my_store";
     

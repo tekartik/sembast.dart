@@ -21,7 +21,8 @@ class SembastDatabase extends Object
   final bool LOGV = logger.isLoggable(Level.FINEST);
 
   final DatabaseStorage _storage;
-  final Lock lock = new Lock(reentrant: true);
+  // Lock used for opening/compacting
+  final Lock databaseLock = new Lock();
   final Lock transactionLock = new Lock();
 
   String get path => _storage.path;
@@ -78,64 +79,9 @@ class SembastDatabase extends Object
 
   SembastTransaction _transaction;
 
-  // @deprecated
+  /// Exported for testing
   SembastTransaction get currentTransaction => _transaction;
 
-  /*
-  ///
-  /// execute the action in a transaction
-  /// use the current if any
-  ///
-  @override
-  Future<T> inTransaction<T>(FutureOr<T> action()) {
-    //devPrint("z: ${Zone.current[_zoneRootKey]}");
-    //devPrint("z: ${Zone.current[_zoneChildKey]}");
-
-    if (_isInTransaction) {
-      return lock.synchronized(action);
-    }
-
-    Future<T> newTransaction() async {
-      // Compatibility add transaction
-      _transaction = new SembastTransaction(this, ++_txnId);
-
-      _transactionCleanUp() {
-        // Mark transaction complete, ignore error
-        _transaction.completer.complete();
-
-        // Compatibility remove transaction
-        _transaction = null;
-      }
-
-      T actionResult;
-      try {
-        actionResult = await new Future.sync(action);
-        await _commit();
-      } catch (e) {
-        _clearTxnData();
-        _transactionCleanUp();
-        rethrow;
-      }
-
-      _clearTxnData();
-
-      // the transaction is done
-      // need compact?
-      if (_storage.supported) {
-        if (_needCompact) {
-          await compact();
-          //print(_exportStat.toJson());
-        }
-      }
-
-      _transactionCleanUp();
-
-      return actionResult;
-    }
-
-    return lock.synchronized(newTransaction);
-  }
-  */
   bool setRecordInMemory(Record record) {
     return _recordStore(record).setRecordInMemory(record);
   }
@@ -144,52 +90,57 @@ class SembastDatabase extends Object
     _recordStore(record).loadRecord(record);
   }
 
+  Future compact() async {
+    return databaseLock.synchronized(() {
+      return txnCompact();
+    });
+  }
+
   ///
   /// Compact the database (work in progress)
   ///
-  Future compact() {
-    return lock.synchronized(() async {
-      if (_storage.supported) {
-        DatabaseStorage tmpStorage = _storage.tmpStorage;
-        // new stat with compact + 1
-        DatabaseExportStat exportStat = new DatabaseExportStat()
-          ..compactCount = _exportStat.compactCount + 1;
-        await tmpStorage.delete();
-        await tmpStorage.findOrCreate();
+  Future txnCompact() async {
+    assert(databaseLock.inLock);
+    if (_storage.supported) {
+      DatabaseStorage tmpStorage = _storage.tmpStorage;
+      // new stat with compact + 1
+      DatabaseExportStat exportStat = new DatabaseExportStat()
+        ..compactCount = _exportStat.compactCount + 1;
+      await tmpStorage.delete();
+      await tmpStorage.findOrCreate();
 
-        List<String> lines = [];
-        _addLine(Map map) {
-          String encoded;
-          try {
-            encoded = json.encode(map);
-            exportStat.lineCount++;
-            lines.add(encoded);
-          } catch (e, st) {
-            // usefull for debugging...
-            print(map);
-            print(e);
-            print(st);
-            rethrow;
-          }
+      List<String> lines = [];
+      _addLine(Map map) {
+        String encoded;
+        try {
+          encoded = json.encode(map);
+          exportStat.lineCount++;
+          lines.add(encoded);
+        } catch (e, st) {
+          // usefull for debugging...
+          print(map);
+          print(e);
+          print(st);
+          rethrow;
         }
+      }
 
-        _addLine(_meta.toMap());
-        for (Store store in stores) {
-          for (Record record in (store as SembastStore).recordMap.values) {
-            _addLine((record as SembastRecord).toMap());
-          }
+      _addLine(_meta.toMap());
+      for (Store store in stores) {
+        for (Record record in (store as SembastStore).recordMap.values) {
+          _addLine((record as SembastRecord).toMap());
         }
-        await tmpStorage.appendLines(lines);
-        await _storage.tmpRecover();
-        /*
+      }
+      await tmpStorage.appendLines(lines);
+      await _storage.tmpRecover();
+      /*
         print(_storage.toString());
         await _storage.readLines().forEach((String line) {
           print(line);
         });
         */
-        _exportStat = exportStat;
-      }
-    });
+      _exportStat = exportStat;
+    }
   }
 
   // future or not
@@ -339,11 +290,6 @@ class SembastDatabase extends Object
     return store.delete(key);
   }
 
-  /*
-  bool _hasRecord(Record record) {
-    return _recordStore(record).txnContainsKey(zoneTransaction, record.key);
-  }*/
-
   bool _noTxnHasRecord(Record record) {
     return _recordStore(record).txnContainsKey(null, record.key);
   }
@@ -355,14 +301,12 @@ class SembastDatabase extends Object
       {int version,
       OnVersionChangedFunction onVersionChanged,
       DatabaseMode mode}) {
-    return lock.synchronized(() {
-      close();
-      // Reuse same open mode unless specified
-      return open(
-          version: version,
-          onVersionChanged: onVersionChanged,
-          mode: mode ?? this._openMode);
-    });
+    close();
+    // Reuse same open mode unless specified
+    return open(
+        version: version,
+        onVersionChanged: onVersionChanged,
+        mode: mode ?? this._openMode);
   }
 
   void _checkMainStore() {
@@ -467,7 +411,7 @@ class SembastDatabase extends Object
       return new Future.value(this);
     }
 
-    return lock.synchronized(() async {
+    return databaseLock.synchronized(() async {
       Meta meta;
 
       Future _handleVersionChanged(int oldVersion, int newVersion) async {
@@ -601,7 +545,7 @@ class SembastDatabase extends Object
           // make sure _meta is known before compacting
           _meta = meta;
           if (_needCompact || corrupted) {
-            await compact();
+            await txnCompact();
           }
         }
 
@@ -685,18 +629,20 @@ class SembastDatabase extends Object
 
       _clearTxnData();
 
+      _transactionCleanUp();
+
+      return actionResult;
+    }).whenComplete(() async {
       // the transaction is done
       // need compact?
       if (_storage.supported) {
         if (_needCompact) {
-          await compact();
-          //print(_exportStat.toJson());
+          await databaseLock.synchronized(() async {
+            await txnCompact();
+            //print(_exportStat.toJson());
+          });
         }
       }
-
-      _transactionCleanUp();
-
-      return actionResult;
     });
   }
 
