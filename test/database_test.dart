@@ -38,7 +38,7 @@ void defineTests(DatabaseTestContext ctx) {
 
       test('open_existing_no_version', () {
         return factory
-            .openDatabase(dbPath, mode: databaseModeExisting)
+            .openDatabase(dbPath, mode: DatabaseMode.existing)
             .then((Database db) {
           fail("should fail");
         }).catchError((e) {

@@ -52,13 +52,6 @@ abstract class Database extends DatabaseExecutor {
   /// Database  path
   String get path;
 
-  ///
-  /// execute the action in a transaction
-  /// use the current if any
-  ///
-  @deprecated
-  Future<T> inTransaction<T>(FutureOr<T> action());
-
   /// All the stores in the database
   Iterable<Store> get stores;
 
@@ -78,28 +71,14 @@ abstract class Database extends DatabaseExecutor {
   ///
   Store findStore(String storeName);
 
-  // deprecated since 2018-03-05 1.7.0
-  // use [Store.getRecord]
-  @deprecated
-  Future<Record> getStoreRecord(Store store, var key);
-
-  // deprecated since 2018-03-05 1.7.0
-  // use [Store.findRecord]
-  @deprecated
-  Future<List<Record>> findStoreRecords(Store store, Finder finder);
-
   ///
   /// execute the action in a transaction
   /// use the current if any
   ///
   Future<T> transaction<T>(FutureOr<T> action(Transaction transaction));
 
-  // deprecated since 2018-03-05 1.7.0
-  @deprecated
-  Map toJson();
-
   ///
   /// Close the database
   ///
-  close();
+  Future close();
 }

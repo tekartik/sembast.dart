@@ -65,28 +65,23 @@ class SembastDatabase extends Object
     }
   }
 
-  // Check the current zone
-  bool get _isInTransaction => lock.inLock;
-
-  void rollback() {
+  void txnRollback(SembastTransaction txn) {
     // only valid in a transaction
-    if (!_isInTransaction) {
+    if (txn == null) {
       throw new Exception("not in transaction");
     }
     _clearTxnData();
   }
 
   // True if we are currently in the transaction
-  bool get isInTransaction => _isInTransaction;
+  // bool get isInTransaction => _isInTransaction;
 
   SembastTransaction _transaction;
 
   // @deprecated
   SembastTransaction get currentTransaction => _transaction;
 
-  SembastTransaction get zoneTransaction =>
-      _isInTransaction ? currentTransaction : null;
-
+  /*
   ///
   /// execute the action in a transaction
   /// use the current if any
@@ -140,7 +135,7 @@ class SembastDatabase extends Object
 
     return lock.synchronized(newTransaction);
   }
-
+  */
   bool setRecordInMemory(Record record) {
     return _recordStore(record).setRecordInMemory(record);
   }
@@ -260,8 +255,8 @@ class SembastDatabase extends Object
   ///
   @override
   Future<Record> putRecord(Record record) {
-    return inTransaction(() {
-      return txnPutRecord(currentTransaction, _cloneAndFix(record));
+    return transaction((txn) {
+      return txnPutRecord(txn as SembastTransaction, _cloneAndFix(record));
     });
   }
 
@@ -273,20 +268,12 @@ class SembastDatabase extends Object
   }
 
   ///
-  /// Get a store record
-  ///
-  @override
-  Future<Record> getStoreRecord(Store store, var key) {
-    return store.getRecord(key);
-  }
-
-  ///
   /// Put a list or records
   ///
   @override
   Future<List<Record>> putRecords(List<Record> records) {
-    return inTransaction(() {
-      return txnPutRecords(currentTransaction, records);
+    return transaction((txn) {
+      return txnPutRecords(txn as SembastTransaction, records);
     });
   }
 
@@ -309,14 +296,6 @@ class SembastDatabase extends Object
   @override
   Future<Record> findRecord(Finder finder) {
     return mainStore.findRecord(finder);
-  }
-
-  ///
-  /// find records in the given [store]
-  ///
-  @override
-  Future<List<Record>> findStoreRecords(Store store, Finder finder) {
-    return store.findRecords(finder);
   }
 
   Record txnPutRecord(SembastTransaction txn, Record record) {
@@ -360,8 +339,13 @@ class SembastDatabase extends Object
     return store.delete(key);
   }
 
+  /*
   bool _hasRecord(Record record) {
     return _recordStore(record).txnContainsKey(zoneTransaction, record.key);
+  }*/
+
+  bool _noTxnHasRecord(Record record) {
+    return _recordStore(record).txnContainsKey(null, record.key);
   }
 
   ///
@@ -473,7 +457,7 @@ class SembastDatabase extends Object
       OnVersionChangedFunction onVersionChanged,
       DatabaseMode mode}) {
     // Default mode
-    _openMode = mode ??= databaseModeDefault;
+    _openMode = mode ??= DatabaseMode.defaultMode;
 
     if (_opened) {
       if (path != this.path) {
@@ -545,14 +529,14 @@ class SembastDatabase extends Object
 
       //_path = path;
       Future _findOrCreate() async {
-        if (mode == databaseModeExisting) {
+        if (mode == DatabaseMode.existing) {
           bool found = await _storage.find();
           if (!found) {
             throw new DatabaseException.databaseNotFound(
                 "Database (open existing only) ${path} not found");
           }
         } else {
-          if (mode == databaseModeEmpty) {
+          if (mode == DatabaseMode.empty) {
             await _storage.delete();
           }
           await _storage.findOrCreate();
@@ -585,7 +569,7 @@ class SembastDatabase extends Object
               // everything is JSON
               map = json.decode(line) as Map;
             } on Exception catch (_) {
-              if (_openMode == databaseModeNeverFails) {
+              if (_openMode == DatabaseMode.neverFails) {
                 corrupted = true;
                 return;
               } else {
@@ -599,7 +583,7 @@ class SembastDatabase extends Object
             } else if (SembastRecord.isMapRecord(map)) {
               // record?
               Record record = new SembastRecord.fromMap(this, map);
-              if (_hasRecord(record)) {
+              if (_noTxnHasRecord(record)) {
                 _exportStat.obsoleteLineCount++;
               }
               loadRecord(record);

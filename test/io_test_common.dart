@@ -8,7 +8,7 @@ import 'package:sembast/src/io/io_file_system.dart';
 
 // For test in memory
 IoDatabaseTestContext get ioDatabaseContext =>
-    new IoDatabaseTestContext()..factory = ioDatabaseFactory;
+    new IoDatabaseTestContext()..factory = databaseFactoryIo;
 
 class IoDatabaseTestContext extends FsDatabaseTestContext {
   String get dbPath => testOutPath + ".db";

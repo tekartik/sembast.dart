@@ -3,7 +3,7 @@ import 'package:sembast/sembast.dart';
 import 'package:sembast/sembast_io.dart';
 
 main() async {
-  Database db = await ioDatabaseFactory
+  Database db = await databaseFactoryIo
       .openDatabase(join("example", "io", "test_out", "random.db"));
   /*
   Store store = db.getStore("my_store");

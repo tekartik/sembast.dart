@@ -5,23 +5,11 @@ import 'package:sembast/src/record_impl.dart';
 /// Special field access
 ///
 class Field {
-  /*
-  static const String value = "_value";
-  static const String key = "_key";
-  static String VALUE = "_value";
-  static String KEY = "_key";
-
-  */
+  /// Our value field
   static String value = "_value";
+
+  /// Our key field
   static String key = "_key";
-
-  // use value instead
-  @deprecated
-  static String VALUE = value;
-
-  // use key instead
-  @deprecated
-  static String KEY = key;
 }
 
 ///

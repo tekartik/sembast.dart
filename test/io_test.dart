@@ -3,6 +3,8 @@ library sembast.test.io_test;
 
 import 'dart:async';
 import 'dart:convert';
+import 'package:sembast/src/io/io_database_factory.dart' as impl;
+
 import 'io_test_common.dart';
 import 'package:path/path.dart';
 import 'package:sembast/sembast.dart';
@@ -15,7 +17,7 @@ import 'dart:io' as io;
 void main() {
   group("io", () {
     test('fs', () {
-      expect(ioDatabaseFactory.fs, ioFileSystem);
+      expect((databaseFactoryIo as impl.IoDatabaseFactory).fs, ioFileSystem);
     });
 
     IoFileSystemTestContext ctx = ioFileSystemContext;
@@ -40,7 +42,7 @@ void main() {
 
         await new io.File(dbPath)
             .writeAsString(json.encode({"version": 2, "sembast": 1}));
-        Database db = await ioDatabaseFactory.openDatabase(dbPath);
+        Database db = await databaseFactoryIo.openDatabase(dbPath);
         expect(db.version, 2);
 
         await db.put("value", "key");
@@ -48,10 +50,10 @@ void main() {
         //print(await new io.File(dbPath).readAsString());
 
         try {
-          await reOpen(db, mode: databaseModeCreate);
+          await reOpen(db, mode: DatabaseMode.create);
           fail("should fail");
         } on FormatException catch (_) {
-          await reOpen(db, mode: databaseModeNeverFails);
+          await reOpen(db, mode: DatabaseMode.neverFails);
           // version cannot be read anymore...
           expect(db.version, 1);
         }
@@ -67,7 +69,7 @@ void main() {
                 json.encode({'key': 1, 'value': 'test1'}) +
                 "\n" +
                 json.encode({'key': 2, 'value': 'test2'}));
-        Database db = await ioDatabaseFactory.openDatabase(dbPath);
+        Database db = await databaseFactoryIo.openDatabase(dbPath);
         expect(db.version, 2);
 
         await db.put("value3");
@@ -75,10 +77,10 @@ void main() {
         //print(await new io.File(dbPath).readAsString());
 
         try {
-          await reOpen(db, mode: databaseModeCreate);
+          await reOpen(db, mode: DatabaseMode.create);
           fail("should fail");
         } on FormatException catch (_) {
-          await reOpen(db, mode: databaseModeNeverFails);
+          await reOpen(db, mode: DatabaseMode.neverFails);
           List<String> lines = await readContent(fs, dbPath);
           // Only the first line remains
           expect(lines.length, 2);

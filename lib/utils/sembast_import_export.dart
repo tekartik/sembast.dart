@@ -68,7 +68,7 @@ Future<Database> importDatabase(
   int version = srcData[_dbVersion] as int;
 
   Database db = await dstFactory.openDatabase(dstPath,
-      version: version, mode: databaseModeEmpty);
+      version: version, mode: DatabaseMode.empty);
 
   await db.transaction((txn) {
     List<Map> storesExport = srcData[_stores] as List<Map>;

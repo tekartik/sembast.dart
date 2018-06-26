@@ -1,15 +1,10 @@
 library sembast.io;
 
-import 'src/io/io_file_system.dart';
-import 'src/sembast_fs.dart';
+import 'package:sembast/sembast.dart';
 
-/// The factory
-// ignore: deprecated_member_use
-final IoDatabaseFactory ioDatabaseFactory = new IoDatabaseFactory();
+import 'src/io/io_database_factory.dart' as _;
 
-/// Io file system implementation
-class IoDatabaseFactory extends FsDatabaseFactory {
-  // Use [ioDatabaseFactory] instead
-  @deprecated
-  IoDatabaseFactory() : super(ioFileSystem);
-}
+DatabaseFactory get databaseFactoryIo => _.ioDatabaseFactory;
+
+@deprecated
+DatabaseFactory get ioDatabaseFactory => databaseFactoryIo;

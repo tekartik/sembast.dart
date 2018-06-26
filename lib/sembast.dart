@@ -13,10 +13,15 @@ import 'package:sembast/src/sort_order.dart';
 export 'package:sembast/src/database_mode.dart'
     show
         DatabaseMode,
+        // ignore: deprecated_member_use
         databaseModeCreate,
+        // ignore: deprecated_member_use
         databaseModeDefault,
+        // ignore: deprecated_member_use
         databaseModeEmpty,
+        // ignore: deprecated_member_use
         databaseModeExisting,
+        // ignore: deprecated_member_use
         databaseModeNeverFails;
 export 'package:sembast/src/sort_order.dart';
 
@@ -61,11 +66,6 @@ class DatabaseException implements Exception {
   static int errBadParam = 0;
   static int errDatabaseNotFound = 1;
 
-  @deprecated
-  static int BAD_PARAM = errBadParam;
-  @deprecated
-  static int DATABASE_NOT_FOUND = errDatabaseNotFound;
-
   final int _code;
   final String _message;
 
@@ -88,16 +88,7 @@ abstract class StoreTransaction extends StoreExecutor {}
 ///
 /// Database transaction
 ///
-abstract class Transaction implements StoreTransaction, TransactionExecutor {
-  @deprecated
-  int get id;
-
-  @deprecated
-  bool get isCompleted;
-
-  @deprecated
-  Future get completed;
-}
+abstract class Transaction implements StoreTransaction, TransactionExecutor {}
 
 ///
 /// Filter for searching into the database

@@ -9,21 +9,16 @@ import 'dart:convert';
 class FileMode {
   /// The mode for opening a file only for reading.
   static const read = const FileMode._internal(0);
-  @Deprecated("user read")
-  static const READ = const FileMode._internal(0);
 
   /// The mode for opening a file for reading and writing. The file is
   /// overwritten if it already exists. The file is created if it does not
   /// already exist.
   static const write = const FileMode._internal(1);
-  @Deprecated("use write")
-  static const WRITE = write;
 
   /// The mode for opening a file for reading and writing to the
   /// end of it. The file is created if it does not already exist.
   static const append = const FileMode._internal(2);
-  @Deprecated("use append")
-  static const APPEND = append;
+
   final int _mode;
 
   int get mode => _mode;
@@ -144,18 +139,10 @@ abstract class IOSink {
 
 class FileSystemEntityType {
   static const file = const FileSystemEntityType._internal(0);
-  @Deprecated("use file")
-  static const FILE = file;
   static const directory = const FileSystemEntityType._internal(1);
-  @Deprecated("use directory")
-  static const DIRECTORY = directory;
   static const link = const FileSystemEntityType._internal(2);
-  @Deprecated("use link")
-  static const LINK = link;
   static const notFound = const FileSystemEntityType._internal(3);
-  @Deprecated("use notFound")
-  static const NOT_FOUND = notFound;
-  //static const _typeList = const [FileSystemEntityType.FILE, FileSystemEntityType.DIRECTORY, FileSystemEntityType.LINK, FileSystemEntityType.NOT_FOUND];
+
   final int _type;
 
   const FileSystemEntityType._internal(this._type);

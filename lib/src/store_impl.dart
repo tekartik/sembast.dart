@@ -25,20 +25,23 @@ class SembastStore implements Store {
   Map<dynamic, Record> recordMap = new Map();
   Map<dynamic, Record> txnRecords;
 
-  bool get isInTransaction => database.isInTransaction;
+  // bool get isInTransaction => database.isInTransaction;
 
   SembastStore(this.database, this.name);
 
   SembastTransaction get currentTransaction => database.currentTransaction;
 
-  SembastTransaction get zoneTransaction => database.zoneTransaction;
+  // SembastTransaction get zoneTransaction => database.zoneTransaction;
+
+  Future<T> transaction<T>(FutureOr<T> action(Transaction transaction)) =>
+      database.transaction(action);
 
   ///
   /// return the key
   ///
   Future put(var value, [var key]) {
-    return database.inTransaction(() {
-      return txnPut(currentTransaction, value, key);
+    return transaction((txn) {
+      return txnPut(txn as SembastTransaction, value, key);
     });
   }
 
@@ -58,7 +61,8 @@ class SembastStore implements Store {
   @override
   Stream<Record> get records {
     StreamController<Record> ctlr = new StreamController();
-    _feedController(zoneTransaction, ctlr);
+    // asynchronous feeding
+    _feedController(null, ctlr);
     ctlr.close();
     return ctlr.stream;
   }
@@ -108,8 +112,9 @@ class SembastStore implements Store {
   /// find the first matching record
   ///
   @override
-  Future<Record> findRecord(Finder finder) async =>
-      txnFindRecord(zoneTransaction, finder);
+  Future<Record> findRecord(Finder finder) async {
+    return txnFindRecord(null, finder);
+  }
 
   @override
   Future findKey(Finder finder) async => (await findRecord(finder))?.key;
@@ -133,7 +138,7 @@ class SembastStore implements Store {
   ///
   @override
   Future<List<Record>> findRecords(Finder finder) async {
-    return txnFindRecords(zoneTransaction, finder);
+    return txnFindRecords(null, finder);
   }
 
   List<Record> txnFindRecords(SembastTransaction txn, Finder finder) {
@@ -164,8 +169,9 @@ class SembastStore implements Store {
   }
 
   @override
-  Future<List> findKeys(Finder finder) async =>
-      txnFindKeys(zoneTransaction, finder);
+  Future<List> findKeys(Finder finder) async {
+    return txnFindKeys(null, finder);
+  }
 
   Future<List> txnFindKeys(SembastTransaction txn, Finder finder) async {
     var records = await txnFindRecords(txn, finder);
@@ -195,25 +201,6 @@ class SembastStore implements Store {
         _lastIntKey = key;
       }
     }
-  }
-
-  ///
-  /// execture the actions in a transaction
-  /// use the current if any
-  ///
-  Future<T> inTransaction<T>(FutureOr<T> action()) =>
-      database.inTransaction(action);
-
-  // Use Database.putRecord instead
-  @deprecated
-  Future<Record> putRecord(Record record) {
-    return database.putRecord(record);
-  }
-
-  // Use Database.putRecords instead
-  @deprecated
-  Future<List<Record>> putRecords(List<Record> records) {
-    return database.putRecords(records);
   }
 
   Record txnPutRecord(SembastTransaction txn, Record record) {
@@ -271,7 +258,7 @@ class SembastStore implements Store {
   ///
   @override
   Future<Record> getRecord(var key) async {
-    return txnGetRecord(zoneTransaction, key);
+    return txnGetRecord(null, key);
   }
 
   Record txnGetRecord(SembastTransaction txn, key) {
@@ -288,8 +275,8 @@ class SembastStore implements Store {
   /// Get all records from a list of keys
   ///
   @override
-  Future<List<Record>> getRecords(Iterable keys) {
-    return new Future.value(txnGetRecords(zoneTransaction, keys));
+  Future<List<Record>> getRecords(Iterable keys) async {
+    return txnGetRecords(null, keys);
   }
 
   List<Record> txnGetRecords(SembastTransaction txn, Iterable keys) {
@@ -312,7 +299,7 @@ class SembastStore implements Store {
   ///
   @override
   Future get(var key) async {
-    return txnGet(zoneTransaction, key);
+    return txnGet(null, key);
   }
 
   dynamic txnGet(SembastTransaction txn, key) {
@@ -328,7 +315,7 @@ class SembastStore implements Store {
   ///
   @override
   Future<int> count([Filter filter]) async {
-    return txnCount(zoneTransaction, filter);
+    return txnCount(null, filter);
   }
 
   int txnCount(SembastTransaction txn, Filter filter) {
@@ -343,8 +330,8 @@ class SembastStore implements Store {
   /// delete a record by key
   ///
   Future delete(var key) {
-    return inTransaction(() {
-      return txnDelete(currentTransaction, key);
+    return transaction((txn) {
+      return txnDelete(txn as SembastTransaction, key);
     });
   }
 
@@ -366,8 +353,8 @@ class SembastStore implements Store {
   ///
   @override
   Future deleteAll(Iterable keys) {
-    return inTransaction(() {
-      return txnDeleteAll(currentTransaction, keys);
+    return transaction((txn) {
+      return txnDeleteAll(txn as SembastTransaction, keys);
     });
   }
 
@@ -392,7 +379,7 @@ class SembastStore implements Store {
 
   @override
   Future<bool> containsKey(key) async {
-    return txnContainsKey(zoneTransaction, key);
+    return txnContainsKey(null, key);
   }
 
   bool _hasTransactionRecords(SembastTransaction txn) {
@@ -439,9 +426,9 @@ class SembastStore implements Store {
   ///
   @override
   Future clear() {
-    return inTransaction(() {
+    return transaction((txn) {
       // first delete the one in transaction
-      txnClear(currentTransaction);
+      txnClear(txn as SembastTransaction);
     });
   }
 

@@ -48,56 +48,56 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     test('put/clear/get in currentTransaction', () async {
-      SembastTransaction txn;
-      await db.inTransaction(() {
-        txn = db.currentTransaction;
-        return db.put("hi", 1).then((_) {
-          return db.mainStore.clear().then((_) {
-            return db.get(1).then((value) {
+      SembastTransaction sembastTransaction;
+      await db.transaction((txn) {
+        sembastTransaction = txn as SembastTransaction;
+        expect(sembastTransaction.isCompleted, isFalse);
+        return txn.put("hi", 1).then((_) {
+          return txn.mainStore.clear().then((_) {
+            return txn.get(1).then((value) {
               expect(value, null);
-              expect(txn.isCompleted, isFalse);
             });
           });
         });
       });
-      expect(txn.isCompleted, isTrue);
-      await txn.completed;
-      expect(txn.isCompleted, isTrue);
+      expect(sembastTransaction.isCompleted, isTrue);
+      await sembastTransaction.completed;
+      expect(sembastTransaction.isCompleted, isTrue);
     });
 
-    test('put and rollback', () {
-      return db.inTransaction(() {
-        return db.put("hi", 1).then((_) {
+    test('put and rollback', () async {
+      await db.transaction((txn) {
+        return txn.put("hi", 1).then((_) {
           // still here
-          return db.get(1).then((value) {
+          return txn.get(1).then((value) {
             expect(value, "hi");
           }).then((_) {
-            db.rollback();
-            return db.get(1).then((value) {
+            db.txnRollback(txn as SembastTransaction);
+            return txn.get(1).then((value) {
               expect(value, null);
             });
           });
         });
-      }).then((_) {
-        // put something else to make sure the txn has been cleaned
-        return db.put("ho", 2).then((_) {
-          return db.get(1).then((value) {
-            expect(value, null);
-          });
+      });
+      expect(await db.get(1), isNull);
+      // put something else to make sure the txn has been cleaned
+      return db.put("ho", 2).then((_) {
+        return db.get(1).then((value) {
+          expect(value, null);
         });
       });
     });
 
     test('delete and rollback', () {
       return db.put("hi", 1).then((_) {
-        return db.inTransaction(() {
-          return db.delete(1).then((_) {
+        return db.transaction((txn) {
+          return txn.delete(1).then((_) {
             // still here
-            return db.get(1).then((value) {
+            return txn.get(1).then((value) {
               expect(value, null);
             }).then((_) {
-              db.rollback();
-              return db.get(1).then((value) {
+              db.txnRollback(txn as SembastTransaction);
+              return txn.get(1).then((value) {
                 expect(value, "hi");
               });
             });
@@ -114,7 +114,7 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     test('one currentTransaction', () {
-      db.inTransaction(() {
+      db.transaction((txn) {
         expect(db.currentTransaction.id, 1);
         return new Future.value().then((_) {
           expect(db.currentTransaction.id, 1);
@@ -126,39 +126,13 @@ void defineTests(DatabaseTestContext ctx) {
       });
     });
 
-    test('inner currentTransaction', () {
-      db.inTransaction(() {
-        expect(db.currentTransaction.id, 1);
-        return db.inTransaction(() {
-          expect(db.currentTransaction.id, 1);
-        }).then((_) {
-          expect(db.currentTransaction.id, 1);
-        });
-      }).then((_) {
-        expect(db.currentTransaction, null);
-      });
-    });
-
-    test('inner new currentTransaction', () {
-      db.inTransaction(() {
-        expect(db.currentTransaction.id, 1);
-        new Future.value().then((_) {
-          expect(db.currentTransaction.id, 1);
-        }).then((_) {
-          expect(db.currentTransaction.id, 1);
-        });
-      }).then((_) {
-        expect(db.currentTransaction, null);
-      });
-    });
-
     test('two currentTransaction', () {
-      db.inTransaction(() {
+      db.transaction((txn) {
         expect(db.currentTransaction.id, 1);
       }).then((_) {
         // expect(db.currentTransaction, null);
       });
-      return db.inTransaction(() {
+      return db.transaction((txn) {
         expect(db.currentTransaction.id, 2);
       }).then((_) {
         // expect(db.currentTransaction, null);
@@ -166,11 +140,11 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     test('two currentTransaction follow', () {
-      db.inTransaction(() {
+      db.transaction((txn) {
         expect(db.currentTransaction.id, 1);
       }).then((_) {
         expect(db.currentTransaction, null);
-        return db.inTransaction(() {
+        return db.transaction((txn) {
           expect(db.currentTransaction.id, 2);
         }).then((_) {
           expect(db.currentTransaction, null);

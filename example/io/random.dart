@@ -5,7 +5,7 @@ import 'package:sembast/sembast_io.dart';
 import 'package:sembast/src/database_impl.dart';
 
 main() async {
-  Database db = await ioDatabaseFactory
+  Database db = await databaseFactoryIo
       .openDatabase(join("example", "io", "test_out", "random.db"));
 
   // randomly write

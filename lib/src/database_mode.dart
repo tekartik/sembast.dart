@@ -2,26 +2,22 @@
 /// The modes in which a Database can be opened.
 ///
 class DatabaseMode {
-  // use [databaseModeCreate] instead
-  // deprecate since 2018-03-05 1.7.0
-  @Deprecated("Use databaseModeCreate")
-  static const CREATE = databaseModeCreate;
+  /// The database is created if not found
+  static const create = const DatabaseMode._internal(0);
 
-  // use [databaseModeEmpty] instead
-  // deprecate since 2018-03-05 1.7.0
-  @Deprecated("Use databaseModeExisting")
-  static const EXISTING = databaseModeExisting;
+  /// Open an existing database, fail otherwise
+  static const existing = const DatabaseMode._internal(1);
 
-  /// The mode for emptying the existing content if any
-  // use [databaseModeCreate] instead
-  // deprecate since 2018-03-05 1.7.0
-  @Deprecated("Use databaseModeEmpty")
-  static const EMPTY = databaseModeEmpty;
+  /// Empty the existing database
+  static const empty = const DatabaseMode._internal(2);
 
-  // use [databaseModeNeverFails] instead
-  // deprecate since 2018-03-05 1.7.0
-  @Deprecated("Use databaseModeNeverFails")
-  static const NEVER_FAILS = databaseModeNeverFails;
+  /// This mode will never fails
+  /// Corrupted database will be deleted
+  /// This is the default
+  static const neverFails = const DatabaseMode._internal(3);
+
+  /// Default open mode [neverFails]
+  static const defaultMode = neverFails;
 
   final int _mode;
 
@@ -40,18 +36,17 @@ class DatabaseMode {
 }
 
 /// The database is created if not found
-const databaseModeCreate = const DatabaseMode._internal(0);
+@deprecated
+const databaseModeCreate = DatabaseMode.create;
 
-/// Open an existing database, fail otherwise
-const databaseModeExisting = const DatabaseMode._internal(1);
+@deprecated
+const databaseModeExisting = DatabaseMode.existing;
 
-/// The mode for opening an existing database
-const databaseModeEmpty = const DatabaseMode._internal(2);
+@deprecated
+const databaseModeEmpty = DatabaseMode.empty;
 
-/// This mode will never fails
-/// Corrupted database will be deleted
-/// This is the default
-const databaseModeNeverFails = const DatabaseMode._internal(3);
+@deprecated
+const databaseModeNeverFails = DatabaseMode.neverFails;
 
-/// Default open mode [databaseModeNeverFails]
-const databaseModeDefault = databaseModeNeverFails;
+@deprecated
+const databaseModeDefault = DatabaseMode.defaultMode;
