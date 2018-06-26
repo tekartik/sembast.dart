@@ -1,5 +1,5 @@
 name: sembast
-version: 1.9.0-dev.2
+version: 1.9.0
 author: Alexandre Roux Tekartik <alex.tekartik.pub@gmail.com>
 description: Simple embedded file system database
 homepage: https://github.com/tekartik/sembast.dart
@@ -8,7 +8,7 @@ environment:
 dependencies:
   logging: '>=0.11.3'
   path: '>=1.5.1'
-  synchronized: '>=1.5.0-dev.2'
+  synchronized: '>=1.5.0'
   dart2_constant: '>=1.0.1'
 
 dev_dependencies:
