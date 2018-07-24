@@ -20,6 +20,6 @@ dev_dependencies:
       ref: dart2
     version: '>=0.1.4'
   browser: any
-  build_runner: ^0.9.0
-  build_web_compilers: ^0.4.0+4
+  build_runner: '>=0.9.0'
+  build_web_compilers: '>=0.4.0+4'
   build_test: '>=0.10.2+5'
