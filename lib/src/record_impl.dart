@@ -137,9 +137,8 @@ _cloneKey(var key) {
   if (key == null) {
     return key;
   }
-  throw new DatabaseException.badParam("key ${key} not supported${key != null
-      ? ' type:${key.runtimeType}'
-      : ''}");
+  throw new DatabaseException.badParam(
+      "key ${key} not supported${key != null ? ' type:${key.runtimeType}' : ''}");
 }
 
 _cloneValue(var value) {
@@ -162,6 +161,5 @@ _cloneValue(var value) {
     return value;
   }
   throw new DatabaseException.badParam(
-      "value ${value} not supported${value != null ? ' type:${value
-          .runtimeType}' : ''}");
+      "value ${value} not supported${value != null ? ' type:${value.runtimeType}' : ''}");
 }

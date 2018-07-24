@@ -32,7 +32,7 @@ class CompositeFilter extends Filter {
 
   @override
   String toString() {
-    return filters.join(' ${isAnd ? "AND" : "OR" } ');
+    return filters.join(' ${isAnd ? "AND" : "OR"} ');
   }
 }
 
