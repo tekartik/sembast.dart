@@ -560,7 +560,8 @@ class SembastDatabase extends Object
     });
   }
 
-  close() {
+  @override
+  Future close() async {
     _opened = false;
     //_mainStore = null;
     //_meta = null;
