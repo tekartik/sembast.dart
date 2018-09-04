@@ -1,3 +1,6 @@
+@TestOn("vm")
+library sembast.database_perf_io_test;
+
 import 'dart:async';
 import 'dart:io';
 
