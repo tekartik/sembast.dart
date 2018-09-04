@@ -98,5 +98,5 @@ void main() {
     await perf(1000, 20, inTransaction: true, bigRecord: true);
     await perf(10000, 1, inTransaction: true, bigRecord: true);
     await perf(10000, 5, inTransaction: true, bigRecord: true);
-  });
+  }, timeout: Timeout(new Duration(minutes: 10)));
 }
