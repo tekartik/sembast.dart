@@ -7,10 +7,11 @@ sembast db stands for
 
 ## General
 
-Yet another persistent store database solution for single process io applications.
-The whole database resides in a single file and is loaded in memory when opened. Changes are appended right away to the file and the file is automatically compacted when needed.
+Yet another NoSQL persistent store database solution for single process io applications.
+The whole database resides in a single file and is loaded in memory when opened. Changes are appended right away to the 
+file and the file is automatically compacted when needed.
 
-Inspired from IndexedDB, DataStore, WebSql, NeDB, Lawndart...
+Works on Dart VM and Flutter. Inspired from IndexedDB, DataStore, WebSql, NeDB, Lawndart...
 
 ## Usage
 
@@ -143,6 +144,18 @@ test its algorithms using Dart VM and not Dartium
     expect(await objectStore.getObject("test"), "value");
     
     await transaction.completed;
+
+## Information
+
+### Storage format
+
+Data is stored in a text file where each line is (json format) either:
+- meta information of the database (first line)
+- record data
+
+Each data written is appended to the file for best performance. Compact might happen at any moment
+to prevent record duplication. The whole compact information is done in a new file
+followed by a rename to make it atomic.
 
 ## Build status
 
