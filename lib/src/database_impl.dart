@@ -369,17 +369,9 @@ class SembastDatabase extends Object
   ///
   @override
   Future deleteStore(String storeName) {
-    Store store = findStore(storeName);
-    if (store == null) {
-      return new Future.value();
-    } else {
-      return store.clear().then((_) {
-        // do not delete main
-        if (store != mainStore) {
-          _stores.remove(storeName);
-        }
-      });
-    }
+    return transaction((txn) {
+      txnDeleteStore(txn as SembastTransaction, storeName);
+    });
   }
 
   void txnDeleteStore(SembastTransaction txn, String storeName) {
@@ -387,7 +379,7 @@ class SembastDatabase extends Object
     if (store != null) {
       store.store.txnClear(txn);
       // do not delete main
-      if (store != mainStore) {
+      if (store.store != mainStore) {
         _stores.remove(storeName);
       }
     }

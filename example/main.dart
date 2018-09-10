@@ -5,7 +5,7 @@ import 'package:sembast/sembast_io.dart';
 
 main() async {
   Database db = await databaseFactoryIo
-      .openDatabase(join("example", "io", "test_out", "record_demo.db"));
+      .openDatabase(join(".dart_tool", "sembast", "example", "record_demo.db"));
   Store store = db.getStore("my_store");
   Record record = new Record(store, {"name": "ugly"});
   record = await db.putRecord(record);

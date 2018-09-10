@@ -1,4 +1,4 @@
-import 'package:dart2_constant/io.dart';
+import 'dart:io';
 
 const ioFileModeRead = FileMode.read;
 const ioFileModeAppend = FileMode.append;

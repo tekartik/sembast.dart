@@ -32,11 +32,25 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     test('delete', () {
-      Store store = db.getStore("test");
+      var store = db.findStore("test");
+      expect(store, isNull);
+      store = db.getStore("test");
+      expect(store, isNotNull);
+      store = db.findStore("test");
       expect(store, isNotNull);
       return db.deleteStore("test").then((_) {
         expect(db.findStore("test"), isNull);
       });
+    });
+
+    test('delete_main', () async {
+      var mainStoreName = db.mainStore.name;
+      Store store = db.findStore(mainStoreName);
+      expect(store, isNotNull);
+      expect(db.stores, [db.mainStore]);
+      await db.deleteStore(mainStoreName);
+      expect(db.stores, [db.mainStore]);
+      expect(db.findStore(mainStoreName), isNotNull);
     });
 
     test('delete_main', () {
