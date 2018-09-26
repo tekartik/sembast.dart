@@ -19,7 +19,7 @@ void main() {
       inTransaction ??= transactionCount != null && transactionCount > 0;
       transactionCount ??= inTransaction ? 1 : 0;
       String _record = bigRecord == true
-          ? List.generate<String>(3000, (i) => '$i').join('')
+          ? List.generate(3000, (i) => '$i').join('')
           : "'some value";
       recordSize = _record.length;
 
@@ -69,7 +69,7 @@ void main() {
     }
 
     print('|nb records|times|transaction|size kb|elapsed ms|');
-    print(List.generate<String>(6, (_) => '|').join('---'));
+    print(List.generate(6, (_) => '|').join('---'));
 
     await perf(1, 1);
     await perf(10, 1);
