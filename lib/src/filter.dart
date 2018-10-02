@@ -69,7 +69,7 @@ class FilterPredicate extends Filter {
     }
 
     // empty record or not map? refuse
-    if (!(record.value is Map)) {
+    if (record.value == null) {
       return false;
     }
 
