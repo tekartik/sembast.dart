@@ -55,22 +55,42 @@ class FilterPredicate extends Filter {
           return Comparable.compare(value1, value2);
         }
       } catch (_) {}
-      return 0;
+      return null;
     }
 
+    bool _lessThan(dynamic value1, dynamic value2) {
+      var cmp = _safeCompare(value1, value2);
+      return cmp != null && cmp < 0;
+    }
+
+    bool _greaterThan(dynamic value1, dynamic value2) {
+      var cmp = _safeCompare(value1, value2);
+      return cmp != null && cmp > 0;
+    }
+
+    // empty record or not map? refuse
+    if (!(record.value is Map)) {
+      return false;
+    }
+
+    var fieldValue = record[field];
     switch (operation) {
       case FilterOperation.EQUAL:
-        return record[field] == value;
+        return fieldValue == value;
       case FilterOperation.NOT_EQUAL:
-        return record[field] != value;
+        return fieldValue != value;
       case FilterOperation.LESS_THAN:
-        return _safeCompare(record[field], value) < 0;
+        // return _safeCompare(record[field], value) < 0;
+        return _lessThan(fieldValue, value);
       case FilterOperation.LESS_THAN_OR_EQUAL:
-        return _safeCompare(record[field], value) <= 0;
+        return _lessThan(fieldValue, value) || fieldValue == value;
+      // return _safeCompare(record[field], value) <= 0;
       case FilterOperation.GREATER_THAN:
-        return _safeCompare(record[field], value) > 0;
+        return _greaterThan(fieldValue, value);
+      // return _safeCompare(record[field], value) > 0;
       case FilterOperation.GREATER_THAN_OR_EQUAL:
-        return _safeCompare(record[field], value) >= 0;
+        return _greaterThan(fieldValue, value) || fieldValue == value;
+      // return _safeCompare(record[field], value) >= 0;
       case FilterOperation.IN:
         return (value as List).contains(record[field]);
       default:
