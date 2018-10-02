@@ -65,7 +65,7 @@ class SembastRecord implements Record {
   /// allow overriding store to clean for main store
   ///
   Record clone({Store store}) {
-    return new SembastRecord.copy(
+    return SembastRecord.copy(
         store == null ? _store : store, key, _value, _deleted);
   }
 
@@ -137,16 +137,16 @@ _cloneKey(var key) {
   if (key == null) {
     return key;
   }
-  throw new DatabaseException.badParam(
+  throw DatabaseException.badParam(
       "key ${key} not supported${key != null ? ' type:${key.runtimeType}' : ''}");
 }
 
 _cloneValue(var value) {
   if (value is Map) {
-    return new Map.from(value).cast<String, dynamic>();
+    return Map.from(value).cast<String, dynamic>();
   }
   if (value is List) {
-    return new List.from(value);
+    return List.from(value);
   }
   if (value is String) {
     return value;
@@ -160,6 +160,6 @@ _cloneValue(var value) {
   if (value == null) {
     return value;
   }
-  throw new DatabaseException.badParam(
+  throw DatabaseException.badParam(
       "value ${value} not supported${value != null ? ' type:${value.runtimeType}' : ''}");
 }

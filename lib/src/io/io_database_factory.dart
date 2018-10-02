@@ -10,4 +10,4 @@ class IoDatabaseFactory extends FsDatabaseFactory {
 
 /// The factory
 // ignore: deprecated_member_use
-final IoDatabaseFactory ioDatabaseFactory = new IoDatabaseFactory();
+final IoDatabaseFactory ioDatabaseFactory = IoDatabaseFactory();

@@ -8,12 +8,11 @@ import 'src/sembast_fs.dart';
 import 'src/memory/memory_file_system.dart';
 
 /// The pure memory factory
-final MemoryDatabaseFactory memoryDatabaseFactory =
-    new MemoryDatabaseFactory._();
+final MemoryDatabaseFactory memoryDatabaseFactory = MemoryDatabaseFactory._();
 
 /// The memory with a simulated file system factory
 final MemoryFsDatabaseFactory memoryFsDatabaseFactory =
-    new MemoryFsDatabaseFactory();
+    MemoryFsDatabaseFactory();
 
 /// In memory implementation
 class MemoryDatabaseFactory implements DatabaseFactory {
@@ -28,7 +27,7 @@ class MemoryDatabaseFactory implements DatabaseFactory {
     }
 
     if (db == null) {
-      db = new SembastDatabase(new _MemoryDatabaseStorage(this, path));
+      db = SembastDatabase(_MemoryDatabaseStorage(this, path));
     }
 
     await db.open(
@@ -48,11 +47,11 @@ class MemoryDatabaseFactory implements DatabaseFactory {
     if (path != null) {
       _databases.remove(path);
     }
-    return new Future.value();
+    return Future.value();
   }
 
   //Database _defaultDatabase;
-  Map<String, SembastDatabase> _databases = new Map();
+  Map<String, SembastDatabase> _databases = Map();
 
   @override
   bool get hasStorage => false;
@@ -72,11 +71,11 @@ class _MemoryDatabaseStorage extends DatabaseStorage {
 
   @override
   Future<bool> find() {
-    return new Future.value(factory._databases[path] != null);
+    return Future.value(factory._databases[path] != null);
   }
 
   @override
-  Future findOrCreate() => new Future.value();
+  Future findOrCreate() => Future.value();
 
   @override
   bool get supported => false;

@@ -111,48 +111,46 @@ abstract class Filter {
   Filter();
 
   factory Filter.equal(String field, value) {
-    return new FilterPredicate(field, FilterOperation.EQUAL, value);
+    return FilterPredicate(field, FilterOperation.EQUAL, value);
   }
 
   factory Filter.notEqual(String field, value) {
-    return new FilterPredicate(field, FilterOperation.NOT_EQUAL, value);
+    return FilterPredicate(field, FilterOperation.NOT_EQUAL, value);
   }
 
   factory Filter.notNull(String field) {
-    return new FilterPredicate(field, FilterOperation.NOT_EQUAL, null);
+    return FilterPredicate(field, FilterOperation.NOT_EQUAL, null);
   }
 
   factory Filter.isNull(String field) {
-    return new FilterPredicate(field, FilterOperation.EQUAL, null);
+    return FilterPredicate(field, FilterOperation.EQUAL, null);
   }
 
   factory Filter.lessThan(String field, value) {
-    return new FilterPredicate(field, FilterOperation.LESS_THAN, value);
+    return FilterPredicate(field, FilterOperation.LESS_THAN, value);
   }
 
   factory Filter.lessThanOrEquals(String field, value) {
-    return new FilterPredicate(
-        field, FilterOperation.LESS_THAN_OR_EQUAL, value);
+    return FilterPredicate(field, FilterOperation.LESS_THAN_OR_EQUAL, value);
   }
 
   factory Filter.greaterThan(String field, value) {
-    return new FilterPredicate(field, FilterOperation.GREATER_THAN, value);
+    return FilterPredicate(field, FilterOperation.GREATER_THAN, value);
   }
 
   factory Filter.greaterThanOrEquals(String field, value) {
-    return new FilterPredicate(
-        field, FilterOperation.GREATER_THAN_OR_EQUAL, value);
+    return FilterPredicate(field, FilterOperation.GREATER_THAN_OR_EQUAL, value);
   }
 
   factory Filter.inList(String field, List value) {
-    return new FilterPredicate(field, FilterOperation.IN, value);
+    return FilterPredicate(field, FilterOperation.IN, value);
   }
 
-  factory Filter.or(List<Filter> filters) => new CompositeFilter.or(filters);
+  factory Filter.or(List<Filter> filters) => CompositeFilter.or(filters);
 
-  factory Filter.and(List<Filter> filters) => new CompositeFilter.and(filters);
+  factory Filter.and(List<Filter> filters) => CompositeFilter.and(filters);
 
-  factory Filter.byKey(key) => new ByKeyFilter(key);
+  factory Filter.byKey(key) => ByKeyFilter(key);
 }
 
 ///
@@ -171,7 +169,7 @@ abstract class Finder {
 
   factory Finder(
       {Filter filter, List<SortOrder> sortOrders, int limit, int offset}) {
-    return new SembastFinder(
+    return SembastFinder(
         filter: filter, sortOrders: sortOrders, limit: limit, offset: offset);
   }
 }

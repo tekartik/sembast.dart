@@ -19,7 +19,7 @@ void defineTests(DatabaseTestContext ctx) {
     test('put', () async {
       db = await ctx.open();
       try {
-        await db.put(new DateTime.now());
+        await db.put(DateTime.now());
         fail("should fail");
       } on DatabaseException catch (_) {}
     });

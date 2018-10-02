@@ -13,7 +13,7 @@ void main() {
 
 void defineTests(FileSystemTestContext ctx) {
   FileSystem fs = ctx.fs;
-  DatabaseFactory factory = new FsDatabaseFactory(fs);
+  DatabaseFactory factory = FsDatabaseFactory(fs);
   String getDbPath() => ctx.outPath + ".db";
   String dbPath;
 

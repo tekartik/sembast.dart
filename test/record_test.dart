@@ -27,15 +27,14 @@ void defineTests(DatabaseTestContext ctx) {
 
     test('properties', () {
       Store store = db.mainStore;
-      Record record = new Record(store, "hi", 1);
+      Record record = Record(store, "hi", 1);
       expect(record.store, store);
       expect(record.key, 1);
       expect(record.value, "hi");
       expect(record[Field.value], "hi");
       expect(record[Field.key], 1);
 
-      record =
-          new Record(store, {"text": "hi", "int": 1, "bool": true}, "mykey");
+      record = Record(store, {"text": "hi", "int": 1, "bool": true}, "mykey");
 
       expect(record.store, store);
       expect(record.key, "mykey");
@@ -55,7 +54,7 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     test('put database', () {
-      Record record1 = new Record(null, "hi");
+      Record record1 = Record(null, "hi");
       return db.putRecord(record1).then((inserted) {
         expect(record1.store, isNull);
         expect(record1.key, isNull);
@@ -66,9 +65,9 @@ void defineTests(DatabaseTestContext ctx) {
 
     test('put/delete multiple', () {
       Store store = db.mainStore;
-      Record record1 = new Record(store, "hi", 1);
-      Record record2 = new Record(store, "ho", 2);
-      Record record3 = new Record(store, "ha", 3);
+      Record record1 = Record(store, "hi", 1);
+      Record record2 = Record(store, "ho", 2);
+      Record record3 = Record(store, "ha", 3);
       return db.putRecords([record1, record2, record3]).then(
           (List<Record> inserted) {
         expect(inserted.length, 3);
@@ -91,7 +90,7 @@ void defineTests(DatabaseTestContext ctx) {
 
     test('put/get/delete', () {
       Store store = db.mainStore;
-      Record record = new Record(store, "hi");
+      Record record = Record(store, "hi");
       return db.putRecord(record).then((Record insertedRecord) {
         expect(record.key, null);
         expect(insertedRecord.key, 1);

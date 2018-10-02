@@ -15,7 +15,7 @@ class _FsDatabaseStorage extends DatabaseStorage {
   final File file;
   bool isTmp;
 
-  Logger log = new Logger("FsDatabaseStorage");
+  Logger log = Logger("FsDatabaseStorage");
 
   _FsDatabaseStorage(FileSystem fs, String path)
       : fs = fs,
@@ -70,7 +70,7 @@ class _FsDatabaseStorage extends DatabaseStorage {
 
   @override
   DatabaseStorage get tmpStorage {
-    return new _FsDatabaseStorage(fs, tmpPath)..isTmp = true;
+    return _FsDatabaseStorage(fs, tmpPath)..isTmp = true;
   }
 
   @override
@@ -95,10 +95,7 @@ class _FsDatabaseStorage extends DatabaseStorage {
   }
 
   Stream<String> readLines() {
-    return file
-        .openRead()
-        .transform(utf8.decoder)
-        .transform(new LineSplitter());
+    return file.openRead().transform(utf8.decoder).transform(LineSplitter());
   }
 
   Future appendLines(List<String> lines) {
@@ -131,14 +128,14 @@ class FsDatabaseFactory implements DatabaseFactory {
       {int version,
       OnVersionChangedFunction onVersionChanged,
       DatabaseMode mode}) {
-    SembastDatabase db = new SembastDatabase(new _FsDatabaseStorage(fs, path));
+    SembastDatabase db = SembastDatabase(_FsDatabaseStorage(fs, path));
     return db.open(
         version: version, onVersionChanged: onVersionChanged, mode: mode);
   }
 
   @override
   Future deleteDatabase(String path) {
-    return new _FsDatabaseStorage(fs, path).delete();
+    return _FsDatabaseStorage(fs, path).delete();
   }
 
   @override

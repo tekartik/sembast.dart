@@ -37,9 +37,9 @@ void defineTests(DatabaseTestContext ctx) {
     setUp(() async {
       db = await setupForTest(ctx);
       store = db.mainStore;
-      record1 = new Record(store, "hi", 1);
-      record2 = new Record(store, "ho", 2);
-      record3 = new Record(store, "ha", 3);
+      record1 = Record(store, "hi", 1);
+      record2 = Record(store, "ho", 2);
+      record3 = Record(store, "ha", 3);
       return db.putRecords([record1, record2, record3]);
     });
 

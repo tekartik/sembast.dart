@@ -16,7 +16,7 @@ main() async {
   record = await db.getStoreRecord(store, record.key);
   print(record);
   */
-  List<Record> records = await db.findRecords(new Finder());
+  List<Record> records = await db.findRecords(Finder());
   for (Record record in records) {
     print(record);
   }

@@ -11,11 +11,10 @@ main() async {
   // randomly write
 
   int keyCount = 50;
-  Random random = new Random();
+  Random random = Random();
   while (true) {
     // Put on random key
-    var future =
-        db.put(new DateTime.now().toString(), random.nextInt(keyCount));
+    var future = db.put(DateTime.now().toString(), random.nextInt(keyCount));
     // randomly wait
     if (random.nextInt(100) == 0) {
       await future;

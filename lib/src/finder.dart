@@ -42,7 +42,7 @@ class SembastFinder implements Finder {
   }
 
   Finder clone({int limit}) {
-    return new Finder(
+    return Finder(
         filter: filter,
         sortOrders: sortOrders, //
         limit: limit == null ? this.limit : limit, //

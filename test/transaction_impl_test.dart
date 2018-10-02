@@ -116,7 +116,7 @@ void defineTests(DatabaseTestContext ctx) {
     test('one currentTransaction', () {
       db.transaction((txn) {
         expect(db.currentTransaction.id, 1);
-        return new Future.value().then((_) {
+        return Future.value().then((_) {
           expect(db.currentTransaction.id, 1);
         }).then((_) {
           expect(db.currentTransaction.id, 1);

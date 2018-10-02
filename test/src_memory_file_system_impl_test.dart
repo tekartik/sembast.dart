@@ -10,19 +10,19 @@ import 'test_common.dart';
 main() {
   group('memory_file_system_impl', () {
     test('root', () {
-      MemoryFileSystemImpl fs = new MemoryFileSystemImpl();
+      MemoryFileSystemImpl fs = MemoryFileSystemImpl();
       expect(fs.rootDir.segment, separator);
       expect(fs.rootDir.path, separator);
       expect(fs.rootDir.children, isEmpty);
     });
 
     test('current', () {
-      MemoryFileSystemImpl fs = new MemoryFileSystemImpl();
+      MemoryFileSystemImpl fs = MemoryFileSystemImpl();
       expect(fs.currentPath, join(separator, "current"));
     });
 
     test('createDir', () {
-      MemoryFileSystemImpl fs = new MemoryFileSystemImpl();
+      MemoryFileSystemImpl fs = MemoryFileSystemImpl();
 
       // at root
       String path = join(separator, "test");
@@ -47,7 +47,7 @@ main() {
     });
 
     test('createDirRecursive', () {
-      MemoryFileSystemImpl fs = new MemoryFileSystemImpl();
+      MemoryFileSystemImpl fs = MemoryFileSystemImpl();
 
       // at root
       MemoryDirectoryImpl dir =
@@ -66,7 +66,7 @@ main() {
     });
 
     test('deleteDir', () {
-      MemoryFileSystemImpl fs = new MemoryFileSystemImpl();
+      MemoryFileSystemImpl fs = MemoryFileSystemImpl();
 
       // at root
       String path = join(separator, "test");
@@ -103,7 +103,7 @@ main() {
     });
 
     test('createFile', () {
-      MemoryFileSystemImpl fs = new MemoryFileSystemImpl();
+      MemoryFileSystemImpl fs = MemoryFileSystemImpl();
 
       // at root
       String path = join(separator, "test");

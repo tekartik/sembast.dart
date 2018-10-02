@@ -8,14 +8,14 @@ import 'package:sembast/src/io/io_file_system.dart';
 
 // For test in memory
 IoDatabaseTestContext get ioDatabaseContext =>
-    new IoDatabaseTestContext()..factory = databaseFactoryIo;
+    IoDatabaseTestContext()..factory = databaseFactoryIo;
 
 class IoDatabaseTestContext extends FsDatabaseTestContext {
   String get dbPath => testOutPath + ".db";
 }
 
 IoFileSystemTestContext get ioFileSystemContext =>
-    new IoFileSystemTestContext()..fs = ioFileSystem;
+    IoFileSystemTestContext()..fs = ioFileSystem;
 
 class IoFileSystemTestContext extends FileSystemTestContext {
   String get outPath => testOutPath;

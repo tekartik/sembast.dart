@@ -53,7 +53,7 @@ void defineTests(FileSystemTestContext ctx) {
   }
 
   Stream<String> openReadLines(File file) {
-    return openRead(file).transform(utf8.decoder).transform(new LineSplitter());
+    return openRead(file).transform(utf8.decoder).transform(LineSplitter());
   }
 
   IOSink openWrite(File file) {

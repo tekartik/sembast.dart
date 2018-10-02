@@ -22,7 +22,7 @@ class SembastStore implements Store {
   // for key generation
   int _lastIntKey = 0;
 
-  Map<dynamic, Record> recordMap = new Map();
+  Map<dynamic, Record> recordMap = Map();
   Map<dynamic, Record> txnRecords;
 
   // bool get isInTransaction => database.isInTransaction;
@@ -46,7 +46,7 @@ class SembastStore implements Store {
   }
 
   txnPut(SembastTransaction txn, var value, var key) {
-    Record record = new SembastRecord.copy(this, key, value, false);
+    Record record = SembastRecord.copy(this, key, value, false);
 
     txnPutRecord(txn, record);
     if (database.LOGV) {
@@ -60,7 +60,7 @@ class SembastStore implements Store {
   ///
   @override
   Stream<Record> get records {
-    StreamController<Record> ctlr = new StreamController();
+    StreamController<Record> ctlr = StreamController();
     // asynchronous feeding
     _feedController(null, ctlr);
     ctlr.close();
@@ -77,7 +77,7 @@ class SembastStore implements Store {
   /// stream all the records
   ///
   Stream<Record> txnGetRecordsStream(SembastTransaction transaction) {
-    StreamController<Record> ctlr = new StreamController();
+    StreamController<Record> ctlr = StreamController();
     _feedController(transaction, ctlr);
     ctlr.close();
     return ctlr.stream;
@@ -208,7 +208,7 @@ class SembastStore implements Store {
     assert(record.store == this);
 
     if (!checkValue(record.value)) {
-      throw new ArgumentError.value(record.value, null,
+      throw ArgumentError.value(record.value, null,
           "invalid type ${record.value.runtimeType} for record ${record}");
     }
 
@@ -228,7 +228,7 @@ class SembastStore implements Store {
 
     // add to store transaction
     if (txnRecords == null) {
-      txnRecords = new Map();
+      txnRecords = Map();
     }
     txnRecords[record.key] = record;
 
@@ -434,9 +434,9 @@ class SembastStore implements Store {
 
   List txnClear(SembastTransaction txn) {
     if (_hasTransactionRecords(txn)) {
-      return txnDeleteAll(txn, new List.from(txnRecords.keys, growable: false));
+      return txnDeleteAll(txn, List.from(txnRecords.keys, growable: false));
     }
     Iterable keys = recordMap.keys;
-    return txnDeleteAll(txn, new List.from(keys, growable: false));
+    return txnDeleteAll(txn, List.from(keys, growable: false));
   }
 }

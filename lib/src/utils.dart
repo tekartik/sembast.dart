@@ -9,7 +9,7 @@ dynamic sanitizeValue(value) {
     // We force the value map type for easy usage
     return value.cast<String, dynamic>();
   }
-  throw new ArgumentError.value(
+  throw ArgumentError.value(
       value, null, "type ${value.runtimeType} not supported");
 }
 

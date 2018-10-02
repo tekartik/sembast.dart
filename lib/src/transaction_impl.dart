@@ -73,7 +73,7 @@ class SembastTransaction extends Object
 
   // make the completer async as the Transaction following
   // action is not a priority
-  Completer completer = new Completer();
+  Completer completer = Completer();
 
   SembastTransaction(this.database, this._id);
 
@@ -93,7 +93,7 @@ class SembastTransaction extends Object
   SembastTransaction get transaction => this;
 
   SembastTransactionStore toExecutor(Store store) => store != null
-      ? new SembastTransactionStore(this, store as SembastStore)
+      ? SembastTransactionStore(this, store as SembastStore)
       : null;
 
   @override

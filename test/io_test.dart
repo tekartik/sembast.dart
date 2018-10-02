@@ -40,7 +40,7 @@ void main() {
       test('missing new line', () async {
         await prepareForDb();
 
-        await new io.File(dbPath)
+        await io.File(dbPath)
             .writeAsString(json.encode({"version": 2, "sembast": 1}));
         Database db = await databaseFactoryIo.openDatabase(dbPath);
         expect(db.version, 2);
@@ -63,7 +63,7 @@ void main() {
       test('missing new line after 1 record', () async {
         await prepareForDb();
 
-        await new io.File(dbPath).writeAsString(
+        await io.File(dbPath).writeAsString(
             json.encode({"version": 2, "sembast": 1}) +
                 "\n" +
                 json.encode({'key': 1, 'value': 'test1'}) +

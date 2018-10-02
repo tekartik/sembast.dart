@@ -16,9 +16,9 @@ void main() {
     test('convert_map', () {});
 
     test('check_value', () {
-      expect(checkValue(new DateTime.now()), isFalse);
-      expect(checkValue([new DateTime.now()]), isFalse);
-      expect(checkValue({"test": new DateTime.now()}), isFalse);
+      expect(checkValue(DateTime.now()), isFalse);
+      expect(checkValue([DateTime.now()]), isFalse);
+      expect(checkValue({"test": DateTime.now()}), isFalse);
       expect(checkValue({1: 2}), isFalse);
     });
   });

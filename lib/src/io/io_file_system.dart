@@ -10,7 +10,7 @@ import 'io_file_mode.dart';
 ///
 /// the io file system global object
 ///
-final _IoFileSystem _fs = new _IoFileSystem();
+final _IoFileSystem _fs = _IoFileSystem();
 _IoFileSystem get ioFileSystem => _fs;
 
 io.FileMode _fileMode(fs.FileMode fsFileMode) {
@@ -54,9 +54,7 @@ abstract class FileSystemEntity implements fs.FileSystemEntity {
   io.FileSystemEntity ioFileSystemEntity;
 
   /// override
-  /**
-   * Checks if type(path) returns FileSystemEntityType.FILE.
-   */
+  /// Checks if type(path) returns FileSystemEntityType.FILE.
   static Future<bool> isFile(String path) => _fs.isFile(path);
   static Future<bool> isDirectory(String path) => _fs.isDirectory(path);
 
@@ -64,7 +62,7 @@ abstract class FileSystemEntity implements fs.FileSystemEntity {
   Future<bool> exists() => _wrap(ioFileSystemEntity.exists());
 
   @override
-  Future<fs.FileSystemEntity> delete({bool recursive: false}) //
+  Future<fs.FileSystemEntity> delete({bool recursive = false}) //
       =>
       _wrap(ioFileSystemEntity.delete(recursive: recursive))
           .then((io.FileSystemEntity ioFileSystemEntity) => this);
@@ -93,7 +91,7 @@ class _IoFileSystemException implements fs.FileSystemException {
   io.FileSystemException ioFse;
   _IoFileSystemException(io.FileSystemException ioFse)
       : ioFse = ioFse,
-        osError = new _IoOSError(ioFse.osError);
+        osError = _IoOSError(ioFse.osError);
 
   @override
   final _IoOSError osError;
@@ -111,7 +109,7 @@ class _IoFileSystemException implements fs.FileSystemException {
 Future<T> _wrap<T>(Future<T> future) {
   return future.catchError((e) {
     if (e is io.FileSystemException) {
-      throw new _IoFileSystemException(e);
+      throw _IoFileSystemException(e);
     }
     throw e;
   });
@@ -120,12 +118,12 @@ Future<T> _wrap<T>(Future<T> future) {
 class _IoFileSystem implements fs.FileSystem {
   @override
   fs.File newFile(String path) {
-    return new File(path);
+    return File(path);
   }
 
   @override
   fs.Directory newDirectory(String path) {
-    return new Directory(path);
+    return Directory(path);
   }
 
   @override
@@ -136,7 +134,8 @@ class _IoFileSystem implements fs.FileSystem {
       io.FileSystemEntity.isDirectory(path);
 
   @override
-  Future<fs.FileSystemEntityType> type(String path, {bool followLinks: true}) //
+  Future<fs.FileSystemEntityType> type(String path,
+          {bool followLinks = true}) //
       =>
       _wrap(io.FileSystemEntity.type(path, followLinks: true))
           .then((io.FileSystemEntityType ioType) => fsFileType(ioType));
@@ -158,21 +157,19 @@ class _IoFileSystem implements fs.FileSystem {
 class Directory extends FileSystemEntity implements fs.Directory {
   io.Directory get ioDir => ioFileSystemEntity as io.Directory;
 
-  /**
-   * Creates a [Directory] object.
-   *
-   * If [path] is a relative path, it will be interpreted relative to the
-   * current working directory (see [Directory.current]), when used.
-   *
-   * If [path] is an absolute path, it will be immune to changes to the
-   * current working directory.
-   */
+  /// Creates a [Directory] object.
+  ///
+  /// If [path] is a relative path, it will be interpreted relative to the
+  /// current working directory (see [Directory.current]), when used.
+  ///
+  /// If [path] is an absolute path, it will be immune to changes to the
+  /// current working directory.
   Directory(String path) {
-    ioFileSystemEntity = new io.Directory(path);
+    ioFileSystemEntity = io.Directory(path);
   }
 
   @override
-  Future<Directory> create({bool recursive: false}) //
+  Future<Directory> create({bool recursive = false}) //
       =>
       _wrap(ioDir.create(recursive: recursive))
           .then((io.Directory ioDir) => this);
@@ -182,26 +179,24 @@ class Directory extends FileSystemEntity implements fs.Directory {
       =>
       _wrap(ioFileSystemEntity.rename(newPath)).then(
           (io.FileSystemEntity ioFileSystemEntity) =>
-              new Directory(ioFileSystemEntity.path));
+              Directory(ioFileSystemEntity.path));
 }
 
 class File extends FileSystemEntity implements fs.File {
   io.File get ioFile => ioFileSystemEntity as io.File;
-  /**
-   * Creates a [File] object.
-   *
-   * If [path] is a relative path, it will be interpreted relative to the
-   * current working directory (see [Directory.current]), when used.
-   *
-   * If [path] is an absolute path, it will be immune to changes to the
-   * current working directory.
-   */
+  /// Creates a [File] object.
+  ///
+  /// If [path] is a relative path, it will be interpreted relative to the
+  /// current working directory (see [Directory.current]), when used.
+  ///
+  /// If [path] is an absolute path, it will be immune to changes to the
+  /// current working directory.
   File(String path) {
-    ioFileSystemEntity = new io.File(path);
+    ioFileSystemEntity = io.File(path);
   }
 
   @override
-  Future<fs.File> create({bool recursive: false}) //
+  Future<fs.File> create({bool recursive = false}) //
       =>
       _wrap(ioFile.create(recursive: recursive)).then((io.File ioFile) => this);
 
@@ -212,15 +207,14 @@ class File extends FileSystemEntity implements fs.File {
 
   @override
   fs.IOSink openWrite(
-          {fs.FileMode mode: fs.FileMode.write, Encoding encoding: utf8}) //
+          {fs.FileMode mode = fs.FileMode.write, Encoding encoding = utf8}) //
       =>
-      new _IoIOSink(
-          ioFile.openWrite(mode: _fileMode(mode), encoding: encoding));
+      _IoIOSink(ioFile.openWrite(mode: _fileMode(mode), encoding: encoding));
 
   @override
   Future<File> rename(String newPath) //
       =>
       _wrap(ioFileSystemEntity.rename(newPath)).then(
           (io.FileSystemEntity ioFileSystemEntity) =>
-              new File(ioFileSystemEntity.path));
+              File(ioFileSystemEntity.path));
 }

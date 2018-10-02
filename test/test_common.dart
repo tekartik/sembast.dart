@@ -15,9 +15,9 @@ import 'dart:convert';
 
 // For test in memory
 DatabaseTestContext get memoryDatabaseContext =>
-    new DatabaseTestContext()..factory = memoryDatabaseFactory;
+    DatabaseTestContext()..factory = memoryDatabaseFactory;
 FsDatabaseTestContext get memoryFsDatabaseContext =>
-    new FsDatabaseTestContext()..factory = memoryFsDatabaseFactory;
+    FsDatabaseTestContext()..factory = memoryFsDatabaseFactory;
 
 class FsDatabaseTestContext extends DatabaseTestContext {
   FileSystem get fs => (factory as FsDatabaseFactory).fs;
@@ -43,7 +43,7 @@ class FileSystemTestContext {
 }
 
 FileSystemTestContext get memoryFileSystemContext =>
-    new FileSystemTestContext()..fs = memoryFileSystem;
+    FileSystemTestContext()..fs = memoryFileSystem;
 
 Future<Database> setupForTest(DatabaseTestContext ctx) => ctx.open();
 
@@ -66,7 +66,7 @@ Future<List<String>> readContent(FileSystem fs, String filePath) {
       .newFile(filePath)
       .openRead()
       .transform(utf8.decoder)
-      .transform(new LineSplitter())
+      .transform(LineSplitter())
       .listen((String line) {
     content.add(line);
   }).asFuture(content);

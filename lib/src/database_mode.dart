@@ -3,18 +3,18 @@
 ///
 class DatabaseMode {
   /// The database is created if not found
-  static const create = const DatabaseMode._internal(0);
+  static const create = DatabaseMode._internal(0);
 
   /// Open an existing database, fail otherwise
-  static const existing = const DatabaseMode._internal(1);
+  static const existing = DatabaseMode._internal(1);
 
   /// Empty the existing database
-  static const empty = const DatabaseMode._internal(2);
+  static const empty = DatabaseMode._internal(2);
 
   /// This mode will never fails
   /// Corrupted database will be deleted
   /// This is the default
-  static const neverFails = const DatabaseMode._internal(3);
+  static const neverFails = DatabaseMode._internal(3);
 
   /// Default open mode [neverFails]
   static const defaultMode = neverFails;

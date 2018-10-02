@@ -61,8 +61,8 @@ void defineTests(DatabaseTestContext ctx) {
 
     test('transaction and read', () async {
       List<Future> futures = [];
-      var completer1 = new Completer();
-      var completer2 = new Completer();
+      var completer1 = Completer();
+      var completer2 = Completer();
       futures.add(db.transaction((txn) async {
         expect(await txn.containsKey(1), isFalse);
 

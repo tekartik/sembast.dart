@@ -1,5 +1,5 @@
 @TestOn("vm")
-@Timeout(const Duration(seconds: 120))
+@Timeout(Duration(seconds: 120))
 library sembast.database_perf_test_slow;
 
 // basically same as the io runner but with extra output

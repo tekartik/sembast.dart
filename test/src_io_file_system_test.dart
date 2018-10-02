@@ -18,12 +18,12 @@ void defineTests() {
     tearDown(() {});
 
     test('newFile', () {
-      File file = new File("test");
+      File file = File("test");
       expect(file.path, "test");
     });
 
     test('new Directory', () {
-      Directory dir = new Directory("test");
+      Directory dir = Directory("test");
       expect(dir.path, "test");
     });
 

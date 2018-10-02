@@ -15,7 +15,7 @@ void main() {
 
 void defineTests(FileSystemTestContext ctx) {
   FileSystem fs = ctx.fs;
-  DatabaseFactory factory = new FsDatabaseFactory(fs);
+  DatabaseFactory factory = FsDatabaseFactory(fs);
   String getDbPath() => ctx.outPath + ".db";
   String dbPath;
 
@@ -106,7 +106,7 @@ void defineTests(FileSystemTestContext ctx) {
     List<Record> generate(int count) {
       List<Record> records = [];
       for (int i = 1; i <= count; i++) {
-        Record record = new Record(null, "value$i", i);
+        Record record = Record(null, "value$i", i);
         records.add(record);
       }
       return records;

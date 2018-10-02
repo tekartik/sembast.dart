@@ -11,7 +11,7 @@ void main() {
 }
 
 void defineTests(DatabaseTestContext ctx, int putCount,
-    {int randomCount: 10, int randomChoices: 10}) {
+    {int randomCount = 10, int randomChoices = 10}) {
   group('perf', () {
     Database db;
 
@@ -29,7 +29,7 @@ void defineTests(DatabaseTestContext ctx, int putCount,
         futures.add(db.put("value $i", i));
         // let it breathe
         //print(i);
-        await new Future.delayed(new Duration());
+        await Future.delayed(Duration());
       }
       await Future.wait(futures).then((_) {
         return db.count().then((int count) {
@@ -65,7 +65,7 @@ void defineTests(DatabaseTestContext ctx, int putCount,
     });
 
     test('random $randomCount', () async {
-      Random random = new Random();
+      Random random = Random();
 
       for (int i = 0; i < randomCount; i++) {
         int actionChoice = random.nextInt(5);
@@ -85,7 +85,7 @@ void defineTests(DatabaseTestContext ctx, int putCount,
         }
         // let it breathe
         //print(i);
-        await new Future.delayed(new Duration(milliseconds: 0));
+        await Future.delayed(Duration(milliseconds: 0));
       }
     });
   });

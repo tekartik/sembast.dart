@@ -9,6 +9,6 @@ class SortOrder {
   ///
   /// user withParam
   factory SortOrder(String field, [bool ascending, bool nullLast]) {
-    return new SembastSortOrder(field, ascending, nullLast);
+    return SembastSortOrder(field, ascending, nullLast);
   }
 }

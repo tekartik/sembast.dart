@@ -26,9 +26,9 @@ void main() {
       var dbPath = join('.dart_tool', 'sembast', 'test',
           'perf_${recordCount}_${times}_${recordSize}_${transactionCount}.db');
       try {
-        await new File(dbPath).delete();
+        await File(dbPath).delete();
       } catch (_) {}
-      await new Directory(dirname(dbPath)).create(recursive: true);
+      await Directory(dirname(dbPath)).create(recursive: true);
       var db = await databaseFactoryIo.openDatabase(dbPath);
 
       try {
@@ -101,5 +101,5 @@ void main() {
     await perf(1000, 20, inTransaction: true, bigRecord: true);
     await perf(10000, 1, inTransaction: true, bigRecord: true);
     await perf(10000, 5, inTransaction: true, bigRecord: true);
-  }, timeout: Timeout(new Duration(minutes: 10)));
+  }, timeout: Timeout(Duration(minutes: 10)));
 }

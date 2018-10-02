@@ -22,14 +22,14 @@ void defineTests(DatabaseTestContext ctx) {
 
     test('demo', () async {
       Store store = db.getStore("my_store");
-      Record record = new Record(store, {"name": "ugly"});
+      Record record = Record(store, {"name": "ugly"});
       record = await db.putRecord(record);
       expect(record, isNotNull);
       record = await store.getRecord(record.key);
       expect(record, isNotNull);
-      record = (await store
-              .findRecords(new Finder(filter: new Filter.byKey(record.key))))
-          .first;
+      record =
+          (await store.findRecords(Finder(filter: Filter.byKey(record.key))))
+              .first;
       expect(record, isNotNull);
       await db.deleteRecord(record);
       record = await store.getRecord(record.key);

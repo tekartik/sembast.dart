@@ -110,14 +110,13 @@ class FilterOperation {
 
   const FilterOperation._(this.value);
 
-  static const FilterOperation EQUAL = const FilterOperation._(1);
-  static const FilterOperation NOT_EQUAL = const FilterOperation._(2);
-  static const FilterOperation LESS_THAN = const FilterOperation._(3);
-  static const FilterOperation LESS_THAN_OR_EQUAL = const FilterOperation._(4);
-  static const FilterOperation GREATER_THAN = const FilterOperation._(5);
-  static const FilterOperation GREATER_THAN_OR_EQUAL =
-      const FilterOperation._(6);
-  static const FilterOperation IN = const FilterOperation._(7);
+  static const FilterOperation EQUAL = FilterOperation._(1);
+  static const FilterOperation NOT_EQUAL = FilterOperation._(2);
+  static const FilterOperation LESS_THAN = FilterOperation._(3);
+  static const FilterOperation LESS_THAN_OR_EQUAL = FilterOperation._(4);
+  static const FilterOperation GREATER_THAN = FilterOperation._(5);
+  static const FilterOperation GREATER_THAN_OR_EQUAL = FilterOperation._(6);
+  static const FilterOperation IN = FilterOperation._(7);
 
   @override
   String toString() {

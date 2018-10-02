@@ -62,7 +62,7 @@ Future<Database> importDatabase(
 
   // check signature
   if (srcData[_exportSignatureKey] != _exportSignatureVersion) {
-    throw new FormatException('invalid export format');
+    throw FormatException('invalid export format');
   }
 
   int version = srcData[_dbVersion] as int;

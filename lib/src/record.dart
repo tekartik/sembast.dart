@@ -43,5 +43,5 @@ abstract class Record {
   /// an optional [key]
   ///
   factory Record(Store store, dynamic value, [dynamic key]) =>
-      new SembastRecord(store, value, key);
+      SembastRecord(store, value, key);
 }

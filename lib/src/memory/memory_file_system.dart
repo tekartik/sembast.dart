@@ -5,22 +5,22 @@ import 'memory_file_system_impl.dart';
 import 'dart:async';
 import 'dart:convert';
 
-final _MemoryFileSystem _fs = new _MemoryFileSystem();
+final _MemoryFileSystem _fs = _MemoryFileSystem();
 _MemoryFileSystem get memoryFileSystem => _fs;
 
 class _MemoryFileSystem implements fs.FileSystem {
-  MemoryFileSystemImpl _impl = new MemoryFileSystemImpl();
+  MemoryFileSystemImpl _impl = MemoryFileSystemImpl();
 
   _MemoryFileSystem();
 
   @override
   fs.File newFile(String path) {
-    return new _MemoryFile(path);
+    return _MemoryFile(path);
   }
 
   @override
   fs.Directory newDirectory(String path) {
-    return new _MemoryDirectory(path);
+    return _MemoryDirectory(path);
   }
 
   @override
@@ -37,7 +37,7 @@ class _MemoryFileSystem implements fs.FileSystem {
 
   @override
   Future<fs.FileSystemEntityType> type(String path,
-      {bool followLinks: true}) async {
+      {bool followLinks = true}) async {
     MemoryFileSystemEntityImpl entityImpl = _impl.getEntity(path);
     if (entityImpl != null) {
       return entityImpl.type;
@@ -62,7 +62,7 @@ abstract class _MemoryFileSystemEntity implements fs.FileSystemEntity {
 
   _MemoryFileSystemEntity(this.path) {
     if (path == null) {
-      throw new ArgumentError.notNull("path");
+      throw ArgumentError.notNull("path");
     }
   }
 
@@ -71,7 +71,7 @@ abstract class _MemoryFileSystemEntity implements fs.FileSystemEntity {
 
   // don't care about recursive
   @override
-  Future<fs.FileSystemEntity> delete({bool recursive: false}) async {
+  Future<fs.FileSystemEntity> delete({bool recursive = false}) async {
     _fs._impl.delete(path, recursive: recursive);
     return this;
   }
@@ -87,7 +87,7 @@ class _MemoryDirectory extends _MemoryFileSystemEntity implements fs.Directory {
   _MemoryDirectory(String path) : super(path);
 
   @override
-  Future<_MemoryDirectory> create({bool recursive: false}) async {
+  Future<_MemoryDirectory> create({bool recursive = false}) async {
     _fs._impl.createDirectory(path, recursive: recursive);
     return this;
   }
@@ -95,7 +95,7 @@ class _MemoryDirectory extends _MemoryFileSystemEntity implements fs.Directory {
   @override
   Future<fs.FileSystemEntity> rename(String newPath) async {
     MemoryFileSystemEntityImpl renamed = _fs._impl.rename(path, newPath);
-    return new _MemoryDirectory(renamed.path);
+    return _MemoryDirectory(renamed.path);
   }
 }
 
@@ -106,7 +106,7 @@ class _MemoryFile extends _MemoryFileSystemEntity implements fs.File {
 
   // don't care about recursive
   @override
-  Future<fs.File> create({bool recursive: false}) async {
+  Future<fs.File> create({bool recursive = false}) async {
     _fs._impl.createFile(path, recursive: recursive);
     return this;
   }
@@ -118,13 +118,13 @@ class _MemoryFile extends _MemoryFileSystemEntity implements fs.File {
   // don't care about encoding - assume UTF8
   @override
   fs.IOSink openWrite(
-          {fs.FileMode mode: fs.FileMode.write, Encoding encoding: utf8}) //
+          {fs.FileMode mode = fs.FileMode.write, Encoding encoding = utf8}) //
       =>
       _fs._impl.openWrite(path, mode: mode);
 
   @override
   Future<fs.File> rename(String newPath) async {
     MemoryFileSystemEntityImpl renamed = _fs._impl.rename(path, newPath);
-    return new _MemoryFile(renamed.path);
+    return _MemoryFile(renamed.path);
   }
 }

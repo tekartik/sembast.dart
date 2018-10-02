@@ -17,13 +17,13 @@ import 'database.dart';
 class SembastDatabase extends Object
     with DatabaseExecutorMixin
     implements Database {
-  static Logger logger = new Logger("Sembast");
+  static Logger logger = Logger("Sembast");
   final bool LOGV = logger.isLoggable(Level.FINEST);
 
   final DatabaseStorage _storage;
   // Lock used for opening/compacting
-  final Lock databaseLock = new Lock();
-  final Lock transactionLock = new Lock();
+  final Lock databaseLock = Lock();
+  final Lock transactionLock = Lock();
 
   String get path => _storage.path;
 
@@ -45,7 +45,7 @@ class SembastDatabase extends Object
   Store get mainStore => _mainStore;
 
   Store _mainStore;
-  Map<String, Store> _stores = new Map();
+  Map<String, Store> _stores = Map();
 
   Iterable<Store> get stores => _stores.values;
 
@@ -69,7 +69,7 @@ class SembastDatabase extends Object
   void txnRollback(SembastTransaction txn) {
     // only valid in a transaction
     if (txn == null) {
-      throw new Exception("not in transaction");
+      throw Exception("not in transaction");
     }
     _clearTxnData();
   }
@@ -104,7 +104,7 @@ class SembastDatabase extends Object
     if (_storage.supported) {
       DatabaseStorage tmpStorage = _storage.tmpStorage;
       // new stat with compact + 1
-      DatabaseExportStat exportStat = new DatabaseExportStat()
+      DatabaseExportStat exportStat = DatabaseExportStat()
         ..compactCount = _exportStat.compactCount + 1;
       await tmpStorage.delete();
       await tmpStorage.findOrCreate();
@@ -319,7 +319,7 @@ class SembastDatabase extends Object
     if (storeName == null) {
       return _mainStore = _addStore(dbMainStore);
     } else {
-      Store store = new SembastStore(this, storeName);
+      Store store = SembastStore(this, storeName);
       _stores[storeName] = store;
       return store;
     }
@@ -397,10 +397,10 @@ class SembastDatabase extends Object
 
     if (_opened) {
       if (path != this.path) {
-        throw new DatabaseException.badParam(
+        throw DatabaseException.badParam(
             "existing path ${this.path} differ from open path ${path}");
       }
-      return new Future.value(this);
+      return Future.value(this);
     }
 
     return databaseLock.synchronized(() async {
@@ -411,7 +411,7 @@ class SembastDatabase extends Object
         if (onVersionChanged != null) {
           result = onVersionChanged(this, oldVersion, newVersion);
         }
-        meta = new Meta(newVersion);
+        meta = Meta(newVersion);
 
         if (_storage.supported) {
           await _storage.appendLine(json.encode(meta.toMap()));
@@ -428,7 +428,7 @@ class SembastDatabase extends Object
         // Set current meta
         // so that it is an old value during onVersionChanged
         if (meta == null) {
-          meta = new Meta(0);
+          meta = Meta(0);
         }
         if (_meta == null) {
           _meta = meta;
@@ -445,7 +445,7 @@ class SembastDatabase extends Object
           if (version == null) {
             version = 1;
           }
-          meta = new Meta(version);
+          meta = Meta(version);
         } else {
           // no specific version requested or same
           if ((version != null) && (version != oldVersion)) {
@@ -468,7 +468,7 @@ class SembastDatabase extends Object
         if (mode == DatabaseMode.existing) {
           bool found = await _storage.find();
           if (!found) {
-            throw new DatabaseException.databaseNotFound(
+            throw DatabaseException.databaseNotFound(
                 "Database (open existing only) ${path} not found");
           }
         } else {
@@ -481,16 +481,16 @@ class SembastDatabase extends Object
 
       // create _exportStat
       if (_storage.supported) {
-        _exportStat = new DatabaseExportStat();
+        _exportStat = DatabaseExportStat();
       }
       await _findOrCreate();
       if (_storage.supported) {
         // empty stores
         _mainStore = null;
-        _stores = new Map();
+        _stores = Map();
         _checkMainStore();
 
-        _exportStat = new DatabaseExportStat();
+        _exportStat = DatabaseExportStat();
 
         //bool needCompact = false;
         bool corrupted = false;
@@ -515,10 +515,10 @@ class SembastDatabase extends Object
 
             if (Meta.isMapMeta(map)) {
               // meta?
-              meta = new Meta.fromMap(map);
+              meta = Meta.fromMap(map);
             } else if (SembastRecord.isMapRecord(map)) {
               // record?
-              Record record = new SembastRecord.fromMap(this, map);
+              Record record = SembastRecord.fromMap(this, map);
               if (_noTxnHasRecord(record)) {
                 _exportStat.obsoleteLineCount++;
               }
@@ -561,7 +561,7 @@ class SembastDatabase extends Object
   }
 
   Map toJson() {
-    Map map = new Map();
+    Map map = Map();
     if (path != null) {
       map["path"] = path;
     }
@@ -600,7 +600,7 @@ class SembastDatabase extends Object
   Future<T> transaction<T>(
       FutureOr<T> Function(Transaction transaction) action) async {
     return transactionLock.synchronized(() async {
-      _transaction = new SembastTransaction(this, ++_txnId);
+      _transaction = SembastTransaction(this, ++_txnId);
 
       _transactionCleanUp() {
         // Mark transaction complete, ignore error
@@ -612,7 +612,7 @@ class SembastDatabase extends Object
 
       T actionResult;
       try {
-        actionResult = await new Future<T>.sync(() => action(_transaction));
+        actionResult = await Future<T>.sync(() => action(_transaction));
         await _commit();
       } catch (e) {
         _clearTxnData();
@@ -670,7 +670,7 @@ class DatabaseExportStat {
   }
 
   Map toJson() {
-    Map map = new Map();
+    Map map = Map();
     if (lineCount != null) {
       map["lineCount"] = lineCount;
     }
