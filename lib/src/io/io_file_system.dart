@@ -184,6 +184,7 @@ class Directory extends FileSystemEntity implements fs.Directory {
 
 class File extends FileSystemEntity implements fs.File {
   io.File get ioFile => ioFileSystemEntity as io.File;
+
   /// Creates a [File] object.
   ///
   /// If [path] is a relative path, it will be interpreted relative to the

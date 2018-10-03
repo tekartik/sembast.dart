@@ -1,3 +1,7 @@
+## 1.9.4
+
+* Add value_utils to help comparing value and arrays
+
 ## 1.9.1
 
 * New transaction API
