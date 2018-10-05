@@ -12,7 +12,8 @@ import 'transaction_test.dart' as transaction_test;
 import 'deprecated_test.dart' as deprecated_test;
 import 'exception_test.dart' as exception_test;
 import 'src_file_system_test.dart' as src_file_system_test;
-import 'database_impl_format_test.dart' as database_format_test;
+import 'database_format_test.dart' as database_format_test;
+import 'database_impl_format_test.dart' as database_impl_format_test;
 import 'database_import_export_test.dart' as database_import_export_test;
 import 'test_common.dart';
 
@@ -25,6 +26,7 @@ void main() {
 void defineFileSystemTests(FileSystemTestContext ctx) {
   src_file_system_test.defineTests(ctx);
   database_format_test.defineTests(ctx);
+  database_impl_format_test.defineTests(ctx);
 }
 
 void defineTests(DatabaseTestContext ctx) {

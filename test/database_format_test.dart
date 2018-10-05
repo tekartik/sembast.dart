@@ -99,6 +99,40 @@ void defineTests(FileSystemTestContext ctx) {
         });
       });
     });
+
+    test('1_record_in_open', () async {
+      await prepareForDb();
+      var db = await factory.openDatabase(dbPath, version: 2,
+          onVersionChanged: (db, _, __) async {
+        await db.put('hi', 1);
+      });
+      try {
+        List<String> lines = await readContent(fs, dbPath);
+        expect(lines.length, 2);
+        expect(json.decode(lines.first), {"version": 2, "sembast": 1});
+        expect(json.decode(lines[1]), {'key': 1, 'value': 'hi'});
+      } finally {
+        await db?.close();
+      }
+    });
+
+    test('1_record_in_open_transaction', () async {
+      await prepareForDb();
+      var db = await factory.openDatabase(dbPath, version: 2,
+          onVersionChanged: (db, _, __) async {
+        await db.transaction((txn) async {
+          await txn.put('hi', 1);
+        });
+      });
+      try {
+        List<String> lines = await readContent(fs, dbPath);
+        expect(lines.length, 2);
+        expect(json.decode(lines.first), {"version": 2, "sembast": 1});
+        expect(json.decode(lines[1]), {'key': 1, 'value': 'hi'});
+      } finally {
+        await db?.close();
+      }
+    });
   });
 
   group('format_import', () {

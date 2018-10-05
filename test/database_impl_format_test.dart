@@ -1,4 +1,4 @@
-library sembast.database_format_test;
+library sembast.database_impl_format_test;
 
 import 'package:sembast/src/database_impl.dart';
 import 'package:sembast/src/file_system.dart';

@@ -37,6 +37,8 @@ class SembastDatabase extends Object
 
   bool _opened = false;
   DatabaseMode _openMode;
+  // Only set during open (used during onVersionChanged
+  Transaction _openTransaction;
 
   @override
   Store get store => mainStore;
@@ -45,7 +47,7 @@ class SembastDatabase extends Object
   Store get mainStore => _mainStore;
 
   Store _mainStore;
-  Map<String, Store> _stores = Map();
+  final Map<String, Store> _stores = {};
 
   Iterable<Store> get stores => _stores.values;
 
@@ -408,15 +410,24 @@ class SembastDatabase extends Object
 
       Future _handleVersionChanged(int oldVersion, int newVersion) async {
         var result;
-        if (onVersionChanged != null) {
-          result = onVersionChanged(this, oldVersion, newVersion);
-        }
-        meta = Meta(newVersion);
+        await transaction((txn) async {
+          try {
+            // create a transaction during open
+            _openTransaction = txn;
 
-        if (_storage.supported) {
-          await _storage.appendLine(json.encode(meta.toMap()));
-          _exportStat.lineCount++;
-        }
+            if (onVersionChanged != null) {
+              result = onVersionChanged(this, oldVersion, newVersion);
+            }
+            meta = Meta(newVersion);
+
+            if (_storage.supported) {
+              await _storage.appendLine(json.encode(meta.toMap()));
+              _exportStat.lineCount++;
+            }
+          } finally {
+            _openTransaction = null;
+          }
+        });
 
         return result;
       }
@@ -485,9 +496,10 @@ class SembastDatabase extends Object
       }
       await _findOrCreate();
       if (_storage.supported) {
-        // empty stores
+        // empty stores and meta
+        _meta = null;
         _mainStore = null;
-        _stores = Map();
+        _stores.clear();
         _checkMainStore();
 
         _exportStat = DatabaseExportStat();
@@ -555,7 +567,6 @@ class SembastDatabase extends Object
   @override
   Future close() async {
     _opened = false;
-    //_mainStore = null;
     //_meta = null;
     // return new Future.value();
   }
@@ -599,6 +610,10 @@ class SembastDatabase extends Object
   @override
   Future<T> transaction<T>(
       FutureOr<T> Function(Transaction transaction) action) async {
+    // during open?
+    if (_openTransaction != null) {
+      return await action(_openTransaction);
+    }
     return transactionLock.synchronized(() async {
       _transaction = SembastTransaction(this, ++_txnId);
 

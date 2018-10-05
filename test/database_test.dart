@@ -18,8 +18,8 @@ void defineTests(DatabaseTestContext ctx) {
     group('open', () {
       Database db;
 
-      setUp(() {
-        return factory.deleteDatabase(dbPath).then((_) {});
+      setUp(() async {
+        await factory.deleteDatabase(dbPath);
       });
 
       tearDown(() {
@@ -123,6 +123,24 @@ void defineTests(DatabaseTestContext ctx) {
           expect(db.path, dbPath);
           db.close();
         });
+      });
+
+      test('changes during onVersionChanged', () async {
+        var db = await factory.openDatabase(dbPath, version: 1,
+            onVersionChanged: (db, _, __) async {
+          await db.put('test', 1);
+        });
+        await db.put('other', 2);
+
+        try {
+          expect(await db.get(1), 'test');
+          expect(db.version, 1);
+          await reOpen(db);
+          expect(await db.get(1), 'test');
+          expect(db.version, 1);
+        } finally {
+          await db?.close();
+        }
       });
     });
   });
