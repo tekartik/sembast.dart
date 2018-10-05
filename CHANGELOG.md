@@ -1,3 +1,7 @@
+## 1.9.5
+
+* Fix database manipulation issues during onVersionChanged
+
 ## 1.9.4
 
 * Add value_utils to help comparing value and arrays
