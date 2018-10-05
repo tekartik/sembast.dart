@@ -113,13 +113,14 @@ void defineTests(DatabaseTestContext ctx) {
       });
     });
 
+    int transactionIdAfterOpen = 1;
     test('one currentTransaction', () {
       db.transaction((txn) {
-        expect(db.currentTransaction.id, 1);
+        expect(db.currentTransaction.id, transactionIdAfterOpen + 1);
         return Future.value().then((_) {
-          expect(db.currentTransaction.id, 1);
+          expect(db.currentTransaction.id, transactionIdAfterOpen + 1);
         }).then((_) {
-          expect(db.currentTransaction.id, 1);
+          expect(db.currentTransaction.id, transactionIdAfterOpen + 1);
         });
       }).then((_) {
         expect(db.currentTransaction, null);
@@ -128,12 +129,12 @@ void defineTests(DatabaseTestContext ctx) {
 
     test('two currentTransaction', () {
       db.transaction((txn) {
-        expect(db.currentTransaction.id, 1);
+        expect(db.currentTransaction.id, transactionIdAfterOpen + 1);
       }).then((_) {
         // expect(db.currentTransaction, null);
       });
       return db.transaction((txn) {
-        expect(db.currentTransaction.id, 2);
+        expect(db.currentTransaction.id, transactionIdAfterOpen + 2);
       }).then((_) {
         // expect(db.currentTransaction, null);
       });
@@ -141,11 +142,11 @@ void defineTests(DatabaseTestContext ctx) {
 
     test('two currentTransaction follow', () {
       db.transaction((txn) {
-        expect(db.currentTransaction.id, 1);
+        expect(db.currentTransaction.id, transactionIdAfterOpen + 1);
       }).then((_) {
         expect(db.currentTransaction, null);
         return db.transaction((txn) {
-          expect(db.currentTransaction.id, 2);
+          expect(db.currentTransaction.id, transactionIdAfterOpen + 2);
         }).then((_) {
           expect(db.currentTransaction, null);
         });
