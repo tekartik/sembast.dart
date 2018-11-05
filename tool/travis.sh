@@ -11,4 +11,4 @@ pub run build_runner test -- -p firefox -j 1
 pub run build_runner test -- -p chrome -j 1
 
 # test dartdevc support
-# pub build example/web --web-compiler=dartdevc
+pub build example/web --web-compiler=dartdevc

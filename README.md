@@ -157,6 +157,27 @@ Each data written is appended to the file for best performance. Compact might ha
 to prevent record duplication. The whole compact information is done in a new file
 followed by a rename to make it atomic.
 
+### Supported types
+
+Supported types depends on JSON supported types. More information [here](https://github.com/tekartik/sembast.dart/blob/master/doc/data_types.md)
+
+#### Keys
+
+Supported key types are:
+- int (default with autoincrement when no key are passed)
+- String
+- double
+
+#### Values
+
+Supported value types are:
+- String.
+- num (int and double)
+- Map
+- List
+- bool
+- `null`
+
 ## Build status
 
 Travis: [![Build Status](https://travis-ci.org/tekartik/sembast.dart.svg?branch=master)](https://travis-ci.org/tekartik/sembast.dart)
