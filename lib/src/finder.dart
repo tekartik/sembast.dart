@@ -13,6 +13,7 @@ class SembastFinder implements Finder {
 
   List<SortOrder> sortOrders = [];
 
+  @override
   set sortOrder(SortOrder sortOrder) {
     sortOrders = [sortOrder];
   }

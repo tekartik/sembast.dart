@@ -130,6 +130,7 @@ class FileSystemEntityType {
   const FileSystemEntityType._internal(this._type);
 
   //static FileSystemEntityType _lookup(int type) => _typeList[type];
+  @override
   String toString() => const ['FILE', 'DIRECTORY', 'LINK', 'NOT_FOUND'][_type];
 }
 
@@ -245,5 +246,6 @@ abstract class File extends FileSystemEntity {
   /// If [newPath] identifies an existing file, that file is
   /// replaced. If [newPath] identifies an existing directory, the
   /// operation fails and the future completes with an exception.
+  @override
   Future<File> rename(String newPath);
 }

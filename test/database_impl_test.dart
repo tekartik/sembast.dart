@@ -57,7 +57,7 @@ void defineTests(DatabaseTestContext ctx) {
       test('open_then_open_no_version_or_same_version', () async {
         SembastDatabase db =
             await factory.openDatabase(dbPath, version: 1) as SembastDatabase;
-        _onVersionChanged(Database db, int oldVersion, int newVersion) {
+        void _onVersionChanged(Database db, int oldVersion, int newVersion) {
           fail("not changed");
         }
 
@@ -84,7 +84,7 @@ void defineTests(DatabaseTestContext ctx) {
 // save to make sure we've been through
         int _oldVersion;
         int _newVersion;
-        _onVersionChanged(Database db, int oldVersion, int newVersion) {
+        void _onVersionChanged(Database db, int oldVersion, int newVersion) {
           expect(db.version, oldVersion);
           _oldVersion = oldVersion;
           _newVersion = newVersion;

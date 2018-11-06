@@ -11,7 +11,7 @@ abstract class BaseExecutor {
   /// get a value from a key
   /// null if not found or if value null
   ///
-  Future get(var key);
+  Future get(dynamic key);
 
   ///
   /// count all records
@@ -21,12 +21,19 @@ abstract class BaseExecutor {
   ///
   /// put a value with an optional key
   ///
-  Future put(var value, [var key]);
+  Future put(dynamic value, [dynamic key]);
+
+  ///
+  /// Update an existing record with the given key
+  /// if value is a map, existing fields are replaced but not removed unless
+  /// specified
+  ///
+  Future update(dynamic value, dynamic key);
 
   ///
   /// delete a record by key
   ///
-  Future delete(var key);
+  Future delete(dynamic key);
 
   ///
   /// find the first matching record
@@ -39,7 +46,7 @@ abstract class BaseExecutor {
   Future<List<Record>> findRecords(Finder finder);
 
   /// new in 1.7.1
-  Future<bool> containsKey(var key);
+  Future<bool> containsKey(dynamic key);
 
   /// new in 1.9.0
   Future<List> findKeys(Finder finder);
@@ -55,14 +62,9 @@ abstract class StoreExecutor extends BaseExecutor {
   Future clear();
 
   ///
-  /// put a record and return the key
-  ///
-  Future put(var value, [var key]);
-
-  ///
   /// get a record by key
   ///
-  Future<Record> getRecord(var key);
+  Future<Record> getRecord(dynamic key);
 
   ///
   /// Get all records from a list of keys

@@ -30,7 +30,8 @@ export 'src/record.dart';
 export 'src/store.dart';
 
 /// can return a future or not
-typedef OnVersionChangedFunction(Database db, int oldVersion, int newVersion);
+typedef FutureOr OnVersionChangedFunction(
+    Database db, int oldVersion, int newVersion);
 
 ///
 /// The database factory that allow opening database
@@ -78,6 +79,7 @@ class DatabaseException implements Exception {
   DatabaseException.databaseNotFound(this._message)
       : _code = errDatabaseNotFound;
 
+  @override
   String toString() => "[${_code}] ${_message}";
 }
 

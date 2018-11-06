@@ -38,6 +38,9 @@ abstract class DatabaseExecutorMixin
   Future put(value, [key]) => mainStore.put(value, key);
 
   @override
+  Future update(value, key) => mainStore.update(value, key);
+
+  @override
   Store get store => mainStore.store;
 
   @override
@@ -65,6 +68,7 @@ abstract class TransactionExecutorMixin implements TransactionExecutor {
 class SembastTransaction extends Object
     with DatabaseExecutorMixin, TransactionExecutorMixin
     implements Transaction {
+  @override
   final SembastDatabase database;
 
   int get id => _id;
@@ -127,6 +131,7 @@ class SembastTransaction extends Object
 
 class SembastTransactionStore implements StoreTransaction {
   final SembastTransaction transaction;
+  @override
   final SembastStore store;
 
   SembastTransactionStore(this.transaction, this.store);
@@ -154,6 +159,9 @@ class SembastTransactionStore implements StoreTransaction {
 
   @override
   Future put(value, [key]) async => store.txnPut(transaction, value, key);
+
+  @override
+  Future update(value, key) async => store.txnUpdate(transaction, value, key);
 
   @override
   Future clear() async => store.txnClear(transaction);

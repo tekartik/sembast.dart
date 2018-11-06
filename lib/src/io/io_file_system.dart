@@ -80,7 +80,11 @@ abstract class FileSystemEntity implements fs.FileSystemEntity {
 class _IoOSError implements fs.OSError {
   io.OSError ioOSError;
   _IoOSError(this.ioOSError);
+
+  @override
   int get errorCode => ioOSError.errorCode;
+
+  @override
   String get message => ioOSError.message;
 
   @override
@@ -89,9 +93,7 @@ class _IoOSError implements fs.OSError {
 
 class _IoFileSystemException implements fs.FileSystemException {
   io.FileSystemException ioFse;
-  _IoFileSystemException(io.FileSystemException ioFse)
-      : ioFse = ioFse,
-        osError = _IoOSError(ioFse.osError);
+  _IoFileSystemException(this.ioFse) : osError = _IoOSError(ioFse.osError);
 
   @override
   final _IoOSError osError;

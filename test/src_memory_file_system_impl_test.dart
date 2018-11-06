@@ -7,7 +7,7 @@ import 'package:sembast/src/file_system.dart';
 import 'package:path/path.dart';
 import 'test_common.dart';
 
-main() {
+void main() {
   group('memory_file_system_impl', () {
     test('root', () {
       MemoryFileSystemImpl fs = MemoryFileSystemImpl();
@@ -26,23 +26,23 @@ main() {
 
       // at root
       String path = join(separator, "test");
-      MemoryDirectoryImpl dir = fs.createDirectory(path) as MemoryDirectoryImpl;
+      MemoryDirectoryImpl dir = fs.createDirectory(path);
       expect(dir.segment, "test");
       expect(dir.path, path);
       expect(dir, fs.getEntity(path));
 
       // sub
-      dir = fs.createDirectory("test", recursive: true) as MemoryDirectoryImpl;
+      dir = fs.createDirectory("test", recursive: true);
       expect(dir.segment, "test");
       expect(dir.path, join(fs.currentPath, "test"));
 
       // not recursive
-      dir = fs.createDirectory(join("test", "sub")) as MemoryDirectoryImpl;
+      dir = fs.createDirectory(join("test", "sub"));
       expect(dir.segment, "sub");
       expect(dir.path, join(fs.currentPath, "test", "sub"));
 
       // not recursive not possible
-      dir = fs.createDirectory(join("dummy", "sub")) as MemoryDirectoryImpl;
+      dir = fs.createDirectory(join("dummy", "sub"));
       expect(dir, null);
     });
 
@@ -51,8 +51,7 @@ main() {
 
       // at root
       MemoryDirectoryImpl dir =
-          fs.createDirectory(join(separator, "test", "sub"), recursive: true)
-              as MemoryDirectoryImpl;
+          fs.createDirectory(join(separator, "test", "sub"), recursive: true);
 
       dir = fs.getEntity(join(separator, "test", "sub")) as MemoryDirectoryImpl;
       expect(dir.segment, "sub");
@@ -70,7 +69,7 @@ main() {
 
       // at root
       String path = join(separator, "test");
-      MemoryDirectoryImpl dir = fs.createDirectory(path) as MemoryDirectoryImpl;
+      MemoryDirectoryImpl dir = fs.createDirectory(path);
 
       // get it
       dir = fs.getEntity(path) as MemoryDirectoryImpl;
@@ -91,7 +90,7 @@ main() {
 
       // not empty
       path = join(separator, "test", "sub");
-      dir = fs.createDirectory(path, recursive: true) as MemoryDirectoryImpl;
+      dir = fs.createDirectory(path, recursive: true);
       try {
         fs.delete(join(separator, "test"));
         fail("should fail");

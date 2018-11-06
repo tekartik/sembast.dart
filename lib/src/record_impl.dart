@@ -10,7 +10,7 @@ class SembastRecord implements Record {
   dynamic key;
 
   @override
-  get value => _value;
+  dynamic get value => _value;
 
   @override
   bool get deleted => _deleted == true;
@@ -28,7 +28,7 @@ class SembastRecord implements Record {
   /// get the value of the specified [field]
   ///
   @override
-  operator [](String field) {
+  dynamic operator [](String field) {
     if (field == Field.value) {
       return value;
     } else if (field == Field.key) {
@@ -110,10 +110,9 @@ class SembastRecord implements Record {
   /// Create a record in a given [store] with a given [value] and
   /// an optional [key]
   ///
-  SembastRecord(Store store, dynamic value, [dynamic key])
+  SembastRecord(Store store, dynamic value, [this.key])
       : this._store = store,
-        this._value = value,
-        this.key = key;
+        this._value = value;
 
   @override
   int get hashCode => key == null ? 0 : key.hashCode;
@@ -127,7 +126,7 @@ class SembastRecord implements Record {
   }
 }
 
-_cloneKey(var key) {
+K _cloneKey<K>(K key) {
   if (key is String) {
     return key;
   }
@@ -141,7 +140,7 @@ _cloneKey(var key) {
       "key ${key} not supported${key != null ? ' type:${key.runtimeType}' : ''}");
 }
 
-_cloneValue(var value) {
+dynamic _cloneValue(dynamic value) {
   if (value is Map) {
     return Map.from(value).cast<String, dynamic>();
   }

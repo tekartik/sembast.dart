@@ -1,8 +1,10 @@
 // basically same as the io runner but with extra output
+import 'dart:async';
+
 import 'package:sembast/sembast.dart';
 import 'package:sembast/sembast_memory.dart';
 
-main() async {
+Future main() async {
   Database db = await memoryFsDatabaseFactory.openDatabase("record_demo.db");
   Store store = db.getStore("my_store");
   Record record = Record(store, {"name": "ugly"});

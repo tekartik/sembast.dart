@@ -10,7 +10,9 @@ MemoryOSError get _noSuchPathError =>
 
 class MemoryOSError implements fs.OSError {
   MemoryOSError(this.errorCode, this.message);
+  @override
   final int errorCode;
+  @override
   final String message;
 
   @override
@@ -150,7 +152,7 @@ abstract class MemoryFileSystemEntityImpl {
   bool get closed => (openCount == 0);
 
   // Set in the parent
-  create() {
+  void create() {
     parent.children[segment] = this;
   }
 
@@ -330,7 +332,7 @@ class MemoryFileSystemImpl {
     return sink;
   }
 
-  createDirectory(String path, {bool recursive = false}) {
+  MemoryDirectoryImpl createDirectory(String path, {bool recursive = false}) {
     // Go up one by one
     List<String> segments = getSegments(path);
     return createDirectoryBySegments(segments, recursive: recursive);

@@ -17,10 +17,10 @@ void main() {
   defineTests(memoryDatabaseContext);
 }
 
-defineMemoryDatabaseTests(DatabaseTestContext ctx) {
+void defineMemoryDatabaseTests(DatabaseTestContext ctx) {
   test('null name', () async {
     DatabaseFactory factory = memoryDatabaseContext.factory;
-    String dbName = null;
+    String dbName;
 
     Database db = await factory.openDatabase(dbName);
     var key = await db.put('hi');

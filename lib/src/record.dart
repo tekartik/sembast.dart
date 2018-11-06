@@ -13,14 +13,22 @@ class Field {
 }
 
 ///
+/// Update values
+///
+class FieldValue {
+  const FieldValue._();
+  static FieldValue delete = const FieldValue._();
+}
+
+///
 /// Records
 ///
 abstract class Record {
   /// The key of the record
-  get key;
+  dynamic get key;
 
   /// its value (typically a map)
-  get value;
+  dynamic get value;
 
   /// true if the record has been deleted
   bool get deleted;
@@ -31,7 +39,7 @@ abstract class Record {
   ///
   /// get the value of the specified [field]
   ///
-  operator [](String field);
+  dynamic operator [](String field);
 
   ///
   /// set the [value] of the specified [field]

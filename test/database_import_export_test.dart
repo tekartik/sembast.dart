@@ -1,5 +1,7 @@
 library sembast.database_import_export_test;
 
+import 'dart:async';
+
 import 'package:sembast/sembast.dart';
 import 'package:sembast/utils/sembast_import_export.dart';
 import 'test_common.dart';
@@ -12,14 +14,14 @@ void defineTests(DatabaseTestContext ctx) {
   group('import_export', () {
     tearDown(() {});
 
-    _checkExportImport(Database db, Map expectedExport) async {
-      Map export_ = await exportDatabase(db);
-      expect(export_, expectedExport);
+    Future _checkExportImport(Database db, Map expectedExport) async {
+      var export = await exportDatabase(db);
+      expect(export, expectedExport);
 
       // import and reexport to test content
       String importDbPath = ctx.dbPath + "_import.db";
       Database importedDb =
-          await importDatabase(export_, ctx.factory, importDbPath);
+          await importDatabase(export, ctx.factory, importDbPath);
       expect(await exportDatabase(importedDb), expectedExport);
     }
 

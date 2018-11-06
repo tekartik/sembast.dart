@@ -1,8 +1,10 @@
+import 'dart:async';
+
 import 'package:path/path.dart';
 import 'package:sembast/sembast.dart';
 import 'package:sembast/sembast_io.dart';
 
-main() async {
+Future main() async {
   Database db = await databaseFactoryIo
       .openDatabase(join("example", "io", "test_out", "random.db"));
   /*

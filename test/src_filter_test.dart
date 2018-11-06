@@ -5,7 +5,7 @@ library sembast.io_file_system_test;
 import 'package:sembast/sembast.dart';
 import 'test_common.dart';
 
-main() {
+void main() {
   group('src_filter_test', () {
     test('equals', () {
       var filter = Filter.equal('test', 1);

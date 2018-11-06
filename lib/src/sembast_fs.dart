@@ -17,9 +17,7 @@ class _FsDatabaseStorage extends DatabaseStorage {
 
   Logger log = Logger("FsDatabaseStorage");
 
-  _FsDatabaseStorage(FileSystem fs, String path)
-      : fs = fs,
-        file = fs.newFile(path);
+  _FsDatabaseStorage(this.fs, String path) : file = fs.newFile(path);
 
   @override
   bool get supported => true;
@@ -94,10 +92,15 @@ class _FsDatabaseStorage extends DatabaseStorage {
     }
   }
 
+  @override
   Stream<String> readLines() {
-    return file.openRead().transform(utf8.decoder).transform(LineSplitter());
+    return file
+        .openRead()
+        .transform(utf8.decoder)
+        .transform(const LineSplitter());
   }
 
+  @override
   Future appendLines(List<String> lines) {
     IOSink sink = file.openWrite(mode: FileMode.append);
 

@@ -18,13 +18,14 @@ class SembastDatabase extends Object
     with DatabaseExecutorMixin
     implements Database {
   static Logger logger = Logger("Sembast");
-  final bool LOGV = logger.isLoggable(Level.FINEST);
+  final bool logV = logger.isLoggable(Level.FINEST);
 
   final DatabaseStorage _storage;
   // Lock used for opening/compacting
   final Lock databaseLock = Lock();
   final Lock transactionLock = Lock();
 
+  @override
   String get path => _storage.path;
 
   //int _rev = 0;
@@ -33,6 +34,7 @@ class SembastDatabase extends Object
 
   Meta _meta;
 
+  @override
   int get version => _meta.version;
 
   bool _opened = false;
@@ -49,6 +51,7 @@ class SembastDatabase extends Object
   Store _mainStore;
   final Map<String, Store> _stores = {};
 
+  @override
   Iterable<Store> get stores => _stores.values;
 
   SembastDatabase([this._storage]);
@@ -57,8 +60,13 @@ class SembastDatabase extends Object
   /// put a value in the main store
   ///
   @override
-  Future put(var value, [var key]) {
+  Future put(dynamic value, [dynamic key]) {
     return _mainStore.put(value, key);
+  }
+
+  @override
+  Future update(dynamic value, [dynamic key]) {
+    return _mainStore.update(value, key);
   }
 
   void _clearTxnData() {
@@ -112,7 +120,7 @@ class SembastDatabase extends Object
       await tmpStorage.findOrCreate();
 
       List<String> lines = [];
-      _addLine(Map map) {
+      void _addLine(Map map) {
         String encoded;
         try {
           encoded = json.encode(map);
@@ -146,7 +154,7 @@ class SembastDatabase extends Object
   }
 
   // future or not
-  _commit() async {
+  Future _commit() async {
     List<Record> txnRecords = [];
     for (Store store in stores) {
       if ((store as SembastStore).txnRecords != null) {
@@ -155,7 +163,7 @@ class SembastDatabase extends Object
     }
 
     // end of commit
-    _saveInMemory() {
+    void _saveInMemory() {
       for (Record record in txnRecords) {
         bool exists = setRecordInMemory(record);
         // Try to estimated if compact will be needed
@@ -216,6 +224,7 @@ class SembastDatabase extends Object
   ///
   /// Get a record by its key
   ///
+  @override
   Future<Record> getRecord(var key) {
     return mainStore.getRecord(key);
   }
@@ -242,6 +251,7 @@ class SembastDatabase extends Object
   ///
   /// find records in the main store
   ///
+  @override
   Future<List<Record>> findRecords(Finder finder) {
     return mainStore.findRecords(finder);
   }
@@ -258,6 +268,7 @@ class SembastDatabase extends Object
   ///
   /// get a value by key in the main store
   ///
+  @override
   Future get(var key) {
     return _mainStore.get(key);
   }
@@ -265,6 +276,7 @@ class SembastDatabase extends Object
   ///
   /// count all records in the main store
   ///
+  @override
   Future<int> count([Filter filter]) {
     return _mainStore.count(filter);
   }
@@ -571,8 +583,8 @@ class SembastDatabase extends Object
     // return new Future.value();
   }
 
-  Map toJson() {
-    Map map = Map();
+  Map<String, dynamic> toJson() {
+    var map = <String, dynamic>{};
     if (path != null) {
       map["path"] = path;
     }
@@ -617,7 +629,7 @@ class SembastDatabase extends Object
     return transactionLock.synchronized(() async {
       _transaction = SembastTransaction(this, ++_txnId);
 
-      _transactionCleanUp() {
+      void _transactionCleanUp() {
         // Mark transaction complete, ignore error
         _transaction.completer.complete();
 
@@ -684,8 +696,8 @@ class DatabaseExportStat {
     }
   }
 
-  Map toJson() {
-    Map map = Map();
+  Map<String, dynamic> toJson() {
+    var map = <String, dynamic>{};
     if (lineCount != null) {
       map["lineCount"] = lineCount;
     }

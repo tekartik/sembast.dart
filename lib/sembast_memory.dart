@@ -51,7 +51,7 @@ class MemoryDatabaseFactory implements DatabaseFactory {
   }
 
   //Database _defaultDatabase;
-  Map<String, SembastDatabase> _databases = Map();
+  Map<String, SembastDatabase> _databases = {};
 
   @override
   bool get hasStorage => false;
@@ -66,6 +66,7 @@ Future<Database> openMemoryDatabase() {
 
 class _MemoryDatabaseStorage extends DatabaseStorage {
   final MemoryDatabaseFactory factory;
+  @override
   final String path;
   _MemoryDatabaseStorage(this.factory, this.path);
 
@@ -83,6 +84,7 @@ class _MemoryDatabaseStorage extends DatabaseStorage {
   @override
   Future delete() => null;
 
+  @override
   Stream<String> readLines() => null;
 
   @override

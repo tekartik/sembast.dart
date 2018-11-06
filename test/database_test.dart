@@ -86,7 +86,7 @@ void defineTests(DatabaseTestContext ctx) {
         // save to make sure we've been through
         int _oldVersion;
         int _newVersion;
-        _onVersionChanged(Database db, int oldVersion, int newVersion) {
+        void _onVersionChanged(Database db, int oldVersion, int newVersion) {
           expect(db.version, oldVersion);
           _oldVersion = oldVersion;
           _newVersion = newVersion;
@@ -107,7 +107,7 @@ void defineTests(DatabaseTestContext ctx) {
         // save to make sure we've been through
         int _oldVersion;
         int _newVersion;
-        _onVersionChanged(Database db, int oldVersion, int newVersion) {
+        void _onVersionChanged(Database db, int oldVersion, int newVersion) {
           expect(db.version, oldVersion);
           _oldVersion = oldVersion;
           _newVersion = newVersion;

@@ -11,6 +11,7 @@ import 'database_impl.dart';
 
 class SembastStore implements Store {
   final SembastDatabase database;
+  @override
   Store get store => this;
 
   ///
@@ -22,7 +23,7 @@ class SembastStore implements Store {
   // for key generation
   int _lastIntKey = 0;
 
-  Map<dynamic, Record> recordMap = Map();
+  Map<dynamic, Record> recordMap = <dynamic, Record>{};
   Map<dynamic, Record> txnRecords;
 
   // bool get isInTransaction => database.isInTransaction;
@@ -36,21 +37,37 @@ class SembastStore implements Store {
   Future<T> transaction<T>(FutureOr<T> action(Transaction transaction)) =>
       database.transaction(action);
 
-  ///
-  /// return the key
-  ///
+  // return the key
+  @override
   Future put(var value, [var key]) {
     return transaction((txn) {
       return txnPut(txn as SembastTransaction, value, key);
     });
   }
 
-  txnPut(SembastTransaction txn, var value, var key) {
+  @override
+  Future update(dynamic value, dynamic key) {
+    return transaction((txn) {
+      return txnPut(txn as SembastTransaction, value, key);
+    });
+  }
+
+  dynamic txnPut(SembastTransaction txn, var value, var key) {
     Record record = SembastRecord.copy(this, key, value, false);
 
     txnPutRecord(txn, record);
-    if (database.LOGV) {
+    if (database.logV) {
       SembastDatabase.logger.fine("${txn} put ${record}");
+    }
+    return record.key;
+  }
+
+  dynamic txnUpdate(SembastTransaction txn, dynamic value, dynamic key) {
+    Record record = SembastRecord.copy(this, key, value, false);
+
+    txnPutRecord(txn, record);
+    if (database.logV) {
+      SembastDatabase.logger.fine("${txn} update ${record}");
     }
     return record.key;
   }
@@ -67,7 +84,7 @@ class SembastStore implements Store {
     return ctlr.stream;
   }
 
-  _feedController(SembastTransaction txn, StreamController<Record> ctlr) {
+  void _feedController(SembastTransaction txn, StreamController<Record> ctlr) {
     _forEachRecords(txn, null, (Record record) {
       ctlr.add(record);
     });
@@ -83,7 +100,7 @@ class SembastStore implements Store {
     return ctlr.stream;
   }
 
-  _forEachRecords(
+  void _forEachRecords(
       SembastTransaction txn, Filter filter, void action(Record record)) {
 // handle record in transaction first
     if (_hasTransactionRecords(txn)) {
@@ -120,7 +137,7 @@ class SembastStore implements Store {
   Future findKey(Finder finder) async => (await findRecord(finder))?.key;
 
   Future txnFindKey(SembastTransaction txn, Finder finder) async =>
-      (await txnFindRecord(txn, finder))?.key;
+      (txnFindRecord(txn, finder))?.key;
 
   Record txnFindRecord(SembastTransaction txn, Finder finder) {
     if ((finder as SembastFinder).limit != 1) {
@@ -174,7 +191,7 @@ class SembastStore implements Store {
   }
 
   Future<List> txnFindKeys(SembastTransaction txn, Finder finder) async {
-    var records = await txnFindRecords(txn, finder);
+    var records = txnFindRecords(txn, finder);
     return records.map((Record record) => record.key).toList();
   }
 
@@ -228,7 +245,7 @@ class SembastStore implements Store {
 
     // add to store transaction
     if (txnRecords == null) {
-      txnRecords = Map();
+      txnRecords = <dynamic, Record>{};
     }
     txnRecords[record.key] = record;
 
@@ -246,7 +263,7 @@ class SembastStore implements Store {
     if (record == null) {
       record = recordMap[key];
     }
-    if (database.LOGV) {
+    if (database.logV) {
       SembastDatabase.logger
           .fine("${database.currentTransaction} get ${record} key ${key}");
     }
@@ -287,7 +304,6 @@ class SembastStore implements Store {
       if (record != null) {
         if (!record.deleted) {
           records.add(record);
-          ;
         }
       }
     }
@@ -326,9 +342,7 @@ class SembastStore implements Store {
     return count;
   }
 
-  ///
-  /// delete a record by key
-  ///
+  @override
   Future delete(var key) {
     return transaction((txn) {
       return txnDelete(txn as SembastTransaction, key);

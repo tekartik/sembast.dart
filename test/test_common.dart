@@ -21,6 +21,7 @@ FsDatabaseTestContext get memoryFsDatabaseContext =>
 
 class FsDatabaseTestContext extends DatabaseTestContext {
   FileSystem get fs => (factory as FsDatabaseFactory).fs;
+  @override
   String get dbPath => join(fs.currentDirectory.path, super.dbPath);
 }
 
@@ -66,7 +67,7 @@ Future<List<String>> readContent(FileSystem fs, String filePath) {
       .newFile(filePath)
       .openRead()
       .transform(utf8.decoder)
-      .transform(LineSplitter())
+      .transform(const LineSplitter())
       .listen((String line) {
     content.add(line);
   }).asFuture(content);
@@ -82,7 +83,7 @@ Future writeContent(FileSystem fs, String filePath, List<String> lines) async {
   await sink.close();
 }
 
-devPrintJson(Map json) {
+void devPrintJson(Map json) {
   print(const JsonEncoder.withIndent("  ").convert(json));
 }
 

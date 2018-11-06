@@ -1,6 +1,8 @@
 library sembast.transaction_deprecated_test;
 
 // basically same as the io runner but with extra output
+import 'dart:async';
+
 import 'package:sembast/sembast.dart';
 import 'package:sembast/src/database.dart';
 import 'test_common.dart';
@@ -25,9 +27,9 @@ void defineTests(DatabaseTestContext ctx) {
   group('find_deprecated', () {
     Database db;
 
-    _tearDown() {
+    Future _tearDown() async {
       if (db != null) {
-        db.close();
+        await db.close();
         db = null;
       }
     }

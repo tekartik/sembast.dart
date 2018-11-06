@@ -79,7 +79,7 @@ void defineTests(DatabaseTestContext ctx) {
 
     test('String', () async {
       expect(await db.containsKey(1), isFalse);
-      await db.put("hello") as int;
+      await db.put("hello");
       Future _check() async {
         String value = await db.get(1);
         expect(await db.containsKey(1), isTrue);
@@ -105,7 +105,7 @@ void defineTests(DatabaseTestContext ctx) {
         ]
       };
       expect(await db.containsKey(1), isFalse);
-      await db.put(map) as int;
+      await db.put(map);
       Future _check() async {
         Map<String, dynamic> value = await db.get(1);
         expect(await db.containsKey(1), isTrue);

@@ -11,6 +11,7 @@ IoDatabaseTestContext get ioDatabaseContext =>
     IoDatabaseTestContext()..factory = databaseFactoryIo;
 
 class IoDatabaseTestContext extends FsDatabaseTestContext {
+  @override
   String get dbPath => testOutPath + ".db";
 }
 
@@ -18,6 +19,7 @@ IoFileSystemTestContext get ioFileSystemContext =>
     IoFileSystemTestContext()..fs = ioFileSystem;
 
 class IoFileSystemTestContext extends FileSystemTestContext {
+  @override
   String get outPath => testOutPath;
 }
 

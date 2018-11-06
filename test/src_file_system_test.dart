@@ -8,7 +8,7 @@ import 'package:path/path.dart';
 import 'dart:convert';
 import 'test_common.dart';
 
-main() {
+void main() {
   group('memory', () {
     defineTests(memoryFileSystemContext);
   });
@@ -28,21 +28,21 @@ void defineTests(FileSystemTestContext ctx) {
   Directory nameDir(String name) => fs.newDirectory(namePath(name));
 
   Future<File> createFile(File file) async {
-    File file_ = await file.create(recursive: true);
-    expect(file, file_); // identical
-    return file_;
+    File createdFile = await file.create(recursive: true);
+    expect(file, createdFile); // identical
+    return createdFile;
   }
 
   Future<File> createFileName(String name) => createFile(nameFile(name));
 
   Future expectDirExists(Directory dir, [bool exists = true]) async {
-    bool exists_ = await dir.exists();
-    expect(exists_, exists);
+    bool dirExists = await dir.exists();
+    expect(dirExists, exists);
   }
 
   Future expectFileExists(File file, [bool exists = true]) async {
-    bool exists_ = await file.exists();
-    expect(exists_, exists);
+    bool fileExists = await file.exists();
+    expect(fileExists, exists);
   }
 
   Future expectFileNameExists(String name, [bool exists = true]) =>
@@ -53,7 +53,9 @@ void defineTests(FileSystemTestContext ctx) {
   }
 
   Stream<String> openReadLines(File file) {
-    return openRead(file).transform(utf8.decoder).transform(LineSplitter());
+    return openRead(file)
+        .transform(utf8.decoder)
+        .transform(const LineSplitter());
   }
 
   IOSink openWrite(File file) {
@@ -65,15 +67,15 @@ void defineTests(FileSystemTestContext ctx) {
   }
 
   Future<File> deleteFile(File file) async {
-    var file_ = await file.delete(recursive: true) as File;
-    expect(file, file_);
-    return file_;
+    var deletedFile = await file.delete(recursive: true) as File;
+    expect(file, deletedFile);
+    return deletedFile;
   }
 
   Future<Directory> deleteDirectory(Directory dir) async {
-    var dir_ = await dir.delete(recursive: true) as Future<Directory>;
-    expect(dir, dir_);
-    return dir_;
+    var directory = await dir.delete(recursive: true) as Future<Directory>;
+    expect(dir, directory);
+    return directory;
   }
 
   Future clearOutFolder() async {
@@ -314,10 +316,10 @@ void defineTests(FileSystemTestContext ctx) {
               print(_);
             })
             .asFuture()
-            .catchError((e_) {
+            .catchError((e2) {
               // FileSystemException: Cannot open file, path = '/media/ssd/devx/git/sembast.dart/test/out/io/fs/file/open read 1/test' (OS Error: No such file or directory, errno = 2)
               // FileSystemException: Cannot open file, path = 'current/test' (OS Error: No such file or directory, errno = 2)
-              e = e_;
+              e = e2;
             });
         expect(e, isNotNull);
       });
@@ -334,7 +336,6 @@ void defineTests(FileSystemTestContext ctx) {
           // FileSystemException: Cannot open file, path = '/media/ssd/devx/git/sembast.dart/test/out/io/fs/file/open write 1/test' (OS Error: No such file or directory, errno = 2)
           // FileSystemException: Cannot open file, path = 'current/test' (OS Error: No such file or directory, errno = 2)
         }
-        ;
       });
 
       test('open write 2', () async {
@@ -376,7 +377,6 @@ void defineTests(FileSystemTestContext ctx) {
           // FileSystemException: Cannot open file, path = '/media/ssd/devx/git/sembast.dart/test/out/io/fs/file/open write 1/test' (OS Error: No such file or directory, errno = 2)
           // FileSystemException: Cannot open file, path = 'current/test' (OS Error: No such file or directory, errno = 2)
         }
-        ;
       });
 
       test('open append 2', () async {
