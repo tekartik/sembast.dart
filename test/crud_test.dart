@@ -28,9 +28,9 @@ void defineTests(DatabaseTestContext ctx) {
 
     test('update', () async {
       // update none
-      expect(db.update('hi', 1), isNull);
+      expect(await db.update('hi', 1), isNull);
       await db.put('hi', 1);
-      expect(db.update('ho', 1), {'ho': 1});
+      expect(await db.update('ho', 1), 'ho');
     });
 
     test('update_map', () async {
