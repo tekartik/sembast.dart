@@ -53,6 +53,24 @@ void defineTests(DatabaseTestContext ctx) {
       expect(record.value, "newvalue");
     });
 
+    test('update', () async {
+      var record = Record(null, {"name": 'name1', 'test': 'test1'});
+      record = await db.putRecord(record);
+      var key = record.key;
+      record = await db.getRecord(key);
+      record['test'] = 'test2';
+      await db.putRecord(record);
+      expect((await db.getRecord(record.key)).value,
+          {"name": 'name1', 'test': 'test2'});
+
+      await db.transaction((txn) async {
+        record = await txn.getRecord(key);
+        record['test'] = 'test2';
+        await txn.putRecord(record);
+        expect((await txn.getRecord(record.key)).value,
+            {"name": 'name1', 'test': 'test2'});
+      });
+    });
     test('put database', () {
       Record record1 = Record(null, "hi");
       return db.putRecord(record1).then((inserted) {
