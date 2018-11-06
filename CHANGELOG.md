@@ -1,3 +1,7 @@
+## 1.10.0
+
+* Add `update` to allow updating partially a Map record
+
 ## 1.9.5
 
 * Fix database manipulation issues during onVersionChanged
