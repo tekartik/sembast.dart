@@ -19,14 +19,18 @@ abstract class BaseExecutor {
   Future<int> count([Filter filter]);
 
   ///
-  /// put a value with an optional key
+  /// put a value with an optional key. Returns the key
   ///
   Future put(dynamic value, [dynamic key]);
 
   ///
-  /// Update an existing record with the given key
+  /// Update an existing record if any with the given key
   /// if value is a map, existing fields are replaced but not removed unless
-  /// specified
+  /// specified ([FieldValue.delete])
+  ///
+  /// Does not do anything if the record does not exist
+  ///
+  /// Returns the record value (merged) or null if the record was not found
   ///
   Future update(dynamic value, dynamic key);
 

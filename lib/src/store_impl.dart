@@ -48,7 +48,7 @@ class SembastStore implements Store {
   @override
   Future update(dynamic value, dynamic key) {
     return transaction((txn) {
-      return txnPut(txn as SembastTransaction, value, key);
+      return txnUpdate(txn as SembastTransaction, value, key);
     });
   }
 
@@ -63,13 +63,20 @@ class SembastStore implements Store {
   }
 
   dynamic txnUpdate(SembastTransaction txn, dynamic value, dynamic key) {
-    Record record = SembastRecord.copy(this, key, value, false);
+    // Ignore non-existing record
+    var existingRecord = txnGetRecord(txn, key);
+    if (existingRecord == null) {
+      return null;
+    }
+
+    var mergedValue = mergeValue(existingRecord.value, value);
+    Record record = SembastRecord(this, mergedValue, key);
 
     txnPutRecord(txn, record);
     if (database.logV) {
       SembastDatabase.logger.fine("${txn} update ${record}");
     }
-    return record.key;
+    return record.value;
   }
 
   ///
@@ -275,7 +282,7 @@ class SembastStore implements Store {
   ///
   @override
   Future<Record> getRecord(var key) async {
-    return txnGetRecord(null, key);
+    return cloneRecord(txnGetRecord(null, key));
   }
 
   Record txnGetRecord(SembastTransaction txn, key) {
@@ -321,7 +328,7 @@ class SembastStore implements Store {
   dynamic txnGet(SembastTransaction txn, key) {
     Record record = txnGetRecord(txn, key);
     if (record != null) {
-      return record.value;
+      return cloneValue(record.value);
     }
     return null;
   }

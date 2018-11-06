@@ -78,8 +78,8 @@ class SembastRecord implements Record {
   }
 
   SembastRecord.copy(this._store, var key, var _value, [this._deleted])
-      : key = _cloneKey(key),
-        _value = _cloneValue(_value);
+      : key = cloneKey(key),
+        _value = cloneValue(_value);
 
   Map _toBaseMap() {
     Map map = {};
@@ -126,39 +126,9 @@ class SembastRecord implements Record {
   }
 }
 
-K _cloneKey<K>(K key) {
-  if (key is String) {
-    return key;
+Record cloneRecord(Record record) {
+  if (record != null) {
+    return (record as SembastRecord).clone();
   }
-  if (key is num) {
-    return key;
-  }
-  if (key == null) {
-    return key;
-  }
-  throw DatabaseException.badParam(
-      "key ${key} not supported${key != null ? ' type:${key.runtimeType}' : ''}");
-}
-
-dynamic _cloneValue(dynamic value) {
-  if (value is Map) {
-    return Map.from(value).cast<String, dynamic>();
-  }
-  if (value is List) {
-    return List.from(value);
-  }
-  if (value is String) {
-    return value;
-  }
-  if (value is bool) {
-    return value;
-  }
-  if (value is num) {
-    return value;
-  }
-  if (value == null) {
-    return value;
-  }
-  throw DatabaseException.badParam(
-      "value ${value} not supported${value != null ? ' type:${value.runtimeType}' : ''}");
+  return null;
 }

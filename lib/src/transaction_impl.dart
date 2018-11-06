@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:sembast/sembast.dart';
 import 'package:sembast/src/database_impl.dart';
+import 'package:sembast/src/record_impl.dart';
 import 'package:sembast/src/store_impl.dart';
 
 abstract class DatabaseExecutorMixin
@@ -171,7 +172,8 @@ class SembastTransactionStore implements StoreTransaction {
       store.txnDeleteAll(transaction, keys);
 
   @override
-  Future<Record> getRecord(key) async => store.txnGetRecord(transaction, key);
+  Future<Record> getRecord(key) async =>
+      cloneRecord(store.txnGetRecord(transaction, key));
 
   @override
   Future<List<Record>> getRecords(Iterable keys) async =>

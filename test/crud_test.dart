@@ -26,6 +26,24 @@ void defineTests(DatabaseTestContext ctx) {
       });
     });
 
+    test('update', () async {
+      // update none
+      expect(db.update('hi', 1), isNull);
+      await db.put('hi', 1);
+      expect(db.update('ho', 1), {'ho': 1});
+    });
+
+    test('update_map', () async {
+      // update none
+      var key = await db.put({"test": 1});
+      expect(await db.update({'new': 2}, key), {'test': 1, 'new': 2});
+      expect(await db.update({'new': FieldValue.delete, 'a.b.c': 3}, key), {
+        'test': 1,
+        'a': {
+          'b': {'c': 3}
+        }
+      });
+    });
     test('put_nokey', () {
       return db.put("hi").then((key) {
         expect(key, 1);

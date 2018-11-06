@@ -116,5 +116,16 @@ void defineTests(DatabaseTestContext ctx) {
       db = await reOpen(db);
       await _check();
     });
+
+    test('immutable', () async {
+      Map<String, dynamic> map = {'int': 1234};
+      var key = await db.put(map);
+      map['int'] = 5678;
+      map = (await db.get(key)) as Map<String, dynamic>;
+      expect(map, {'int': 1234});
+      map['int'] = 5678;
+      map = (await db.get(key)) as Map<String, dynamic>;
+      expect(map, {'int': 1234});
+    });
   });
 }
