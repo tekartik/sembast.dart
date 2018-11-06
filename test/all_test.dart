@@ -15,6 +15,7 @@ import 'src_file_system_test.dart' as src_file_system_test;
 import 'database_format_test.dart' as database_format_test;
 import 'database_impl_format_test.dart' as database_impl_format_test;
 import 'database_import_export_test.dart' as database_import_export_test;
+import 'exp_test.dart' as exp_test;
 import 'test_common.dart';
 
 // default use memory
@@ -42,4 +43,5 @@ void defineTests(DatabaseTestContext ctx) {
   deprecated_test.defineTests(ctx);
   exception_test.defineTests(ctx);
   database_import_export_test.defineTests(ctx);
+  exp_test.defineTests(ctx);
 }

@@ -79,25 +79,29 @@ A record object holds the record content and key
 
 ### Simple find mechanism
 
-(Work in progress) Filtering and sorting can be done on any field
+Filtering and sorting can be done on any field
 
-    // Store some objects
-    await db.transaction((txn) async {
-      await txn.put({'name': 'fish'});
-      await txn.put({'name': 'cat'});
-      await txn.put({'name': 'dog'});
-    });
-      
-    // Look for any animal "greater than" (alphabetically) 'cat'
-    // ordered by name
-    Finder finder = new Finder();
-    finder.filter = new Filter.greaterThan('name', 'cat');
-    finder.sortOrder = new SortOrder('name');
-    List<Record> records = await db.findRecords(finder);
-      
-    expect(records.length, 2);
-    expect(records[0]['name'], 'dog');
-    expect(records[1]['name'], 'fish');
+More information [here](https://github.com/tekartik/sembast.dart/blob/master/doc/queries.md)
+
+```dart
+// Store some objects
+await db.transaction((txn) async {
+  await txn.put({'name': 'fish'});
+  await txn.put({'name': 'cat'});
+  await txn.put({'name': 'dog'});
+});
+
+// Look for any animal "greater than" (alphabetically) 'cat'
+// ordered by name
+var finder = Finder(
+  filter: Filter.greaterThan('name', 'cat'),
+  sortOrders: [SortOrder('name')]);
+var records = await db.findRecords(finder);
+
+expect(records.length, 2);
+expect(records[0]['name'], 'dog');
+expect(records[1]['name'], 'fish');
+```
 
 ### Store
 
