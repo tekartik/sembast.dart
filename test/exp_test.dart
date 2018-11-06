@@ -1,10 +1,6 @@
 library sembast.exp_test;
 
-// basically same as the io runner but with extra output
-import 'dart:async';
-
 import 'package:sembast/sembast.dart';
-
 import 'test_common.dart';
 
 void main() {
@@ -15,17 +11,20 @@ void defineTests(DatabaseTestContext ctx) {
   group('exp', () {
     Database db;
 
-    Future _tearDown() async {
+    setUp(() async {
+      db = await setupForTest(ctx);
+    });
+
+    tearDown(() async {
       if (db != null) {
         await db.close();
         db = null;
       }
-    }
+    });
 
     Store store;
     Record record1, record2, record3;
     setUp(() async {
-      db = await setupForTest(ctx);
       store = db.mainStore;
       record1 = Record(store, "hi", 1);
       record2 = Record(store, "ho", 2);
@@ -33,10 +32,7 @@ void defineTests(DatabaseTestContext ctx) {
       return db.putRecords([record1, record2, record3]);
     });
 
-    tearDown(_tearDown);
-
     test('issue#8', () async {
-      db = await setupForTest(ctx);
       dynamic lastKey;
       var macAddress = '00:0a:95:9d:68:16';
       await db.transaction((txn) async {
@@ -52,15 +48,26 @@ void defineTests(DatabaseTestContext ctx) {
       expect((await db.findRecord(finder)).key, lastKey);
     });
 
-    test('doc', () async {
+    test('queries_doc', () async {
       db = await setupForTest(ctx);
 
       // Store some objects
+      dynamic key1, key2, key3;
       await db.transaction((txn) async {
-        await txn.put({'name': 'fish'});
-        await txn.put({'name': 'cat'});
-        await txn.put({'name': 'dog'});
+        key1 = await txn.put({'name': 'fish'});
+        key2 = await txn.put({'name': 'cat'});
+        key3 = await txn.put({'name': 'dog'});
       });
+
+      {
+        // Read by key
+        expect(await db.get(key1), {'name': 'fish'});
+
+        // Read 2 records by key
+        var records = await db.getRecords([key2, key3]);
+        expect(records[0].value, {'name': 'cat'});
+        expect(records[1].value, {'name': 'dog'});
+      }
 
       // Look for any animal "greater than" (alphabetically) 'cat'
       // ordered by name
@@ -79,6 +86,39 @@ void defineTests(DatabaseTestContext ctx) {
         var record = await db.findRecord(finder);
 
         expect(record['name'], 'dog');
+      }
+    });
+
+    test('writes_doc', () async {
+      db = await setupForTest(ctx);
+
+      {
+        // Writing a string
+        var key = await db.put('value');
+        expect(await db.get(key), 'value');
+
+        // Updating a string
+        await db.put('new value', key);
+        expect(await db.get(key), 'new value');
+      }
+
+      {
+        // Writing a map
+        var key = await db.put({
+          'name': 'cat',
+          'color': 'brown',
+          'age': 4,
+          'address': {'city': 'Ledignan'}
+        });
+
+        // Updating some fields
+        await db.update(
+            {'color': FieldValue.delete, 'address.city': 'San Francisco'}, key);
+        expect(await db.get(key), {
+          'name': 'cat',
+          'age': 4,
+          'address': {'city': 'San Francisco'}
+        });
       }
     });
   });

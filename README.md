@@ -51,6 +51,9 @@ Map settings = await db.get('settings') as Map;
 await db.delete('version');
 ```
 
+Follow the links with more informatin on how to [write](https://github.com/tekartik/sembast.dart/blob/master/doc/writes.md)
+or [read](https://github.com/tekartik/sembast.dart/blob/master/doc/queries.md) data
+
 ### Auto increment
 
 If no key is provided, the object is inserted with an auto-increment value

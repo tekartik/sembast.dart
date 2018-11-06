@@ -1,17 +1,37 @@
 # Queries
 
+Let's consider the following data
+
+```dart
+// Store some objects
+dynamic key1, key2, key3;
+await db.transaction((txn) async {
+  key1 = await txn.put({'name': 'fish'});
+  key2 = await txn.put({'name': 'cat'});
+  key3 = await txn.put({'name': 'dog'});
+});
+```
+
+## Get by key
+
+You can get a record by key
+
+```dart
+// Read by key
+expect(await db.get(key1), {'name': 'fish'});
+
+// Read 2 records by key
+var records = await db.getRecords([key2, key3]);
+expect(records[0].value, {'name': 'cat'});
+expect(records[1].value, {'name': 'dog'});
+```
+ 
+
 ## Filtering and sorting
 
 Filtering and sorting can be done on any field
 
 ```dart
-// Store some objects
-await db.transaction((txn) async {
-  await txn.put({'name': 'fish'});
-  await txn.put({'name': 'cat'});
-  await txn.put({'name': 'dog'});
-});
-
 // Look for any animal "greater than" (alphabetically) 'cat'
 // ordered by name
 var finder = Finder(
