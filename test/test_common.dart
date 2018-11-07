@@ -64,7 +64,7 @@ Future<List<Record>> recordStreamToList(Stream<Record> stream) {
 Future<List<String>> readContent(FileSystem fs, String filePath) {
   List<String> content = [];
   return fs
-      .newFile(filePath)
+      .file(filePath)
       .openRead()
       .transform(utf8.decoder)
       .transform(const LineSplitter())
@@ -80,8 +80,9 @@ List getRecordsValues(List<Record> records) {
   }
   return list;
 }
+
 Future writeContent(FileSystem fs, String filePath, List<String> lines) async {
-  File file = fs.newFile(filePath);
+  File file = fs.file(filePath);
   await file.create(recursive: true);
   IOSink sink = file.openWrite(mode: FileMode.write);
   for (String line in lines) {

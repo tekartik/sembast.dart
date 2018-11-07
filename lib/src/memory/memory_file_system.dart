@@ -14,12 +14,12 @@ class _MemoryFileSystem implements fs.FileSystem {
   _MemoryFileSystem();
 
   @override
-  fs.File newFile(String path) {
+  fs.File file(String path) {
     return _MemoryFile(path);
   }
 
   @override
-  fs.Directory newDirectory(String path) {
+  fs.Directory directory(String path) {
     return _MemoryDirectory(path);
   }
 
@@ -47,7 +47,7 @@ class _MemoryFileSystem implements fs.FileSystem {
 
   @override
   _MemoryDirectory get currentDirectory =>
-      newDirectory(_impl.currentPath) as _MemoryDirectory;
+      directory(_impl.currentPath) as _MemoryDirectory;
 
   @override
   _MemoryFile get scriptFile => null;

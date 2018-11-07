@@ -30,10 +30,10 @@ void main() {
       Future<String> prepareForDb() async {
         dbPath = getDbPath();
         await fs
-            .newDirectory(dirname(dbPath))
+            .directory(dirname(dbPath))
             .create(recursive: true)
             .catchError((_) {});
-        await fs.newFile(dbPath).delete().catchError((_) {});
+        await fs.file(dbPath).delete().catchError((_) {});
         return dbPath;
       }
 

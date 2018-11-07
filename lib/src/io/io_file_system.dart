@@ -119,12 +119,12 @@ Future<T> _wrap<T>(Future<T> future) {
 
 class _IoFileSystem implements fs.FileSystem {
   @override
-  fs.File newFile(String path) {
+  fs.File file(String path) {
     return File(path);
   }
 
   @override
-  fs.Directory newDirectory(String path) {
+  fs.Directory directory(String path) {
     return Directory(path);
   }
 
@@ -145,12 +145,12 @@ class _IoFileSystem implements fs.FileSystem {
   @override
   Directory get currentDirectory => io.Directory.current == null
       ? null
-      : newDirectory(io.Directory.current.path) as Directory;
+      : directory(io.Directory.current.path) as Directory;
 
   @override
   File get scriptFile => io.Platform.script == null
       ? null
-      : newFile(io.Platform.script.toFilePath()) as File;
+      : file(io.Platform.script.toFilePath()) as File;
 
   @override
   String toString() => "io";

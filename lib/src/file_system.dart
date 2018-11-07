@@ -61,7 +61,7 @@ abstract class FileSystem {
   ///
   /// If [path] is an absolute path, it will be immune to changes to the
   /// current working directory.
-  Directory newDirectory(String path);
+  Directory directory(String path);
 
   /// Creates a [File] object.
   ///
@@ -70,7 +70,7 @@ abstract class FileSystem {
   ///
   /// If [path] is an absolute path, it will be immune to changes to the
   /// current working directory.
-  File newFile(String path);
+  File file(String path);
 
   /// Finds the type of file system object that a path points to. Returns
   /// a [:Future<FileSystemEntityType>:] that completes with the result.

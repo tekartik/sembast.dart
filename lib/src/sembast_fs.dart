@@ -17,7 +17,7 @@ class _FsDatabaseStorage extends DatabaseStorage {
 
   Logger log = Logger("FsDatabaseStorage");
 
-  _FsDatabaseStorage(this.fs, String path) : file = fs.newFile(path);
+  _FsDatabaseStorage(this.fs, String path) : file = fs.file(path);
 
   @override
   bool get supported => true;
@@ -83,7 +83,7 @@ class _FsDatabaseStorage extends DatabaseStorage {
         log.warning('fail to delete $e');
         //return true;
       }
-      await fs.newFile(tmpPath).rename(file.path);
+      await fs.file(tmpPath).rename(file.path);
 
       // ok
       return true;

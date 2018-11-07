@@ -24,8 +24,8 @@ void defineTests(FileSystemTestContext ctx) {
 
   String namePath(String name) => join(ctx.outPath, name);
 
-  File nameFile(String name) => fs.newFile(namePath(name));
-  Directory nameDir(String name) => fs.newDirectory(namePath(name));
+  File nameFile(String name) => fs.file(namePath(name));
+  Directory nameDir(String name) => fs.directory(namePath(name));
 
   Future<File> createFile(File file) async {
     File createdFile = await file.create(recursive: true);
@@ -79,7 +79,7 @@ void defineTests(FileSystemTestContext ctx) {
   }
 
   Future clearOutFolder() async {
-    await deleteDirectory(fs.newDirectory(ctx.outPath)).catchError((e, st) {
+    await deleteDirectory(fs.directory(ctx.outPath)).catchError((e, st) {
       //devPrint("${e}\n${st}");
     });
   }
@@ -141,16 +141,16 @@ void defineTests(FileSystemTestContext ctx) {
 
     group('dir', () {
       test('new', () {
-        Directory dir = fs.newDirectory("dummy");
+        Directory dir = fs.directory("dummy");
         expect(dir.path, "dummy");
-        dir = fs.newDirectory(r"\root/dummy");
+        dir = fs.directory(r"\root/dummy");
         expect(dir.path, r"\root/dummy");
-        dir = fs.newDirectory(r"\");
+        dir = fs.directory(r"\");
         expect(dir.path, r"\");
-        dir = fs.newDirectory(r"");
+        dir = fs.directory(r"");
         expect(dir.path, r"");
         try {
-          dir = fs.newDirectory(null);
+          dir = fs.directory(null);
           fail("should fail");
         } on ArgumentError catch (_) {
           // Invalid argument(s): null is not a String
@@ -187,7 +187,7 @@ void defineTests(FileSystemTestContext ctx) {
       test('sub dir create', () async {
         await clearOutFolder();
         Directory mainDir = nameDir("test");
-        Directory subDir = fs.newDirectory(join(mainDir.path, "test"));
+        Directory subDir = fs.directory(join(mainDir.path, "test"));
 
         return subDir.create(recursive: true).then((_) {
           return expectDirExists(mainDir, true).then((_) {});
@@ -217,7 +217,7 @@ void defineTests(FileSystemTestContext ctx) {
       test('sub dir delete', () async {
         await clearOutFolder();
         Directory mainDir = nameDir("test");
-        Directory subDir = fs.newDirectory(join(mainDir.path, "test"));
+        Directory subDir = fs.directory(join(mainDir.path, "test"));
 
         // not recursive
         await subDir.create(recursive: true);
@@ -236,16 +236,16 @@ void defineTests(FileSystemTestContext ctx) {
     });
     group('file', () {
       test('new', () {
-        File file = fs.newFile("dummy");
+        File file = fs.file("dummy");
         expect(file.path, "dummy");
-        file = fs.newFile(r"\root/dummy");
+        file = fs.file(r"\root/dummy");
         expect(file.path, r"\root/dummy");
-        file = fs.newFile(r"\");
+        file = fs.file(r"\");
         expect(file.path, r"\");
-        file = fs.newFile(r"");
+        file = fs.file(r"");
         expect(file.path, r"");
         try {
-          file = fs.newFile(null);
+          file = fs.file(null);
           fail("should fail");
         } on ArgumentError catch (_) {
           // Invalid argument(s): null is not a String
@@ -420,7 +420,7 @@ void defineTests(FileSystemTestContext ctx) {
         await clearOutFolder();
         return createFileName("test").then((File file) {
           String path2 = namePath("test2");
-          return createFile(fs.newFile(path2)).then((_) {
+          return createFile(fs.file(path2)).then((_) {
             return file.rename(path2).then((File renamed) {
               //devPrint(renamed);
             }).catchError((e) {

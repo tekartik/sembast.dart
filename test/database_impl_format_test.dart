@@ -21,7 +21,7 @@ void defineTests(FileSystemTestContext ctx) {
 
   Future<String> prepareForDb() async {
     dbPath = getDbPath();
-    await fs.newFile(dbPath).delete().catchError((_) {});
+    await fs.file(dbPath).delete().catchError((_) {});
     return dbPath;
   }
 
