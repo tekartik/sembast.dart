@@ -3,7 +3,7 @@
 ## Use transactions
 
 Make sure to use transaction as soon as you perform more than 1 writes. It 
-will greatly improve performances.
+will greatly improve performances. See information on transaction [here](transactions.md)
 
 The code below use the Database object `db` but the same can be done with a
 `Store` or `Transaction` object

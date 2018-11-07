@@ -67,7 +67,10 @@ int key2 = await db.put('value2') as int;
 
 ### Transaction
 
-Actions can be group in transaction for consistency and optimization (single write on the file system). If an error is thrown, the transaction is cancelled and the changes reverted
+Actions can be group in transaction for consistency and optimization (single write on the file system). 
+If an error is thrown, the transaction is cancelled and the changes reverted.
+
+To prevent deadlock, never use an existing Database or Store object.
 
 ```dart
 await db.transaction((txn) async {
@@ -75,6 +78,8 @@ await db.transaction((txn) async {
   await txn.put('value2');
 });
 ```
+
+More info on transaction [here](https://github.com/tekartik/sembast.dart/blob/master/doc/transactions.md)
 
 ### Simple wrapping into a Record object
 

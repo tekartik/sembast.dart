@@ -73,6 +73,13 @@ Future<List<String>> readContent(FileSystem fs, String filePath) {
   }).asFuture(content);
 }
 
+List getRecordsValues(List<Record> records) {
+  var list = [];
+  for (var record in records) {
+    list.add(record.value);
+  }
+  return list;
+}
 Future writeContent(FileSystem fs, String filePath, List<String> lines) async {
   File file = fs.newFile(filePath);
   await file.create(recursive: true);

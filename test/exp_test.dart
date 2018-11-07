@@ -1,6 +1,9 @@
 library sembast.exp_test;
 
+import 'dart:async';
+
 import 'package:sembast/sembast.dart';
+import 'package:sembast/utils/database_utils.dart';
 import 'test_common.dart';
 
 void main() {
@@ -11,9 +14,7 @@ void defineTests(DatabaseTestContext ctx) {
   group('exp', () {
     Database db;
 
-    setUp(() async {
-      db = await setupForTest(ctx);
-    });
+    setUp(() async {});
 
     tearDown(() async {
       if (db != null) {
@@ -22,17 +23,9 @@ void defineTests(DatabaseTestContext ctx) {
       }
     });
 
-    Store store;
-    Record record1, record2, record3;
-    setUp(() async {
-      store = db.mainStore;
-      record1 = Record(store, "hi", 1);
-      record2 = Record(store, "ho", 2);
-      record3 = Record(store, "ha", 3);
-      return db.putRecords([record1, record2, record3]);
-    });
+    test('issue8_1', () async {
+      db = await setupForTest(ctx);
 
-    test('issue#8', () async {
       dynamic lastKey;
       var macAddress = '00:0a:95:9d:68:16';
       await db.transaction((txn) async {
@@ -46,6 +39,35 @@ void defineTests(DatabaseTestContext ctx) {
           sortOrders: [SortOrder(Field.key, false)]);
       // finding one record automatically set limit to 1
       expect((await db.findRecord(finder)).key, lastKey);
+    });
+
+    test('issue8_2', () async {
+      db = await setupForTest(ctx);
+      var beaconsStoreName = 'beacons';
+      dynamic key2, key3;
+      await db.transaction((txn) async {
+        var store = txn.getStore(beaconsStoreName);
+        await store.put({'name': 'beacon1'});
+        key2 = await store.put({'name': 'beacon2'});
+        key3 = await store.put({'name': 'beacon3'});
+      });
+
+      var recordsIds = [key2, key3];
+      await db.transaction((txn) async {
+        var store = txn.getStore(beaconsStoreName);
+        List<Future> futures = [];
+        recordsIds.forEach(
+            (key) => futures.add(store.update({'flushed': true}, key)));
+        await Future.wait(futures);
+      });
+
+      var store = db.getStore(beaconsStoreName);
+      var records = await store.findRecords(null);
+      expect(getRecordsValues(records), [
+        {'name': 'beacon1'},
+        {'name': 'beacon2', 'flushed': true},
+        {'name': 'beacon3', 'flushed': true}
+      ]);
     });
 
     test('queries_doc', () async {
@@ -118,6 +140,82 @@ void defineTests(DatabaseTestContext ctx) {
           'name': 'cat',
           'age': 4,
           'address': {'city': 'San Francisco'}
+        });
+      }
+    });
+
+    test('transaction_writes_doc', () async {
+      db = await setupForTest(ctx);
+
+      // Store some objects
+      dynamic key1, key2, key3;
+      await db.transaction((txn) async {
+        var store = txn.getStore('animals');
+        key1 = await store.put({'name': 'fish'});
+        key2 = await store.put({'name': 'cat'});
+        key3 = await store.put({'name': 'dog'});
+      });
+
+      {
+        // Read by key
+        var store = db.getStore('animals');
+        expect(await store.get(key1), {'name': 'fish'});
+
+        // Read 2 records by key
+        var records = await store.getRecords([key2, key3]);
+        expect(records[0].value, {'name': 'cat'});
+        expect(records[1].value, {'name': 'dog'});
+      }
+
+      {
+        var store = db.getStore('animals');
+        // Look for any animal "greater than" (alphabetically) 'cat'
+        // ordered by name
+        var finder = Finder(
+            filter: Filter.greaterThan('name', 'cat'),
+            sortOrders: [SortOrder('name')]);
+        var records = await store.findRecords(finder);
+
+        expect(records.length, 2);
+        expect(records[0]['name'], 'dog');
+        expect(records[1]['name'], 'fish');
+
+        // Look for the last created record
+        {
+          var finder = Finder(sortOrders: [SortOrder(Field.key, false)]);
+          var record = await store.findRecord(finder);
+
+          expect(record['name'], 'dog');
+        }
+
+        // Updates with request
+        await db.transaction((txn) async {
+          var finder = Finder(filter: Filter.greaterThan('name', 'cat'));
+          var store = txn.getStore('animals');
+          var records = await store.findRecords(finder);
+          expect(records.length, 2);
+          for (var record in records) {
+            await store.update({'age': 4}, record.key);
+          }
+        });
+        expect(getRecordsValues(await store.getRecords([key1, key2, key3])), [
+          {'name': 'fish', 'age': 4},
+          {'name': 'cat'},
+          {'name': 'dog', 'age': 4}
+        ]);
+
+        await db.transaction((txn) async {
+          var finder = Finder(filter: Filter.greaterThan('name', 'cat'));
+          var store = txn.getStore('animals');
+          int count = await updateRecords(store, {'age': 5}, where: finder);
+          expect(count, 2);
+
+          // Only fish and dog are modified
+          expect(getRecordsValues(await store.getRecords([key1, key2, key3])), [
+            {'name': 'fish', 'age': 5},
+            {'name': 'cat'},
+            {'name': 'dog', 'age': 5}
+          ]);
         });
       }
     });
