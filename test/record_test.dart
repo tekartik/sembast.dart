@@ -80,6 +80,38 @@ void defineTests(DatabaseTestContext ctx) {
       expect(inserted.store, db.mainStore);
     });
 
+    test('put store', () async {
+      var store = db.getStore('store');
+      var record = Record(store, "hi");
+      record = await db.putRecord(record);
+      expect(record.store, store);
+      expect(record.key, 1);
+
+      record = await store.getRecord(record.key);
+      expect(record.key, 1);
+      expect(record.store, store);
+
+      await db.transaction((txn) async {
+        record = await txn.getStore(store.name).getRecord(record.key);
+        expect(record.key, 1);
+        expect(record.store, store);
+        expect(record.value, 'hi');
+
+        record = await txn.putRecord(record);
+        expect(record.key, 1);
+        expect(record.store, store);
+
+        expect(record.key, 1);
+        expect(record.store, store);
+
+        await txn.getStore(store.name).put('ho', record.key);
+        record = await txn.getStore(store.name).getRecord(record.key);
+        expect(record.key, 1);
+        expect(record.store, store);
+        expect(record.value, 'ho');
+      });
+    });
+
     test('put multi database', () async {
       Record record = Record(null, "hi");
       Record inserted = (await db.putRecords([record])).first;
