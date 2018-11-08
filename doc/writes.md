@@ -55,3 +55,22 @@ expect(await db.get(key), {
   'address': {'city': 'San Francisco'}
 });
 ```
+
+## Bulk update
+
+`updateRecords` is a utility function that can work without or without transaction to update fields in multiple records
+
+```dart
+// Filter for updating records
+var finder = Finder(filter: Filter.greaterThan('name', 'cat'));
+
+// Update without transaction
+var store = db.getStore('animals');
+await updateRecords(store, {'age': 4}, where: finder);
+
+// Update within transaction
+await db.transaction((txn) async {
+  var store = txn.getStore('animals');
+  await updateRecords(store, {'age': 5}, where: finder);
+});
+```
