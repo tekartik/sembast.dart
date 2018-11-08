@@ -48,14 +48,14 @@ class SembastStore implements Store {
   @override
   Future update(dynamic value, dynamic key) {
     return transaction((txn) {
-      return txnUpdate(txn as SembastTransaction, value, key);
+      return cloneValue(txnUpdate(txn as SembastTransaction, value, key));
     });
   }
 
   dynamic txnPut(SembastTransaction txn, var value, var key) {
     Record record = SembastRecord.copy(this, key, value, false);
 
-    txnPutRecord(txn, record);
+    record = txnPutRecord(txn, record);
     if (database.logV) {
       SembastDatabase.logger.fine("${txn} put ${record}");
     }
@@ -93,7 +93,7 @@ class SembastStore implements Store {
 
   void _feedController(SembastTransaction txn, StreamController<Record> ctlr) {
     _forEachRecords(txn, null, (Record record) {
-      ctlr.add(record);
+      ctlr.add(cloneRecord(record));
     });
   }
 
@@ -137,7 +137,7 @@ class SembastStore implements Store {
   ///
   @override
   Future<Record> findRecord(Finder finder) async {
-    return txnFindRecord(null, finder);
+    return cloneRecord(txnFindRecord(null, finder));
   }
 
   @override
@@ -147,8 +147,12 @@ class SembastStore implements Store {
       (txnFindRecord(txn, finder))?.key;
 
   Record txnFindRecord(SembastTransaction txn, Finder finder) {
-    if ((finder as SembastFinder).limit != 1) {
-      finder = (finder as SembastFinder).clone(limit: 1);
+    if (finder != null) {
+      if ((finder as SembastFinder).limit != 1) {
+        finder = (finder as SembastFinder).clone(limit: 1);
+      }
+    } else {
+      finder = SembastFinder(limit: 1);
     }
     var records = txnFindRecords(txn, finder);
     if (records.isNotEmpty) {
@@ -162,7 +166,7 @@ class SembastStore implements Store {
   ///
   @override
   Future<List<Record>> findRecords(Finder finder) async {
-    return txnFindRecords(null, finder);
+    return cloneRecords(txnFindRecords(null, finder));
   }
 
   List<Record> txnFindRecords(SembastTransaction txn, Finder finder) {
@@ -228,20 +232,20 @@ class SembastStore implements Store {
   }
 
   Record txnPutRecord(SembastTransaction txn, Record record) {
-    var sembastRecord = record as SembastRecord;
-    assert(record.store == this);
+    var sembastRecord = cloneRecord(record);
+    sembastRecord.store ??= this;
+    assert(sembastRecord.store == this);
 
-    if (!checkValue(record.value)) {
-      throw ArgumentError.value(record.value, null,
-          "invalid type ${record.value.runtimeType} for record ${record}");
+    if (!checkValue(sembastRecord.value)) {
+      throw ArgumentError.value(sembastRecord.value, null,
+          "invalid type ${sembastRecord.value.runtimeType} for record ${sembastRecord}");
     }
-
     // auto-gen key if needed
-    if (record.key == null) {
+    if (sembastRecord.key == null) {
       sembastRecord.key = ++_lastIntKey;
     } else {
       // update last int key in case auto gen is needed again
-      var recordKey = record.key;
+      var recordKey = sembastRecord.key;
       if (recordKey is int) {
         int intKey = recordKey;
         if (intKey > _lastIntKey) {
@@ -254,9 +258,9 @@ class SembastStore implements Store {
     if (txnRecords == null) {
       txnRecords = <dynamic, Record>{};
     }
-    txnRecords[record.key] = record;
+    txnRecords[sembastRecord.key] = sembastRecord;
 
-    return record;
+    return sembastRecord;
   }
 
   Record _getRecord(SembastTransaction txn, var key) {
@@ -300,7 +304,7 @@ class SembastStore implements Store {
   ///
   @override
   Future<List<Record>> getRecords(Iterable keys) async {
-    return txnGetRecords(null, keys);
+    return cloneRecords(txnGetRecords(null, keys));
   }
 
   List<Record> txnGetRecords(SembastTransaction txn, Iterable keys) {
@@ -322,15 +326,12 @@ class SembastStore implements Store {
   ///
   @override
   Future get(var key) async {
-    return txnGet(null, key);
+    return cloneValue(txnGet(null, key));
   }
 
   dynamic txnGet(SembastTransaction txn, key) {
     Record record = txnGetRecord(txn, key);
-    if (record != null) {
-      return cloneValue(record.value);
-    }
-    return null;
+    return record?.value;
   }
 
   ///

@@ -20,7 +20,9 @@ class SembastRecord implements Record {
   @override
   Store get store => _store;
 
-  final Store _store;
+  set store(Store store) => _store = store;
+
+  Store _store;
   var _value;
   bool _deleted;
 
@@ -126,9 +128,16 @@ class SembastRecord implements Record {
   }
 }
 
-Record cloneRecord(Record record) {
+SembastRecord cloneRecord(Record record) {
   if (record != null) {
-    return (record as SembastRecord).clone();
+    return (record as SembastRecord).clone() as SembastRecord;
+  }
+  return null;
+}
+
+List<Record> cloneRecords(List<Record> records) {
+  if (records != null) {
+    return records.map((record) => cloneRecord(record)).toList();
   }
   return null;
 }

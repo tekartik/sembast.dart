@@ -44,13 +44,11 @@ void defineTests(DatabaseTestContext ctx) {
         }
       });
     });
-    test('put_nokey', () {
-      return db.put("hi").then((key) {
-        expect(key, 1);
-        return db.put("hi").then((key) {
-          expect(key, 2);
-        });
-      });
+    test('put_nokey', () async {
+      var key = await db.put("hi");
+      expect(key, 1);
+      var key2 = await db.put("hi");
+      expect(key2, 2);
     });
 
     test('get none', () {

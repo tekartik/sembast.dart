@@ -92,6 +92,9 @@ class SembastDatabase extends Object
   /// Exported for testing
   SembastTransaction get currentTransaction => _transaction;
 
+  SembastStore _recordStore(Record record) =>
+      (record.store ?? mainStore) as SembastStore;
+
   bool setRecordInMemory(Record record) {
     return _recordStore(record).setRecordInMemory(record);
   }
@@ -217,7 +220,8 @@ class SembastDatabase extends Object
   @override
   Future<Record> putRecord(Record record) {
     return transaction((txn) {
-      return txnPutRecord(txn as SembastTransaction, _cloneAndFix(record));
+      return cloneRecord(
+          txnPutRecord(txn as SembastTransaction, _cloneAndFix(record)));
     });
   }
 
@@ -235,17 +239,15 @@ class SembastDatabase extends Object
   @override
   Future<List<Record>> putRecords(List<Record> records) {
     return transaction((txn) {
-      return txnPutRecords(txn as SembastTransaction, records);
+      return cloneRecords(txnPutRecords(txn as SembastTransaction, records));
     });
   }
 
   // in transaction
   List<Record> txnPutRecords(SembastTransaction txn, List<Record> records) {
-    // temp records
-    for (Record record in records) {
-      txnPutRecord(txn, _cloneAndFix(record));
-    }
-    return records;
+    return records.map((Record record) {
+      return txnPutRecord(txn, _cloneAndFix(record));
+    }).toList();
   }
 
   ///
@@ -710,5 +712,3 @@ class DatabaseExportStat {
     return map;
   }
 }
-
-SembastStore _recordStore(Record record) => record.store as SembastStore;

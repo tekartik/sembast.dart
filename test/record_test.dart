@@ -71,12 +71,44 @@ void defineTests(DatabaseTestContext ctx) {
             {"name": 'name1', 'test': 'test2'});
       });
     });
-    test('put database', () {
-      Record record1 = Record(null, "hi");
-      return db.putRecord(record1).then((inserted) {
-        expect(record1.store, isNull);
-        expect(record1.key, isNull);
+    test('put database', () async {
+      Record record = Record(null, "hi");
+      Record inserted = await db.putRecord(record);
+      expect(record.store, isNull);
+      expect(record.key, isNull);
+      expect(inserted.key, 1);
+      expect(inserted.store, db.mainStore);
+    });
+
+    test('put multi database', () async {
+      Record record = Record(null, "hi");
+      Record inserted = (await db.putRecords([record])).first;
+      expect(record.store, isNull);
+      expect(record.key, isNull);
+      expect(inserted.key, 1);
+      expect(inserted.store, db.mainStore);
+    });
+
+    test('put transaction', () async {
+      await db.transaction((txn) async {
+        Record record = Record(null, "hi");
+        Record inserted = await txn.putRecord(record);
+        expect(record.store, isNull);
+        expect(record.key, isNull);
         expect(inserted.key, 1);
+        // !!weird no?
+        expect(inserted.store, db.mainStore);
+      });
+    });
+
+    test('put multi transaction', () async {
+      await db.transaction((txn) async {
+        Record record = Record(null, "hi");
+        Record inserted = (await txn.putRecords([record])).first;
+        expect(record.store, isNull);
+        expect(record.key, isNull);
+        expect(inserted.key, 1);
+        // !!weird no?
         expect(inserted.store, db.mainStore);
       });
     });

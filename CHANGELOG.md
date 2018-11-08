@@ -1,6 +1,8 @@
-## 1.10.0
+## 1.10.1
 
-* Add `update` to allow updating partially a Map record
+* Add `update` method to allow updating partially a Map record
+* Add `updateRecords` utility methods to update multiple records based on a a filter
+* properly clone each value when written and read
 
 ## 1.9.5
 

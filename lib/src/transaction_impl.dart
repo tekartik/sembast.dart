@@ -4,6 +4,7 @@ import 'package:sembast/sembast.dart';
 import 'package:sembast/src/database_impl.dart';
 import 'package:sembast/src/record_impl.dart';
 import 'package:sembast/src/store_impl.dart';
+import 'package:sembast/src/utils.dart';
 
 abstract class DatabaseExecutorMixin
     implements DatabaseExecutor, StoreExecutor {
@@ -63,7 +64,7 @@ abstract class TransactionExecutorMixin implements TransactionExecutor {
 
   @override
   Future<Record> putRecord(Record record) async =>
-      database.txnPutRecord(transaction, record);
+      cloneRecord(database.txnPutRecord(transaction, record));
 }
 
 class SembastTransaction extends Object
@@ -127,7 +128,10 @@ class SembastTransaction extends Object
 
   @override
   Future<List<Record>> putRecords(List<Record> records) async =>
-      database.txnPutRecords(this, records);
+      cloneRecords(database.txnPutRecords(this, records));
+
+  SembastTransactionStore recordStore(Record record) =>
+      (record.store ?? mainStore) as SembastTransactionStore;
 }
 
 class SembastTransactionStore implements StoreTransaction {
@@ -149,20 +153,21 @@ class SembastTransactionStore implements StoreTransaction {
 
   @override
   Future<Record> findRecord(Finder finder) async =>
-      store.txnFindRecord(transaction, finder);
+      cloneRecord(store.txnFindRecord(transaction, finder));
 
   @override
   Future<List<Record>> findRecords(Finder finder) async =>
-      store.txnFindRecords(transaction, finder);
+      cloneRecords(store.txnFindRecords(transaction, finder));
 
   @override
-  Future get(key) async => store.txnGet(transaction, key);
+  Future get(key) async => cloneValue(store.txnGet(transaction, key));
 
   @override
   Future put(value, [key]) async => store.txnPut(transaction, value, key);
 
   @override
-  Future update(value, key) async => store.txnUpdate(transaction, value, key);
+  Future update(value, key) async =>
+      cloneValue(store.txnUpdate(transaction, value, key));
 
   @override
   Future clear() async => store.txnClear(transaction);
@@ -177,7 +182,7 @@ class SembastTransactionStore implements StoreTransaction {
 
   @override
   Future<List<Record>> getRecords(Iterable keys) async =>
-      store.txnGetRecords(transaction, keys);
+      cloneRecords(store.txnGetRecords(transaction, keys));
 
   @override
   Stream<Record> get records => store.txnGetRecordsStream(transaction);
@@ -188,4 +193,9 @@ class SembastTransactionStore implements StoreTransaction {
   @override
   Future<List> findKeys(Finder finder) =>
       store.txnFindKeys(transaction, finder);
+
+  @override
+  String toString() {
+    return "${store}";
+  }
 }
