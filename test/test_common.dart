@@ -15,12 +15,12 @@ import 'dart:convert';
 
 // For test in memory
 DatabaseTestContext get memoryDatabaseContext =>
-    DatabaseTestContext()..factory = memoryDatabaseFactory;
+    DatabaseTestContext()..factory = databaseFactoryMemory;
 FsDatabaseTestContext get memoryFsDatabaseContext =>
-    FsDatabaseTestContext()..factory = memoryFsDatabaseFactory;
+    FsDatabaseTestContext()..factory = databaseFactoryMemoryFs;
 
 class FsDatabaseTestContext extends DatabaseTestContext {
-  FileSystem get fs => (factory as FsDatabaseFactory).fs;
+  FileSystem get fs => (factory as DatabaseFactoryFs).fs;
   @override
   String get dbPath => join(fs.currentDirectory.path, super.dbPath);
 }

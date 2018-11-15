@@ -122,9 +122,9 @@ class _FsDatabaseStorage extends DatabaseStorage {
 }
 
 /// FileSystem implementation
-class FsDatabaseFactory implements DatabaseFactory {
+class DatabaseFactoryFs implements DatabaseFactory {
   final FileSystem fs;
-  FsDatabaseFactory(this.fs);
+  DatabaseFactoryFs(this.fs);
 
   @override
   Future<Database> openDatabase(String path,

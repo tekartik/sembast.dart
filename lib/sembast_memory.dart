@@ -1,103 +1,16 @@
 library sembast.memory;
 
-import 'dart:async';
-import 'package:sembast/src/database_impl.dart';
-import 'package:sembast/src/storage.dart';
 import 'sembast.dart';
-import 'src/sembast_fs.dart';
-import 'src/memory/memory_file_system.dart';
+import 'package:sembast/src/memory/memory_database_factory.dart' as impl;
 
-/// The pure memory factory
-final MemoryDatabaseFactory memoryDatabaseFactory = MemoryDatabaseFactory._();
+/// The factory
+DatabaseFactory get databaseFactoryMemory => impl.databaseFactoryMemory;
+
+// 2018-11-15 first deprecation @Deprecated('Use databaseFactoryMemory instead')
+DatabaseFactory get memoryDatabaseFactory => databaseFactoryMemory;
 
 /// The memory with a simulated file system factory
-final MemoryFsDatabaseFactory memoryFsDatabaseFactory =
-    MemoryFsDatabaseFactory();
+DatabaseFactory get databaseFactoryMemoryFs => impl.databaseFactoryMemoryFs;
 
-/// In memory implementation
-class MemoryDatabaseFactory implements DatabaseFactory {
-  @override
-  Future<Database> openDatabase(String path,
-      {int version,
-      OnVersionChangedFunction onVersionChanged,
-      DatabaseMode mode}) async {
-    SembastDatabase db;
-    if (path != null) {
-      db = _databases[path];
-    }
-
-    if (db == null) {
-      db = SembastDatabase(_MemoryDatabaseStorage(this, path));
-    }
-
-    await db.open(
-        version: version, onVersionChanged: onVersionChanged, mode: mode);
-
-    if (path != null) {
-      _databases[path] = db;
-    }
-    return db;
-  }
-
-  // make it private
-  MemoryDatabaseFactory._();
-
-  @override
-  Future deleteDatabase(String path) {
-    if (path != null) {
-      _databases.remove(path);
-    }
-    return Future.value();
-  }
-
-  //Database _defaultDatabase;
-  Map<String, SembastDatabase> _databases = {};
-
-  @override
-  bool get hasStorage => false;
-}
-
-///
-/// Open a new database in memory
-///
-Future<Database> openMemoryDatabase() {
-  return memoryDatabaseFactory.openDatabase(null);
-}
-
-class _MemoryDatabaseStorage extends DatabaseStorage {
-  final MemoryDatabaseFactory factory;
-  @override
-  final String path;
-  _MemoryDatabaseStorage(this.factory, this.path);
-
-  @override
-  Future<bool> find() {
-    return Future.value(factory._databases[path] != null);
-  }
-
-  @override
-  Future findOrCreate() => Future.value();
-
-  @override
-  bool get supported => false;
-
-  @override
-  Future delete() => null;
-
-  @override
-  Stream<String> readLines() => null;
-
-  @override
-  Future appendLines(List<String> lines) => null;
-
-  @override
-  DatabaseStorage get tmpStorage => null;
-
-  @override
-  Future tmpRecover() => null;
-}
-
-/// The simulated fs factory class
-class MemoryFsDatabaseFactory extends FsDatabaseFactory {
-  MemoryFsDatabaseFactory() : super(memoryFileSystem);
-}
+// 2018-11-15 first deprecation @Deprecated('Use databaseFactoryMemoryFs instead')
+DatabaseFactory get memoryFsDatabaseFactory => databaseFactoryMemoryFs;

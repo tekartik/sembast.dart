@@ -2,7 +2,7 @@ import 'package:sembast/src/io/io_file_system.dart';
 import 'package:sembast/src/sembast_fs.dart';
 
 /// Io file system implementation
-class IoDatabaseFactory extends FsDatabaseFactory {
+class IoDatabaseFactory extends DatabaseFactoryFs {
   // Use [ioDatabaseFactory] instead
   @deprecated
   IoDatabaseFactory() : super(ioFileSystem);

@@ -5,7 +5,7 @@ import 'package:sembast/sembast.dart';
 import 'package:sembast/sembast_memory.dart';
 
 Future main() async {
-  Database db = await memoryFsDatabaseFactory.openDatabase("record_demo.db");
+  Database db = await databaseFactoryMemoryFs.openDatabase("record_demo.db");
   Store store = db.getStore("my_store");
   Record record = Record(store, {"name": "ugly"});
   record = await db.putRecord(record);

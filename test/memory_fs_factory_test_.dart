@@ -1,8 +1,11 @@
 library sembast.test.memory_fs_factory_test_;
 
+import 'package:sembast/src/memory/memory_database_factory.dart'
+    show DatabaseFactoryMemoryFs;
+import 'package:sembast/sembast_memory.dart';
+
 import 'all_test.dart';
 import 'test_common.dart';
-import 'package:sembast/sembast_memory.dart';
 
 // default use memory
 void main() {
@@ -10,8 +13,9 @@ void main() {
     expect(
         memoryFileSystemContext.fs.runtimeType.toString(), "_MemoryFileSystem");
     expect(memoryFsDatabaseContext.factory,
-        const TypeMatcher<MemoryFsDatabaseFactory>());
-    expect(memoryFsDatabaseFactory.fs, memoryFileSystemContext.fs);
+        const TypeMatcher<DatabaseFactoryMemoryFs>());
+    expect((databaseFactoryMemoryFs as DatabaseFactoryMemoryFs).fs,
+        memoryFileSystemContext.fs);
   });
 
   defineFileSystemTests(memoryFileSystemContext);
