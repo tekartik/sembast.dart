@@ -2,7 +2,7 @@
 library sembast.io_file_system_test;
 
 // basically same as the io runner but with extra output
-import 'package:sembast/src/io/io_file_system.dart';
+import 'package:sembast/src/io/file_system_io.dart';
 
 import 'test_common.dart';
 

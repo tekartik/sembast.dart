@@ -5,11 +5,11 @@ import '../file_system.dart' as fs;
 import 'dart:async';
 import 'package:path/path.dart';
 
-MemoryOSError get _noSuchPathError =>
-    MemoryOSError(2, "No such file or directory");
+OSErrorMemory get _noSuchPathError =>
+    OSErrorMemory(2, "No such file or directory");
 
-class MemoryOSError implements fs.OSError {
-  MemoryOSError(this.errorCode, this.message);
+class OSErrorMemory implements fs.OSError {
+  OSErrorMemory(this.errorCode, this.message);
   @override
   final int errorCode;
   @override
@@ -21,12 +21,12 @@ class MemoryOSError implements fs.OSError {
   }
 }
 
-class _MemoryFileSystemException implements fs.FileSystemException {
-  _MemoryFileSystemException(this.path, [this._message, this.osError]);
+class FileSystemExceptionMemory implements fs.FileSystemException {
+  FileSystemExceptionMemory(this.path, [this._message, this.osError]);
 
   String _message;
   @override
-  final MemoryOSError osError;
+  final OSErrorMemory osError;
 
   @override
   String get message =>
@@ -41,20 +41,20 @@ class _MemoryFileSystemException implements fs.FileSystemException {
   }
 }
 
-class MemoryDirectoryImpl extends MemoryFileSystemEntityImpl {
-  Map<String, MemoryFileSystemEntityImpl> children = {};
-  MemoryDirectoryImpl(MemoryDirectoryImpl parent, String segment)
+class DirectoryMemoryImpl extends FileSystemEntityMemoryImpl {
+  Map<String, FileSystemEntityMemoryImpl> children = {};
+  DirectoryMemoryImpl(DirectoryMemoryImpl parent, String segment)
       : super(parent, fs.FileSystemEntityType.directory, segment);
 
-  MemoryFileSystemEntityImpl getEntity(List<String> segments) {
+  FileSystemEntityMemoryImpl getEntity(List<String> segments) {
     if (segments.isEmpty) {
       return this;
     }
-    MemoryFileSystemEntityImpl child = children[segments.first];
+    FileSystemEntityMemoryImpl child = children[segments.first];
     if (segments.length == 1) {
       return child;
     }
-    if (child is MemoryDirectoryImpl) {
+    if (child is DirectoryMemoryImpl) {
       return child.getEntity(segments.sublist(1));
     }
     return null;
@@ -66,10 +66,10 @@ class MemoryDirectoryImpl extends MemoryFileSystemEntityImpl {
   }
 }
 
-class MemoryFileImpl extends MemoryFileSystemEntityImpl {
+class FileMemoryImpl extends FileSystemEntityMemoryImpl {
   List<String> content;
 
-  MemoryFileImpl(MemoryDirectoryImpl parent, String segment)
+  FileMemoryImpl(DirectoryMemoryImpl parent, String segment)
       : super(parent, fs.FileSystemEntityType.file, segment);
 
   Stream<List<int>> openRead() {
@@ -93,10 +93,10 @@ class MemoryFileImpl extends MemoryFileSystemEntityImpl {
     return ctlr.stream;
   }
 
-  _MemoryIOSink openWrite(fs.FileMode mode) {
+  IOSinkMemory openWrite(fs.FileMode mode) {
     // delay the error
 
-    _MemoryIOSink sink = _MemoryIOSink(this);
+    IOSinkMemory sink = IOSinkMemory(this);
     openCount++;
     switch (mode) {
       case fs.FileMode.write:
@@ -134,14 +134,14 @@ class MemoryFileImpl extends MemoryFileSystemEntityImpl {
   }
 }
 
-abstract class MemoryFileSystemEntityImpl {
+abstract class FileSystemEntityMemoryImpl {
   // don't access it
-  MemoryDirectoryImpl _parent;
-  MemoryDirectoryImpl get parent => _parent;
+  DirectoryMemoryImpl _parent;
+  DirectoryMemoryImpl get parent => _parent;
 
   fs.FileSystemEntityType type;
 
-  MemoryFileSystemEntityImpl(this._parent, this.type, this.segment);
+  FileSystemEntityMemoryImpl(this._parent, this.type, this.segment);
 
   String segment;
 
@@ -173,9 +173,9 @@ abstract class MemoryFileSystemEntityImpl {
   }
 }
 
-class _MemoryIOSink implements fs.IOSink {
-  MemoryFileImpl impl;
-  _MemoryIOSink(this.impl);
+class IOSinkMemory implements fs.IOSink {
+  FileMemoryImpl impl;
+  IOSinkMemory(this.impl);
 
   @override
   void writeln([Object obj = ""]) => impl.append(obj.toString());
@@ -184,8 +184,8 @@ class _MemoryIOSink implements fs.IOSink {
   Future close() async => impl.close();
 }
 
-class MemoryRootDirectoryImpl extends MemoryDirectoryImpl {
-  MemoryRootDirectoryImpl() : super(null, separator);
+class RootDirectoryMemoryImpl extends DirectoryMemoryImpl {
+  RootDirectoryMemoryImpl() : super(null, separator);
 
   @override
   String get path => segment;
@@ -193,7 +193,7 @@ class MemoryRootDirectoryImpl extends MemoryDirectoryImpl {
 
 class _TmpSink implements fs.IOSink {
   String path;
-  _MemoryIOSink real;
+  IOSinkMemory real;
   _TmpSink(this.path, this.real);
 
   @override
@@ -202,7 +202,7 @@ class _TmpSink implements fs.IOSink {
   @override
   Future close() {
     if (real == null) {
-      throw _MemoryFileSystemException(
+      throw FileSystemExceptionMemory(
           path, "Cannot open file", _noSuchPathError);
     } else {
       return real.close();
@@ -210,12 +210,12 @@ class _TmpSink implements fs.IOSink {
   }
 }
 
-class MemoryFileSystemImpl {
+class FileSystemMemoryImpl {
   // Must be absolute
   // /current by default which might not exists!
   String currentPath;
 
-  MemoryFileSystemImpl() {
+  FileSystemMemoryImpl() {
     //rootDir._exists = true;
     currentPath = join(rootDir.path, "current");
   }
@@ -228,7 +228,7 @@ class MemoryFileSystemImpl {
     return segments;
   }
 
-  MemoryFileSystemEntityImpl getEntity(String path) {
+  FileSystemEntityMemoryImpl getEntity(String path) {
     // Get the segments list
 
     return getEntityBySegment(getSegments(path));
@@ -238,21 +238,21 @@ class MemoryFileSystemImpl {
     return segments.sublist(0, segments.length - 1);
   }
 
-  MemoryFileSystemEntityImpl getEntityBySegment(List<String> segments) {
+  FileSystemEntityMemoryImpl getEntityBySegment(List<String> segments) {
     if (segments.first == rootDir.path) {
       return rootDir.getEntity(segments.sublist(1));
     }
     return null;
   }
 
-  MemoryFileImpl createFileBySegments(List<String> segments,
+  FileMemoryImpl createFileBySegments(List<String> segments,
       {bool recursive = false}) {
-    MemoryFileSystemEntityImpl fileImpl = getEntityBySegment(segments);
+    FileSystemEntityMemoryImpl fileImpl = getEntityBySegment(segments);
     // if it exists we're fine
     if (fileImpl == null) {
       // look for parent
       List<String> parentSegments = getParentSegments(segments);
-      MemoryFileSystemEntityImpl parent = getEntityBySegment(parentSegments);
+      FileSystemEntityMemoryImpl parent = getEntityBySegment(parentSegments);
       if (parent == null) {
         if (recursive == true) {
           parent =
@@ -260,25 +260,25 @@ class MemoryFileSystemImpl {
           // let it continue to create the last segment
         }
       }
-      if (parent is MemoryDirectoryImpl) {
-        fileImpl = MemoryFileImpl(parent, segments.last);
+      if (parent is DirectoryMemoryImpl) {
+        fileImpl = FileMemoryImpl(parent, segments.last);
         fileImpl.create();
       }
     }
-    if (fileImpl is MemoryFileImpl) {
+    if (fileImpl is FileMemoryImpl) {
       return fileImpl;
     }
     return null;
   }
 
-  MemoryDirectoryImpl createDirectoryBySegments(List<String> segments,
+  DirectoryMemoryImpl createDirectoryBySegments(List<String> segments,
       {bool recursive = false}) {
-    MemoryFileSystemEntityImpl directoryImpl = getEntityBySegment(segments);
+    FileSystemEntityMemoryImpl directoryImpl = getEntityBySegment(segments);
     // if it exists we're fine
     if (directoryImpl == null) {
       // look for parent
       List<String> parentSegments = getParentSegments(segments);
-      MemoryFileSystemEntityImpl parent = getEntityBySegment(parentSegments);
+      FileSystemEntityMemoryImpl parent = getEntityBySegment(parentSegments);
       if (parent == null) {
         if (recursive == true) {
           parent =
@@ -286,12 +286,12 @@ class MemoryFileSystemImpl {
           // let it continue to create the last segment
         }
       }
-      if (parent is MemoryDirectoryImpl) {
-        directoryImpl = MemoryDirectoryImpl(parent, segments.last);
+      if (parent is DirectoryMemoryImpl) {
+        directoryImpl = DirectoryMemoryImpl(parent, segments.last);
         directoryImpl.create();
       }
     }
-    if (directoryImpl is MemoryDirectoryImpl) {
+    if (directoryImpl is DirectoryMemoryImpl) {
       return directoryImpl;
     }
     return null;
@@ -299,14 +299,14 @@ class MemoryFileSystemImpl {
 
   Stream<List<int>> openRead(String path) {
     var ctlr = StreamController<List<int>>(sync: true);
-    MemoryFileSystemEntityImpl fileImpl = getEntity(path);
+    FileSystemEntityMemoryImpl fileImpl = getEntity(path);
     // if it exists we're fine
-    if (fileImpl is MemoryFileImpl) {
+    if (fileImpl is FileMemoryImpl) {
       ctlr.addStream(fileImpl.openRead()).then((_) {
         ctlr.close();
       });
     } else {
-      ctlr.addError(_MemoryFileSystemException(
+      ctlr.addError(FileSystemExceptionMemory(
           path, "Cannot open file", _noSuchPathError));
     }
     return ctlr.stream;
@@ -315,7 +315,7 @@ class MemoryFileSystemImpl {
   fs.IOSink openWrite(String path, {fs.FileMode mode = fs.FileMode.write}) {
     _TmpSink sink;
     //StreamController ctlr = new StreamController(sync: true);
-    MemoryFileSystemEntityImpl fileImpl = getEntity(path);
+    FileSystemEntityMemoryImpl fileImpl = getEntity(path);
     // if it exists we're fine
     if (fileImpl == null) {
       // create if needed
@@ -323,7 +323,7 @@ class MemoryFileSystemImpl {
         fileImpl = createFile(path);
       }
     }
-    if (fileImpl is MemoryFileImpl) {
+    if (fileImpl is FileMemoryImpl) {
       sink = _TmpSink(path, fileImpl.openWrite(mode));
     } else {
       sink = _TmpSink(path, null);
@@ -332,13 +332,13 @@ class MemoryFileSystemImpl {
     return sink;
   }
 
-  MemoryDirectoryImpl createDirectory(String path, {bool recursive = false}) {
+  DirectoryMemoryImpl createDirectory(String path, {bool recursive = false}) {
     // Go up one by one
     List<String> segments = getSegments(path);
     return createDirectoryBySegments(segments, recursive: recursive);
   }
 
-  MemoryFileImpl createFile(String path, {bool recursive = false}) {
+  FileMemoryImpl createFile(String path, {bool recursive = false}) {
     // Go up one by one
     List<String> segments = getSegments(path);
 
@@ -346,7 +346,7 @@ class MemoryFileSystemImpl {
   }
 
   bool exists(String path) {
-    MemoryFileSystemEntityImpl entityImpl = getEntity(path);
+    FileSystemEntityMemoryImpl entityImpl = getEntity(path);
     if (entityImpl != null) {
       return true;
     }
@@ -354,16 +354,16 @@ class MemoryFileSystemImpl {
   }
 
   void delete(String path, {bool recursive = false}) {
-    MemoryFileSystemEntityImpl entityImpl = getEntity(path);
+    FileSystemEntityMemoryImpl entityImpl = getEntity(path);
     if (entityImpl == null) {
-      throw _MemoryFileSystemException(
+      throw FileSystemExceptionMemory(
           path, "Deletion failed", _noSuchPathError);
     }
-    if (entityImpl != null && (!(entityImpl is MemoryRootDirectoryImpl))) {
-      if (entityImpl is MemoryDirectoryImpl) {
+    if (entityImpl != null && (!(entityImpl is RootDirectoryMemoryImpl))) {
+      if (entityImpl is DirectoryMemoryImpl) {
         if (recursive != true && (entityImpl.children.isNotEmpty)) {
-          throw _MemoryFileSystemException(path, "Deletion failed",
-              MemoryOSError(39, "Directory is not empty"));
+          throw FileSystemExceptionMemory(path, "Deletion failed",
+              OSErrorMemory(39, "Directory is not empty"));
         }
       }
       entityImpl.delete();
@@ -371,53 +371,53 @@ class MemoryFileSystemImpl {
   }
 
   // base implementation
-  MemoryFileSystemEntityImpl rename(String path, String newPath) {
-    MemoryFileSystemEntityImpl entityImpl = getEntity(path);
+  FileSystemEntityMemoryImpl rename(String path, String newPath) {
+    FileSystemEntityMemoryImpl entityImpl = getEntity(path);
     if (entityImpl == null) {
-      throw _MemoryFileSystemException(path, "Rename failed", _noSuchPathError);
+      throw FileSystemExceptionMemory(path, "Rename failed", _noSuchPathError);
     }
-    if (entityImpl is MemoryRootDirectoryImpl) {
-      throw _MemoryFileSystemException(path, "Rename failed at root");
+    if (entityImpl is RootDirectoryMemoryImpl) {
+      throw FileSystemExceptionMemory(path, "Rename failed at root");
     }
 
     List<String> segments = getSegments(newPath);
     // make sure dest does not exist
-    MemoryFileSystemEntityImpl newEntityImpl = getEntityBySegment(segments);
+    FileSystemEntityMemoryImpl newEntityImpl = getEntityBySegment(segments);
     if (newEntityImpl != null) {
-      throw _MemoryFileSystemException(
+      throw FileSystemExceptionMemory(
           path, "Rename failed, destination $newPath exists");
     }
     String segment = segments.last;
 
     // find dst parent
-    MemoryFileSystemEntityImpl newParentImpl =
+    FileSystemEntityMemoryImpl newParentImpl =
         getEntityBySegment(getParentSegments(segments));
     if (newParentImpl == null) {
-      throw _MemoryFileSystemException(
+      throw FileSystemExceptionMemory(
           path, "Rename failed, parent destination $newPath does not exist");
     }
-    if (newParentImpl is MemoryDirectoryImpl) {
+    if (newParentImpl is DirectoryMemoryImpl) {
       entityImpl.delete();
 
-      if (entityImpl is MemoryFileImpl) {
-        newEntityImpl = MemoryFileImpl(newParentImpl, segment);
-        (newEntityImpl as MemoryFileImpl).content = entityImpl.content;
+      if (entityImpl is FileMemoryImpl) {
+        newEntityImpl = FileMemoryImpl(newParentImpl, segment);
+        (newEntityImpl as FileMemoryImpl).content = entityImpl.content;
       } else {
-        newEntityImpl = MemoryDirectoryImpl(newParentImpl, segment);
+        newEntityImpl = DirectoryMemoryImpl(newParentImpl, segment);
       }
       newEntityImpl.create();
       return newEntityImpl;
     } else {
-      throw _MemoryFileSystemException(
+      throw FileSystemExceptionMemory(
           path, "Rename failed, parent destination $newPath not a directory");
     }
   }
 
-  MemoryRootDirectoryImpl rootDir = MemoryRootDirectoryImpl();
+  RootDirectoryMemoryImpl rootDir = RootDirectoryMemoryImpl();
 
   Future<fs.FileSystemEntityType> type(String path, {bool followLinks = true}) {
     return Future.sync(() {
-      MemoryFileSystemEntityImpl impl = getEntity(path);
+      FileSystemEntityMemoryImpl impl = getEntity(path);
       if (impl != null) {
         return impl.type;
       }

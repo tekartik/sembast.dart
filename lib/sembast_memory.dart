@@ -1,7 +1,7 @@
 library sembast.memory;
 
 import 'sembast.dart';
-import 'package:sembast/src/memory/memory_database_factory.dart' as impl;
+import 'package:sembast/src/memory/database_factory_memory.dart' as impl;
 
 /// The factory
 DatabaseFactory get databaseFactoryMemory => impl.databaseFactoryMemory;

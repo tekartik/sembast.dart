@@ -1,5 +1,5 @@
 import 'package:sembast/sembast.dart';
-import 'package:sembast/src/io/io_file_system.dart';
+import 'package:sembast/src/io/file_system_io.dart';
 import 'package:sembast/src/sembast_fs.dart';
 
 /// Io file system implementation

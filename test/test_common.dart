@@ -2,7 +2,7 @@ library sembast.test.test_common;
 
 // basically same as the io runner but with extra output
 import 'package:sembast/src/database_impl.dart';
-import 'package:sembast/src/memory/memory_file_system.dart';
+import 'package:sembast/src/memory/file_system_memory.dart';
 import 'package:sembast/sembast.dart';
 import 'dart:async';
 import 'package:sembast/src/file_system.dart';

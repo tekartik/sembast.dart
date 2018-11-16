@@ -1,26 +1,26 @@
 library sembast.memory_file_system;
 
 import '../file_system.dart' as fs;
-import 'memory_file_system_impl.dart';
+import 'file_system_memory_impl.dart';
 import 'dart:async';
 import 'dart:convert';
 
-final _MemoryFileSystem _fs = _MemoryFileSystem();
-_MemoryFileSystem get memoryFileSystem => _fs;
+final FileSystemMemory _fs = FileSystemMemory();
+FileSystemMemory get memoryFileSystem => _fs;
 
-class _MemoryFileSystem implements fs.FileSystem {
-  MemoryFileSystemImpl _impl = MemoryFileSystemImpl();
+class FileSystemMemory implements fs.FileSystem {
+  FileSystemMemoryImpl _impl = FileSystemMemoryImpl();
 
-  _MemoryFileSystem();
+  FileSystemMemory();
 
   @override
   fs.File file(String path) {
-    return _MemoryFile(path);
+    return FileMemory(path);
   }
 
   @override
   fs.Directory directory(String path) {
-    return _MemoryDirectory(path);
+    return DirectoryMemory(path);
   }
 
   @override
@@ -38,7 +38,7 @@ class _MemoryFileSystem implements fs.FileSystem {
   @override
   Future<fs.FileSystemEntityType> type(String path,
       {bool followLinks = true}) async {
-    MemoryFileSystemEntityImpl entityImpl = _impl.getEntity(path);
+    FileSystemEntityMemoryImpl entityImpl = _impl.getEntity(path);
     if (entityImpl != null) {
       return entityImpl.type;
     }
@@ -46,21 +46,21 @@ class _MemoryFileSystem implements fs.FileSystem {
   }
 
   @override
-  _MemoryDirectory get currentDirectory =>
-      directory(_impl.currentPath) as _MemoryDirectory;
+  DirectoryMemory get currentDirectory =>
+      directory(_impl.currentPath) as DirectoryMemory;
 
   @override
-  _MemoryFile get scriptFile => null;
+  FileMemory get scriptFile => null;
 
   @override
   String toString() => "memory";
 }
 
-abstract class _MemoryFileSystemEntity implements fs.FileSystemEntity {
+abstract class FileSystemEntityMemory implements fs.FileSystemEntity {
   @override
   final String path;
 
-  _MemoryFileSystemEntity(this.path) {
+  FileSystemEntityMemory(this.path) {
     if (path == null) {
       throw ArgumentError.notNull("path");
     }
@@ -80,29 +80,29 @@ abstract class _MemoryFileSystemEntity implements fs.FileSystemEntity {
   String toString() => path;
 
   @override
-  _MemoryFileSystem get fileSystem => _fs;
+  FileSystemMemory get fileSystem => _fs;
 }
 
-class _MemoryDirectory extends _MemoryFileSystemEntity implements fs.Directory {
-  _MemoryDirectory(String path) : super(path);
+class DirectoryMemory extends FileSystemEntityMemory implements fs.Directory {
+  DirectoryMemory(String path) : super(path);
 
   @override
-  Future<_MemoryDirectory> create({bool recursive = false}) async {
+  Future<DirectoryMemory> create({bool recursive = false}) async {
     _fs._impl.createDirectory(path, recursive: recursive);
     return this;
   }
 
   @override
   Future<fs.FileSystemEntity> rename(String newPath) async {
-    MemoryFileSystemEntityImpl renamed = _fs._impl.rename(path, newPath);
-    return _MemoryDirectory(renamed.path);
+    FileSystemEntityMemoryImpl renamed = _fs._impl.rename(path, newPath);
+    return DirectoryMemory(renamed.path);
   }
 }
 
-class _MemoryFile extends _MemoryFileSystemEntity implements fs.File {
+class FileMemory extends FileSystemEntityMemory implements fs.File {
   //_MemoryFileImpl get fileImpl => impl;
 
-  _MemoryFile(String path) : super(path);
+  FileMemory(String path) : super(path);
 
   // don't care about recursive
   @override
@@ -124,7 +124,7 @@ class _MemoryFile extends _MemoryFileSystemEntity implements fs.File {
 
   @override
   Future<fs.File> rename(String newPath) async {
-    MemoryFileSystemEntityImpl renamed = _fs._impl.rename(path, newPath);
-    return _MemoryFile(renamed.path);
+    FileSystemEntityMemoryImpl renamed = _fs._impl.rename(path, newPath);
+    return FileMemory(renamed.path);
   }
 }

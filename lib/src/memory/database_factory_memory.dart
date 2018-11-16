@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:sembast/sembast.dart';
 import 'package:sembast/src/database_impl.dart';
-import 'package:sembast/src/memory/memory_file_system.dart';
+import 'package:sembast/src/memory/file_system_memory.dart';
 import 'package:sembast/src/sembast_fs.dart';
 import 'package:sembast/src/storage.dart';
 
@@ -26,7 +26,7 @@ class DatabaseFactoryMemory implements DatabaseFactory {
     }
 
     if (db == null) {
-      db = SembastDatabase(_MemoryDatabaseStorage(this, path));
+      db = SembastDatabase(DatabaseStorageMemory(this, path));
     }
 
     await db.open(
@@ -63,11 +63,11 @@ Future<Database> openMemoryDatabase() {
   return databaseFactoryMemory.openDatabase(null);
 }
 
-class _MemoryDatabaseStorage extends DatabaseStorage {
+class DatabaseStorageMemory extends DatabaseStorage {
   final DatabaseFactoryMemory factory;
   @override
   final String path;
-  _MemoryDatabaseStorage(this.factory, this.path);
+  DatabaseStorageMemory(this.factory, this.path);
 
   @override
   Future<bool> find() {

@@ -7,7 +7,7 @@ import '../file_system.dart' as fs;
 import 'dart:async';
 import 'dart:io' as io;
 import 'dart:convert';
-import 'io_file_mode.dart';
+import 'file_mode_io.dart';
 
 ///
 /// the io file system global object
@@ -20,11 +20,11 @@ import 'io_file_mode.dart';
 io.FileMode _fileMode(fs.FileMode fsFileMode) {
   switch (fsFileMode) {
     case fs.FileMode.write:
-      return ioFileModeWrite;
+      return fileModeWriteIo;
     case fs.FileMode.read:
-      return ioFileModeRead;
+      return fileModeReadIo;
     case fs.FileMode.append:
-      return ioFileModeAppend;
+      return fileModeAppendIo;
     default:
       throw null;
   }
@@ -32,11 +32,11 @@ io.FileMode _fileMode(fs.FileMode fsFileMode) {
 
 fs.FileSystemEntityType fsFileType(io.FileSystemEntityType type) {
   switch (type) {
-    case ioFileSystemEntityTypeFile:
+    case fileSystemEntityTypeFileIo:
       return fs.FileSystemEntityType.file;
-    case ioFileSystemEntityTypeDirectory:
+    case fileSystemEntityTypeDirectoryIo:
       return fs.FileSystemEntityType.directory;
-    case ioFileSystemEntityTypeNotFound:
+    case fileSystemEntityTypeNotFoundIo:
       return fs.FileSystemEntityType.notFound;
     default:
       throw type;

@@ -2,7 +2,7 @@ library sembast.memory_file_system_impl_test;
 
 // basically same as the io runner but with extra output
 //import 'package:tekartik_test/test_config.dart';
-import 'package:sembast/src/memory/memory_file_system_impl.dart';
+import 'package:sembast/src/memory/file_system_memory_impl.dart';
 import 'package:sembast/src/file_system.dart';
 import 'package:path/path.dart';
 import 'test_common.dart';
@@ -10,23 +10,23 @@ import 'test_common.dart';
 void main() {
   group('memory_file_system_impl', () {
     test('root', () {
-      MemoryFileSystemImpl fs = MemoryFileSystemImpl();
+      FileSystemMemoryImpl fs = FileSystemMemoryImpl();
       expect(fs.rootDir.segment, separator);
       expect(fs.rootDir.path, separator);
       expect(fs.rootDir.children, isEmpty);
     });
 
     test('current', () {
-      MemoryFileSystemImpl fs = MemoryFileSystemImpl();
+      FileSystemMemoryImpl fs = FileSystemMemoryImpl();
       expect(fs.currentPath, join(separator, "current"));
     });
 
     test('createDir', () {
-      MemoryFileSystemImpl fs = MemoryFileSystemImpl();
+      FileSystemMemoryImpl fs = FileSystemMemoryImpl();
 
       // at root
       String path = join(separator, "test");
-      MemoryDirectoryImpl dir = fs.createDirectory(path);
+      DirectoryMemoryImpl dir = fs.createDirectory(path);
       expect(dir.segment, "test");
       expect(dir.path, path);
       expect(dir, fs.getEntity(path));
@@ -47,37 +47,37 @@ void main() {
     });
 
     test('createDirRecursive', () {
-      MemoryFileSystemImpl fs = MemoryFileSystemImpl();
+      FileSystemMemoryImpl fs = FileSystemMemoryImpl();
 
       // at root
-      MemoryDirectoryImpl dir =
+      DirectoryMemoryImpl dir =
           fs.createDirectory(join(separator, "test", "sub"), recursive: true);
 
-      dir = fs.getEntity(join(separator, "test", "sub")) as MemoryDirectoryImpl;
+      dir = fs.getEntity(join(separator, "test", "sub")) as DirectoryMemoryImpl;
       expect(dir.segment, "sub");
       expect(dir.path, join(separator, join(separator, "test", "sub")));
 
       // check top folder has been created
-      dir = fs.getEntity(join(separator, "test")) as MemoryDirectoryImpl;
+      dir = fs.getEntity(join(separator, "test")) as DirectoryMemoryImpl;
       expect(dir.segment, "test");
       expect(dir.path, join(separator, join(separator, "test")));
       expect(dir.children.containsKey("sub"), isTrue);
     });
 
     test('deleteDir', () {
-      MemoryFileSystemImpl fs = MemoryFileSystemImpl();
+      FileSystemMemoryImpl fs = FileSystemMemoryImpl();
 
       // at root
       String path = join(separator, "test");
-      MemoryDirectoryImpl dir = fs.createDirectory(path);
+      DirectoryMemoryImpl dir = fs.createDirectory(path);
 
       // get it
-      dir = fs.getEntity(path) as MemoryDirectoryImpl;
+      dir = fs.getEntity(path) as DirectoryMemoryImpl;
       expect(dir.segment, "test");
       expect(dir.path, join(separator, "test"));
 
       fs.delete(path);
-      dir = fs.getEntity(path) as MemoryDirectoryImpl;
+      dir = fs.getEntity(path) as DirectoryMemoryImpl;
       expect(dir, null);
 
       // dummy
@@ -102,11 +102,11 @@ void main() {
     });
 
     test('createFile', () {
-      MemoryFileSystemImpl fs = MemoryFileSystemImpl();
+      FileSystemMemoryImpl fs = FileSystemMemoryImpl();
 
       // at root
       String path = join(separator, "test");
-      MemoryFileImpl dir = fs.createFile(path);
+      FileMemoryImpl dir = fs.createFile(path);
       expect(dir.segment, "test");
       expect(dir.path, path);
       expect(dir, fs.getEntity(path));

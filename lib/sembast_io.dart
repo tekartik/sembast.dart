@@ -2,7 +2,7 @@ library sembast.io;
 
 import 'package:sembast/sembast.dart';
 
-import 'src/io/io_database_factory.dart' as _;
+import 'src/io/database_factory_io.dart' as _;
 
 DatabaseFactory get databaseFactoryIo => _.databaseFactoryIo;
 

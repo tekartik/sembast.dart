@@ -4,7 +4,7 @@ import 'package:path/path.dart';
 import 'package:dev_test/test.dart';
 import 'test_common.dart';
 import 'package:sembast/sembast_io.dart';
-import 'package:sembast/src/io/io_file_system.dart';
+import 'package:sembast/src/io/file_system_io.dart';
 
 // For test in memory
 DatabaseTestContextIo get databaseContextIo =>
