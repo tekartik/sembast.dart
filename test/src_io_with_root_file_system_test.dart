@@ -21,18 +21,22 @@ void defineTests() {
 
     tearDown(() {});
 
-    test('file', () async {
+    test('file location', () async {
       FileIo file = fileSystem.file("file.txt");
+      expect(file.path, "file.txt");
+      io.File ioFile = io.File(join(rootPath, "file.txt"));
       if (await file.exists()) {
         await file.delete();
       }
+
+      expect(await ioFile.exists(), isFalse);
+
       await file.create(recursive: true);
       var sink = file.openWrite();
       sink.writeln('test');
-      expect(file.path, "file.txt");
+      await sink.close();
 
-      expect((await io.File(join(rootPath, file.path)).readAsLines()).first,
-          'test');
+      expect((await ioFile.readAsLines()).first, 'test');
     });
   });
 }
