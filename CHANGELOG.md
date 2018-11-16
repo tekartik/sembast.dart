@@ -1,3 +1,7 @@
+## 1.10.2
+
+* Add `rootPath` support for `DatabaseFactoryIo` to allow relative path to a root folder
+
 ## 1.10.1
 
 * Add `update` method to allow updating partially a Map record
