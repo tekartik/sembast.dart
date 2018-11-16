@@ -407,13 +407,10 @@ void defineTests(FileSystemTestContext ctx) {
 
       test('rename', () async {
         await clearOutFolder();
-        return createFileName("test").then((File file) {
-          return file.rename(namePath("test2")).then((File renamed) {
-            return expectFileExists(renamed).then((_) {
-              return expectFileExists(file, false).then((_) {});
-            });
-          });
-        });
+        var file = await createFileName("test");
+        var renamed = await file.rename(namePath("test2"));
+        await expectFileExists(renamed);
+        await expectFileExists(file, false);
       });
 
       test('rename to existing', () async {

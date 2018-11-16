@@ -7,18 +7,25 @@ import 'package:sembast/sembast_io.dart';
 import 'package:sembast/src/io/io_file_system.dart';
 
 // For test in memory
-IoDatabaseTestContext get ioDatabaseContext =>
-    IoDatabaseTestContext()..factory = databaseFactoryIo;
+DatabaseTestContextIo get databaseContextIo =>
+    DatabaseTestContextIo()..factory = databaseFactoryIo;
 
-class IoDatabaseTestContext extends FsDatabaseTestContext {
+DatabaseTestContextIo createDatabaseContextIo({String rootPath}) =>
+    DatabaseTestContextIo()
+      ..factory = createDatabaseFactoryIo(rootPath: rootPath);
+
+class DatabaseTestContextIo extends DatabaseTestContextFs {
   @override
   String get dbPath => testOutPath + ".db";
 }
 
-IoFileSystemTestContext get ioFileSystemContext =>
-    IoFileSystemTestContext()..fs = ioFileSystem;
+FileSystemTestContextIo get fileSystemContextIo =>
+    FileSystemTestContextIo()..fs = FileSystemIo();
 
-class IoFileSystemTestContext extends FileSystemTestContext {
+FileSystemTestContextIo createFileSystemContextIo({String rootPath}) =>
+    FileSystemTestContextIo()..fs = FileSystemIo(rootPath: rootPath);
+
+class FileSystemTestContextIo extends FileSystemTestContext {
   @override
   String get outPath => testOutPath;
 }

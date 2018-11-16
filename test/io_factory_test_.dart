@@ -8,6 +8,6 @@ import 'test_common.dart';
 // already tested by all_factory_test
 // helper for testing
 void main() {
-  defineFileSystemTests(ioFileSystemContext);
-  defineTests(ioDatabaseContext);
+  defineFileSystemTests(fileSystemContextIo);
+  defineTests(databaseContextIo);
 }

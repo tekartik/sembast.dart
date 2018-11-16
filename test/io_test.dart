@@ -17,10 +17,13 @@ import 'dart:io' as io;
 void main() {
   group("io", () {
     test('fs', () {
-      expect((databaseFactoryIo as impl.IoDatabaseFactory).fs, ioFileSystem);
+      expect((databaseFactoryIo as impl.DatabaseFactoryIo).fs,
+          const TypeMatcher<FileSystemIo>());
+      FileSystemIo fs = (databaseFactoryIo as impl.DatabaseFactoryIo).fs;
+      expect(fs.rootPath, isNull);
     });
 
-    IoFileSystemTestContext ctx = ioFileSystemContext;
+    FileSystemTestContextIo ctx = fileSystemContextIo;
     FileSystem fs = ctx.fs;
 
     group('format', () {

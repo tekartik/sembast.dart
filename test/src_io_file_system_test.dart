@@ -2,35 +2,36 @@
 library sembast.io_file_system_test;
 
 // basically same as the io runner but with extra output
-import 'io_test_common.dart';
-import 'test_common.dart';
 import 'package:sembast/src/io/io_file_system.dart';
-import 'src_file_system_test.dart' as fs;
+
+import 'test_common.dart';
 
 void main() {
   defineTests();
 }
 
 void defineTests() {
+  var fileSystem = FileSystemIo();
   group('io', () {
     setUp(() {});
 
     tearDown(() {});
 
     test('newFile', () {
-      File file = File("test");
+      FileIo file = fileSystem.file("test");
       expect(file.path, "test");
     });
 
     test('new Directory', () {
-      Directory dir = Directory("test");
+      DirectoryIo dir = fileSystem.directory("test");
       expect(dir.path, "test");
     });
 
-    test('isFile', () {
-      return FileSystemEntity.isFile("test").then((bool isFile) {});
+    test('isFile', () async {
+      expect(await fileSystem.isFile("test"), isFalse);
+      expect(await fileSystem.isDirectory("test"), isFalse);
     });
 
-    fs.defineTests(ioFileSystemContext);
+    // fs.defineTests(fileSystemContextIo);
   });
 }

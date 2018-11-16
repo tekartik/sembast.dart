@@ -1,6 +1,8 @@
 @TestOn("vm")
 library sembast.test_runner.all_test;
 
+import 'package:path/path.dart';
+
 import 'all_test.dart';
 import 'io_test_common.dart';
 import 'test_common.dart';
@@ -14,8 +16,13 @@ void main() {
     defineTests(memoryDatabaseContext);
   });
   group('io', () {
-    defineFileSystemTests(ioFileSystemContext);
-    defineTests(ioDatabaseContext);
+    defineFileSystemTests(fileSystemContextIo);
+    defineTests(databaseContextIo);
+  });
+  group('io_with_root', () {
+    var rootPath = join('.dart_tool', 'sembast', 'test_io_with_root');
+    defineFileSystemTests(createFileSystemContextIo(rootPath: rootPath));
+    defineTests(createDatabaseContextIo(rootPath: rootPath));
   });
   group('memory_fs', () {
     defineFileSystemTests(memoryFileSystemContext);

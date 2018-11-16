@@ -8,6 +8,6 @@ import 'database_perf_test.dart' as database_perf_test;
 import "io_test_common.dart";
 
 void main() {
-  database_perf_test.defineTests(ioDatabaseContext, 1000,
+  database_perf_test.defineTests(databaseContextIo, 1000,
       randomChoices: 20, randomCount: 10000);
 }
