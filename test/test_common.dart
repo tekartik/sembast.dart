@@ -1,6 +1,7 @@
 library sembast.test.test_common;
 
 // basically same as the io runner but with extra output
+import 'package:sembast/src/database_factory_mixin.dart';
 import 'package:sembast/src/database_impl.dart';
 import 'package:sembast/src/memory/file_system_memory.dart';
 import 'package:sembast/sembast.dart';
@@ -96,5 +97,5 @@ void devPrintJson(Map json) {
 }
 
 Future<Database> reOpen(Database db, {DatabaseMode mode}) {
-  return (db as SembastDatabase).reOpen(mode: mode);
+  return (db as SembastDatabase).reOpen(DatabaseOpenOptions(mode: mode));
 }

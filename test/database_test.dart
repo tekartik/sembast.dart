@@ -2,6 +2,7 @@ library sembast.database_test;
 
 // basically same as the io runner but with extra output
 import 'package:sembast/sembast.dart';
+
 import 'test_common.dart';
 
 void main() {
@@ -28,44 +29,54 @@ void defineTests(DatabaseTestContext ctx) {
         }
       });
 
-      test('open_no_version', () {
-        return factory.openDatabase(dbPath).then((Database db) {
-          expect(db.version, 1);
-          expect(db.path, dbPath);
-          db.close();
-        });
+      test('open_no_version', () async {
+        var db = await factory.openDatabase(dbPath);
+        expect(db.version, 1);
+        expect(db.path, endsWith(dbPath));
+        db.close();
       });
 
-      test('open_existing_no_version', () {
-        return factory
-            .openDatabase(dbPath, mode: DatabaseMode.existing)
-            .then((Database db) {
+      test('open_existing_no_version', () async {
+        dbPath = ctx.dbPath;
+        try {
+          await factory.openDatabase(dbPath, mode: DatabaseMode.existing);
           fail("should fail");
-        }).catchError((e) {
-          expect((e as DatabaseException).code,
-              DatabaseException.errDatabaseNotFound);
-        });
+        } on DatabaseException catch (e) {
+          expect(e.code, DatabaseException.errDatabaseNotFound);
+        }
       });
 
-      test('open_version', () {
-        return factory.openDatabase(dbPath, version: 1).then((Database db) {
-          expect(db.version, 1);
-          expect(db.path, dbPath);
-          db.close();
-        });
+      test('open_version', () async {
+        dbPath = ctx.dbPath;
+        var db = await factory.openDatabase(dbPath, version: 1);
+        expect(db.version, 1);
+        expect(db.path, endsWith(dbPath));
+        db.close();
       });
 
-      test('open_twice_no_close', () {
-        return factory.openDatabase(dbPath, version: 1).then((Database db) {
-          expect(db.version, 1);
-          expect(db.path, dbPath);
-          return factory.openDatabase(dbPath, version: 1).then((Database db2) {
-            // behavior is unexpected from now...
-            expect(db.version, 1);
-            expect(db.path, dbPath);
-            db2.close();
-          });
-        });
+      test('open_twice_no_close', () async {
+        var dbPath = ctx.dbPath;
+        var db = await factory.openDatabase(dbPath, version: 1);
+        expect(db.version, 1);
+        expect(db.path, endsWith(dbPath));
+        var db2 = await factory.openDatabase(dbPath, version: 1);
+        // behavior is unexpected from now...
+        expect(db.version, 1);
+        expect(db.path, endsWith(dbPath));
+        db2.close();
+      });
+
+      test('open_twice_same_instance', () async {
+        var dbPath = ctx.dbPath;
+        var futureDb1 = factory.openDatabase(dbPath);
+        var futureDb2 = factory.openDatabase(dbPath);
+        var db1 = await futureDb1;
+        var db2 = await futureDb2;
+        var db3 = await factory.openDatabase(dbPath);
+        expect(db1, db2);
+        expect(db1, db3);
+        expect(identical(db1, db3), isTrue);
+        await db1.close();
       });
     });
 
@@ -82,7 +93,7 @@ void defineTests(DatabaseTestContext ctx) {
         }
       });
 
-      test('open_no_version', () {
+      test('open_no_version', () async {
         // save to make sure we've been through
         int _oldVersion;
         int _newVersion;
@@ -92,18 +103,16 @@ void defineTests(DatabaseTestContext ctx) {
           _newVersion = newVersion;
         }
 
-        return factory
-            .openDatabase(dbPath, onVersionChanged: _onVersionChanged)
-            .then((Database db) {
-          expect(_oldVersion, 0);
-          expect(_newVersion, 1);
-          expect(db.version, 1);
-          expect(db.path, dbPath);
-          db.close();
-        });
+        var db = await factory.openDatabase(dbPath,
+            onVersionChanged: _onVersionChanged);
+        expect(_oldVersion, 0);
+        expect(_newVersion, 1);
+        expect(db.version, 1);
+        expect(db.path, endsWith(dbPath));
+        db.close();
       });
 
-      test('open_version', () {
+      test('open_version', () async {
         // save to make sure we've been through
         int _oldVersion;
         int _newVersion;
@@ -113,16 +122,14 @@ void defineTests(DatabaseTestContext ctx) {
           _newVersion = newVersion;
         }
 
-        return factory
-            .openDatabase(dbPath,
-                version: 1, onVersionChanged: _onVersionChanged)
-            .then((Database db) {
-          expect(_oldVersion, 0);
-          expect(_newVersion, 1);
-          expect(db.version, 1);
-          expect(db.path, dbPath);
-          db.close();
-        });
+        var db = await factory.openDatabase(dbPath,
+            version: 1, onVersionChanged: _onVersionChanged);
+
+        expect(_oldVersion, 0);
+        expect(_newVersion, 1);
+        expect(db.version, 1);
+        expect(db.path, endsWith(dbPath));
+        db.close();
       });
 
       test('changes during onVersionChanged', () async {

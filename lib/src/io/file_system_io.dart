@@ -1,6 +1,7 @@
 library sembast.io_file_system;
 
 import 'package:path/path.dart';
+import 'package:path/path.dart' as _path;
 
 import '../file_system.dart' as fs;
 
@@ -97,7 +98,15 @@ Future<T> _wrap<T>(Future<T> future) {
 class FileSystemIo implements fs.FileSystem {
   final String rootPath;
 
-  String normalizePath(String path) {
+  String absolute(String path) {
+    if (rootPath != null) {
+      return normalize(path);
+    } else {
+      return _path.absolute(normalize(path));
+    }
+  }
+
+  String _normalizeWithRoot(String path) {
     if (rootPath != null) {
       return normalize(join(rootPath, path));
     } else {
@@ -119,17 +128,18 @@ class FileSystemIo implements fs.FileSystem {
 
   @override
   Future<bool> isFile(String path) =>
-      io.FileSystemEntity.isFile(normalizePath(path));
+      io.FileSystemEntity.isFile(_normalizeWithRoot(path));
 
   @override
   Future<bool> isDirectory(String path) =>
-      io.FileSystemEntity.isDirectory(normalizePath(path));
+      io.FileSystemEntity.isDirectory(_normalizeWithRoot(path));
 
   @override
   Future<fs.FileSystemEntityType> type(String path,
           {bool followLinks = true}) //
       =>
-      _wrap(io.FileSystemEntity.type(normalizePath(path), followLinks: true))
+      _wrap(io.FileSystemEntity.type(_normalizeWithRoot(path),
+              followLinks: true))
           .then((io.FileSystemEntityType ioType) => fsFileType(ioType));
 
   @override
@@ -186,7 +196,7 @@ class DirectoryIo extends FileSystemEntityIo implements fs.Directory {
   /// If [path] is an absolute path, it will be immune to changes to the
   /// current working directory.
   DirectoryIo(FileSystemIo fs, String path) : super(fs, path) {
-    ioFileSystemEntity = io.Directory(fileSystemIo.normalizePath(path));
+    ioFileSystemEntity = io.Directory(fileSystemIo._normalizeWithRoot(path));
   }
 
   @override
@@ -198,8 +208,8 @@ class DirectoryIo extends FileSystemEntityIo implements fs.Directory {
   @override
   Future<fs.FileSystemEntity> rename(String newPath) //
       =>
-      _wrap(ioFileSystemEntity.rename(fileSystemIo.normalizePath(path))).then(
-          (io.FileSystemEntity ioFileSystemEntity) =>
+      _wrap(ioFileSystemEntity.rename(fileSystemIo._normalizeWithRoot(path)))
+          .then((io.FileSystemEntity ioFileSystemEntity) =>
               DirectoryIo(fileSystemIo, newPath));
 
   @override
@@ -217,7 +227,7 @@ class FileIo extends FileSystemEntityIo implements fs.File {
   /// If [path] is an absolute path, it will be immune to changes to the
   /// current working directory.
   FileIo(FileSystemIo fs, String path) : super(fs, path) {
-    ioFileSystemEntity = io.File(fileSystemIo.normalizePath(path));
+    ioFileSystemEntity = io.File(fileSystemIo._normalizeWithRoot(path));
   }
 
   @override
@@ -239,7 +249,7 @@ class FileIo extends FileSystemEntityIo implements fs.File {
   @override
   Future<FileIo> rename(String newPath) //
       =>
-      _wrap(ioFileSystemEntity.rename(fileSystemIo.normalizePath(newPath)))
+      _wrap(ioFileSystemEntity.rename(fileSystemIo._normalizeWithRoot(newPath)))
           .then((io.FileSystemEntity ioFileSystemEntity) =>
               FileIo(fileSystemIo, newPath));
 

@@ -2,6 +2,7 @@ library sembast.database_test;
 
 // basically same as the io runner but with extra output
 import 'package:sembast/sembast.dart';
+import 'package:sembast/src/database_factory_mixin.dart';
 import 'package:sembast/src/database_impl.dart';
 
 import 'test_common.dart';
@@ -62,14 +63,15 @@ void defineTests(DatabaseTestContext ctx) {
         }
 
         return db
-            .reOpen(onVersionChanged: _onVersionChanged)
+            .reOpen(DatabaseOpenOptions(onVersionChanged: _onVersionChanged))
             .then((Database db) {
           expect(db.path, dbPath);
           expect(db.version, 1);
           db.close();
         }).then((_) {
           return db
-              .reOpen(version: 1, onVersionChanged: _onVersionChanged)
+              .reOpen(DatabaseOpenOptions(
+                  version: 1, onVersionChanged: _onVersionChanged))
               .then((Database db) {
             expect(db.path, dbPath);
             expect(db.version, 1);
@@ -91,7 +93,8 @@ void defineTests(DatabaseTestContext ctx) {
         }
 
         return db
-            .reOpen(version: 2, onVersionChanged: _onVersionChanged)
+            .reOpen(DatabaseOpenOptions(
+                version: 2, onVersionChanged: _onVersionChanged))
             .then((Database db) {
           expect(_oldVersion, 1);
           expect(_newVersion, 2);

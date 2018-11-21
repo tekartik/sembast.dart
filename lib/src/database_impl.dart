@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:logging/logging.dart';
 import 'package:sembast/sembast.dart';
 import 'package:sembast/src/database.dart';
+import 'package:sembast/src/database_factory_mixin.dart';
 import 'package:sembast/src/meta.dart';
 import 'package:sembast/src/record_impl.dart';
 import 'package:sembast/src/sembast_impl.dart';
@@ -17,6 +18,7 @@ import 'database.dart';
 class SembastDatabase extends Object
     with DatabaseExecutorMixin
     implements Database {
+  final DatabaseOpenHelper openHelper;
   static Logger logger = Logger("Sembast");
   final bool logV = logger.isLoggable(Level.FINEST);
 
@@ -38,7 +40,9 @@ class SembastDatabase extends Object
   int get version => _meta.version;
 
   bool _opened = false;
-  DatabaseMode _openMode;
+  DatabaseOpenOptions get _openOptions => openHelper.options;
+
+  // DatabaseMode _openMode;
   // Only set during open (used during onVersionChanged
   Transaction _openTransaction;
 
@@ -54,7 +58,7 @@ class SembastDatabase extends Object
   @override
   Iterable<Store> get stores => _stores.values;
 
-  SembastDatabase([this._storage]);
+  SembastDatabase(this.openHelper, [this._storage]);
 
   ///
   /// put a value in the main store
@@ -313,16 +317,10 @@ class SembastDatabase extends Object
   ///
   /// reload
   //
-  Future<Database> reOpen(
-      {int version,
-      OnVersionChangedFunction onVersionChanged,
-      DatabaseMode mode}) {
-    close();
+  Future<Database> reOpen([DatabaseOpenOptions options]) async {
+    await close();
     // Reuse same open mode unless specified
-    return open(
-        version: version,
-        onVersionChanged: onVersionChanged,
-        mode: mode ?? this._openMode);
+    return open(options ?? _openOptions);
   }
 
   void _checkMainStore() {
@@ -404,12 +402,11 @@ class SembastDatabase extends Object
   ///
   /// open a database
   ///
-  Future<Database> open(
-      {int version,
-      OnVersionChangedFunction onVersionChanged,
-      DatabaseMode mode}) {
+  Future<Database> open(DatabaseOpenOptions options) {
     // Default mode
-    _openMode = mode ??= DatabaseMode.defaultMode;
+    var mode = options.mode ?? DatabaseMode.defaultMode;
+    int version = options.version;
+    var _openMode = mode;
 
     if (_opened) {
       if (path != this.path) {
@@ -429,8 +426,8 @@ class SembastDatabase extends Object
             // create a transaction during open
             _openTransaction = txn;
 
-            if (onVersionChanged != null) {
-              result = onVersionChanged(this, oldVersion, newVersion);
+            if (options.onVersionChanged != null) {
+              result = options.onVersionChanged(this, oldVersion, newVersion);
             }
             meta = Meta(newVersion);
 
@@ -578,11 +575,16 @@ class SembastDatabase extends Object
     });
   }
 
-  @override
-  Future close() async {
+  void _close() async {
     _opened = false;
     //_meta = null;
     // return new Future.value();
+  }
+
+  @override
+  Future close() async {
+    _close();
+    await openHelper.closeDatabase(this);
   }
 
   Map<String, dynamic> toJson() {

@@ -9,6 +9,7 @@ import 'file_system.dart';
 import 'package:sembast/src/database.dart';
 import 'package:sembast/src/database_impl.dart';
 import 'package:sembast/src/storage.dart';
+import 'package:sembast/src/database_factory_mixin.dart';
 
 class _FsDatabaseStorage extends DatabaseStorage {
   final FileSystem fs;
@@ -122,22 +123,35 @@ class _FsDatabaseStorage extends DatabaseStorage {
 }
 
 /// FileSystem implementation
-class DatabaseFactoryFs implements DatabaseFactory {
+class DatabaseFactoryFs extends SembastDatabaseFactory
+    with DatabaseFactoryMixin
+    implements DatabaseFactory {
   final FileSystem fs;
   DatabaseFactoryFs(this.fs);
+
+  @override
+  SembastDatabase newDatabase(DatabaseOpenHelper openHelper) =>
+      SembastDatabase(openHelper, _FsDatabaseStorage(fs, openHelper.path));
 
   @override
   Future<Database> openDatabase(String path,
       {int version,
       OnVersionChangedFunction onVersionChanged,
       DatabaseMode mode}) {
-    SembastDatabase db = SembastDatabase(_FsDatabaseStorage(fs, path));
-    return db.open(
-        version: version, onVersionChanged: onVersionChanged, mode: mode);
+    var helper = getDatabaseOpenHelper(
+        path,
+        DatabaseOpenOptions(
+            version: version, onVersionChanged: onVersionChanged, mode: mode));
+    return helper.openDatabase();
   }
 
   @override
   Future deleteDatabase(String path) {
+    // Close existing open instance
+    var helper = getExistingDatabaseOpenHelper(path);
+    if (helper != null && helper.database != null) {
+      helper.closeDatabase(helper.database);
+    }
     return _FsDatabaseStorage(fs, path).delete();
   }
 

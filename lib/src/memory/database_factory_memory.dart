@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:sembast/sembast.dart';
+import 'package:sembast/src/database_factory_mixin.dart';
 import 'package:sembast/src/database_impl.dart';
 import 'package:sembast/src/memory/file_system_memory.dart';
 import 'package:sembast/src/sembast_fs.dart';
@@ -14,28 +15,18 @@ final DatabaseFactoryMemoryFs databaseFactoryMemoryFs =
     DatabaseFactoryMemoryFs();
 
 /// In memory implementation
-class DatabaseFactoryMemory implements DatabaseFactory {
+class DatabaseFactoryMemory extends SembastDatabaseFactory
+    with DatabaseFactoryMixin {
   @override
   Future<Database> openDatabase(String path,
       {int version,
       OnVersionChangedFunction onVersionChanged,
       DatabaseMode mode}) async {
-    SembastDatabase db;
-    if (path != null) {
-      db = _databases[path];
-    }
-
-    if (db == null) {
-      db = SembastDatabase(DatabaseStorageMemory(this, path));
-    }
-
-    await db.open(
-        version: version, onVersionChanged: onVersionChanged, mode: mode);
-
-    if (path != null) {
-      _databases[path] = db;
-    }
-    return db;
+    var helper = getDatabaseOpenHelper(
+        path,
+        DatabaseOpenOptions(
+            version: version, onVersionChanged: onVersionChanged, mode: mode));
+    return helper.openDatabase();
   }
 
   // make it private
@@ -54,6 +45,20 @@ class DatabaseFactoryMemory implements DatabaseFactory {
 
   @override
   bool get hasStorage => false;
+
+  @override
+  SembastDatabase newDatabase(DatabaseOpenHelper openHelper) {
+    SembastDatabase db;
+    var path = openHelper.path;
+    if (path != null) {
+      db = _databases[path];
+    }
+
+    if (db == null) {
+      db = SembastDatabase(openHelper, DatabaseStorageMemory(this, path));
+    }
+    return db;
+  }
 }
 
 ///
