@@ -16,4 +16,7 @@ Future main() async {
       (await store.findRecords(Finder(filter: Filter.byKey(record.key)))).first;
   record = await store.getRecord(record.key);
   print(record);
+  var records =
+      (await store.findRecords(Finder(filter: Filter.matches("name", "^ugl"))));
+  print(records);
 }

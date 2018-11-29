@@ -109,6 +109,28 @@ void defineTests(DatabaseTestContext ctx) {
 
         expect(record['name'], 'dog');
       }
+
+      {
+        // Look for any name stating with f (i.e. fish, frog...)
+        var finder = Finder(filter: Filter.matches('name', '^f'));
+        var record = await db.findRecord(finder);
+
+        expect(record['name'], 'fish');
+      }
+      {
+        // Look for any name ending with og (i.e. dog, frog...)
+        var finder = Finder(filter: Filter.matches('name', r'og$'));
+        var record = await db.findRecord(finder);
+
+        expect(record['name'], 'dog');
+      }
+      {
+        // Look for any name containing 'is' (fish matches)
+        var finder = Finder(filter: Filter.matches('name', 'is'));
+        var record = await db.findRecord(finder);
+
+        expect(record['name'], 'fish');
+      }
     });
 
     test('writes_doc', () async {

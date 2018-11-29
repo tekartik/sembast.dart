@@ -55,3 +55,31 @@ var record = await db.findRecord(finder);
 
 expect(record['name'], 'dog');
 ```
+
+## Filtering using RegExp patten
+
+Records can be filter using regular expression
+
+```dart
+// Look for any name stating with f (i.e. fish, frog...)
+var finder = Finder(filter: Filter.matches('name', '^f'));
+var record = await db.findRecord(finder);
+
+expect(record['name'], 'fish');
+```
+
+```dart
+// Look for any name ending with og (i.e. dog, frog...)
+var finder = Finder(filter: Filter.matches('name', r'og$'));
+var record = await db.findRecord(finder);
+
+expect(record['name'], 'dog');
+```
+
+```dart
+// Look for any name containing 'is' (fish matches)
+var finder = Finder(filter: Filter.matches('name', 'is'));
+var record = await db.findRecord(finder);
+
+expect(record['name'], 'fish');
+```

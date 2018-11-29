@@ -179,6 +179,31 @@ void defineTests(DatabaseTestContext ctx) {
       });
     });
 
+    test('matches', () async {
+      Finder finder = Finder();
+      finder.filter = Filter.matches(Field.value, "hi");
+      var records = await store.findRecords(finder);
+      expect(records.length, 1);
+      expect(records[0], record1);
+      // starts with
+      records = await store
+          .findRecords(Finder(filter: Filter.matches(Field.value, '^hi')));
+      expect(records.length, 1);
+      expect(records[0], record1);
+      records = await store
+          .findRecords(Finder(filter: Filter.matches(Field.value, '^h')));
+      expect(records.length, 3);
+      // ends with
+      records = await store
+          .findRecords(Finder(filter: Filter.matches(Field.value, r'hi$')));
+      expect(records.length, 1);
+      expect(records[0], record1);
+      records = await store
+          .findRecords(Finder(filter: Filter.matches(Field.value, r'a$')));
+      expect(records.length, 1);
+      expect(records[0], record3);
+    });
+
     test('composite', () {
       Finder finder = Finder();
       finder.filter = Filter.and([
