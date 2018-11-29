@@ -1,5 +1,6 @@
-## 1.10.2
+## 1.12.0
 
+* Add `Filter.matchs` for regular expression filtering
 * Add `rootPath` support for `DatabaseFactoryIo` to allow relative path to a root folder
 
 ## 1.10.1
