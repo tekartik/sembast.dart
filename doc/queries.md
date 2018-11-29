@@ -58,7 +58,7 @@ expect(record['name'], 'dog');
 
 ## Filtering using RegExp patten
 
-Records can be filter using regular expression
+Records can be filtered using regular expressions
 
 ```dart
 // Look for any name stating with f (i.e. fish, frog...)
