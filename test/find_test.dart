@@ -202,6 +202,59 @@ void defineTests(DatabaseTestContext ctx) {
           .findRecords(Finder(filter: Filter.matches(Field.value, r'a$')));
       expect(records.length, 1);
       expect(records[0], record3);
+
+      // null value
+      var record4 = Record(store, null, 4);
+      await db.putRecord(record4);
+      records = await store
+          .findRecords(Finder(filter: Filter.matches(Field.value, '^hi')));
+      expect(records.length, 1);
+
+      // record 4 cannot be found using matches
+      records = await store
+          .findRecords(Finder(filter: Filter.matches(Field.value, "")));
+      expect(records.length, 3);
+      records =
+          await store.findRecords(Finder(filter: Filter.isNull(Field.value)));
+      expect(records.length, 1);
+      expect(records.first.key, record4.key);
+      records =
+          await store.findRecords(Finder(filter: Filter.notNull(Field.value)));
+      expect(records.length, 3);
+
+      bool failed = false;
+      // int value
+      try {
+        await store
+            .findRecords(Finder(filter: Filter.matches(Field.key, '^hi')));
+        fail("should not be a failed exception");
+      } on TestFailure catch (e) {
+        fail('should not happen $e');
+      } catch (e) {
+        failed = true;
+      }
+      expect(failed, isTrue);
+
+      // empty value
+      var record5 = Record(store, '', 5);
+      await db.putRecord(record5);
+      records = await store
+          .findRecords(Finder(filter: Filter.matches(Field.value, '^hi')));
+      expect(records.length, 1);
+
+      // record 5 can be found using matches
+      records = await store
+          .findRecords(Finder(filter: Filter.matches(Field.value, "")));
+      expect(records.length, 4);
+      records = await store
+          .findRecords(Finder(filter: Filter.equals(Field.value, "")));
+      expect(records.length, 1);
+      expect(records.first.key, record5.key);
+      // matching empty string
+      records = await store
+          .findRecords(Finder(filter: Filter.matches(Field.value, r"^$")));
+      expect(records.length, 1);
+      expect(records.first.key, record5.key);
     });
 
     test('composite', () {
