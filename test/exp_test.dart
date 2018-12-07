@@ -246,10 +246,17 @@ void defineTests(DatabaseTestContext ctx) {
 
     test('openHelper', () async {
       String dbPath = join('.dart_tool', 'sembast', 'test', 'open_helper.db');
+
       // Make openHelper a singleton
       var openHelper = OpenHelper(dbPath);
+
+      // Get the database in a safe way
+      var db = await openHelper.getDatabase();
+      await db.put('value', 'key');
+
       var db1 = await openHelper.getDatabase();
       var db2 = await openHelper.getDatabase();
+
       expect(db1, db2);
 
       await db1.close();
@@ -259,7 +266,7 @@ void defineTests(DatabaseTestContext ctx) {
 
 ///
 /// Helper to open a single instance of a database
-/// This should be a global singleton
+/// This should be a global or singleton
 ///
 class OpenHelper {
   final String path;
