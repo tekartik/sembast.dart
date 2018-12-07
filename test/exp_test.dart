@@ -2,7 +2,9 @@ library sembast.exp_test;
 
 import 'dart:async';
 
+import 'package:path/path.dart';
 import 'package:sembast/sembast.dart';
+import 'package:sembast/sembast_io.dart';
 import 'package:sembast/utils/database_utils.dart';
 import 'test_common.dart';
 
@@ -241,5 +243,44 @@ void defineTests(DatabaseTestContext ctx) {
         });
       }
     });
+
+    test('openHelper', () async {
+      String dbPath = join('.dart_tool', 'sembast', 'test', 'open_helper.db');
+      // Make openHelper a singleton
+      var openHelper = OpenHelper(dbPath);
+      var db1 = await openHelper.getDatabase();
+      var db2 = await openHelper.getDatabase();
+      expect(db1, db2);
+
+      await db1.close();
+    });
   });
+}
+
+///
+/// Helper to open a single instance of a database
+/// This should be a global singleton
+///
+class OpenHelper {
+  final String path;
+  Database _db;
+  Completer<Database> _completer;
+
+  OpenHelper(this.path);
+
+  /// Get the opened database
+  Future<Database> getDatabase() async {
+    if (_completer == null) {
+      _completer = Completer();
+      _openDatabase();
+    }
+    return _completer.future;
+  }
+
+  Future<Database> _openDatabase() async {
+    _db = await databaseFactoryIo.openDatabase(path);
+    // Mark as opened
+    _completer.complete(_db);
+    return _db;
+  }
 }
