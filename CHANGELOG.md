@@ -1,6 +1,8 @@
 ## 1.13.0
 
-* Add support for dotted fields, i.e. `'path.sub'` allow setting/getting/filtering/sorting on `path` inner value `sub`
+* Add support for nested dotted fields, i.e. `'path.sub'` allow setting/getting/filtering/sorting on `path` 
+inner value `sub`
+* support for boundaries (`start` and `end`) in a query with sort orders
  
 ## 1.12.0
 
