@@ -456,6 +456,22 @@ void defineTests(DatabaseTestContext ctx) {
         finder.filter = Filter.equals('path.sub', 'b');
         records = await store.findRecords(finder);
         expectRecordKeys(records, [record3]);
+
+        // Add null
+        var record4 = Record(store, {}, 4);
+        record4 = await db.putRecord(record4);
+        try {
+          finder.sortOrders = [SortOrder("path.sub", true)];
+          finder.filter = null;
+          records = await store.findRecords(finder);
+          expectRecordKeys(records, [record4, record1, record3, record2]);
+          finder.sortOrders = [SortOrder("path.sub", true, true)];
+          finder.filter = null;
+          records = await store.findRecords(finder);
+          expectRecordKeys(records, [record1, record3, record2, record4]);
+        } finally {
+          await db.deleteRecord(record4);
+        }
       });
 
       /*
@@ -473,6 +489,25 @@ void defineTests(DatabaseTestContext ctx) {
         var records = await store.findRecords(finder);
         //dumpRecords(records);
         expectRecordKeys(records, [record2, record3, record1]);
+
+        // Add null
+        var record4 = Record(store, {}, 4);
+        record4 = await db.putRecord(record4);
+        try {
+          finder.sortOrders = [SortOrder("path.sub", false)];
+          records = await store.findRecords(finder);
+          expectRecordKeys(records, [
+            record2,
+            record3,
+            record1,
+            record4,
+          ]);
+          finder.sortOrders = [SortOrder("path.sub", false, true)];
+          records = await store.findRecords(finder);
+          expectRecordKeys(records, [record4, record2, record3, record1]);
+        } finally {
+          await db.deleteRecord(record4);
+        }
       });
 
       test('start', () async {
@@ -500,6 +535,28 @@ void defineTests(DatabaseTestContext ctx) {
         finder.start = Boundary(values: ['b'], include: false);
         records = await store.findRecords(finder);
         expectRecordKeys(records, [record1]);
+
+        // Add null
+        var record4 = Record(store, {}, 4);
+        record4 = await db.putRecord(record4);
+        try {
+          finder.sortOrders = [SortOrder("path.sub", true)];
+          finder.start = Boundary(values: ['b'], include: true);
+          records = await store.findRecords(finder);
+          expectRecordKeys(records, [record3, record2]);
+
+          finder.sortOrders = [SortOrder("path.sub", true, true)];
+          finder.start = Boundary(values: ['b'], include: true);
+          records = await store.findRecords(finder);
+          expectRecordKeys(records, [record3, record2, record4]);
+
+          finder.sortOrders = [SortOrder("path.sub", false)];
+          finder.start = Boundary(values: ['b'], include: true);
+          records = await store.findRecords(finder);
+          expectRecordKeys(records, [record3, record1, record4]);
+        } finally {
+          await db.deleteRecord(record4);
+        }
       });
 
       test('end', () async {
