@@ -1,15 +1,55 @@
 # Performance result
 
-## PC Test 1 (i5-4460 16Gb SSD) Ubuntu
+## PCs Test
 
-PC1: i5-4460 CPU @ 3.20GHz 16Gb SSD 120Gb SATA3 Ubuntu 18.04
-PC2: i7-8700K CPU @ 3.70GHz 16Gb SSD 500Gb EVO 970 Windows 10 Pro
+* PC1: i5-4460 CPU @ 3.20GHz 16Gb SSD 120Gb SATA3 Ubuntu 18.04
+* PC2: i7-8700K CPU @ 3.70GHz 32Gb SSD 500Gb EVO 970 Windows 10 Pro
+* PC3: i7-8700K CPU @ 3.70GHz 32Gb SSD 500Gb EVO 970 Ubuntu 18.04.1
 
 Generated from `test/database_perf_io_test.dart`
 
+### Version 1.13.0 PC3
+
+2019/01/08
+
+Linux twice as speed as Windows...same hardware (dual boot, dual drives)
+
+|nb records|times|transaction|size kb|elapsed ms|
+|---|---|---|---|---|
+|1|1| |11|2|
+|10|1| |11|6|
+|100|1| |11|60|
+|100|20| |11|1593|
+|1000|1| |11|268|
+|1000|5| |11|2323|
+|1|1| |10890|0|
+|10|1| |10890|2|
+|100|1| |10890|24|
+|100|20| |10890|1366|
+|1000|1| |10890|251|
+|1000|5| |10890|2712|
+|100|1|1|11|5|
+|100|1|5|11|43|
+|100|1|10|11|90|
+|100|20|1|11|14|
+|1000|1|1|11|54|
+|1000|5|1|11|89|
+|1000|20|1|11|222|
+|10000|1|1|11|770|
+|10000|5|1|11|987|
+|100|1|1|10890|10|
+|100|20|1|10890|22|
+|1000|1|1|10890|120|
+|1000|5|1|10890|129|
+|1000|5|5|10890|1065|
+|1000|5|10|10890|1990|
+|1000|20|1|10890|187|
+|10000|1|1|10890|981|
+|10000|5|1|10890|1216|
+
 ### Version 1.13.0 PC2
 
-2018/01/08
+2019/01/08
 
 |nb records|times|transaction|size kb|elapsed ms|
 |---|---|---|---|---|
