@@ -32,11 +32,11 @@ class SembastRecord implements Record {
   @override
   dynamic operator [](String field) {
     if (field == Field.value) {
-      return value;
+      return _value;
     } else if (field == Field.key) {
       return key;
     } else {
-      return value[field];
+      return getMapFieldValue(_value as Map, field);
     }
   }
 
@@ -48,11 +48,14 @@ class SembastRecord implements Record {
   @override
   void operator []=(String field, var value) {
     if (field == Field.value) {
-      this.value = value;
+      _value = value;
     } else if (field == Field.key) {
       key = value;
     } else {
-      _value[field] = value;
+      if (!(_value is Map)) {
+        _value = {};
+      }
+      setMapFieldValue(_value as Map, field, value);
     }
   }
 

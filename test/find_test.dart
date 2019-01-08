@@ -402,5 +402,60 @@ void defineTests(DatabaseTestContext ctx) {
         expect(records, [record2]);
       });
     });
+
+    void expectRecordKeys(List<Record> records, List<Record> expectedRecords) {
+      var reason = '$records vs $expectedRecords';
+      expect(records.length, expectedRecords.length, reason: reason);
+      for (int i = 0; i < records.length; i++) {
+        expect(records[i]?.key, expectedRecords[i]?.key, reason: reason);
+      }
+    }
+
+    group('sub_field', () {
+      Database db;
+      Store store;
+      Record record1, record2, record3;
+      setUp(() async {
+        db = await setupForTest(ctx);
+        store = db.mainStore;
+        record1 = Record(
+            store,
+            {
+              "path": {"sub": 'a'}
+            },
+            1);
+        record2 = Record(
+            store,
+            {
+              "path": {"sub": 'c'}
+            },
+            2);
+        record3 = Record(
+            store,
+            {
+              "path": {"sub": 'b'}
+            },
+            3);
+        // notice the order
+        await db.putRecords([
+          record1,
+          record2,
+          record3,
+        ]);
+      });
+
+      tearDown(_tearDown);
+
+      test('sort', () async {
+        Finder finder = Finder();
+        finder.sortOrders = [SortOrder("path.sub", true)];
+        var records = await store.findRecords(finder);
+        expectRecordKeys(records, [record1, record3, record2]);
+
+        finder.filter = Filter.equals('path.sub', 'b');
+        records = await store.findRecords(finder);
+        expectRecordKeys(records, [record3]);
+      });
+    });
   });
 }

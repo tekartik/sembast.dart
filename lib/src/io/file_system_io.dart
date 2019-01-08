@@ -107,6 +107,9 @@ class FileSystemIo implements fs.FileSystem {
   }
 
   String _normalizeWithRoot(String path) {
+    if (path == null) {
+      throw ArgumentError.notNull(path);
+    }
     if (rootPath != null) {
       return normalize(join(rootPath, path));
     } else {

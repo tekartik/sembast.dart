@@ -9,7 +9,7 @@ import 'package:sembast/sembast.dart';
 void main() {
   test('type', () {
     expect(
-        memoryFileSystemContext.fs.runtimeType.toString(), "_MemoryFileSystem");
+        memoryFileSystemContext.fs.runtimeType.toString(), "FileSystemMemory");
     expect(memoryDatabaseContext.factory,
         const TypeMatcher<DatabaseFactoryMemory>());
   });

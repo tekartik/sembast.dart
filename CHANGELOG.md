@@ -1,3 +1,7 @@
+## 1.13.0
+
+* Add support for dotted fields, i.e. `'path.sub'` allow setting/getting/filtering/sorting on `path` inner value `sub`
+ 
 ## 1.12.0
 
 * Add `Filter.matchs` for regular expression filtering

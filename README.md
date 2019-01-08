@@ -51,6 +51,15 @@ Map settings = await db.get('settings') as Map;
 await db.delete('version');
 ```
 
+Record fields can be reference using a dot (.).
+
+For example
+
+```dart
+record['path.sub'] = 1;
+// means {'path': {'sub': 1}}
+```
+
 Follow the links with more informatin on how to [write](https://github.com/tekartik/sembast.dart/blob/master/doc/writes.md)
 or [read](https://github.com/tekartik/sembast.dart/blob/master/doc/queries.md) data
 

@@ -135,6 +135,41 @@ dynamic cloneValue(dynamic value) {
       "value ${value} not supported${value != null ? ' type:${value.runtimeType}' : ''}");
 }
 
+T getPartsMapValue<T>(Map map, Iterable<String> parts) {
+  dynamic value = map;
+  for (String part in parts) {
+    if (value is Map) {
+      value = value[part];
+    } else {
+      return null;
+    }
+  }
+  return value as T;
+}
+
+void setPartsMapValue<T>(Map map, List<String> parts, value) {
+  for (int i = 0; i < parts.length - 1; i++) {
+    String part = parts[i];
+    dynamic sub = map[part];
+    if (!(sub is Map)) {
+      sub = <String, dynamic>{};
+      map[part] = sub;
+    }
+    map = sub as Map;
+  }
+  map[parts.last] = value;
+}
+
+List<String> getFieldParts(String field) => field.split('.');
+
+T getMapFieldValue<T>(Map map, String field) {
+  return getPartsMapValue(map, getFieldParts(field));
+}
+
+void setMapFieldValue(Map map, String field, dynamic value) {
+  setPartsMapValue(map, getFieldParts(field), value);
+}
+
 // Merge an existing value with a new value, Map only!
 dynamic mergeValue(dynamic existingValue, dynamic newValue) {
   if (newValue == null) {
@@ -153,7 +188,7 @@ dynamic mergeValue(dynamic existingValue, dynamic newValue) {
 
   void merge(key, value) {
     // Handle a.b.c
-    var keyParts = (key as String).split('.');
+    var keyParts = getFieldParts(key as String);
     if (keyParts.length == 1) {
       // delete the field?
       if (value == FieldValue.delete) {

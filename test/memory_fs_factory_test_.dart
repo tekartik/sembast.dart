@@ -11,7 +11,7 @@ import 'test_common.dart';
 void main() {
   test('type', () {
     expect(
-        memoryFileSystemContext.fs.runtimeType.toString(), "_MemoryFileSystem");
+        memoryFileSystemContext.fs.runtimeType.toString(), "FileSystemMemory");
     expect(memoryFsDatabaseContext.factory,
         const TypeMatcher<DatabaseFactoryMemoryFs>());
     expect((databaseFactoryMemoryFs as DatabaseFactoryMemoryFs).fs,

@@ -51,6 +51,15 @@ void defineTests(DatabaseTestContext ctx) {
       record[Field.value] = "newvalue";
       expect(record.key, "newkey");
       expect(record.value, "newvalue");
+      record['test'] = 1;
+      expect(record.value, {'test': 1});
+      expect(record['path.sub'], isNull);
+      record['path.sub'] = 2;
+      expect(record.value, {
+        'test': 1,
+        'path': {'sub': 2}
+      });
+      expect(record['path.sub'], 2);
     });
 
     test('update', () async {
