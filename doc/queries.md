@@ -44,7 +44,7 @@ expect(records[0]['name'], 'dog');
 expect(records[1]['name'], 'fish');
 ```
 
-## Sorting by key
+### Sorting by key
 
 Records can be sorted by key using the special `Field.key` field:
 
@@ -56,7 +56,73 @@ var record = await db.findRecord(finder);
 expect(record['name'], 'dog');
 ```
 
-## Filtering using RegExp patten
+### Sorting/querying on nested field
+
+Assuming you have the following record 
+
+```json
+{
+  "name": "Silver",
+  "product": {
+    "code": "1F8"
+  }
+}
+```
+
+You can order on product/code
+
+```dart
+var finder = Finder(sortOrders: [SortOrder('product.code')]);
+```
+
+Or query on it
+
+```dart
+var finder = Finder(filter: Filter.equals('product.code', 'AF8'));
+```
+
+### Using boundaries for paging
+
+`start` and `end` can specify a start and end boundary, similar to firestore
+
+```dart
+// Look for the one after `cat`
+var finder = Finder(
+  sortOrders: [SortOrder('name', true)],
+  start: Boundary(values: ['cat']));
+var record = await db.findRecord(finder);
+expect(record['name'], 'dog');
+```
+
+The boundary can be a record. If `values` is used, the number of values should match the number of sort orders
+
+```dart
+dynamic key1, key2, key3, key4;
+await db.transaction((txn) async {
+  key2 = await txn.put({'name': 'Lamp', 'price': 10});
+  key3 = await txn.put({'name': 'Chair', 'price': 10});
+  key4 = await txn.put({'name': 'Deco', 'price': 5});
+  key1 = await txn.put({'name': 'Table', 'price': 35});
+});
+
+ // Look for object after Chair 10 (ordered by price then name) so
+// should the the Lamp 10
+var finder = Finder(
+    sortOrders: [SortOrder('price'), SortOrder('name')],
+    start: Boundary(values: [10, 'Chair']));
+var record = await db.findRecord(finder);
+expect(record['name'], 'Lamp');
+
+// You can also specify to look after a given record
+finder = Finder(
+    sortOrders: [SortOrder('price'), SortOrder('name')],
+    start: Boundary(record: record));
+record = await db.findRecord(finder);
+// After the lamp the more expensive one is the Table
+expect(record['name'], 'Table');
+```
+
+### Filtering using RegExp patten
 
 Records can be filtered using regular expressions
 

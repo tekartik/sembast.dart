@@ -1,4 +1,5 @@
 import 'package:sembast/sembast.dart';
+import 'package:sembast/src/boundary_impl.dart';
 
 class SembastSortOrder implements SortOrder {
   final bool ascending; // default true
@@ -18,9 +19,30 @@ class SembastSortOrder implements SortOrder {
     return ascending ? result : -result;
   }
 
+  int compareToBoundary(Record record, Boundary boundary, int index) {
+    int result = compareToBoundaryAscending(record, boundary, index);
+    return ascending ? result : -result;
+  }
+
+  int compareToBoundaryAscending(Record record, Boundary boundary, int index) {
+    SembastBoundary sembastBoundary = boundary;
+    if (sembastBoundary.values != null) {
+      var value = sembastBoundary.values[index];
+      return compareValueAscending(record[field], value);
+    }
+    if (sembastBoundary.record != null) {
+      return compare(record, sembastBoundary.record);
+    }
+    throw ArgumentError('either record or values must be provided');
+  }
+
   int compareAscending(Record record1, Record record2) {
     var value1 = record1[field];
     var value2 = record2[field];
+    return compareValueAscending(value1, value2);
+  }
+
+  int compareValueAscending(dynamic value1, dynamic value2) {
     if (value1 == null) {
       if (value2 == null) {
         return 0;

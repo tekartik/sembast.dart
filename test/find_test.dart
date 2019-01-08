@@ -99,9 +99,9 @@ void defineTests(DatabaseTestContext ctx) {
           return txn.putRecord(record).then((_) {
             return store.findRecords(finder).then((List<Record> records) {
               expect(records.length, 4);
-              // for now txn records are first
-              expect(records[0], record);
-              expect(records[3], record3);
+              // records are sorted by key by default
+              expect(records[0], record1);
+              expect(records[3], record);
               // expect(records[3], record);
               // expect(records[0], record1);
             });
@@ -407,7 +407,8 @@ void defineTests(DatabaseTestContext ctx) {
       var reason = '$records vs $expectedRecords';
       expect(records.length, expectedRecords.length, reason: reason);
       for (int i = 0; i < records.length; i++) {
-        expect(records[i]?.key, expectedRecords[i]?.key, reason: reason);
+        expect(records[i]?.key, expectedRecords[i]?.key,
+            reason: 'index $i $reason');
       }
     }
 
@@ -456,6 +457,146 @@ void defineTests(DatabaseTestContext ctx) {
         records = await store.findRecords(finder);
         expectRecordKeys(records, [record3]);
       });
+
+      /*
+      void dumpRecords(List<Record> records) {
+        for (var record in records) {
+          print(record);
+        }
+      }
+      */
+
+      test('sort_descending', () async {
+        Finder finder = Finder();
+        // descending
+        finder.sortOrders = [SortOrder("path.sub", false)];
+        var records = await store.findRecords(finder);
+        //dumpRecords(records);
+        expectRecordKeys(records, [record2, record3, record1]);
+      });
+
+      test('start', () async {
+        Finder finder = Finder();
+        finder.sortOrders = [SortOrder("path.sub", true)];
+
+        finder.start = Boundary(values: ['b'], include: true);
+        var records = await store.findRecords(finder);
+        expectRecordKeys(records, [record3, record2]);
+
+        finder.start = Boundary(values: ['a'], include: false);
+        records = await store.findRecords(finder);
+        expectRecordKeys(records, [record3, record2]);
+
+        finder.start = Boundary(values: ['b'], include: false);
+        records = await store.findRecords(finder);
+        expectRecordKeys(records, [record2]);
+
+        // descending
+        finder.sortOrders = [SortOrder("path.sub", false)];
+        finder.start = Boundary(values: ['b'], include: true);
+        records = await store.findRecords(finder);
+        expectRecordKeys(records, [record3, record1]);
+
+        finder.start = Boundary(values: ['b'], include: false);
+        records = await store.findRecords(finder);
+        expectRecordKeys(records, [record1]);
+      });
+
+      test('end', () async {
+        Finder finder = Finder();
+        finder.sortOrders = [SortOrder("path.sub", true)];
+
+        finder.end = Boundary(values: ['b'], include: true);
+        var records = await store.findRecords(finder);
+        expectRecordKeys(records, [record1, record3]);
+
+        finder.end = Boundary(values: ['b'], include: false);
+        records = await store.findRecords(finder);
+        expectRecordKeys(records, [record1]);
+
+        // descending
+        finder.sortOrders = [SortOrder("path.sub", false)];
+        finder.end = Boundary(values: ['b'], include: true);
+        records = await store.findRecords(finder);
+        expectRecordKeys(records, [record2, record3]);
+
+        finder.end = Boundary(values: ['b'], include: false);
+        records = await store.findRecords(finder);
+        expectRecordKeys(records, [record2]);
+      });
+
+      test('start_end', () async {
+        Finder finder = Finder();
+        finder.sortOrders = [SortOrder("path.sub", true)];
+
+        finder.start = Boundary(values: ['b'], include: true);
+        finder.end = Boundary(values: ['b'], include: true);
+        var records = await store.findRecords(finder);
+        //print(records);
+        expectRecordKeys(records, [record3]);
+
+        finder.end = Boundary(values: ['b'], include: false);
+        records = await store.findRecords(finder);
+        expectRecordKeys(records, []);
+      });
+    });
+
+    test('multi_sort_order', () async {
+      db = await setupForTest(ctx);
+
+      // Store some objects
+      dynamic key1, key2, key3, key4;
+      Record record1, record2, record3, record4;
+      await db.transaction((txn) async {
+        key2 = await txn.put({'name': 'Lamp', 'price': 10});
+        key3 = await txn.put({'name': 'Chair', 'price': 10});
+        key4 = await txn.put({'name': 'Deco', 'price': 5});
+        key1 = await txn.put({'name': 'Table', 'price': 35});
+        record1 = await txn.getRecord(key1);
+        record2 = await txn.getRecord(key2);
+        record3 = await txn.getRecord(key3);
+        record4 = await txn.getRecord(key4);
+      });
+
+      {
+        // Sort by price and name
+        var finder =
+            Finder(sortOrders: [SortOrder('price'), SortOrder('name')]);
+        var record = await db.findRecord(finder);
+        // first is the Deco
+        expect(record['name'], 'Deco');
+
+        var records = await db.findRecords(finder);
+
+        expectRecordKeys(records, [record4, record3, record2, record1]);
+      }
+
+      // Boundaries
+      {
+        // Look for object after Chair 10 (ordered by price then name) so
+        // should the the Lamp
+        var finder = Finder(
+            sortOrders: [SortOrder('price'), SortOrder('name')],
+            start: Boundary(values: [10, 'Chair']));
+        var record = await db.findRecord(finder);
+        expect(record['name'], 'Lamp');
+
+        // You can also specify to look after a given record
+        finder = Finder(
+            sortOrders: [SortOrder('price'), SortOrder('name')],
+            start: Boundary(record: record));
+        record = await db.findRecord(finder);
+        // After the lamp the more expensive one is the Table
+        expect(record['name'], 'Table');
+
+        // after the lamp by price is the chair
+        // if not ordered by name
+        finder = Finder(
+            sortOrders: [SortOrder('price')], start: Boundary(record: record2));
+        record = await db.findRecord(finder);
+        // After the lamp the more expensive one is the Table
+        expect(record['name'], 'Chair');
+      }
     });
   });
 }

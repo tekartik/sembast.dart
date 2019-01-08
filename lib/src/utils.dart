@@ -56,6 +56,9 @@ bool checkValue(value) {
   }
 }
 
+// default sort order
+int compareKey(dynamic key1, dynamic key2) => compareValue(key1, key2);
+
 // return <0 if value1 < value2 or >0 if greater
 // returns null if cannot be compared
 int compareValue(dynamic value1, dynamic value2) {

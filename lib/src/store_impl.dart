@@ -170,30 +170,44 @@ class SembastStore implements Store {
   }
 
   List<Record> txnFindRecords(SembastTransaction txn, Finder finder) {
-    List<Record> result;
+    List<Record> results;
 
     var sembastFinder = finder as SembastFinder;
-    result = [];
+    results = [];
 
     _forEachRecords(txn, sembastFinder?.filter, (Record record) {
-      result.add(record);
+      results.add(record);
     });
 
     if (finder != null) {
       // sort
-      result.sort((Record record1, record2) =>
-          (finder as SembastFinder).compare(record1, record2));
+      results.sort((Record record1, record2) =>
+          sembastFinder.compareThenKey(record1, record2));
+
+      try {
+        // handle start
+        if (sembastFinder.start != null) {
+          results = sembastFinder.filterStart(results);
+        }
+        // handle end
+        if (sembastFinder.end != null) {
+          results = sembastFinder.filterEnd(results);
+        }
+      } catch (e) {
+        print('Make sure you are comparing boundaries with a proper type');
+        rethrow;
+      }
 
       // offset
       if (sembastFinder.offset != null) {
-        result = result.sublist(min(sembastFinder.offset, result.length));
+        results = results.sublist(min(sembastFinder.offset, results.length));
       }
       // limit
       if (sembastFinder.limit != null) {
-        result = result.sublist(0, min(sembastFinder.limit, result.length));
+        results = results.sublist(0, min(sembastFinder.limit, results.length));
       }
     }
-    return result;
+    return results;
   }
 
   @override

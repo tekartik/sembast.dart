@@ -111,6 +111,17 @@ void defineTests(DatabaseTestContext ctx) {
         expect(record['name'], 'dog');
       }
 
+      // Boundaries
+      {
+        // Look for the one after `cat`
+        var finder = Finder(
+            sortOrders: [SortOrder('name', true)],
+            start: Boundary(values: ['cat']));
+        var record = await db.findRecord(finder);
+
+        expect(record['name'], 'dog');
+      }
+
       {
         // Look for any name stating with f (i.e. fish, frog...)
         var finder = Finder(filter: Filter.matches('name', '^f'));
@@ -132,6 +143,83 @@ void defineTests(DatabaseTestContext ctx) {
 
         expect(record['name'], 'fish');
       }
+    });
+
+    void expectRecordKeys(List<Record> records, List<dynamic> expectedKeys) {
+      var reason = '$records vs $expectedKeys';
+      expect(records.length, expectedKeys.length, reason: reason);
+      for (int i = 0; i < records.length; i++) {
+        expect(records[i]?.key, expectedKeys[i], reason: 'index $i $reason');
+      }
+    }
+
+    test('queries_start_doc', () async {
+      db = await setupForTest(ctx);
+
+      // Store some objects
+      dynamic key1, key2, key3, key4;
+      await db.transaction((txn) async {
+        key2 = await txn.put({'name': 'Lamp', 'price': 10});
+        key3 = await txn.put({'name': 'Chair', 'price': 10});
+        key4 = await txn.put({'name': 'Deco', 'price': 5});
+        key1 = await txn.put({'name': 'Table', 'price': 35});
+      });
+
+      {
+        // Sort by price and name
+        var finder =
+            Finder(sortOrders: [SortOrder('price'), SortOrder('name')]);
+        var record = await db.findRecord(finder);
+        // first is the Deco
+        expect(record['name'], 'Deco');
+
+        var records = await db.findRecords(finder);
+
+        expectRecordKeys(records, [key4, key3, key2, key1]);
+      }
+
+      // Boundaries
+      {
+        // Look for object after Chair 10 (ordered by price then name) so
+        // should the the Lamp 10
+        var finder = Finder(
+            sortOrders: [SortOrder('price'), SortOrder('name')],
+            start: Boundary(values: [10, 'Chair']));
+        var record = await db.findRecord(finder);
+        expect(record['name'], 'Lamp');
+
+        // You can also specify to look after a given record
+        finder = Finder(
+            sortOrders: [SortOrder('price'), SortOrder('name')],
+            start: Boundary(record: record));
+        record = await db.findRecord(finder);
+        // After the lamp the more expensive one is the Table
+        expect(record['name'], 'Table');
+      }
+
+/*
+      {
+        // Look for any name stating with f (i.e. fish, frog...)
+        var finder = Finder(filter: Filter.matches('name', '^f'));
+        var record = await db.findRecord(finder);
+
+        expect(record['name'], 'fish');
+      }
+      {
+        // Look for any name ending with og (i.e. dog, frog...)
+        var finder = Finder(filter: Filter.matches('name', r'og$'));
+        var record = await db.findRecord(finder);
+
+        expect(record['name'], 'dog');
+      }
+      {
+        // Look for any name containing 'is' (fish matches)
+        var finder = Finder(filter: Filter.matches('name', 'is'));
+        var record = await db.findRecord(finder);
+
+        expect(record['name'], 'fish');
+      }
+      */
     });
 
     test('writes_doc', () async {

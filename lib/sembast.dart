@@ -24,6 +24,7 @@ export 'package:sembast/src/database_mode.dart'
         // ignore: deprecated_member_use
         databaseModeNeverFails;
 export 'package:sembast/src/sort_order.dart';
+export 'package:sembast/src/boundary.dart';
 
 export 'src/database.dart';
 export 'src/record.dart';
@@ -172,7 +173,7 @@ abstract class Filter {
 }
 
 ///
-/// Helper to define one or multiple filters
+/// Finder helper for searching a given store
 ///
 abstract class Finder {
   set filter(Filter filter);
@@ -185,9 +186,27 @@ abstract class Finder {
 
   set sortOrder(SortOrder sortOrder);
 
+  set start(Boundary start);
+
+  set end(Boundary end);
+
+  /// Specify a [filter].
+  ///
+  /// Having a [start] and/or [end] boundary requires a sortOrders when the values
+  /// are specified. start/end is done after filtering
   factory Finder(
-      {Filter filter, List<SortOrder> sortOrders, int limit, int offset}) {
+      {Filter filter,
+      List<SortOrder> sortOrders,
+      int limit,
+      int offset,
+      Boundary start,
+      Boundary end}) {
     return SembastFinder(
-        filter: filter, sortOrders: sortOrders, limit: limit, offset: offset);
+        filter: filter,
+        sortOrders: sortOrders,
+        limit: limit,
+        offset: offset,
+        start: start,
+        end: end);
   }
 }
