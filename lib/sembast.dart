@@ -31,7 +31,7 @@ export 'src/record.dart';
 export 'src/store.dart';
 
 /// can return a future or not
-typedef FutureOr OnVersionChangedFunction(
+typedef OnVersionChangedFunction = FutureOr Function(
     Database db, int oldVersion, int newVersion);
 
 ///

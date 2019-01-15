@@ -3,16 +3,17 @@ library sembast.test.io_test;
 
 import 'dart:async';
 import 'dart:convert';
-import 'package:sembast/src/io/database_factory_io.dart' as impl;
+import 'dart:io' as io;
 
-import 'io_test_common.dart';
 import 'package:path/path.dart';
 import 'package:sembast/sembast.dart';
-import 'test_common.dart';
 import 'package:sembast/sembast_io.dart';
-import 'package:sembast/src/io/file_system_io.dart';
 import 'package:sembast/src/file_system.dart';
-import 'dart:io' as io;
+import 'package:sembast/src/io/database_factory_io.dart' as impl;
+import 'package:sembast/src/io/file_system_io.dart';
+
+import 'io_test_common.dart';
+import 'test_common.dart';
 
 void main() {
   group("io", () {

@@ -1,10 +1,11 @@
 library sembast.test.memory_factory_test_;
 
+import 'package:sembast/sembast.dart';
 import 'package:sembast/src/memory/database_factory_memory.dart'
     show DatabaseFactoryMemory;
-import 'test_common.dart';
+
 import 'all_test.dart';
-import 'package:sembast/sembast.dart';
+import 'test_common.dart';
 
 void main() {
   test('type', () {

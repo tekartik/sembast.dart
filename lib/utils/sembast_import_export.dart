@@ -1,7 +1,8 @@
 library sembast.utils.sembast_import_export;
 
-import '../sembast.dart';
 import 'dart:async';
+
+import 'package:sembast/sembast.dart';
 
 const String _dbVersion = "version";
 const String _exportSignatureKey = "sembast_export";

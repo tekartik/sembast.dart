@@ -1,10 +1,12 @@
 library sembast.database_perf_test;
 
 // basically same as the io runner but with extra output
-import 'package:sembast/sembast.dart';
 import 'dart:async';
-import 'test_common.dart';
 import 'dart:math';
+
+import 'package:sembast/sembast.dart';
+
+import 'test_common.dart';
 
 void main() {
   defineTests(memoryDatabaseContext, 10);

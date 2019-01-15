@@ -1,10 +1,11 @@
 library sembast.test.io_test_common;
 
-import 'package:path/path.dart';
 import 'package:dev_test/test.dart';
-import 'test_common.dart';
+import 'package:path/path.dart';
 import 'package:sembast/sembast_io.dart';
 import 'package:sembast/src/io/file_system_io.dart';
+
+import 'test_common.dart';
 
 // For test in memory
 DatabaseTestContextIo get databaseContextIo =>
@@ -31,6 +32,7 @@ class FileSystemTestContextIo extends FileSystemTestContext {
 }
 
 String get testOutPath => getTestOutPath(testDescriptions);
+
 String get testOutTopPath => join(".dart_tool", "sembast");
 
 String getTestOutPath([List<String> parts]) {

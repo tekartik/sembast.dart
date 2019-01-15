@@ -2,8 +2,8 @@
 library sembast.database_perf_test_slow;
 
 // basically same as the io runner but with extra output
-import 'test_common.dart';
 import 'database_perf_test.dart' as database_perf_test;
+import 'test_common.dart';
 
 void main() {
   // 1000 too high for dart2js => 500

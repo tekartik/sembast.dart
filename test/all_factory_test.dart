@@ -5,8 +5,8 @@ import 'package:path/path.dart';
 
 import 'all_test.dart';
 import 'io_test_common.dart';
-import 'test_common.dart';
 import 'memory_factory_test_.dart';
+import 'test_common.dart';
 
 // default use memory
 void main() {

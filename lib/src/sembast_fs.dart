@@ -2,14 +2,16 @@ library sembast.fs;
 
 import 'dart:async';
 import 'dart:convert';
-import '../sembast.dart';
-import 'package:path/path.dart';
+
 import 'package:logging/logging.dart';
-import 'file_system.dart';
+import 'package:path/path.dart';
 import 'package:sembast/src/database.dart';
+import 'package:sembast/src/database_factory_mixin.dart';
 import 'package:sembast/src/database_impl.dart';
 import 'package:sembast/src/storage.dart';
-import 'package:sembast/src/database_factory_mixin.dart';
+
+import 'package:sembast/sembast.dart';
+import 'file_system.dart';
 
 class _FsDatabaseStorage extends DatabaseStorage {
   final FileSystem fs;
@@ -127,6 +129,7 @@ class DatabaseFactoryFs extends SembastDatabaseFactory
     with DatabaseFactoryMixin
     implements DatabaseFactory {
   final FileSystem fs;
+
   DatabaseFactoryFs(this.fs);
 
   @override

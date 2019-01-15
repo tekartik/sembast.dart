@@ -1,11 +1,13 @@
 library sembast.memory_file_system;
 
-import '../file_system.dart' as fs;
-import 'file_system_memory_impl.dart';
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:sembast/src/file_system.dart' as fs;
+import 'file_system_memory_impl.dart';
+
 final FileSystemMemory _fs = FileSystemMemory();
+
 FileSystemMemory get memoryFileSystem => _fs;
 
 class FileSystemMemory implements fs.FileSystem {

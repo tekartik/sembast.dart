@@ -1,15 +1,17 @@
 library sembast.memory_file_system_impl;
 
-import '../file_system.dart' as fs;
-
 import 'dart:async';
+
 import 'package:path/path.dart';
+
+import 'package:sembast/src/file_system.dart' as fs;
 
 OSErrorMemory get _noSuchPathError =>
     OSErrorMemory(2, "No such file or directory");
 
 class OSErrorMemory implements fs.OSError {
   OSErrorMemory(this.errorCode, this.message);
+
   @override
   final int errorCode;
   @override
@@ -43,6 +45,7 @@ class FileSystemExceptionMemory implements fs.FileSystemException {
 
 class DirectoryMemoryImpl extends FileSystemEntityMemoryImpl {
   Map<String, FileSystemEntityMemoryImpl> children = {};
+
   DirectoryMemoryImpl(DirectoryMemoryImpl parent, String segment)
       : super(parent, fs.FileSystemEntityType.directory, segment);
 
@@ -137,6 +140,7 @@ class FileMemoryImpl extends FileSystemEntityMemoryImpl {
 abstract class FileSystemEntityMemoryImpl {
   // don't access it
   DirectoryMemoryImpl _parent;
+
   DirectoryMemoryImpl get parent => _parent;
 
   fs.FileSystemEntityType type;
@@ -149,6 +153,7 @@ abstract class FileSystemEntityMemoryImpl {
   String get path => join(parent.path, segment);
 
   int openCount = 0;
+
   bool get closed => (openCount == 0);
 
   // Set in the parent
@@ -175,6 +180,7 @@ abstract class FileSystemEntityMemoryImpl {
 
 class IOSinkMemory implements fs.IOSink {
   FileMemoryImpl impl;
+
   IOSinkMemory(this.impl);
 
   @override
@@ -194,6 +200,7 @@ class RootDirectoryMemoryImpl extends DirectoryMemoryImpl {
 class _TmpSink implements fs.IOSink {
   String path;
   IOSinkMemory real;
+
   _TmpSink(this.path, this.real);
 
   @override

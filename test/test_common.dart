@@ -1,27 +1,31 @@
 library sembast.test.test_common;
 
 // basically same as the io runner but with extra output
+import 'dart:async';
+import 'dart:convert';
+
+import 'package:dev_test/test.dart';
+import 'package:path/path.dart';
+import 'package:sembast/sembast.dart';
+import 'package:sembast/sembast_memory.dart';
 import 'package:sembast/src/database_factory_mixin.dart';
 import 'package:sembast/src/database_impl.dart';
-import 'package:sembast/src/memory/file_system_memory.dart';
-import 'package:sembast/sembast.dart';
-import 'dart:async';
 import 'package:sembast/src/file_system.dart';
-import 'package:dev_test/test.dart';
-export 'package:dev_test/test.dart';
-import 'package:sembast/sembast_memory.dart';
+import 'package:sembast/src/memory/file_system_memory.dart';
 import 'package:sembast/src/sembast_fs.dart';
-import 'package:path/path.dart';
-import 'dart:convert';
+
+export 'package:dev_test/test.dart';
 
 // For test in memory
 DatabaseTestContext get memoryDatabaseContext =>
     DatabaseTestContext()..factory = databaseFactoryMemory;
+
 DatabaseTestContextFs get memoryFsDatabaseContext =>
     DatabaseTestContextFs()..factory = databaseFactoryMemoryFs;
 
 class DatabaseTestContextFs extends DatabaseTestContext {
   FileSystem get fs => (factory as DatabaseFactoryFs).fs;
+
   @override
   String get dbPath => join(fs.currentDirectory.path, super.dbPath);
 }
@@ -41,6 +45,7 @@ class DatabaseTestContext {
 // FileSystem context
 class FileSystemTestContext {
   FileSystem fs;
+
   String get outPath => fs.currentDirectory.path;
 }
 

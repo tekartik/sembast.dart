@@ -1,13 +1,13 @@
 library sembast.io_file_system;
 
+import 'dart:async';
+import 'dart:convert';
+import 'dart:io' as io;
+
 import 'package:path/path.dart';
 import 'package:path/path.dart' as _path;
 
-import '../file_system.dart' as fs;
-
-import 'dart:async';
-import 'dart:io' as io;
-import 'dart:convert';
+import 'package:sembast/src/file_system.dart' as fs;
 import 'file_mode_io.dart';
 
 ///
@@ -46,6 +46,7 @@ fs.FileSystemEntityType fsFileType(io.FileSystemEntityType type) {
 
 class _IoIOSink implements fs.IOSink {
   final io.IOSink ioSink;
+
   _IoIOSink(this.ioSink);
 
   @override
@@ -57,6 +58,7 @@ class _IoIOSink implements fs.IOSink {
 
 class _IoOSError implements fs.OSError {
   io.OSError ioOSError;
+
   _IoOSError(this.ioOSError);
 
   @override
@@ -71,6 +73,7 @@ class _IoOSError implements fs.OSError {
 
 class _IoFileSystemException implements fs.FileSystemException {
   io.FileSystemException ioFse;
+
   _IoFileSystemException(this.ioFse) : osError = _IoOSError(ioFse.osError);
 
   @override
@@ -130,20 +133,18 @@ class FileSystemIo implements fs.FileSystem {
   }
 
   @override
-  Future<bool> isFile(String path) =>
-      io.FileSystemEntity.isFile(_normalizeWithRoot(path));
+  Future<bool> isFile(String path) async =>
+      io.FileSystemEntity.isFileSync(_normalizeWithRoot(path));
 
   @override
-  Future<bool> isDirectory(String path) =>
-      io.FileSystemEntity.isDirectory(_normalizeWithRoot(path));
+  Future<bool> isDirectory(String path) async =>
+      io.FileSystemEntity.isDirectorySync(_normalizeWithRoot(path));
 
   @override
   Future<fs.FileSystemEntityType> type(String path,
-          {bool followLinks = true}) //
-      =>
-      _wrap(io.FileSystemEntity.type(_normalizeWithRoot(path),
-              followLinks: true))
-          .then((io.FileSystemEntityType ioType) => fsFileType(ioType));
+          {bool followLinks = true}) async =>
+      fsFileType(io.FileSystemEntity.typeSync(_normalizeWithRoot(path),
+          followLinks: true));
 
   @override
   DirectoryIo get currentDirectory => rootPath != null

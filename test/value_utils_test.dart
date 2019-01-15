@@ -2,8 +2,9 @@ library sembast.value_test;
 
 // basically same as the io runner but with extra output
 import 'package:sembast/src/utils.dart';
-import 'test_common.dart';
 import 'package:sembast/utils/value_utils.dart' as utils;
+
+import 'test_common.dart';
 
 void main() {
   group('value_utils', () {

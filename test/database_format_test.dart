@@ -1,11 +1,13 @@
 library sembast.database_format_test;
 
+import 'dart:async';
+import 'dart:convert';
+
+import 'package:sembast/sembast.dart';
 import 'package:sembast/src/file_system.dart';
 import 'package:sembast/src/sembast_fs.dart';
-import 'package:sembast/sembast.dart';
+
 import 'test_common.dart';
-import 'dart:convert';
-import 'dart:async';
 
 void main() {
   defineTests(memoryFileSystemContext);

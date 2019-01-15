@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:sembast/sembast.dart';
 import 'package:sembast/src/database_factory_mixin.dart';
 import 'package:sembast/src/io/file_system_io.dart';

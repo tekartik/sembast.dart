@@ -39,7 +39,7 @@ void defineTests() {
         await file.delete();
       }
 
-      expect(await ioFile.exists(), isFalse);
+      expect(ioFile.existsSync(), isFalse);
 
       await file.create(recursive: true);
       var sink = file.openWrite();
