@@ -31,7 +31,7 @@ void defineTests(DatabaseTestContext ctx, int putCount,
         futures.add(db.put("value $i", i));
         // let it breathe
         //print(i);
-        await Future.delayed(Duration());
+        await Future.delayed(const Duration());
       }
       await Future.wait(futures).then((_) {
         return db.count().then((int count) {
@@ -87,7 +87,7 @@ void defineTests(DatabaseTestContext ctx, int putCount,
         }
         // let it breathe
         //print(i);
-        await Future.delayed(Duration(milliseconds: 0));
+        await Future.delayed(const Duration(milliseconds: 0));
       }
     });
   });
