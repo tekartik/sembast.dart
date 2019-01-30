@@ -39,7 +39,7 @@ void defineTests(DatabaseTestContext ctx) {
       expect(await db.containsKey(1), isFalse);
       await db.put(1234);
       Future _check() async {
-        int value = await db.get(1);
+        final value = await db.get(1) as int;
         expect(await db.containsKey(1), isTrue);
         expect(value, 1234);
       }
@@ -53,7 +53,7 @@ void defineTests(DatabaseTestContext ctx) {
       expect(await db.containsKey(1), isFalse);
       await db.put(1234.5678);
       Future _check() async {
-        double value = await db.get(1);
+        final value = await db.get(1) as double;
         expect(await db.containsKey(1), isTrue);
         expect(value, closeTo(1234.5678, 0.0001));
       }
@@ -67,7 +67,7 @@ void defineTests(DatabaseTestContext ctx) {
       expect(await db.containsKey(1), isFalse);
       await db.put(true);
       Future _check() async {
-        bool value = await db.get(1);
+        final value = await db.get(1) as bool;
         expect(await db.containsKey(1), isTrue);
         expect(value, isTrue);
       }
@@ -81,7 +81,7 @@ void defineTests(DatabaseTestContext ctx) {
       expect(await db.containsKey(1), isFalse);
       await db.put("hello");
       Future _check() async {
-        String value = await db.get(1);
+        final value = await db.get(1) as String;
         expect(await db.containsKey(1), isTrue);
         expect(value, "hello");
       }
@@ -107,7 +107,7 @@ void defineTests(DatabaseTestContext ctx) {
       expect(await db.containsKey(1), isFalse);
       await db.put(map);
       Future _check() async {
-        Map<String, dynamic> value = await db.get(1);
+        final value = await db.get(1) as Map<String, dynamic>;
         expect(await db.containsKey(1), isTrue);
         expect(value, map);
       }

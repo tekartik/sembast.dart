@@ -20,7 +20,8 @@ void main() {
     test('fs', () {
       expect((databaseFactoryIo as impl.DatabaseFactoryIo).fs,
           const TypeMatcher<FileSystemIo>());
-      FileSystemIo fs = (databaseFactoryIo as impl.DatabaseFactoryIo).fs;
+      final fs =
+          (databaseFactoryIo as impl.DatabaseFactoryIo).fs as FileSystemIo;
       expect(fs.rootPath, isNull);
     });
 

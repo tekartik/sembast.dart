@@ -69,8 +69,8 @@ class FilterPredicate extends Filter {
     }
 
     bool _matches(dynamic value1, dynamic value2) {
-      String fieldValue = value1;
-      RegExp regExp = value2;
+      final fieldValue = value1 as String;
+      final regExp = value2 as RegExp;
       // a null value is never ok (use isNotNulllboth null is ok
       if (fieldValue == null) {
         return false;

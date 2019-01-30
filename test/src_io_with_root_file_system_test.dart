@@ -22,7 +22,7 @@ void defineTests() {
     tearDown(() {});
 
     test('file location', () async {
-      FileIo file = fileSystem.file("file.txt");
+      final file = fileSystem.file("file.txt");
       expect(file.path, "file.txt");
       io.File ioFile = io.File(join(rootPath, "file.txt"));
       if (await file.exists()) {

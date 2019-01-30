@@ -74,7 +74,7 @@ class SembastFinder implements Finder {
     }
     if (result == 0) {
       // Sort by key
-      SembastBoundary sembastBoundary = boundary;
+      final sembastBoundary = boundary as SembastBoundary;
       if (sembastBoundary.record?.key != null) {
         // Compare key
         return compareKey(record.key, sembastBoundary.record.key);

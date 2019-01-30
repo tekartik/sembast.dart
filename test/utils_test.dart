@@ -11,7 +11,7 @@ void main() {
   group('utils', () {
     test('sanitize_map', () {
       var map = <dynamic, dynamic>{"test": 1};
-      Map<String, dynamic> sanitizedMap = sanitizeValue(map);
+      final sanitizedMap = sanitizeValue(map);
       expect(sanitizedMap, map);
     });
 

@@ -21,18 +21,18 @@ void defineTests() {
     tearDown(() {});
 
     test('newFile', () {
-      FileIo file = fileSystem.file("test");
+      final file = fileSystem.file("test") as FileIo;
       expect(file.path, "test");
     });
 
     test('new Directory', () {
-      DirectoryIo dir = fileSystem.directory("test");
+      final dir = fileSystem.directory("test") as DirectoryIo;
       expect(dir.path, "test");
     });
 
     test('file location', () async {
       var path = join('.dart_tool', 'sembast', 'test', 'file_system_io');
-      FileIo file = fileSystem.file(path);
+      final file = fileSystem.file(path);
       expect(file.path, path);
       io.File ioFile = io.File(path);
       if (await file.exists()) {

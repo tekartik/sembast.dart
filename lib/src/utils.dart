@@ -186,7 +186,8 @@ dynamic mergeValue(dynamic existingValue, dynamic newValue) {
     return newValue;
   }
 
-  Map<String, dynamic> mergedMap = cloneValue(existingValue);
+  Map<String, dynamic> mergedMap =
+      cloneValue(existingValue) as Map<String, dynamic>;
   Map currentMap = mergedMap;
 
   void merge(key, value) {

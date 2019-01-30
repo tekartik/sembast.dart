@@ -25,7 +25,7 @@ class SembastSortOrder implements SortOrder {
   }
 
   int compareToBoundaryAscending(Record record, Boundary boundary, int index) {
-    SembastBoundary sembastBoundary = boundary;
+    final sembastBoundary = boundary as SembastBoundary;
     if (sembastBoundary.values != null) {
       var value = sembastBoundary.values[index];
       return compareValueAscending(record[field], value);
