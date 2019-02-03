@@ -10,6 +10,7 @@ import 'package:sembast/src/filter.dart';
 import 'package:sembast/src/finder.dart';
 import 'package:sembast/src/sort_order.dart';
 
+// ignore: deprecated_member_use
 export 'package:sembast/src/database_mode.dart'
     show
         DatabaseMode,

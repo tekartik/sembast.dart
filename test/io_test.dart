@@ -62,7 +62,7 @@ void main() {
           // version cannot be read anymore...
           expect(db.version, 1);
         }
-        db.close();
+        await db.close();
       });
 
       test('missing new line after 1 record', () async {
@@ -91,7 +91,7 @@ void main() {
           expect(lines.length, 2);
           expect(json.decode(lines[1]), {'key': 1, 'value': 'test1'});
         }
-        db.close();
+        await db.close();
       });
     });
   });

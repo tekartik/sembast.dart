@@ -45,7 +45,7 @@ class OpenHelper {
   Future<Database> getDatabase() async {
     if (_completer == null) {
       _completer = Completer();
-      _openDatabase();
+      await _openDatabase();
     }
     return _completer.future;
   }

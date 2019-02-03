@@ -31,7 +31,7 @@ void defineTests(DatabaseTestContext ctx) {
       var macAddress = '00:0a:95:9d:68:16';
       await db.transaction((txn) async {
         // put twice the same record
-        txn.put({'macAddress': macAddress});
+        await txn.put({'macAddress': macAddress});
         lastKey = await txn.put({'macAddress': macAddress});
       });
       // Sorting by key requires using the special Field.key

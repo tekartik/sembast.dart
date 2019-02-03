@@ -1,5 +1,8 @@
-# Specify analysis options.
-# 2019-01-15
+# Defines a default set of lint rules enforced for
+# projects at Google. For details and rationale,
+# see https://github.com/dart-lang/pedantic#enabled-lints.
+include: package:pedantic/analysis_options.yaml
+
 #
 # Until there are meta linter rules, each desired lint must be explicitly enabled.
 # See: https://github.com/dart-lang/linter/issues/288

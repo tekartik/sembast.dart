@@ -91,7 +91,7 @@ class FileMemoryImpl extends FileSystemEntityMemoryImpl {
         ctlr.addError(e);
       }
 
-      ctlr.close();
+      await ctlr.close();
     });
     return ctlr.stream;
   }

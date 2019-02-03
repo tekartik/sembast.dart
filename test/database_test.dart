@@ -33,7 +33,7 @@ void defineTests(DatabaseTestContext ctx) {
         var db = await factory.openDatabase(dbPath);
         expect(db.version, 1);
         expect(db.path, endsWith(dbPath));
-        db.close();
+        await db.close();
       });
 
       test('open_existing_no_version', () async {
@@ -51,7 +51,7 @@ void defineTests(DatabaseTestContext ctx) {
         var db = await factory.openDatabase(dbPath, version: 1);
         expect(db.version, 1);
         expect(db.path, endsWith(dbPath));
-        db.close();
+        await db.close();
       });
 
       test('open_twice_no_close', () async {
@@ -63,7 +63,7 @@ void defineTests(DatabaseTestContext ctx) {
         // behavior is unexpected from now...
         expect(db.version, 1);
         expect(db.path, endsWith(dbPath));
-        db2.close();
+        await db2.close();
       });
 
       test('open_twice_same_instance', () async {
@@ -109,7 +109,7 @@ void defineTests(DatabaseTestContext ctx) {
         expect(_newVersion, 1);
         expect(db.version, 1);
         expect(db.path, endsWith(dbPath));
-        db.close();
+        await db.close();
       });
 
       test('open_version', () async {
@@ -129,7 +129,7 @@ void defineTests(DatabaseTestContext ctx) {
         expect(_newVersion, 1);
         expect(db.version, 1);
         expect(db.path, endsWith(dbPath));
-        db.close();
+        await db.close();
       });
 
       test('changes during onVersionChanged', () async {
