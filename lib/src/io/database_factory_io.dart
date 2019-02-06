@@ -13,19 +13,12 @@ class DatabaseFactoryIo extends DatabaseFactoryFs {
       : super(FileSystemIo(rootPath: rootPath));
 
   @override
-  Future<Database> openDatabase(String path,
-      {int version,
-      OnVersionChangedFunction onVersionChanged,
-      DatabaseMode mode}) {
-    // When using io make sure we never open twice the same file
+  Future<Database> openDatabaseWithOptions(
+      String path, DatabaseOpenOptions options) {
     if (path != null) {
       path = fileSystemIo.absolute(path);
     }
-    var helper = getDatabaseOpenHelper(
-        path,
-        DatabaseOpenOptions(
-            version: version, onVersionChanged: onVersionChanged, mode: mode));
-    return helper.openDatabase();
+    return super.openDatabaseWithOptions(path, options);
   }
 }
 

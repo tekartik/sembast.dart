@@ -5,12 +5,11 @@ import 'dart:convert';
 
 import 'package:logging/logging.dart';
 import 'package:path/path.dart';
-import 'package:sembast/src/database.dart';
+import 'package:sembast/sembast.dart';
 import 'package:sembast/src/database_factory_mixin.dart';
 import 'package:sembast/src/database_impl.dart';
 import 'package:sembast/src/storage.dart';
 
-import 'package:sembast/sembast.dart';
 import 'file_system.dart';
 
 class _FsDatabaseStorage extends DatabaseStorage {
@@ -135,18 +134,6 @@ class DatabaseFactoryFs extends SembastDatabaseFactory
   @override
   SembastDatabase newDatabase(DatabaseOpenHelper openHelper) =>
       SembastDatabase(openHelper, _FsDatabaseStorage(fs, openHelper.path));
-
-  @override
-  Future<Database> openDatabase(String path,
-      {int version,
-      OnVersionChangedFunction onVersionChanged,
-      DatabaseMode mode}) {
-    var helper = getDatabaseOpenHelper(
-        path,
-        DatabaseOpenOptions(
-            version: version, onVersionChanged: onVersionChanged, mode: mode));
-    return helper.openDatabase();
-  }
 
   @override
   Future deleteDatabase(String path) {

@@ -429,7 +429,8 @@ class SembastDatabase extends Object
             if (options.onVersionChanged != null) {
               result = options.onVersionChanged(this, oldVersion, newVersion);
             }
-            meta = Meta(newVersion);
+            meta = Meta(
+                version: newVersion, codecSignature: options.codec?.signature);
 
             if (_storage.supported) {
               await _storage.appendLine(json.encode(meta.toMap()));
@@ -450,7 +451,7 @@ class SembastDatabase extends Object
         // Set current meta
         // so that it is an old value during onVersionChanged
         if (meta == null) {
-          meta = Meta(0);
+          meta = Meta(version: 0, codecSignature: options.codec?.signature);
         }
         if (_meta == null) {
           _meta = meta;
@@ -467,7 +468,8 @@ class SembastDatabase extends Object
           if (version == null) {
             version = 1;
           }
-          meta = Meta(version);
+          meta =
+              Meta(version: version, codecSignature: options.codec?.signature);
         } else {
           // no specific version requested or same
           if ((version != null) && (version != oldVersion)) {
@@ -539,6 +541,16 @@ class SembastDatabase extends Object
             if (Meta.isMapMeta(map)) {
               // meta?
               meta = Meta.fromMap(map);
+
+              // Check codec signature if any
+              if (options.codec?.signature != meta.codecSignature) {
+                if (_openMode == DatabaseMode.neverFails) {
+                  corrupted = true;
+                  return;
+                } else {
+                  throw DatabaseException.badParam('Invalid codec signature');
+                }
+              }
             } else if (SembastRecord.isMapRecord(map)) {
               // record?
               Record record = SembastRecord.fromMap(this, map);

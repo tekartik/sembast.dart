@@ -1,16 +1,18 @@
 library sembast;
 
-//import 'package:tekartik_core/dev_utils.dart';
 import 'dart:async';
+import 'dart:convert';
 
+import 'package:meta/meta.dart';
 import 'package:sembast/sembast.dart';
 import 'package:sembast/src/database.dart';
 import 'package:sembast/src/database_mode.dart';
 import 'package:sembast/src/filter.dart';
 import 'package:sembast/src/finder.dart';
+import 'package:sembast/src/sembast_code_impl.dart';
 import 'package:sembast/src/sort_order.dart';
 
-// ignore: deprecated_member_use
+export 'package:sembast/src/boundary.dart';
 export 'package:sembast/src/database_mode.dart'
     show
         DatabaseMode,
@@ -25,11 +27,18 @@ export 'package:sembast/src/database_mode.dart'
         // ignore: deprecated_member_use
         databaseModeNeverFails;
 export 'package:sembast/src/sort_order.dart';
-export 'package:sembast/src/boundary.dart';
 
 export 'src/database.dart';
 export 'src/record.dart';
 export 'src/store.dart';
+
+//import 'package:tekartik_core/dev_utils.dart';
+// ignore: deprecated_member_use
+// ignore: deprecated_member_use
+// ignore: deprecated_member_use
+// ignore: deprecated_member_use
+// ignore: deprecated_member_use
+// ignore: deprecated_member_use
 
 /// can return a future or not
 typedef OnVersionChangedFunction = FutureOr Function(
@@ -51,10 +60,13 @@ abstract class DatabaseFactory {
   /// [version] is the version expected, if not null and if the existing version is different, onVersionChanged is called
   /// [mode] is [DatabaseMode.DEFAULT] by default
   ///
+  /// A custom [code] can be used to load/save a record, allowing for user encryption
+  ///
   Future<Database> openDatabase(String path,
       {int version,
       OnVersionChangedFunction onVersionChanged,
-      DatabaseMode mode});
+      DatabaseMode mode,
+      SembastCodec codec});
 
   ///
   /// Delete a database if existing
@@ -68,6 +80,7 @@ abstract class DatabaseFactory {
 class DatabaseException implements Exception {
   static int errBadParam = 0;
   static int errDatabaseNotFound = 1;
+  static int errInvalidCodec = 2;
 
   final int _code;
   final String _message;
@@ -81,6 +94,7 @@ class DatabaseException implements Exception {
   DatabaseException.databaseNotFound(this._message)
       : _code = errDatabaseNotFound;
 
+  DatabaseException.invalidCodec(this._message) : _code = errInvalidCodec;
   @override
   String toString() => "[${_code}] ${_message}";
 }
@@ -210,4 +224,17 @@ abstract class Finder {
         start: start,
         end: end);
   }
+}
+
+/// The codec to use to read/write records
+abstract class SembastCodec {
+  /// The public signature, can be a constant, a password hash...
+  String get signature;
+
+  Codec<Map<String, dynamic>, String> get codec;
+
+  factory SembastCodec(
+          {@required String signature,
+          @required Codec<Map<String, dynamic>, String> codec}) =>
+      SembastCodecImpl(signature: signature, codec: codec);
 }

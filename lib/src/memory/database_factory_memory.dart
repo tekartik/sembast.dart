@@ -17,18 +17,6 @@ final DatabaseFactoryMemoryFs databaseFactoryMemoryFs =
 /// In memory implementation
 class DatabaseFactoryMemory extends SembastDatabaseFactory
     with DatabaseFactoryMixin {
-  @override
-  Future<Database> openDatabase(String path,
-      {int version,
-      OnVersionChangedFunction onVersionChanged,
-      DatabaseMode mode}) async {
-    var helper = getDatabaseOpenHelper(
-        path,
-        DatabaseOpenOptions(
-            version: version, onVersionChanged: onVersionChanged, mode: mode));
-    return helper.openDatabase();
-  }
-
   // make it private
   DatabaseFactoryMemory._();
 

@@ -1,22 +1,31 @@
+import 'package:meta/meta.dart';
 import 'package:sembast/src/sembast_impl.dart';
 
 class Meta {
   int version;
   int sembastVersion = 1;
+  String codecSignature;
 
   Meta.fromMap(Map map) {
     version = map[dbVersionKey] as int;
     sembastVersion = map[dbDembastVersionKey] as int;
+    codecSignature = map[dbDembastCodecSignatureKey] as String;
   }
 
   static bool isMapMeta(Map map) {
     return map[dbVersionKey] != null;
   }
 
-  Meta(this.version);
+  Meta({@required this.version, String this.codecSignature});
 
-  Map toMap() {
-    var map = {dbVersionKey: version, dbDembastVersionKey: sembastVersion};
+  Map<String, dynamic> toMap() {
+    var map = <String, dynamic>{
+      dbVersionKey: version,
+      dbDembastVersionKey: sembastVersion
+    };
+    if (codecSignature != null) {
+      map[dbDembastCodecSignatureKey] = codecSignature;
+    }
     return map;
   }
 
