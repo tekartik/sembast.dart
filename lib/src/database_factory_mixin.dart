@@ -34,15 +34,16 @@ class DatabaseOpenHelper {
       await lock.synchronized(() async {
         if (this.database == null) {
           final database = newDatabase(path);
-          await database.open(options);
+          // Affect before open to properly clean
           this.database = database;
+          await database.open(options);
         }
       });
     }
     return this.database;
   }
 
-  Future closeDatabase(SembastDatabase sembastDatabase) async {
+  Future closeDatabase() async {
     if (database != null) {
       factory.removeDatabaseOpenHelper(path);
       database = null;

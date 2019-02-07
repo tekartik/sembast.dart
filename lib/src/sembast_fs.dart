@@ -140,7 +140,7 @@ class DatabaseFactoryFs extends SembastDatabaseFactory
     // Close existing open instance
     var helper = getExistingDatabaseOpenHelper(path);
     if (helper != null && helper.database != null) {
-      helper.closeDatabase(helper.database);
+      helper.closeDatabase();
     }
     return _FsDatabaseStorage(fs, path).delete();
   }

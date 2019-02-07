@@ -114,11 +114,11 @@ void defineTests(FileSystemTestContext ctx) {
     group('base64_codec', () {
       var codec = SembastCodec(signature: 'base64', codec: MyCustomCodec());
       database_format_test.defineTests(ctx, codec: codec);
-      //database_format_test.defineTests(ctx, codec: codec);
 
       test('one_record', () async {
         var db = await _prepareOneRecordDatabase(codec: codec);
         List<String> lines = await readContent(fs, dbPath);
+        print(lines);
         expect(lines.length, 2);
         expect(json.decode(lines.first), {
           "version": 1,

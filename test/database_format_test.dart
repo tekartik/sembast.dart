@@ -92,21 +92,19 @@ void defineTests(FileSystemTestContext ctx, {SembastCodec codec}) {
       expect(lines.length, 2);
       expect(
           decodeRecord(lines[1]), {'store': 'store2', 'key': 1, 'value': 'hi'});
+      await db.close();
     });
 
     test('twice same record', () async {
       await prepareForDb();
-      return factory.openDatabase(dbPath, codec: codec).then((Database db) {
-        return db.put("hi", 1).then((_) {
-          return db.put("hi", 1);
-        });
-      }).then((_) {
-        return readContent(fs, dbPath).then((List<String> lines) {
-          expect(lines.length, 3);
-          expect(decodeRecord(lines[1]), {'key': 1, 'value': 'hi'});
-          expect(decodeRecord(lines[2]), {'key': 1, 'value': 'hi'});
-        });
-      });
+      var db = await factory.openDatabase(dbPath, codec: codec);
+      await db.put("hi", 1);
+      await db.put("hi", 1);
+      var lines = await readContent(fs, dbPath);
+      expect(lines.length, 3);
+      expect(decodeRecord(lines[1]), {'key': 1, 'value': 'hi'});
+      expect(decodeRecord(lines[2]), {'key': 1, 'value': 'hi'});
+      await db.close();
     });
 
     test('1 map record', () async {
@@ -238,13 +236,15 @@ void defineTests(FileSystemTestContext ctx, {SembastCodec codec}) {
 
       Database db;
       try {
-        db = await factory.openDatabase(dbPath, codec: codec);
-      } on DatabaseException catch (e) {
-        expect(e.code, DatabaseException.errInvalidFormat);
+        db = await factory.openDatabase(dbPath,
+            codec: codec, mode: DatabaseMode.create);
+        fail('should fail');
+      } on FormatException catch (_) {
         await _deleteFile(dbPath);
         db = await factory.openDatabase(dbPath, codec: codec);
       }
       expect(db.version, 1);
+      await db.close();
     });
 
     test('corrupted_open_empty', () async {
@@ -253,6 +253,7 @@ void defineTests(FileSystemTestContext ctx, {SembastCodec codec}) {
       Database db = await factory.openDatabase(dbPath,
           mode: DatabaseMode.empty, codec: codec);
       expect(db.version, 1);
+      await db.close();
     });
   });
 }

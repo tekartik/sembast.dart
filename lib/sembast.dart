@@ -82,12 +82,8 @@ class DatabaseException implements Exception {
   static int errBadParam = 0;
   static int errDatabaseNotFound = 1;
 
-  /// Unless never fails is used (without codec) a bad format
-  /// will trigger this error
-  static int errInvalidFormat = 2;
-
   /// This is sent if the codec used does not match the one of the database
-  static int errInvalidCodec = 3;
+  static int errInvalidCodec = 2;
 
   final int _code;
   final String _message;
@@ -103,7 +99,6 @@ class DatabaseException implements Exception {
 
   DatabaseException.invalidCodec(this._message) : _code = errInvalidCodec;
 
-  DatabaseException.invalidFormat(this._message) : _code = errInvalidFormat;
   @override
   String toString() => "[${_code}] ${_message}";
 }
