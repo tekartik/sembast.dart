@@ -63,7 +63,7 @@ Future<Database> importDatabase(
 
   // check signature
   if (srcData[_exportSignatureKey] != _exportSignatureVersion) {
-    throw const FormatException('invalid export format');
+    throw DatabaseException.invalidFormat('invalid export format');
   }
 
   int version = srcData[_dbVersion] as int;

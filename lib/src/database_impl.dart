@@ -7,6 +7,7 @@ import 'package:sembast/src/database.dart';
 import 'package:sembast/src/database_factory_mixin.dart';
 import 'package:sembast/src/meta.dart';
 import 'package:sembast/src/record_impl.dart';
+import 'package:sembast/src/sembast_codec_impl.dart';
 import 'package:sembast/src/sembast_impl.dart';
 import 'package:sembast/src/storage.dart';
 import 'package:sembast/src/store_impl.dart';
@@ -23,6 +24,7 @@ class SembastDatabase extends Object
   final bool logV = logger.isLoggable(Level.FINEST);
 
   final DatabaseStorage _storage;
+
   // Lock used for opening/compacting
   final Lock databaseLock = Lock();
   final Lock transactionLock = Lock();
@@ -40,6 +42,7 @@ class SembastDatabase extends Object
   int get version => _meta.version;
 
   bool _opened = false;
+
   DatabaseOpenOptions get _openOptions => openHelper.options;
 
   // DatabaseMode _openMode;
@@ -113,6 +116,23 @@ class SembastDatabase extends Object
     });
   }
 
+  /// Encode a map before writing it to disk
+  String encodeMap(Map<String, dynamic> map) {
+    if (_openOptions.codec != null) {
+      return _openOptions.codec.codec.encode(map);
+    } else {
+      return json.encode(map);
+    }
+  }
+
+  Map<String, dynamic> decodeString(String text) {
+    if (_openOptions.codec != null) {
+      return _openOptions.codec.codec.decode(text);
+    } else {
+      return (json.decode(text) as Map)?.cast<String, dynamic>();
+    }
+  }
+
   ///
   /// Compact the database (work in progress)
   ///
@@ -127,12 +147,17 @@ class SembastDatabase extends Object
       await tmpStorage.findOrCreate();
 
       List<String> lines = [];
-      void _addLine(Map map) {
+
+      void _addStringLine(String line) {
+        exportStat.lineCount++;
+        lines.add(line);
+      }
+
+      void _addLine(Map<String, dynamic> map) {
         String encoded;
         try {
-          encoded = json.encode(map);
-          exportStat.lineCount++;
-          lines.add(encoded);
+          encoded = encodeMap(map);
+          _addStringLine(encoded);
         } catch (e, st) {
           // usefull for debugging...
           print(map);
@@ -142,7 +167,9 @@ class SembastDatabase extends Object
         }
       }
 
-      _addLine(_meta.toMap());
+      // meta is always json
+      _addStringLine(json.encode(_meta.toMap()));
+
       for (Store store in stores) {
         for (Record record in (store as SembastStore).recordMap.values) {
           _addLine((record as SembastRecord).toMap());
@@ -189,10 +216,10 @@ class SembastDatabase extends Object
 
         // writable record
         for (Record record in txnRecords) {
-          Map map = (record as SembastRecord).toMap();
+          var map = (record as SembastRecord).toMap();
           String encoded;
           try {
-            encoded = json.encode(map);
+            encoded = encodeMap(map);
             lines.add(encoded);
           } catch (e, st) {
             print(map);
@@ -416,6 +443,17 @@ class SembastDatabase extends Object
       return Future.value(this);
     }
 
+    // Check codec
+    if (options.codec != null) {
+      if (options.codec.signature == null) {
+        throw DatabaseException.invalidCodec('Codec signature cannot be null');
+      }
+      if (options.codec.codec == null) {
+        throw DatabaseException.invalidCodec(
+            'Codec implementation cannot be null');
+      }
+    }
+
     return databaseLock.synchronized(() async {
       Meta meta;
 
@@ -430,7 +468,8 @@ class SembastDatabase extends Object
               result = options.onVersionChanged(this, oldVersion, newVersion);
             }
             meta = Meta(
-                version: newVersion, codecSignature: options.codec?.signature);
+                version: newVersion,
+                codecSignature: getCodecEncodedSignature(options.codec));
 
             if (_storage.supported) {
               await _storage.appendLine(json.encode(meta.toMap()));
@@ -451,7 +490,9 @@ class SembastDatabase extends Object
         // Set current meta
         // so that it is an old value during onVersionChanged
         if (meta == null) {
-          meta = Meta(version: 0, codecSignature: options.codec?.signature);
+          meta = Meta(
+              version: 0,
+              codecSignature: getCodecEncodedSignature(options.codec));
         }
         if (_meta == null) {
           _meta = meta;
@@ -468,8 +509,9 @@ class SembastDatabase extends Object
           if (version == null) {
             version = 1;
           }
-          meta =
-              Meta(version: version, codecSignature: options.codec?.signature);
+          meta = Meta(
+              version: version,
+              codecSignature: getCodecEncodedSignature(options.codec));
         } else {
           // no specific version requested or same
           if ((version != null) && (version != oldVersion)) {
@@ -520,47 +562,87 @@ class SembastDatabase extends Object
         //bool needCompact = false;
         bool corrupted = false;
 
-        await _storage.readLines().forEach((String line) {
-          if (!corrupted) {
-            _exportStat.lineCount++;
+        bool firstLineRead = false;
 
-            Map map;
+        await for (String line in _storage.readLines()) {
+          _exportStat.lineCount++;
 
+          Map<String, dynamic> map;
+
+          // Until meta is read, we assume it is json
+          if (!firstLineRead) {
+            // Read the meta first
+            // The first line is always json
             try {
-              // everything is JSON
-              map = json.decode(line) as Map;
-            } on Exception catch (_) {
-              if (_openMode == DatabaseMode.neverFails) {
-                corrupted = true;
-                return;
-              } else {
-                rethrow;
-              }
-            }
-
+              map = (json.decode(line) as Map)?.cast<String, dynamic>();
+            } on Exception catch (_) {}
             if (Meta.isMapMeta(map)) {
               // meta?
               meta = Meta.fromMap(map);
 
               // Check codec signature if any
-              if (options.codec?.signature != meta.codecSignature) {
-                if (_openMode == DatabaseMode.neverFails) {
-                  corrupted = true;
-                  return;
-                } else {
-                  throw DatabaseException.badParam('Invalid codec signature');
-                }
+              if (getCodecEncodedSignature(options.codec) !=
+                  meta.codecSignature) {
+                throw DatabaseException.invalidCodec('Invalid codec signature');
               }
-            } else if (SembastRecord.isMapRecord(map)) {
-              // record?
-              Record record = SembastRecord.fromMap(this, map);
-              if (_noTxnHasRecord(record)) {
-                _exportStat.obsoleteLineCount++;
+              firstLineRead = true;
+              continue;
+            } else {
+              // If a codec is used, we fail
+              if (_openMode == DatabaseMode.neverFails &&
+                  options.codec == null) {
+                corrupted = true;
+                break;
+              } else {
+                throw DatabaseException.invalidFormat(
+                    'Invalid database format');
               }
-              loadRecord(record);
             }
           }
-        });
+
+          try {
+            // decode record
+            map = decodeString(line);
+          } on Exception catch (_) {
+            // We can have meta here
+            try {
+              map = (json.decode(line) as Map)?.cast<String, dynamic>();
+            } on Exception catch (_) {
+              if (_openMode == DatabaseMode.neverFails) {
+                corrupted = true;
+                break;
+              } else {
+                rethrow;
+              }
+            }
+          }
+
+          if (SembastRecord.isMapRecord(map)) {
+            // record?
+            Record record = SembastRecord.fromMap(this, map);
+            if (_noTxnHasRecord(record)) {
+              _exportStat.obsoleteLineCount++;
+            }
+            loadRecord(record);
+          } else if (Meta.isMapMeta(map)) {
+            // meta?
+            meta = Meta.fromMap(map);
+
+            // Check codec signature if any
+            if (getCodecEncodedSignature(options.codec) !=
+                meta.codecSignature) {
+              throw DatabaseException.invalidCodec('Invalid codec signature');
+            }
+          } else {
+            // If a codec is used, we fail
+            if (_openMode == DatabaseMode.neverFails && options.codec == null) {
+              corrupted = true;
+              break;
+            } else {
+              throw DatabaseException.invalidFormat('Invalid database format');
+            }
+          }
+        }
         // if corrupted and not even meta
         // delete it
         if (corrupted && meta == null) {

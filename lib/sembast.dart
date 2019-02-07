@@ -9,7 +9,7 @@ import 'package:sembast/src/database.dart';
 import 'package:sembast/src/database_mode.dart';
 import 'package:sembast/src/filter.dart';
 import 'package:sembast/src/finder.dart';
-import 'package:sembast/src/sembast_code_impl.dart';
+import 'package:sembast/src/sembast_codec_impl.dart';
 import 'package:sembast/src/sort_order.dart';
 
 export 'package:sembast/src/boundary.dart';
@@ -57,10 +57,11 @@ abstract class DatabaseFactory {
   /// Open a new of existing database
   ///
   /// [path] is the location of the database
-  /// [version] is the version expected, if not null and if the existing version is different, onVersionChanged is called
+  /// [version] is the version expected, if not null and if the existing version is different, onVersionChanged is called.
   /// [mode] is [DatabaseMode.DEFAULT] by default
   ///
   /// A custom [code] can be used to load/save a record, allowing for user encryption
+  /// When a database is created, its default version is 1
   ///
   Future<Database> openDatabase(String path,
       {int version,
@@ -80,7 +81,13 @@ abstract class DatabaseFactory {
 class DatabaseException implements Exception {
   static int errBadParam = 0;
   static int errDatabaseNotFound = 1;
-  static int errInvalidCodec = 2;
+
+  /// Unless never fails is used (without codec) a bad format
+  /// will trigger this error
+  static int errInvalidFormat = 2;
+
+  /// This is sent if the codec used does not match the one of the database
+  static int errInvalidCodec = 3;
 
   final int _code;
   final String _message;
@@ -95,6 +102,8 @@ class DatabaseException implements Exception {
       : _code = errDatabaseNotFound;
 
   DatabaseException.invalidCodec(this._message) : _code = errInvalidCodec;
+
+  DatabaseException.invalidFormat(this._message) : _code = errInvalidFormat;
   @override
   String toString() => "[${_code}] ${_message}";
 }

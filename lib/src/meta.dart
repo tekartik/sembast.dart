@@ -4,6 +4,8 @@ import 'package:sembast/src/sembast_impl.dart';
 class Meta {
   int version;
   int sembastVersion = 1;
+
+  /// Encoded {'signature': signature'} using the codec itself!
   String codecSignature;
 
   Meta.fromMap(Map map) {
@@ -13,7 +15,7 @@ class Meta {
   }
 
   static bool isMapMeta(Map map) {
-    return map[dbVersionKey] != null;
+    return map != null && map[dbVersionKey] != null;
   }
 
   Meta({@required this.version, String this.codecSignature});
