@@ -1,3 +1,7 @@
+## 1.13.3
+
+* Add support for user-defined codec to allow encryption
+
 ## 1.13.0
 
 * Add support for nested dotted fields, i.e. `'path.sub'` allow setting/getting/filtering/sorting on `path` 

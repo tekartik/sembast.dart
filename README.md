@@ -13,6 +13,8 @@ file and the file is automatically compacted when needed.
 
 Works on Dart VM and Flutter (no plugin needed, 100% Dart). Inspired from IndexedDB, DataStore, WebSql, NeDB, Lawndart...
 
+Supports encryption using user-defined codec.
+
 ## Usage
 
 ### Opening a database

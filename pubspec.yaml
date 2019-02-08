@@ -1,7 +1,7 @@
 name: sembast
-version: 1.13.2
-author: Alexandre Roux Tekartik <alex.tekartik.pub@gmail.com>
-description: Simple NoSQL persistent embedded file system database for Dart VM and Flutter
+version: 1.13.3
+author: Alexandre Roux Tekartik <alex@tekartik.com>
+description: NoSQL persistent embedded file system document-based database for Dart VM and Flutter with encryption support.
 homepage: https://github.com/tekartik/sembast.dart
 environment:
   sdk: '>=2.0.0-dev.58 <3.0.0'
