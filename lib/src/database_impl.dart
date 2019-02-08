@@ -7,6 +7,7 @@ import 'package:sembast/src/database.dart';
 import 'package:sembast/src/database_factory_mixin.dart';
 import 'package:sembast/src/meta.dart';
 import 'package:sembast/src/record_impl.dart';
+import 'package:sembast/src/sembast_codec_impl.dart';
 import 'package:sembast/src/sembast_impl.dart';
 import 'package:sembast/src/storage.dart';
 import 'package:sembast/src/store_impl.dart';
@@ -23,6 +24,7 @@ class SembastDatabase extends Object
   final bool logV = logger.isLoggable(Level.FINEST);
 
   final DatabaseStorage _storage;
+
   // Lock used for opening/compacting
   final Lock databaseLock = Lock();
   final Lock transactionLock = Lock();
@@ -40,6 +42,7 @@ class SembastDatabase extends Object
   int get version => _meta.version;
 
   bool _opened = false;
+
   DatabaseOpenOptions get _openOptions => openHelper.options;
 
   // DatabaseMode _openMode;
@@ -113,6 +116,23 @@ class SembastDatabase extends Object
     });
   }
 
+  /// Encode a map before writing it to disk
+  String encodeMap(Map<String, dynamic> map) {
+    if (_openOptions.codec != null) {
+      return _openOptions.codec.codec.encode(map);
+    } else {
+      return json.encode(map);
+    }
+  }
+
+  Map<String, dynamic> decodeString(String text) {
+    if (_openOptions.codec != null) {
+      return _openOptions.codec.codec.decode(text);
+    } else {
+      return (json.decode(text) as Map)?.cast<String, dynamic>();
+    }
+  }
+
   ///
   /// Compact the database (work in progress)
   ///
@@ -127,12 +147,17 @@ class SembastDatabase extends Object
       await tmpStorage.findOrCreate();
 
       List<String> lines = [];
-      void _addLine(Map map) {
+
+      void _addStringLine(String line) {
+        exportStat.lineCount++;
+        lines.add(line);
+      }
+
+      void _addLine(Map<String, dynamic> map) {
         String encoded;
         try {
-          encoded = json.encode(map);
-          exportStat.lineCount++;
-          lines.add(encoded);
+          encoded = encodeMap(map);
+          _addStringLine(encoded);
         } catch (e, st) {
           // usefull for debugging...
           print(map);
@@ -142,7 +167,9 @@ class SembastDatabase extends Object
         }
       }
 
-      _addLine(_meta.toMap());
+      // meta is always json
+      _addStringLine(json.encode(_meta.toMap()));
+
       for (Store store in stores) {
         for (Record record in (store as SembastStore).recordMap.values) {
           _addLine((record as SembastRecord).toMap());
@@ -189,10 +216,10 @@ class SembastDatabase extends Object
 
         // writable record
         for (Record record in txnRecords) {
-          Map map = (record as SembastRecord).toMap();
+          var map = (record as SembastRecord).toMap();
           String encoded;
           try {
-            encoded = json.encode(map);
+            encoded = encodeMap(map);
             lines.add(encoded);
           } catch (e, st) {
             print(map);
@@ -416,175 +443,243 @@ class SembastDatabase extends Object
       return Future.value(this);
     }
 
+    // Check codec
+    if (options.codec != null) {
+      if (options.codec.signature == null) {
+        throw DatabaseException.invalidCodec('Codec signature cannot be null');
+      }
+      if (options.codec.codec == null) {
+        throw DatabaseException.invalidCodec(
+            'Codec implementation cannot be null');
+      }
+    }
+
     return databaseLock.synchronized(() async {
-      Meta meta;
+      try {
+        Meta meta;
 
-      Future _handleVersionChanged(int oldVersion, int newVersion) async {
-        var result;
-        await transaction((txn) async {
-          try {
-            // create a transaction during open
-            _openTransaction = txn;
+        Future _handleVersionChanged(int oldVersion, int newVersion) async {
+          var result;
+          await transaction((txn) async {
+            try {
+              // create a transaction during open
+              _openTransaction = txn;
 
-            if (options.onVersionChanged != null) {
-              result = options.onVersionChanged(this, oldVersion, newVersion);
+              if (options.onVersionChanged != null) {
+                result = options.onVersionChanged(this, oldVersion, newVersion);
+              }
+              meta = Meta(
+                  version: newVersion,
+                  codecSignature: getCodecEncodedSignature(options.codec));
+
+              if (_storage.supported) {
+                await _storage.appendLine(json.encode(meta.toMap()));
+                _exportStat.lineCount++;
+              }
+            } finally {
+              _openTransaction = null;
             }
-            meta = Meta(newVersion);
+          });
 
-            if (_storage.supported) {
-              await _storage.appendLine(json.encode(meta.toMap()));
-              _exportStat.lineCount++;
-            }
-          } finally {
-            _openTransaction = null;
-          }
-        });
-
-        return result;
-      }
-
-      Future<Database> _openDone() async {
-        // make sure mainStore is created
-        _checkMainStore();
-
-        // Set current meta
-        // so that it is an old value during onVersionChanged
-        if (meta == null) {
-          meta = Meta(0);
-        }
-        if (_meta == null) {
-          _meta = meta;
+          return result;
         }
 
-        bool needVersionChanged = false;
+        Future<Database> _openDone() async {
+          // make sure mainStore is created
+          _checkMainStore();
 
-        int oldVersion = meta.version;
-
-        if (oldVersion == 0) {
-          needVersionChanged = true;
-
-          // Make version 1 by default
-          if (version == null) {
-            version = 1;
+          // Set current meta
+          // so that it is an old value during onVersionChanged
+          if (meta == null) {
+            meta = Meta(
+                version: 0,
+                codecSignature: getCodecEncodedSignature(options.codec));
           }
-          meta = Meta(version);
-        } else {
-          // no specific version requested or same
-          if ((version != null) && (version != oldVersion)) {
+          if (_meta == null) {
+            _meta = meta;
+          }
+
+          bool needVersionChanged = false;
+
+          int oldVersion = meta.version;
+
+          if (oldVersion == 0) {
             needVersionChanged = true;
+
+            // Make version 1 by default
+            if (version == null) {
+              version = 1;
+            }
+            meta = Meta(
+                version: version,
+                codecSignature: getCodecEncodedSignature(options.codec));
+          } else {
+            // no specific version requested or same
+            if ((version != null) && (version != oldVersion)) {
+              needVersionChanged = true;
+            }
+          }
+
+          // mark it opened
+          _opened = true;
+
+          if (needVersionChanged) {
+            await _handleVersionChanged(oldVersion, version);
+          }
+          _meta = meta;
+          return this;
+        }
+
+        //_path = path;
+        Future _findOrCreate() async {
+          if (mode == DatabaseMode.existing) {
+            bool found = await _storage.find();
+            if (!found) {
+              throw DatabaseException.databaseNotFound(
+                  "Database (open existing only) ${path} not found");
+            }
+          } else {
+            if (mode == DatabaseMode.empty) {
+              await _storage.delete();
+            }
+            await _storage.findOrCreate();
           }
         }
 
-        // mark it opened
-        _opened = true;
-
-        if (needVersionChanged) {
-          await _handleVersionChanged(oldVersion, version);
+        // create _exportStat
+        if (_storage.supported) {
+          _exportStat = DatabaseExportStat();
         }
-        _meta = meta;
-        return this;
-      }
+        await _findOrCreate();
+        if (_storage.supported) {
+          // empty stores and meta
+          _meta = null;
+          _mainStore = null;
+          _stores.clear();
+          _checkMainStore();
 
-      //_path = path;
-      Future _findOrCreate() async {
-        if (mode == DatabaseMode.existing) {
-          bool found = await _storage.find();
-          if (!found) {
-            throw DatabaseException.databaseNotFound(
-                "Database (open existing only) ${path} not found");
-          }
-        } else {
-          if (mode == DatabaseMode.empty) {
-            await _storage.delete();
-          }
-          await _storage.findOrCreate();
-        }
-      }
+          _exportStat = DatabaseExportStat();
 
-      // create _exportStat
-      if (_storage.supported) {
-        _exportStat = DatabaseExportStat();
-      }
-      await _findOrCreate();
-      if (_storage.supported) {
-        // empty stores and meta
-        _meta = null;
-        _mainStore = null;
-        _stores.clear();
-        _checkMainStore();
+          //bool needCompact = false;
+          bool corrupted = false;
 
-        _exportStat = DatabaseExportStat();
+          bool firstLineRead = false;
 
-        //bool needCompact = false;
-        bool corrupted = false;
-
-        await _storage.readLines().forEach((String line) {
-          if (!corrupted) {
+          await for (String line in _storage.readLines()) {
             _exportStat.lineCount++;
 
-            Map map;
+            Map<String, dynamic> map;
 
-            try {
-              // everything is JSON
-              map = json.decode(line) as Map;
-            } on Exception catch (_) {
-              if (_openMode == DatabaseMode.neverFails) {
-                corrupted = true;
-                return;
+            // Until meta is read, we assume it is json
+            if (!firstLineRead) {
+              // Read the meta first
+              // The first line is always json
+              try {
+                map = (json.decode(line) as Map)?.cast<String, dynamic>();
+              } on Exception catch (_) {}
+              if (Meta.isMapMeta(map)) {
+                // meta?
+                meta = Meta.fromMap(map);
+
+                // Check codec signature if any
+                if (getCodecEncodedSignature(options.codec) !=
+                    meta.codecSignature) {
+                  throw DatabaseException.invalidCodec(
+                      'Invalid codec signature');
+                }
+                firstLineRead = true;
+                continue;
               } else {
-                rethrow;
+                // If a codec is used, we fail
+                if (_openMode == DatabaseMode.neverFails &&
+                    options.codec == null) {
+                  corrupted = true;
+                  break;
+                } else {
+                  throw const FormatException('Invalid database format');
+                }
               }
             }
 
-            if (Meta.isMapMeta(map)) {
-              // meta?
-              meta = Meta.fromMap(map);
-            } else if (SembastRecord.isMapRecord(map)) {
+            try {
+              // decode record
+              map = decodeString(line);
+            } on Exception catch (_) {
+              // We can have meta here
+              try {
+                map = (json.decode(line) as Map)?.cast<String, dynamic>();
+              } on Exception catch (_) {
+                if (_openMode == DatabaseMode.neverFails) {
+                  corrupted = true;
+                  break;
+                } else {
+                  rethrow;
+                }
+              }
+            }
+
+            if (SembastRecord.isMapRecord(map)) {
               // record?
               Record record = SembastRecord.fromMap(this, map);
               if (_noTxnHasRecord(record)) {
                 _exportStat.obsoleteLineCount++;
               }
               loadRecord(record);
+            } else if (Meta.isMapMeta(map)) {
+              // meta?
+              meta = Meta.fromMap(map);
+
+              // Check codec signature if any
+              if (getCodecEncodedSignature(options.codec) !=
+                  meta.codecSignature) {
+                throw DatabaseException.invalidCodec('Invalid codec signature');
+              }
+            } else {
+              // If a codec is used, we fail
+              if (_openMode == DatabaseMode.neverFails &&
+                  options.codec == null) {
+                corrupted = true;
+                break;
+              } else {
+                throw const FormatException('Invalid database format');
+              }
             }
           }
-        });
-        // if corrupted and not even meta
-        // delete it
-        if (corrupted && meta == null) {
-          await _storage.delete();
-          await _storage.findOrCreate();
-        } else {
-          // auto compaction
-          // allow for 20% of lost lines
-          // make sure _meta is known before compacting
-          _meta = meta;
-          if (_needCompact || corrupted) {
-            await txnCompact();
+          // if corrupted and not even meta
+          // delete it
+          if (corrupted && meta == null) {
+            await _storage.delete();
+            await _storage.findOrCreate();
+          } else {
+            // auto compaction
+            // allow for 20% of lost lines
+            // make sure _meta is known before compacting
+            _meta = meta;
+            if (_needCompact || corrupted) {
+              await txnCompact();
+            }
           }
-        }
 
-        return await _openDone();
-      } else {
-        // ensure main store exists
-        // but do not erase previous data
-        _checkMainStore();
-        meta = _meta;
-        return _openDone();
+          return await _openDone();
+        } else {
+          // ensure main store exists
+          // but do not erase previous data
+          _checkMainStore();
+          meta = _meta;
+          return _openDone();
+        }
+      } catch (_) {
+        // on failure make sure to close the database
+        await close();
+        rethrow;
       }
     });
   }
 
-  void _close() async {
-    _opened = false;
-    //_meta = null;
-    // return new Future.value();
-  }
-
   @override
   Future close() async {
-    _close();
-    await openHelper.closeDatabase(this);
+    _opened = false;
+    await openHelper.closeDatabase();
   }
 
   Map<String, dynamic> toJson() {

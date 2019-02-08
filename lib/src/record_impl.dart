@@ -1,8 +1,8 @@
 import 'package:sembast/sembast.dart';
+import 'package:sembast/src/database.dart';
 import 'package:sembast/src/database_impl.dart';
 import 'package:sembast/src/record.dart';
 import 'package:sembast/src/sembast_impl.dart';
-import 'package:sembast/src/database.dart';
 import 'package:sembast/src/utils.dart';
 
 class SembastRecord implements Record {
@@ -86,8 +86,8 @@ class SembastRecord implements Record {
       : key = cloneKey(key),
         _value = cloneValue(_value);
 
-  Map _toBaseMap() {
-    Map map = {};
+  Map<String, dynamic> _toBaseMap() {
+    var map = <String, dynamic>{};
     map[dbRecordKey] = key;
 
     if (deleted == true) {
@@ -99,9 +99,9 @@ class SembastRecord implements Record {
     return map;
   }
 
-// The actual map written to disk
-  Map toMap() {
-    Map map = _toBaseMap();
+  // The actual map written to disk
+  Map<String, dynamic> toMap() {
+    var map = _toBaseMap();
     map[dbRecordValueKey] = value;
     return map;
   }

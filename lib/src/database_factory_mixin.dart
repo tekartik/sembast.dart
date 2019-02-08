@@ -8,8 +8,14 @@ class DatabaseOpenOptions {
   final int version;
   final OnVersionChangedFunction onVersionChanged;
   final DatabaseMode mode;
+  final SembastCodec codec;
 
-  DatabaseOpenOptions({this.version, this.onVersionChanged, this.mode});
+  DatabaseOpenOptions({
+    this.version,
+    this.onVersionChanged,
+    this.mode,
+    this.codec,
+  });
 }
 
 class DatabaseOpenHelper {
@@ -28,15 +34,16 @@ class DatabaseOpenHelper {
       await lock.synchronized(() async {
         if (this.database == null) {
           final database = newDatabase(path);
-          await database.open(options);
+          // Affect before open to properly clean
           this.database = database;
+          await database.open(options);
         }
       });
     }
     return this.database;
   }
 
-  Future closeDatabase(SembastDatabase sembastDatabase) async {
+  Future closeDatabase() async {
     if (database != null) {
       factory.removeDatabaseOpenHelper(path);
       database = null;
@@ -47,6 +54,7 @@ class DatabaseOpenHelper {
 
 abstract class SembastDatabaseFactory implements DatabaseFactory {
   SembastDatabase newDatabase(DatabaseOpenHelper openHelper);
+
   void removeDatabaseOpenHelper(String path);
 }
 
@@ -54,6 +62,27 @@ mixin DatabaseFactoryMixin implements SembastDatabaseFactory {
   // for single instances only
   Map<String, DatabaseOpenHelper> _databaseOpenHelpers =
       <String, DatabaseOpenHelper>{};
+
+  Future<Database> openDatabaseWithOptions(
+      String path, DatabaseOpenOptions options) {
+    var helper = getDatabaseOpenHelper(path, options);
+    return helper.openDatabase();
+  }
+
+  @override
+  Future<Database> openDatabase(String path,
+      {int version,
+      OnVersionChangedFunction onVersionChanged,
+      DatabaseMode mode,
+      SembastCodec codec}) {
+    return openDatabaseWithOptions(
+        path,
+        DatabaseOpenOptions(
+            version: version,
+            onVersionChanged: onVersionChanged,
+            mode: mode,
+            codec: codec));
+  }
 
   DatabaseOpenHelper getDatabaseOpenHelper(
       String path, DatabaseOpenOptions options) {
