@@ -151,6 +151,25 @@ await animalStore.records.listen((Record animal) {
 }).asFuture();
 ```
 
+### Codec and encryption
+
+Sembast supports using a user-defined codec to encode/decode data when read/written to disk.
+It provides a way to support encryption. Encryption itself is not part of sembast but an example of an xxtea based
+encryption is provided in the test folder:
+
+```dart
+// Initialize the encryption codec with a user password
+var codec = getXXTeaSembastCodec(password: '[your_user_password]');
+
+// Open the database with the codec
+Database db = await factory.openDatabase(dbPath, codec: codec);
+
+// ...your database is ready to use as encrypted
+
+```
+
+More information [here](https://github.com/tekartik/sembast.dart/blob/master/doc/codec.md)
+
 ### idb_shim
 
 The project idb_shim provides a shim allowing accessing it using the IndexedDB api. The benefit is to be able to write the logic/synchronization part of the database layer and 

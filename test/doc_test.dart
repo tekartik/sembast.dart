@@ -1,17 +1,21 @@
-library sembast.exp_test;
+library sembast.doc_test;
 
 import 'dart:async';
 
 import 'package:sembast/sembast.dart';
+import 'package:sembast/src/file_system.dart';
+import 'package:sembast/src/sembast_fs.dart';
 
 import 'test_common.dart';
+import 'xxtea_codec.dart';
 
 void main() {
+  defineFileSystemTests(memoryFileSystemContext);
   defineTests(memoryDatabaseContext);
 }
 
 void defineTests(DatabaseTestContext ctx) {
-  group('exp', () {
+  group('doc', () {
     Database db;
 
     setUp(() async {});
@@ -68,6 +72,44 @@ void defineTests(DatabaseTestContext ctx) {
         {'name': 'beacon2', 'flushed': true},
         {'name': 'beacon3', 'flushed': true}
       ]);
+    });
+  });
+}
+
+void defineFileSystemTests(FileSystemTestContext ctx) {
+  FileSystem fs = ctx.fs;
+  DatabaseFactory factory = DatabaseFactoryFs(fs);
+  String getDbPath() => ctx.outPath + ".db";
+  String dbPath;
+
+  Future<String> prepareForDb() async {
+    dbPath = getDbPath();
+    print(dbPath);
+    await factory.deleteDatabase(dbPath);
+    return dbPath;
+  }
+
+  group('doc', () {
+    test('codec_doc', () async {
+      await prepareForDb();
+
+      {
+        // Initialize the encryption codec with a user password
+        var codec = getXXTeaSembastCodec(password: '[your_user_password]');
+
+        // Open the database with the codec
+        Database db = await factory.openDatabase(dbPath, codec: codec);
+
+        // ...your database is ready to use as encrypted
+
+        // Put 4 records for having a simple output
+        await db.put('test');
+        await db.put('some longer record that will take more space');
+        await db.put('short');
+        await db.put('some very longer record that will take event more space');
+
+        await db.close();
+      }
     });
   });
 }

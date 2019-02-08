@@ -10,6 +10,7 @@ import 'package:sembast/src/sembast_fs.dart';
 
 import 'database_format_test.dart' as database_format_test;
 import 'test_common.dart';
+import 'xxtea_codec.dart';
 
 void main() {
   defineTests(memoryFileSystemContext);
@@ -82,11 +83,42 @@ void defineTests(FileSystemTestContext ctx) {
     return db;
   }
 
+  void _commonTests(SembastCodec codec) {
+    test('open_a_non_codec_database', () async {
+      // Create a non codec database
+      var db = await _prepareOneRecordDatabase();
+      await db.close();
+
+      // Try to open it using the codec
+      try {
+        db = await factory.openDatabase(dbPath, codec: codec);
+        fail('should fail');
+      } on DatabaseException catch (e) {
+        expect(e.code, DatabaseException.errInvalidCodec);
+      }
+    });
+
+    test('open_a_codec database', () async {
+      // Create a codec encrypted database
+      var db = await _prepareOneRecordDatabase(codec: codec);
+      await db.close();
+
+      // Try to open it without the codec
+      try {
+        db = await factory.openDatabase(dbPath);
+        fail('should fail');
+      } on DatabaseException catch (e) {
+        expect(e.code, DatabaseException.errInvalidCodec);
+      }
+    });
+  }
+
   group('codec', () {
     group('json_codec', () {
       var codec = SembastCodec(signature: 'json', codec: MyJsonCodec());
       var codecAlt = SembastCodec(signature: 'json_alt', codec: MyJsonCodec());
       database_format_test.defineTests(ctx, codec: codec);
+      _commonTests(codec);
 
       test('one_record', () async {
         var db = await _prepareOneRecordDatabase(codec: codec);
@@ -114,11 +146,11 @@ void defineTests(FileSystemTestContext ctx) {
     group('base64_codec', () {
       var codec = SembastCodec(signature: 'base64', codec: MyCustomCodec());
       database_format_test.defineTests(ctx, codec: codec);
+      _commonTests(codec);
 
       test('one_record', () async {
         var db = await _prepareOneRecordDatabase(codec: codec);
         List<String> lines = await readContent(fs, dbPath);
-        print(lines);
         expect(lines.length, 2);
         expect(json.decode(lines.first), {
           "version": 1,
@@ -151,6 +183,69 @@ void defineTests(FileSystemTestContext ctx) {
         expect(json.decode(utf8.decode(base64.decode(lines[1]))),
             {'key': 1, 'value': 'test'});
 
+        await db.close();
+      });
+    });
+
+    group('xxtea_codec', () {
+      var codec = getXXTeaSembastCodec(password: 'user_password');
+      database_format_test.defineTests(ctx, codec: codec);
+      _commonTests(codec);
+
+      test('one_record', () async {
+        var db = await _prepareOneRecordDatabase(codec: codec);
+        List<String> lines = await readContent(fs, dbPath);
+        expect(lines.length, 2);
+        expect(json.decode(lines.first), {
+          "version": 1,
+          "sembast": 1,
+          "codec": 'f6BJnfYOYu/JYOG/5AOmVAMjGZ+/av6MZi6+3g=='
+        });
+        expect(codec.codec.decode(lines[1]), {'key': 1, 'value': 'test'});
+        await db.close();
+
+        // reopen
+      });
+
+      test('reopen_and_compact', () async {
+        var db = await _prepareOneRecordDatabase(codec: codec);
+        await db.close();
+
+        db = await factory.openDatabase(dbPath, codec: codec);
+        expect(await db.get(1), 'test');
+
+        await (db as SembastDatabase).compact();
+
+        List<String> lines = await readContent(fs, dbPath);
+        expect(lines.length, 2);
+        expect(json.decode(lines.first), {
+          "version": 1,
+          "sembast": 1,
+          'codec': 'f6BJnfYOYu/JYOG/5AOmVAMjGZ+/av6MZi6+3g=='
+        });
+        expect(codec.codec.decode(lines[1]), {'key': 1, 'value': 'test'});
+
+        await db.close();
+      });
+
+      test('open with wrong password', () async {
+        var db = await _prepareOneRecordDatabase(codec: codec);
+        await db.close();
+
+        try {
+          var codecWithABadPassword =
+              getXXTeaSembastCodec(password: "bad_password");
+          // Open again with a bad password
+          db = await factory.openDatabase(dbPath, codec: codecWithABadPassword);
+
+          fail('should fail');
+        } on DatabaseException catch (e) {
+          expect(e.code, DatabaseException.errInvalidCodec);
+        }
+
+        // Open again with the proper password
+        db = await factory.openDatabase(dbPath, codec: codec);
+        expect(await db.get(1), 'test');
         await db.close();
       });
     });

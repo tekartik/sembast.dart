@@ -9,6 +9,7 @@ import 'database_perf_test.dart' as database_perf_test;
 import 'database_test.dart' as database_test;
 import 'database_utils_test.dart' as database_utils_test;
 import 'deprecated_test.dart' as deprecated_test;
+import 'doc_test.dart' as doc_test;
 import 'exception_test.dart' as exception_test;
 import 'exp_test.dart' as exp_test;
 import 'find_test.dart' as find_test;
@@ -31,6 +32,7 @@ void defineFileSystemTests(FileSystemTestContext ctx) {
   database_format_test.defineTests(ctx);
   database_codec_test.defineTests(ctx);
   database_impl_format_test.defineTests(ctx);
+  doc_test.defineFileSystemTests(ctx);
 }
 
 void defineTests(DatabaseTestContext ctx) {
@@ -48,4 +50,5 @@ void defineTests(DatabaseTestContext ctx) {
   database_import_export_test.defineTests(ctx);
   exp_test.defineTests(ctx);
   database_utils_test.defineTests(ctx);
+  doc_test.defineTests(ctx);
 }
