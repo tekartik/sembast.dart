@@ -58,7 +58,7 @@ expect(await db.get(key), {
 
 ## Bulk update
 
-`updateRecords` is a utility function that can work without or without transaction to update fields in multiple records
+`updateRecords` is a utility function that can work with or without transaction to update fields in multiple records
 
 ```dart
 // Filter for updating records
