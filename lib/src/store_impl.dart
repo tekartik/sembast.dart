@@ -381,10 +381,12 @@ class SembastStore implements Store {
   }
 
   Future<Record> txnGetRecord(SembastTransaction txn, key) async {
+    var record = txnGetRecordSync(txn, key);
+    // Cooperate after!
     if (needCooperate) {
       await cooperate();
     }
-    return txnGetRecordSync(txn, key);
+    return record;
   }
 
   Record txnGetRecordSync(SembastTransaction txn, key) {
@@ -410,14 +412,14 @@ class SembastStore implements Store {
     List<Record> records = [];
 
     for (var key in keys) {
-      if (needCooperate) {
-        await cooperate();
-      }
       Record record = _getRecord(txn, key);
       if (record != null) {
         if (!record.deleted) {
           records.add(record);
         }
+      }
+      if (needCooperate) {
+        await cooperate();
       }
     }
     return records;
