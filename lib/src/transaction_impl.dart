@@ -128,7 +128,7 @@ class SembastTransaction extends Object
 
   @override
   Future<List<Record>> putRecords(List<Record> records) async =>
-      cloneRecords(database.txnPutRecords(this, records));
+      cloneRecordsSync(database.txnPutRecords(this, records));
 
   SembastTransactionStore recordStore(Record record) =>
       (record.store ?? mainStore) as SembastTransactionStore;
@@ -145,19 +145,18 @@ class SembastTransactionStore implements StoreTransaction {
   Future<bool> containsKey(key) async => store.txnContainsKey(transaction, key);
 
   @override
-  Future<int> count([Filter filter]) async =>
-      store.txnCount(transaction, filter);
+  Future<int> count([Filter filter]) => store.txnCount(transaction, filter);
 
   @override
   Future delete(key) async => store.txnDelete(transaction, key);
 
   @override
   Future<Record> findRecord(Finder finder) async =>
-      cloneRecord(store.txnFindRecord(transaction, finder));
+      cloneRecord(await store.txnFindRecord(transaction, finder));
 
   @override
   Future<List<Record>> findRecords(Finder finder) async =>
-      cloneRecords(store.txnFindRecords(transaction, finder));
+      await store.cloneRecords(await store.txnFindRecords(transaction, finder));
 
   @override
   Future get(key) async => cloneValue(store.txnGet(transaction, key));
@@ -182,7 +181,7 @@ class SembastTransactionStore implements StoreTransaction {
 
   @override
   Future<List<Record>> getRecords(Iterable keys) async =>
-      cloneRecords(store.txnGetRecords(transaction, keys));
+      cloneRecordsSync(store.txnGetRecords(transaction, keys));
 
   @override
   Stream<Record> get records => store.txnGetRecordsStream(transaction);

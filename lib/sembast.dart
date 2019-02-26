@@ -16,15 +16,15 @@ export 'package:sembast/src/boundary.dart';
 export 'package:sembast/src/database_mode.dart'
     show
         DatabaseMode,
-        // ignore: deprecated_member_use
+        // ignore: deprecated_member_use, deprecated_member_use_from_same_package
         databaseModeCreate,
-        // ignore: deprecated_member_use
+        // ignore: deprecated_member_use, deprecated_member_use_from_same_package
         databaseModeDefault,
-        // ignore: deprecated_member_use
+        // ignore: deprecated_member_use, deprecated_member_use_from_same_package
         databaseModeEmpty,
-        // ignore: deprecated_member_use
+        // ignore: deprecated_member_use, deprecated_member_use_from_same_package
         databaseModeExisting,
-        // ignore: deprecated_member_use
+        // ignore: deprecated_member_use, deprecated_member_use_from_same_package
         databaseModeNeverFails;
 export 'package:sembast/src/sort_order.dart';
 

@@ -138,7 +138,7 @@ SembastRecord cloneRecord(Record record) {
   return null;
 }
 
-List<Record> cloneRecords(List<Record> records) {
+List<Record> cloneRecordsSync(List<Record> records) {
   if (records != null) {
     return records.map((record) => cloneRecord(record)).toList();
   }

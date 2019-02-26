@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:sembast/sembast.dart';
 import 'package:sembast/src/finder.dart';
 import 'package:sembast/src/record_impl.dart';
+import 'package:sembast/src/sort.dart';
 import 'package:sembast/src/transaction_impl.dart';
 import 'package:sembast/src/utils.dart';
 
@@ -107,29 +108,37 @@ class SembastStore implements Store {
     return ctlr.stream;
   }
 
-  void _forEachRecords(
-      SembastTransaction txn, Filter filter, void action(Record record)) {
+  Future _forEachRecords(
+      SembastTransaction txn, Filter filter, void action(Record record)) async {
 // handle record in transaction first
     if (_hasTransactionRecords(txn)) {
-      txnRecords.values.forEach((Record record) {
+      for (var record in txnRecords.values) {
+        if (needCooperate) {
+          await cooperate();
+        }
+
         if (Filter.matchRecord(filter, record)) {
           action(record);
         }
-      });
+      }
     }
 
-    // then the regular unless already in transaction
-    recordMap.values.forEach((Record record) {
+    for (var record in recordMap.values) {
+      // then the regular unless already in transaction
+      if (needCooperate) {
+        await cooperate();
+      }
+
       if (_hasTransactionRecords(txn)) {
         if (txnRecords.keys.contains(record.key)) {
           // already handled
-          return;
+          continue;
         }
       }
       if (Filter.matchRecord(filter, record)) {
         action(record);
       }
-    });
+    }
   }
 
   ///
@@ -137,16 +146,16 @@ class SembastStore implements Store {
   ///
   @override
   Future<Record> findRecord(Finder finder) async {
-    return cloneRecord(txnFindRecord(null, finder));
+    return cloneRecord(await txnFindRecord(null, finder));
   }
 
   @override
   Future findKey(Finder finder) async => (await findRecord(finder))?.key;
 
   Future txnFindKey(SembastTransaction txn, Finder finder) async =>
-      (txnFindRecord(txn, finder))?.key;
+      (await txnFindRecord(txn, finder))?.key;
 
-  Record txnFindRecord(SembastTransaction txn, Finder finder) {
+  Future<Record> txnFindRecord(SembastTransaction txn, Finder finder) async {
     if (finder != null) {
       if ((finder as SembastFinder).limit != 1) {
         finder = (finder as SembastFinder).clone(limit: 1);
@@ -154,9 +163,61 @@ class SembastStore implements Store {
     } else {
       finder = SembastFinder(limit: 1);
     }
-    var records = txnFindRecords(txn, finder);
+    var records = await txnFindRecords(txn, finder);
     if (records.isNotEmpty) {
       return records.first;
+    }
+    return null;
+  }
+
+  Future<List<Record>> filterStart(
+      SembastFinder finder, List<Record> results) async {
+    int startIndex = 0;
+    for (int i = 0; i < results.length; i++) {
+      if (needCooperate) {
+        await cooperate();
+      }
+      if (finder.starts(results[i], finder.start)) {
+        startIndex = i;
+        break;
+      }
+    }
+    if (startIndex != 0) {
+      return results.sublist(startIndex);
+    }
+    return results;
+  }
+
+  Future<List<Record>> filterEnd(
+      SembastFinder finder, List<Record> results) async {
+    int endIndex = 0;
+    for (int i = results.length - 1; i >= 0; i--) {
+      if (needCooperate) {
+        await cooperate();
+      }
+      if (finder.ends(results[i], finder.end)) {
+        // continue
+      } else {
+        endIndex = i + 1;
+        break;
+      }
+    }
+    if (endIndex != results.length) {
+      return results.sublist(0, endIndex);
+    }
+    return results;
+  }
+
+  Future<List<Record>> cloneRecords(List<Record> records) async {
+    if (records != null) {
+      var clones = <Record>[];
+      for (var record in records) {
+        if (needCooperate) {
+          await cooperate();
+        }
+        clones.add(cloneRecord(record));
+      }
+      return clones;
     }
     return null;
   }
@@ -166,32 +227,42 @@ class SembastStore implements Store {
   ///
   @override
   Future<List<Record>> findRecords(Finder finder) async {
-    return cloneRecords(txnFindRecords(null, finder));
+    return await cloneRecords(await txnFindRecords(null, finder));
   }
 
-  List<Record> txnFindRecords(SembastTransaction txn, Finder finder) {
+  Future<List<Record>> txnFindRecords(
+      SembastTransaction txn, Finder finder) async {
     List<Record> results;
 
     var sembastFinder = finder as SembastFinder;
     results = [];
 
-    _forEachRecords(txn, sembastFinder?.filter, (Record record) {
+    await _forEachRecords(txn, sembastFinder?.filter, (Record record) {
       results.add(record);
     });
 
     if (finder != null) {
       // sort
-      results.sort((Record record1, record2) =>
-          sembastFinder.compareThenKey(record1, record2));
+      //TODO fix sort
+      if (cooperateMode) {
+        var sort = Sort(database.cooperator);
+        await sort.sort(
+            results,
+            (Record record1, Record record2) =>
+                sembastFinder.compareThenKey(record1, record2));
+      } else {
+        results.sort((record1, record2) =>
+            sembastFinder.compareThenKey(record1, record2));
+      }
 
       try {
         // handle start
         if (sembastFinder.start != null) {
-          results = sembastFinder.filterStart(results);
+          results = await filterStart(sembastFinder, results);
         }
         // handle end
         if (sembastFinder.end != null) {
-          results = sembastFinder.filterEnd(results);
+          results = await filterEnd(sembastFinder, results);
         }
       } catch (e) {
         print('Make sure you are comparing boundaries with a proper type');
@@ -216,7 +287,7 @@ class SembastStore implements Store {
   }
 
   Future<List> txnFindKeys(SembastTransaction txn, Finder finder) async {
-    var records = txnFindRecords(txn, finder);
+    var records = await txnFindRecords(txn, finder);
     return records.map((Record record) => record.key).toList();
   }
 
@@ -318,7 +389,7 @@ class SembastStore implements Store {
   ///
   @override
   Future<List<Record>> getRecords(Iterable keys) async {
-    return cloneRecords(txnGetRecords(null, keys));
+    return cloneRecordsSync(txnGetRecords(null, keys));
   }
 
   List<Record> txnGetRecords(SembastTransaction txn, Iterable keys) {
@@ -353,12 +424,12 @@ class SembastStore implements Store {
   ///
   @override
   Future<int> count([Filter filter]) async {
-    return txnCount(null, filter);
+    return await txnCount(null, filter);
   }
 
-  int txnCount(SembastTransaction txn, Filter filter) {
+  Future<int> txnCount(SembastTransaction txn, Filter filter) async {
     int count = 0;
-    _forEachRecords(txn, filter, (Record record) {
+    await _forEachRecords(txn, filter, (Record record) {
       count++;
     });
     return count;
@@ -475,4 +546,13 @@ class SembastStore implements Store {
     Iterable keys = recordMap.keys;
     return txnDeleteAll(txn, List.from(keys, growable: false));
   }
+
+  //
+// Cooperate mode
+//
+  bool get needCooperate => database.needCooperate;
+
+  bool get cooperateMode => database.cooperateMode;
+
+  Future cooperate() => database.cooperate();
 }

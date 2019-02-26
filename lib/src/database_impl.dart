@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:logging/logging.dart';
 import 'package:sembast/sembast.dart';
+import 'package:sembast/src/cooperator.dart';
 import 'package:sembast/src/database.dart';
 import 'package:sembast/src/database_factory_mixin.dart';
 import 'package:sembast/src/meta.dart';
@@ -270,7 +271,8 @@ class SembastDatabase extends Object
   @override
   Future<List<Record>> putRecords(List<Record> records) {
     return transaction((txn) {
-      return cloneRecords(txnPutRecords(txn as SembastTransaction, records));
+      return cloneRecordsSync(
+          txnPutRecords(txn as SembastTransaction, records));
     });
   }
 
@@ -770,6 +772,16 @@ class SembastDatabase extends Object
 
   @override
   Future clear() => mainStore.clear();
+
+  final cooperator = Cooperator();
+  //
+  // Cooperate mode
+  //
+  bool get cooperateMode => cooperator.cooperateMode;
+
+  bool get needCooperate => cooperator.needCooperate;
+
+  Future cooperate() => cooperator.cooperate();
 }
 
 class DatabaseExportStat {
