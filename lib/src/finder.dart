@@ -114,34 +114,4 @@ class SembastFinder implements Finder {
   String toString() {
     return "filter: ${filter}, sort: ${sortOrders}";
   }
-
-  List<Record> filterStart(List<Record> results) {
-    int startIndex = 0;
-    for (int i = 0; i < results.length; i++) {
-      if (starts(results[i], start)) {
-        startIndex = i;
-        break;
-      }
-    }
-    if (startIndex != 0) {
-      return results.sublist(startIndex);
-    }
-    return results;
-  }
-
-  List<Record> filterEnd(List<Record> results) {
-    int endIndex = 0;
-    for (int i = results.length - 1; i >= 0; i--) {
-      if (ends(results[i], end)) {
-        // continue
-      } else {
-        endIndex = i + 1;
-        break;
-      }
-    }
-    if (endIndex != results.length) {
-      return results.sublist(0, endIndex);
-    }
-    return results;
-  }
 }

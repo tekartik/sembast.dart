@@ -21,16 +21,14 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     tearDown(() {
-      db.close();
+      return db.close();
     });
 
     test('put/get', () async {
-      List<Future> futures = [];
-      futures.add(db.put("hi", 1));
-      futures.add(db.get(1).then((value) {
-        expect(value, null);
-      }));
-      await Future.wait(futures);
+      var putFuture = db.put("hi", 1);
+      // It is still null, put has not complete yet!
+      expect(await db.get(1), isNull);
+      await putFuture;
       expect(await db.get(1), "hi");
     });
 

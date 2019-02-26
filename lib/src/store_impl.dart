@@ -1,16 +1,18 @@
-import 'dart:async';
 import 'dart:math';
 
 import 'package:sembast/sembast.dart';
 import 'package:sembast/src/finder.dart';
 import 'package:sembast/src/record_impl.dart';
+import 'package:sembast/src/sort.dart';
 import 'package:sembast/src/transaction_impl.dart';
 import 'package:sembast/src/utils.dart';
 
+import 'common_import.dart';
 import 'database_impl.dart';
 
 class SembastStore implements Store {
   final SembastDatabase database;
+
   @override
   Store get store => this;
 
@@ -47,24 +49,26 @@ class SembastStore implements Store {
 
   @override
   Future update(dynamic value, dynamic key) {
-    return transaction((txn) {
-      return cloneValue(txnUpdate(txn as SembastTransaction, value, key));
+    return transaction((txn) async {
+      return cloneValue(await txnUpdate(txn as SembastTransaction, value, key));
     });
   }
 
-  dynamic txnPut(SembastTransaction txn, var value, var key) {
+  Future<dynamic> txnPut(SembastTransaction txn, var value, var key) async {
     Record record = SembastRecord.copy(this, key, value, false);
 
-    record = txnPutRecord(txn, record);
+    record = await txnPutRecord(txn, record);
     if (database.logV) {
       SembastDatabase.logger.fine("${txn} put ${record}");
     }
     return record.key;
   }
 
-  dynamic txnUpdate(SembastTransaction txn, dynamic value, dynamic key) {
+  Future<dynamic> txnUpdate(
+      SembastTransaction txn, dynamic value, dynamic key) async {
+    await cooperate();
     // Ignore non-existing record
-    var existingRecord = txnGetRecord(txn, key);
+    var existingRecord = txnGetRecordSync(txn, key);
     if (existingRecord == null) {
       return null;
     }
@@ -72,7 +76,7 @@ class SembastStore implements Store {
     var mergedValue = mergeValue(existingRecord.value, value);
     Record record = SembastRecord(this, mergedValue, key);
 
-    txnPutRecord(txn, record);
+    txnPutRecordSync(txn, record);
     if (database.logV) {
       SembastDatabase.logger.fine("${txn} update ${record}");
     }
@@ -86,13 +90,15 @@ class SembastStore implements Store {
   Stream<Record> get records {
     StreamController<Record> ctlr = StreamController();
     // asynchronous feeding
-    _feedController(null, ctlr);
-    ctlr.close();
+    _feedController(null, ctlr).then((_) {
+      ctlr.close();
+    });
     return ctlr.stream;
   }
 
-  void _feedController(SembastTransaction txn, StreamController<Record> ctlr) {
-    _forEachRecords(txn, null, (Record record) {
+  Future _feedController(
+      SembastTransaction txn, StreamController<Record> ctlr) async {
+    await _forEachRecords(txn, null, (Record record) {
       ctlr.add(cloneRecord(record));
     });
   }
@@ -102,34 +108,55 @@ class SembastStore implements Store {
   ///
   Stream<Record> txnGetRecordsStream(SembastTransaction transaction) {
     StreamController<Record> ctlr = StreamController();
-    _feedController(transaction, ctlr);
-    ctlr.close();
+    _feedController(transaction, ctlr).then((_) {
+      ctlr.close();
+    });
     return ctlr.stream;
   }
 
-  void _forEachRecords(
-      SembastTransaction txn, Filter filter, void action(Record record)) {
-// handle record in transaction first
+  /// Get the list of current records that can be safely iterate even
+  /// in an async way.
+  List<Record> get currentRecords =>
+      List<Record>.from(recordMap.values, growable: false);
+
+  /// Can be nulll
+  List<Record> get currentTxnRecords => txnRecords == null
+      ? null
+      : List<Record>.from(txnRecords.values, growable: false);
+
+  Future _forEachRecords(
+      SembastTransaction txn, Filter filter, void action(Record record)) async {
+    // handle record in transaction first
     if (_hasTransactionRecords(txn)) {
-      txnRecords.values.forEach((Record record) {
+      var records = List<Record>.from(txnRecords.values);
+      for (var record in records) {
+        if (needCooperate) {
+          await cooperate();
+        }
+
         if (Filter.matchRecord(filter, record)) {
           action(record);
         }
-      });
+      }
     }
 
-    // then the regular unless already in transaction
-    recordMap.values.forEach((Record record) {
+    var records = currentRecords;
+    for (var record in records) {
+      // then the regular unless already in transaction
+      if (needCooperate) {
+        await cooperate();
+      }
+
       if (_hasTransactionRecords(txn)) {
         if (txnRecords.keys.contains(record.key)) {
           // already handled
-          return;
+          continue;
         }
       }
       if (Filter.matchRecord(filter, record)) {
         action(record);
       }
-    });
+    }
   }
 
   ///
@@ -137,16 +164,16 @@ class SembastStore implements Store {
   ///
   @override
   Future<Record> findRecord(Finder finder) async {
-    return cloneRecord(txnFindRecord(null, finder));
+    return cloneRecord(await txnFindRecord(null, finder));
   }
 
   @override
   Future findKey(Finder finder) async => (await findRecord(finder))?.key;
 
   Future txnFindKey(SembastTransaction txn, Finder finder) async =>
-      (txnFindRecord(txn, finder))?.key;
+      (await txnFindRecord(txn, finder))?.key;
 
-  Record txnFindRecord(SembastTransaction txn, Finder finder) {
+  Future<Record> txnFindRecord(SembastTransaction txn, Finder finder) async {
     if (finder != null) {
       if ((finder as SembastFinder).limit != 1) {
         finder = (finder as SembastFinder).clone(limit: 1);
@@ -154,11 +181,49 @@ class SembastStore implements Store {
     } else {
       finder = SembastFinder(limit: 1);
     }
-    var records = txnFindRecords(txn, finder);
+    var records = await txnFindRecords(txn, finder);
     if (records.isNotEmpty) {
       return records.first;
     }
     return null;
+  }
+
+  Future<List<Record>> filterStart(
+      SembastFinder finder, List<Record> results) async {
+    int startIndex = 0;
+    for (int i = 0; i < results.length; i++) {
+      if (needCooperate) {
+        await cooperate();
+      }
+      if (finder.starts(results[i], finder.start)) {
+        startIndex = i;
+        break;
+      }
+    }
+    if (startIndex != 0) {
+      return results.sublist(startIndex);
+    }
+    return results;
+  }
+
+  Future<List<Record>> filterEnd(
+      SembastFinder finder, List<Record> results) async {
+    int endIndex = 0;
+    for (int i = results.length - 1; i >= 0; i--) {
+      if (needCooperate) {
+        await cooperate();
+      }
+      if (finder.ends(results[i], finder.end)) {
+        // continue
+      } else {
+        endIndex = i + 1;
+        break;
+      }
+    }
+    if (endIndex != results.length) {
+      return results.sublist(0, endIndex);
+    }
+    return results;
   }
 
   ///
@@ -166,32 +231,41 @@ class SembastStore implements Store {
   ///
   @override
   Future<List<Record>> findRecords(Finder finder) async {
-    return cloneRecords(txnFindRecords(null, finder));
+    return await database.cloneRecords(await txnFindRecords(null, finder));
   }
 
-  List<Record> txnFindRecords(SembastTransaction txn, Finder finder) {
+  Future<List<Record>> txnFindRecords(
+      SembastTransaction txn, Finder finder) async {
     List<Record> results;
 
     var sembastFinder = finder as SembastFinder;
     results = [];
 
-    _forEachRecords(txn, sembastFinder?.filter, (Record record) {
+    await _forEachRecords(txn, sembastFinder?.filter, (Record record) {
       results.add(record);
     });
 
     if (finder != null) {
       // sort
-      results.sort((Record record1, record2) =>
-          sembastFinder.compareThenKey(record1, record2));
+      if (cooperateOn) {
+        var sort = Sort(database.cooperator);
+        await sort.sort(
+            results,
+            (Record record1, Record record2) =>
+                sembastFinder.compareThenKey(record1, record2));
+      } else {
+        results.sort((record1, record2) =>
+            sembastFinder.compareThenKey(record1, record2));
+      }
 
       try {
         // handle start
         if (sembastFinder.start != null) {
-          results = sembastFinder.filterStart(results);
+          results = await filterStart(sembastFinder, results);
         }
         // handle end
         if (sembastFinder.end != null) {
-          results = sembastFinder.filterEnd(results);
+          results = await filterEnd(sembastFinder, results);
         }
       } catch (e) {
         print('Make sure you are comparing boundaries with a proper type');
@@ -216,7 +290,7 @@ class SembastStore implements Store {
   }
 
   Future<List> txnFindKeys(SembastTransaction txn, Finder finder) async {
-    var records = txnFindRecords(txn, finder);
+    var records = await txnFindRecords(txn, finder);
     return records.map((Record record) => record.key).toList();
   }
 
@@ -245,7 +319,12 @@ class SembastStore implements Store {
     }
   }
 
-  Record txnPutRecord(SembastTransaction txn, Record record) {
+  Future<Record> txnPutRecord(SembastTransaction txn, Record record) async {
+    await cooperate();
+    return txnPutRecordSync(txn, record);
+  }
+
+  Record txnPutRecordSync(SembastTransaction txn, Record record) {
     var sembastRecord = cloneRecord(record);
     sembastRecord.store ??= this;
     assert(sembastRecord.store == this);
@@ -273,7 +352,6 @@ class SembastStore implements Store {
       txnRecords = <dynamic, Record>{};
     }
     txnRecords[sembastRecord.key] = sembastRecord;
-
     return sembastRecord;
   }
 
@@ -300,10 +378,19 @@ class SembastStore implements Store {
   ///
   @override
   Future<Record> getRecord(var key) async {
-    return cloneRecord(txnGetRecord(null, key));
+    return cloneRecord(await txnGetRecord(null, key));
   }
 
-  Record txnGetRecord(SembastTransaction txn, key) {
+  Future<Record> txnGetRecord(SembastTransaction txn, key) async {
+    var record = txnGetRecordSync(txn, key);
+    // Cooperate after!
+    if (needCooperate) {
+      await cooperate();
+    }
+    return record;
+  }
+
+  Record txnGetRecordSync(SembastTransaction txn, key) {
     Record record = _getRecord(txn, key);
     if (record != null) {
       if (record.deleted) {
@@ -318,10 +405,11 @@ class SembastStore implements Store {
   ///
   @override
   Future<List<Record>> getRecords(Iterable keys) async {
-    return cloneRecords(txnGetRecords(null, keys));
+    return database.cloneRecords(await txnGetRecords(null, keys));
   }
 
-  List<Record> txnGetRecords(SembastTransaction txn, Iterable keys) {
+  Future<List<Record>> txnGetRecords(
+      SembastTransaction txn, Iterable keys) async {
     List<Record> records = [];
 
     for (var key in keys) {
@@ -330,6 +418,9 @@ class SembastStore implements Store {
         if (!record.deleted) {
           records.add(record);
         }
+      }
+      if (needCooperate) {
+        await cooperate();
       }
     }
     return records;
@@ -340,11 +431,11 @@ class SembastStore implements Store {
   ///
   @override
   Future get(var key) async {
-    return cloneValue(txnGet(null, key));
+    return cloneValue(await txnGet(null, key));
   }
 
-  dynamic txnGet(SembastTransaction txn, key) {
-    Record record = txnGetRecord(txn, key);
+  Future<dynamic> txnGet(SembastTransaction txn, key) async {
+    Record record = await txnGetRecord(txn, key);
     return record?.value;
   }
 
@@ -353,12 +444,12 @@ class SembastStore implements Store {
   ///
   @override
   Future<int> count([Filter filter]) async {
-    return txnCount(null, filter);
+    return await txnCount(null, filter);
   }
 
-  int txnCount(SembastTransaction txn, Filter filter) {
+  Future<int> txnCount(SembastTransaction txn, Filter filter) async {
     int count = 0;
-    _forEachRecords(txn, filter, (Record record) {
+    await _forEachRecords(txn, filter, (Record record) {
       count++;
     });
     return count;
@@ -371,15 +462,16 @@ class SembastStore implements Store {
     });
   }
 
-  dynamic txnDelete(SembastTransaction txn, var key) {
+  Future<dynamic> txnDelete(SembastTransaction txn, var key) async {
     Record record = _getRecord(txn, key);
+    await cooperate();
     if (record == null) {
       return null;
     } else {
       // clone to keep the existing as is
       Record clone = (record as SembastRecord).clone();
       (clone as SembastRecord).deleted = true;
-      txnPutRecord(txn, clone);
+      await txnPutRecord(txn, clone);
       return key;
     }
   }
@@ -394,10 +486,14 @@ class SembastStore implements Store {
     });
   }
 
-  List txnDeleteAll(SembastTransaction txn, Iterable keys) {
+  Future<List> txnDeleteAll(SembastTransaction txn, Iterable keys) async {
     List<Record> updates = [];
     List deletedKeys = [];
+
+    // make it safe in a async way
+    keys = List.from(keys, growable: false);
     for (var key in keys) {
+      await cooperate();
       Record record = _getRecord(txn, key);
       if (record != null) {
         Record clone = (record as SembastRecord).clone();
@@ -408,7 +504,7 @@ class SembastStore implements Store {
     }
 
     if (updates.isNotEmpty) {
-      database.txnPutRecords(txn, updates);
+      await database.txnPutRecords(txn, updates);
     }
     return deletedKeys;
   }
@@ -464,15 +560,24 @@ class SembastStore implements Store {
   Future clear() {
     return transaction((txn) {
       // first delete the one in transaction
-      txnClear(txn as SembastTransaction);
+      return txnClear(txn as SembastTransaction);
     });
   }
 
-  List txnClear(SembastTransaction txn) {
+  Future<List> txnClear(SembastTransaction txn) {
     if (_hasTransactionRecords(txn)) {
       return txnDeleteAll(txn, List.from(txnRecords.keys, growable: false));
     }
     Iterable keys = recordMap.keys;
     return txnDeleteAll(txn, List.from(keys, growable: false));
   }
+
+  //
+// Cooperate mode
+//
+  bool get needCooperate => database.needCooperate;
+
+  bool get cooperateOn => database.cooperateOn;
+
+  FutureOr cooperate() => database.cooperate();
 }

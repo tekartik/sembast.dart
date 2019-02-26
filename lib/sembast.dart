@@ -16,29 +16,21 @@ export 'package:sembast/src/boundary.dart';
 export 'package:sembast/src/database_mode.dart'
     show
         DatabaseMode,
-        // ignore: deprecated_member_use
+        // ignore: deprecated_member_use, deprecated_member_use_from_same_package
         databaseModeCreate,
-        // ignore: deprecated_member_use
+        // ignore: deprecated_member_use, deprecated_member_use_from_same_package
         databaseModeDefault,
-        // ignore: deprecated_member_use
+        // ignore: deprecated_member_use, deprecated_member_use_from_same_package
         databaseModeEmpty,
-        // ignore: deprecated_member_use
+        // ignore: deprecated_member_use, deprecated_member_use_from_same_package
         databaseModeExisting,
-        // ignore: deprecated_member_use
+        // ignore: deprecated_member_use, deprecated_member_use_from_same_package
         databaseModeNeverFails;
 export 'package:sembast/src/sort_order.dart';
 
-export 'src/database.dart';
-export 'src/record.dart';
-export 'src/store.dart';
-
-//import 'package:tekartik_core/dev_utils.dart';
-// ignore: deprecated_member_use
-// ignore: deprecated_member_use
-// ignore: deprecated_member_use
-// ignore: deprecated_member_use
-// ignore: deprecated_member_use
-// ignore: deprecated_member_use
+export 'package:sembast/src/database.dart';
+export 'package:sembast/src/record.dart';
+export 'package:sembast/src/store.dart';
 
 /// can return a future or not
 typedef OnVersionChangedFunction = FutureOr Function(

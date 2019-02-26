@@ -18,7 +18,7 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     tearDown(() {
-      db.close();
+      return db.close();
     });
 
     test('put_close_get', () {

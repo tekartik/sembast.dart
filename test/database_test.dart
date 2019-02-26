@@ -24,9 +24,7 @@ void defineTests(DatabaseTestContext ctx) {
       });
 
       tearDown(() {
-        if (db != null) {
-          db.close();
-        }
+        return db?.close();
       });
 
       test('open_no_version', () async {
@@ -88,9 +86,7 @@ void defineTests(DatabaseTestContext ctx) {
       });
 
       tearDown(() {
-        if (db != null) {
-          db.close();
-        }
+        return db?.close();
       });
 
       test('open_no_version', () async {
@@ -144,9 +140,35 @@ void defineTests(DatabaseTestContext ctx) {
           expect(db.version, 1);
           await reOpen(db);
           expect(await db.get(1), 'test');
+          expect(await db.get(2), 'other');
           expect(db.version, 1);
         } finally {
           await db?.close();
+        }
+      });
+
+      test('throw during first onVersionChanged', () async {
+        try {
+          await factory.openDatabase(dbPath, version: 1,
+              onVersionChanged: (db, _, __) async {
+            throw TestException();
+          });
+        } on TestException catch (_) {}
+        if (factory.hasStorage) {
+          expect(await getExistingDatabaseVersion(factory, dbPath), 0);
+        }
+      });
+
+      test('throw during second onVersionChanged', () async {
+        await (await factory.openDatabase(dbPath)).close();
+        if (factory.hasStorage) {
+          try {
+            await factory.openDatabase(dbPath, version: 2,
+                onVersionChanged: (db, _, __) async {
+              throw TestException();
+            });
+          } on TestException catch (_) {}
+          expect(await getExistingDatabaseVersion(factory, dbPath), 1);
         }
       });
     });

@@ -72,14 +72,12 @@ void defineTests(FileSystemTestContext ctx, {SembastCodec codec}) {
 
     test('1 string record', () async {
       await prepareForDb();
-      return factory.openDatabase(dbPath, codec: codec).then((Database db) {
-        return db.put("hi", 1);
-      }).then((_) {
-        return readContent(fs, dbPath).then((List<String> lines) {
-          expect(lines.length, 2);
-          expect(decodeRecord(lines[1]), {'key': 1, 'value': 'hi'});
-        });
-      });
+      var db = await factory.openDatabase(dbPath, codec: codec);
+      await db.put("hi", 1);
+      await db.close();
+      var lines = await readContent(fs, dbPath);
+      expect(lines.length, 2);
+      expect(decodeRecord(lines[1]), {'key': 1, 'value': 'hi'});
     });
 
     test('1_record_in_2_stores', () async {
@@ -88,11 +86,11 @@ void defineTests(FileSystemTestContext ctx, {SembastCodec codec}) {
       db.getStore('store1');
       Store store2 = db.getStore('store2');
       await store2.put("hi", 1);
+      await db.close();
       List<String> lines = await readContent(fs, dbPath);
       expect(lines.length, 2);
       expect(
           decodeRecord(lines[1]), {'store': 'store2', 'key': 1, 'value': 'hi'});
-      await db.close();
     });
 
     test('twice same record', () async {
@@ -100,25 +98,23 @@ void defineTests(FileSystemTestContext ctx, {SembastCodec codec}) {
       var db = await factory.openDatabase(dbPath, codec: codec);
       await db.put("hi", 1);
       await db.put("hi", 1);
+      await db.close();
       var lines = await readContent(fs, dbPath);
       expect(lines.length, 3);
       expect(decodeRecord(lines[1]), {'key': 1, 'value': 'hi'});
       expect(decodeRecord(lines[2]), {'key': 1, 'value': 'hi'});
-      await db.close();
     });
 
     test('1 map record', () async {
       await prepareForDb();
-      return factory.openDatabase(dbPath).then((Database db) {
-        return db.put({'test': 2}, 1);
-      }).then((_) {
-        return readContent(fs, dbPath).then((List<String> lines) {
-          expect(lines.length, 2);
-          expect(json.decode(lines[1]), {
-            'key': 1,
-            'value': {'test': 2}
-          });
-        });
+      var db = await factory.openDatabase(dbPath);
+      await db.put({'test': 2}, 1);
+      await db.close();
+      var lines = await readContent(fs, dbPath);
+      expect(lines.length, 2);
+      expect(json.decode(lines[1]), {
+        'key': 1,
+        'value': {'test': 2}
       });
     });
 
@@ -128,18 +124,15 @@ void defineTests(FileSystemTestContext ctx, {SembastCodec codec}) {
           onVersionChanged: (db, _, __) async {
         await db.put('hi', 1);
       }, codec: codec);
-      try {
-        List<String> lines = await readContent(fs, dbPath);
-        expect(lines.length, 2);
-        var expected = <String, dynamic>{"version": 2, "sembast": 1};
-        if (codec != null) {
-          expected['codec'] = getCodecEncodedSignature(codec);
-        }
-        expect(json.decode(lines.first), expected);
-        expect(decodeRecord(lines[1]), {'key': 1, 'value': 'hi'});
-      } finally {
-        await db?.close();
+      await db.close();
+      var lines = await readContent(fs, dbPath);
+      expect(lines.length, 2);
+      var expected = <String, dynamic>{"version": 2, "sembast": 1};
+      if (codec != null) {
+        expected['codec'] = getCodecEncodedSignature(codec);
       }
+      expect(json.decode(lines.first), expected);
+      expect(decodeRecord(lines[1]), {'key': 1, 'value': 'hi'});
     });
 
     test('1_record_in_open_transaction', () async {
@@ -150,18 +143,16 @@ void defineTests(FileSystemTestContext ctx, {SembastCodec codec}) {
           await txn.put('hi', 1);
         });
       }, codec: codec);
-      try {
-        List<String> lines = await readContent(fs, dbPath);
-        expect(lines.length, 2);
-        var expected = <String, dynamic>{"version": 2, "sembast": 1};
-        if (codec != null) {
-          expected['codec'] = getCodecEncodedSignature(codec);
-        }
-        expect(json.decode(lines.first), expected);
-        expect(decodeRecord(lines[1]), {'key': 1, 'value': 'hi'});
-      } finally {
-        await db?.close();
+      await db.close();
+
+      List<String> lines = await readContent(fs, dbPath);
+      expect(lines.length, 2);
+      var expected = <String, dynamic>{"version": 2, "sembast": 1};
+      if (codec != null) {
+        expected['codec'] = getCodecEncodedSignature(codec);
       }
+      expect(json.decode(lines.first), expected);
+      expect(decodeRecord(lines[1]), {'key': 1, 'value': 'hi'});
     });
 
     test('open_version_1_then_2_then_compact', () async {

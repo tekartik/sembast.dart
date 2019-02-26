@@ -28,7 +28,10 @@ Future<Map> exportDatabase(Database db) {
     List<Map> storesExport = [];
 
     // export all records from each store
-    for (var store in txn.stores) {
+
+    // Make it safe to iterate in an async way
+    var stores = List<StoreExecutor>.from(txn.stores);
+    for (var store in stores) {
       List keys = [];
       List values = [];
 
@@ -71,7 +74,7 @@ Future<Database> importDatabase(
   Database db = await dstFactory.openDatabase(dstPath,
       version: version, mode: DatabaseMode.empty);
 
-  await db.transaction((txn) {
+  await db.transaction((txn) async {
     List<Map> storesExport = srcData[_stores] as List<Map>;
     if (storesExport != null) {
       for (Map storeExport in storesExport) {
@@ -82,7 +85,7 @@ Future<Database> importDatabase(
 
         var store = txn.getStore(storeName);
         for (int i = 0; i < keys.length; i++) {
-          store.put(values[i], keys[i]);
+          await store.put(values[i], keys[i]);
         }
       }
     }

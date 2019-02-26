@@ -69,6 +69,7 @@ void defineTests(FileSystemTestContext ctx) {
       await db.put("test1", 1);
       await db.compact();
       await db.put("test2", 2);
+      await db.close();
       List<String> lines = await readContent(fs, dbPath);
       expect(lines.length, 3);
       expect(json.decode(lines[1]), {'key': 1, 'value': 'test1'});
@@ -83,6 +84,7 @@ void defineTests(FileSystemTestContext ctx) {
       await db.compact();
       await db.reOpen();
       await db.put("test2", 2);
+      await db.close();
       List<String> lines = await readContent(fs, dbPath);
       expect(lines.length, 3);
       expect(json.decode(lines[1]), {'key': 1, 'value': 'test1'});
