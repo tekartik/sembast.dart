@@ -17,12 +17,14 @@ void defineTests(DatabaseTestContext ctx) {
     Future _checkExportImport(Database db, Map expectedExport) async {
       var export = await exportDatabase(db);
       expect(export, expectedExport);
+      await db.close();
 
       // import and reexport to test content
       String importDbPath = ctx.dbPath + "_import.db";
       Database importedDb =
           await importDatabase(export, ctx.factory, importDbPath);
       expect(await exportDatabase(importedDb), expectedExport);
+      await importedDb.close();
     }
 
     test('no_version', () async {
