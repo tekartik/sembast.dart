@@ -455,6 +455,10 @@ class SembastDatabase extends Object
     }
   }
 
+  Future _flush() {
+    return databaseLock.synchronized(null);
+  }
+
   ///
   /// open a database
   ///
@@ -488,29 +492,34 @@ class SembastDatabase extends Object
         Meta meta;
 
         Future _handleVersionChanged(int oldVersion, int newVersion) async {
-          return await transaction((txn) async {
+          await transaction((txn) async {
             var result;
             try {
               // create a transaction during open
               _openTransaction = txn;
 
-              if (options.onVersionChanged != null) {
-                result = await options.onVersionChanged(
-                    this, oldVersion, newVersion);
-              }
               meta = Meta(
                   version: newVersion,
                   codecSignature: getCodecEncodedSignature(options.codec));
 
+              // Write meta first
               if (_storage.supported) {
                 await _storage.appendLine(json.encode(meta.toMap()));
                 _exportStat.lineCount++;
+              }
+
+              // Eventually run
+              if (options.onVersionChanged != null) {
+                result = await options.onVersionChanged(
+                    this, oldVersion, newVersion);
               }
             } finally {
               _openTransaction = null;
             }
             return result;
           });
+          await _flush();
+          // Make sure the changes are committed
         }
 
         Future<Database> _openDone() async {
@@ -715,7 +724,7 @@ class SembastDatabase extends Object
   @override
   Future close() async {
     // Make sure any pending changes are committed
-    await databaseLock.synchronized(null);
+    await _flush();
 
     await lockedClosed();
   }

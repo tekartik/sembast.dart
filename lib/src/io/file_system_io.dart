@@ -53,7 +53,12 @@ class _IoIOSink implements fs.IOSink {
   void writeln([Object obj = ""]) => ioSink.writeln(obj);
 
   @override
-  Future close() => _wrap(ioSink.close());
+  Future close() async {
+    try {
+      await ioSink.flush();
+    } catch (_) {}
+    return _wrap(ioSink.close());
+  }
 }
 
 class _IoOSError implements fs.OSError {

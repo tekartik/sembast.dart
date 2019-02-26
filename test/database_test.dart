@@ -140,6 +140,7 @@ void defineTests(DatabaseTestContext ctx) {
           expect(db.version, 1);
           await reOpen(db);
           expect(await db.get(1), 'test');
+          expect(await db.get(2), 'other');
           expect(db.version, 1);
         } finally {
           await db?.close();
