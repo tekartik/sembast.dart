@@ -27,7 +27,7 @@ class SembastDatabase extends Object
   final DatabaseStorage _storage;
 
   // Lock used for opening/compacting
-  final Lock databaseLock = Lock();
+  final Lock databaseLock = Lock(reentrant: true);
   final Lock transactionLock = Lock();
 
   @override
@@ -488,14 +488,15 @@ class SembastDatabase extends Object
         Meta meta;
 
         Future _handleVersionChanged(int oldVersion, int newVersion) async {
-          var result;
-          await transaction((txn) async {
+          return await transaction((txn) async {
+            var result;
             try {
               // create a transaction during open
               _openTransaction = txn;
 
               if (options.onVersionChanged != null) {
-                result = options.onVersionChanged(this, oldVersion, newVersion);
+                result = await options.onVersionChanged(
+                    this, oldVersion, newVersion);
               }
               meta = Meta(
                   version: newVersion,
@@ -508,9 +509,8 @@ class SembastDatabase extends Object
             } finally {
               _openTransaction = null;
             }
+            return result;
           });
-
-          return result;
         }
 
         Future<Database> _openDone() async {
