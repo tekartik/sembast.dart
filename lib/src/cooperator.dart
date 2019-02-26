@@ -17,7 +17,9 @@ class Cooperator {
         ..stop()
         ..reset()
         ..start();
-      return Future.delayed(Duration(milliseconds: 0));
+      // Just don't make it 0, tested for best performance using Flutter
+      // on a (non-recent) Nexus 5
+      return Future.delayed(Duration(microseconds: 100));
     } else {
       return null;
     }
