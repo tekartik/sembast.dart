@@ -122,13 +122,13 @@ void defineTests(FileSystemTestContext ctx) {
 
       test('one_record', () async {
         var db = await _prepareOneRecordDatabase(codec: codec);
+        await db.close();
         List<String> lines = await readContent(fs, dbPath);
         expect(lines.length, 2);
         var metaMap = json.decode(lines.first) as Map;
         expect(metaMap,
             {"version": 1, "sembast": 1, 'codec': '{"signature":"json"}'});
         expect(json.decode(lines[1]), {'key': 1, 'value': 'test'});
-        await db.close();
       });
 
       test('wrong_signature', () async {
@@ -150,6 +150,7 @@ void defineTests(FileSystemTestContext ctx) {
 
       test('one_record', () async {
         var db = await _prepareOneRecordDatabase(codec: codec);
+        await db.close();
         List<String> lines = await readContent(fs, dbPath);
         expect(lines.length, 2);
         expect(json.decode(lines.first), {
@@ -159,7 +160,6 @@ void defineTests(FileSystemTestContext ctx) {
         });
         expect(json.decode(utf8.decode(base64.decode(lines[1]))),
             {'key': 1, 'value': 'test'});
-        await db.close();
 
         // reopen
       });
@@ -194,6 +194,7 @@ void defineTests(FileSystemTestContext ctx) {
 
       test('one_record', () async {
         var db = await _prepareOneRecordDatabase(codec: codec);
+        await db.close();
         List<String> lines = await readContent(fs, dbPath);
         expect(lines.length, 2);
         expect(json.decode(lines.first), {
@@ -202,9 +203,6 @@ void defineTests(FileSystemTestContext ctx) {
           "codec": 'f6BJnfYOYu/JYOG/5AOmVAMjGZ+/av6MZi6+3g=='
         });
         expect(codec.codec.decode(lines[1]), {'key': 1, 'value': 'test'});
-        await db.close();
-
-        // reopen
       });
 
       test('reopen_and_compact', () async {
