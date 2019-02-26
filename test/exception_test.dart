@@ -13,7 +13,7 @@ void defineTests(DatabaseTestContext ctx) {
     Database db;
 
     tearDown(() {
-      db.close();
+      return db?.close();
     });
 
     test('put', () async {

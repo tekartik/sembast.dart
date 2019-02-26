@@ -232,32 +232,34 @@ class SembastDatabase extends Object
 
     // spawn commit
     if (_storage.supported) {
-      await _commit(txnRecords);
+      // Don't await on purpose here
+      // ignore: unawaited_futures
+      databaseLock.synchronized(() {
+        return storageCommit(txnRecords);
+      });
     }
   }
 
   // future or not
-  Future _commit(List<Record> txnRecords) async {
-    if (_storage.supported) {
-      if (txnRecords.isNotEmpty) {
-        List<String> lines = [];
+  Future storageCommit(List<Record> txnRecords) async {
+    if (txnRecords.isNotEmpty) {
+      List<String> lines = [];
 
-        // writable record
-        for (Record record in txnRecords) {
-          var map = (record as SembastRecord).toMap();
-          String encoded;
-          try {
-            encoded = encodeMap(map);
-            lines.add(encoded);
-          } catch (e, st) {
-            print(map);
-            print(e);
-            print(st);
-            rethrow;
-          }
+      // writable record
+      for (Record record in txnRecords) {
+        var map = (record as SembastRecord).toMap();
+        String encoded;
+        try {
+          encoded = encodeMap(map);
+          lines.add(encoded);
+        } catch (e, st) {
+          print(map);
+          print(e);
+          print(st);
+          rethrow;
         }
-        await _storage.appendLines(lines);
       }
+      await _storage.appendLines(lines);
     }
   }
 
@@ -702,16 +704,25 @@ class SembastDatabase extends Object
         }
       } catch (_) {
         // on failure make sure to close the database
-        await close();
+        await lockedClosed();
         rethrow;
       }
     });
   }
 
+  // To call when in a databaseLock
+  Future lockedClosed() async {
+    _opened = false;
+
+    await openHelper.closeDatabase();
+  }
+
   @override
   Future close() async {
-    _opened = false;
-    await openHelper.closeDatabase();
+    // Make sure any pending changes are committed
+    await databaseLock.synchronized(null);
+
+    await lockedClosed();
   }
 
   Map<String, dynamic> toJson() {

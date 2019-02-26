@@ -20,7 +20,7 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     tearDown(() {
-      db.close();
+      return db.close();
     });
   });
 

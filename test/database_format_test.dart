@@ -88,11 +88,11 @@ void defineTests(FileSystemTestContext ctx, {SembastCodec codec}) {
       db.getStore('store1');
       Store store2 = db.getStore('store2');
       await store2.put("hi", 1);
+      await db.close();
       List<String> lines = await readContent(fs, dbPath);
       expect(lines.length, 2);
       expect(
           decodeRecord(lines[1]), {'store': 'store2', 'key': 1, 'value': 'hi'});
-      await db.close();
     });
 
     test('twice same record', () async {
@@ -100,11 +100,11 @@ void defineTests(FileSystemTestContext ctx, {SembastCodec codec}) {
       var db = await factory.openDatabase(dbPath, codec: codec);
       await db.put("hi", 1);
       await db.put("hi", 1);
+      await db.close();
       var lines = await readContent(fs, dbPath);
       expect(lines.length, 3);
       expect(decodeRecord(lines[1]), {'key': 1, 'value': 'hi'});
       expect(decodeRecord(lines[2]), {'key': 1, 'value': 'hi'});
-      await db.close();
     });
 
     test('1 map record', () async {

@@ -26,9 +26,7 @@ void defineTests(DatabaseTestContext ctx) {
       });
 
       tearDown(() {
-        if (db != null) {
-          db.close();
-        }
+        return db?.close();
       });
 
       test('open_then_open_no_version', () async {
@@ -37,7 +35,7 @@ void defineTests(DatabaseTestContext ctx) {
         return db.reOpen().then((Database db) {
           expect(db.path, dbPath);
           expect(db.version, 1);
-          db.close();
+          return db.close();
         });
       });
     });
@@ -50,9 +48,7 @@ void defineTests(DatabaseTestContext ctx) {
       });
 
       tearDown(() {
-        if (db != null) {
-          db.close();
-        }
+        return db?.close();
       });
 
       test('open_then_open_no_version_or_same_version', () async {
@@ -67,7 +63,7 @@ void defineTests(DatabaseTestContext ctx) {
             .then((Database db) {
           expect(db.path, dbPath);
           expect(db.version, 1);
-          db.close();
+          return db.close();
         }).then((_) {
           return db
               .reOpen(DatabaseOpenOptions(
@@ -75,7 +71,7 @@ void defineTests(DatabaseTestContext ctx) {
               .then((Database db) {
             expect(db.path, dbPath);
             expect(db.version, 1);
-            db.close();
+            return db.close();
           });
         });
       });
@@ -100,7 +96,7 @@ void defineTests(DatabaseTestContext ctx) {
           expect(_newVersion, 2);
           expect(db.path, dbPath);
           expect(db.version, 2);
-          db.close();
+          return db.close();
         });
       });
     });
@@ -113,9 +109,7 @@ void defineTests(DatabaseTestContext ctx) {
       });
 
       tearDown(() {
-        if (db != null) {
-          db.close();
-        }
+        return db?.close();
       });
 
       test('export', () async {

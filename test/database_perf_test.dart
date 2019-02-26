@@ -22,7 +22,7 @@ void defineTests(DatabaseTestContext ctx, int putCount,
     });
 
     tearDown(() {
-      db.close();
+      return db.close();
     });
 
     test('put/read $putCount', () async {
@@ -63,7 +63,7 @@ void defineTests(DatabaseTestContext ctx, int putCount,
     });
 
     tearDown(() {
-      db.close();
+      return db.close();
     });
 
     test('random $randomCount', () async {

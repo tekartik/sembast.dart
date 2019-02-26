@@ -24,9 +24,7 @@ void defineTests(DatabaseTestContext ctx) {
       });
 
       tearDown(() {
-        if (db != null) {
-          db.close();
-        }
+        return db?.close();
       });
 
       test('open_no_version', () async {
@@ -88,9 +86,7 @@ void defineTests(DatabaseTestContext ctx) {
       });
 
       tearDown(() {
-        if (db != null) {
-          db.close();
-        }
+        return db?.close();
       });
 
       test('open_no_version', () async {
