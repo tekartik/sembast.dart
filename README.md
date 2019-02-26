@@ -209,7 +209,7 @@ Data is stored in a text file where each line is (json format) either:
 - meta information of the database (first line)
 - record data
 
-Each data written is appended to the file for best performance. Compact might happen at any moment
+Each data written is appended lazily to the file for best performance. Compact might happen at any moment
 to prevent record duplication. The whole compact information is done in a new file
 followed by a rename to make it atomic.
 

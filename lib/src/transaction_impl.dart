@@ -64,7 +64,7 @@ abstract class TransactionExecutorMixin implements TransactionExecutor {
 
   @override
   Future<Record> putRecord(Record record) async =>
-      cloneRecord(database.txnPutRecord(transaction, record));
+      cloneRecord(await database.txnPutRecord(transaction, record));
 }
 
 class SembastTransaction extends Object
@@ -160,14 +160,14 @@ class SembastTransactionStore implements StoreTransaction {
           .cloneRecords(await store.txnFindRecords(transaction, finder));
 
   @override
-  Future get(key) async => cloneValue(store.txnGet(transaction, key));
+  Future get(key) async => cloneValue(await store.txnGet(transaction, key));
 
   @override
-  Future put(value, [key]) async => store.txnPut(transaction, value, key);
+  Future put(value, [key]) => store.txnPut(transaction, value, key);
 
   @override
   Future update(value, key) async =>
-      cloneValue(store.txnUpdate(transaction, value, key));
+      cloneValue(await store.txnUpdate(transaction, value, key));
 
   @override
   Future clear() async => store.txnClear(transaction);
@@ -178,7 +178,7 @@ class SembastTransactionStore implements StoreTransaction {
 
   @override
   Future<Record> getRecord(key) async =>
-      cloneRecord(store.txnGetRecord(transaction, key));
+      cloneRecord(await store.txnGetRecord(transaction, key));
 
   @override
   Future<List<Record>> getRecords(Iterable keys) async =>

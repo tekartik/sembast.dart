@@ -48,24 +48,26 @@ class SembastStore implements Store {
 
   @override
   Future update(dynamic value, dynamic key) {
-    return transaction((txn) {
-      return cloneValue(txnUpdate(txn as SembastTransaction, value, key));
+    return transaction((txn) async {
+      return cloneValue(await txnUpdate(txn as SembastTransaction, value, key));
     });
   }
 
-  dynamic txnPut(SembastTransaction txn, var value, var key) {
+  Future<dynamic> txnPut(SembastTransaction txn, var value, var key) async {
     Record record = SembastRecord.copy(this, key, value, false);
 
-    record = txnPutRecord(txn, record);
+    record = await txnPutRecord(txn, record);
     if (database.logV) {
       SembastDatabase.logger.fine("${txn} put ${record}");
     }
     return record.key;
   }
 
-  dynamic txnUpdate(SembastTransaction txn, dynamic value, dynamic key) {
+  Future<dynamic> txnUpdate(
+      SembastTransaction txn, dynamic value, dynamic key) async {
+    await cooperate();
     // Ignore non-existing record
-    var existingRecord = txnGetRecord(txn, key);
+    var existingRecord = txnGetRecordSync(txn, key);
     if (existingRecord == null) {
       return null;
     }
@@ -73,7 +75,7 @@ class SembastStore implements Store {
     var mergedValue = mergeValue(existingRecord.value, value);
     Record record = SembastRecord(this, mergedValue, key);
 
-    txnPutRecord(txn, record);
+    txnPutRecordSync(txn, record);
     if (database.logV) {
       SembastDatabase.logger.fine("${txn} update ${record}");
     }
@@ -244,7 +246,6 @@ class SembastStore implements Store {
 
     if (finder != null) {
       // sort
-      //TODO fix sort
       if (cooperateOn) {
         var sort = Sort(database.cooperator);
         await sort.sort(
@@ -317,7 +318,12 @@ class SembastStore implements Store {
     }
   }
 
-  Record txnPutRecord(SembastTransaction txn, Record record) {
+  Future<Record> txnPutRecord(SembastTransaction txn, Record record) async {
+    await cooperate();
+    return txnPutRecordSync(txn, record);
+  }
+
+  Record txnPutRecordSync(SembastTransaction txn, Record record) {
     var sembastRecord = cloneRecord(record);
     sembastRecord.store ??= this;
     assert(sembastRecord.store == this);
@@ -345,7 +351,6 @@ class SembastStore implements Store {
       txnRecords = <dynamic, Record>{};
     }
     txnRecords[sembastRecord.key] = sembastRecord;
-
     return sembastRecord;
   }
 
@@ -372,10 +377,17 @@ class SembastStore implements Store {
   ///
   @override
   Future<Record> getRecord(var key) async {
-    return cloneRecord(txnGetRecord(null, key));
+    return cloneRecord(await txnGetRecord(null, key));
   }
 
-  Record txnGetRecord(SembastTransaction txn, key) {
+  Future<Record> txnGetRecord(SembastTransaction txn, key) async {
+    if (needCooperate) {
+      await cooperate();
+    }
+    return txnGetRecordSync(txn, key);
+  }
+
+  Record txnGetRecordSync(SembastTransaction txn, key) {
     Record record = _getRecord(txn, key);
     if (record != null) {
       if (record.deleted) {
@@ -416,11 +428,11 @@ class SembastStore implements Store {
   ///
   @override
   Future get(var key) async {
-    return cloneValue(txnGet(null, key));
+    return cloneValue(await txnGet(null, key));
   }
 
-  dynamic txnGet(SembastTransaction txn, key) {
-    Record record = txnGetRecord(txn, key);
+  Future<dynamic> txnGet(SembastTransaction txn, key) async {
+    Record record = await txnGetRecord(txn, key);
     return record?.value;
   }
 
@@ -447,15 +459,16 @@ class SembastStore implements Store {
     });
   }
 
-  dynamic txnDelete(SembastTransaction txn, var key) {
+  Future<dynamic> txnDelete(SembastTransaction txn, var key) async {
     Record record = _getRecord(txn, key);
+    await cooperate();
     if (record == null) {
       return null;
     } else {
       // clone to keep the existing as is
       Record clone = (record as SembastRecord).clone();
       (clone as SembastRecord).deleted = true;
-      txnPutRecord(txn, clone);
+      await txnPutRecord(txn, clone);
       return key;
     }
   }
@@ -477,9 +490,7 @@ class SembastStore implements Store {
     // make it safe in a async way
     keys = List.from(keys, growable: false);
     for (var key in keys) {
-      if (needCooperate) {
-        await cooperate();
-      }
+      await cooperate();
       Record record = _getRecord(txn, key);
       if (record != null) {
         Record clone = (record as SembastRecord).clone();

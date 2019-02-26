@@ -159,9 +159,7 @@ class SembastDatabase extends Object
       List<String> lines = [];
 
       Future _addStringLine(String line) async {
-        if (needCooperate) {
-          await cooperate();
-        }
+        await cooperate();
         exportStat.lineCount++;
         lines.add(line);
       }
@@ -277,9 +275,9 @@ class SembastDatabase extends Object
   ///
   @override
   Future<Record> putRecord(Record record) {
-    return transaction((txn) {
+    return transaction((txn) async {
       return cloneRecord(
-          txnPutRecord(txn as SembastTransaction, _cloneAndFix(record)));
+          await txnPutRecord(txn as SembastTransaction, _cloneAndFix(record)));
     });
   }
 
@@ -307,10 +305,7 @@ class SembastDatabase extends Object
       SembastTransaction txn, List<Record> records) async {
     var recordsResult = List<Record>(records.length);
     for (int i = 0; i < records.length; i++) {
-      if (needCooperate) {
-        await cooperate();
-      }
-      recordsResult[i] = txnPutRecord(txn, _cloneAndFix(records[i]));
+      recordsResult[i] = await txnPutRecord(txn, _cloneAndFix(records[i]));
     }
     return recordsResult;
   }
@@ -328,7 +323,7 @@ class SembastDatabase extends Object
     return mainStore.findRecord(finder);
   }
 
-  Record txnPutRecord(SembastTransaction txn, Record record) {
+  Future<Record> txnPutRecord(SembastTransaction txn, Record record) {
     return _recordStore(record).txnPutRecord(txn, record);
   }
 

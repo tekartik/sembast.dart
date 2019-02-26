@@ -28,17 +28,9 @@ export 'package:sembast/src/database_mode.dart'
         databaseModeNeverFails;
 export 'package:sembast/src/sort_order.dart';
 
-export 'src/database.dart';
-export 'src/record.dart';
-export 'src/store.dart';
-
-//import 'package:tekartik_core/dev_utils.dart';
-// ignore: deprecated_member_use
-// ignore: deprecated_member_use
-// ignore: deprecated_member_use
-// ignore: deprecated_member_use
-// ignore: deprecated_member_use
-// ignore: deprecated_member_use
+export 'package:sembast/src/database.dart';
+export 'package:sembast/src/record.dart';
+export 'package:sembast/src/store.dart';
 
 /// can return a future or not
 typedef OnVersionChangedFunction = FutureOr Function(

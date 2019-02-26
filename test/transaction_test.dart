@@ -28,7 +28,7 @@ void defineTests(DatabaseTestContext ctx) {
       List<Future> futures = [];
       futures.add(db.put("hi", 1));
       futures.add(db.get(1).then((value) {
-        expect(value, null);
+        expect(value, 'hi');
       }));
       await Future.wait(futures);
       expect(await db.get(1), "hi");
