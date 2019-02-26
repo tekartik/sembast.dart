@@ -26,8 +26,8 @@ class SembastDatabase extends Object
 
   final DatabaseStorage _storage;
 
-  // Lock used for opening/compacting
-  final Lock databaseLock = Lock(reentrant: true);
+  // Lock used for opening/writing/compacting
+  final Lock databaseLock = Lock();
   final Lock transactionLock = Lock();
 
   @override
@@ -462,7 +462,7 @@ class SembastDatabase extends Object
   ///
   /// open a database
   ///
-  Future<Database> open(DatabaseOpenOptions options) {
+  Future<Database> open(DatabaseOpenOptions options) async {
     // Default mode
     var mode = options.mode ?? DatabaseMode.defaultMode;
     int version = options.version;
@@ -473,7 +473,7 @@ class SembastDatabase extends Object
         throw DatabaseException.badParam(
             "existing path ${this.path} differ from open path ${path}");
       }
-      return Future.value(this);
+      return this;
     }
 
     // Check codec
@@ -487,7 +487,7 @@ class SembastDatabase extends Object
       }
     }
 
-    return databaseLock.synchronized(() async {
+    await databaseLock.synchronized(() async {
       try {
         Meta meta;
 
@@ -502,27 +502,27 @@ class SembastDatabase extends Object
                   version: newVersion,
                   codecSignature: getCodecEncodedSignature(options.codec));
 
+              // Eventually run onVersionChanged
+              // Change will be committed when the transaction terminates
+              if (options.onVersionChanged != null) {
+                result = await options.onVersionChanged(
+                    this, oldVersion, newVersion);
+              }
+
               // Write meta first
               if (_storage.supported) {
                 await _storage.appendLine(json.encode(meta.toMap()));
                 _exportStat.lineCount++;
-              }
-
-              // Eventually run
-              if (options.onVersionChanged != null) {
-                result = await options.onVersionChanged(
-                    this, oldVersion, newVersion);
               }
             } finally {
               _openTransaction = null;
             }
             return result;
           });
-          await _flush();
           // Make sure the changes are committed
         }
 
-        Future<Database> _openDone() async {
+        Future _openDone() async {
           // make sure mainStore is created
           _checkMainStore();
 
@@ -565,7 +565,6 @@ class SembastDatabase extends Object
             await _handleVersionChanged(oldVersion, version);
           }
           _meta = meta;
-          return this;
         }
 
         //_path = path;
@@ -698,7 +697,7 @@ class SembastDatabase extends Object
             }
           }
 
-          return await _openDone();
+          return _openDone();
         } else {
           // ensure main store exists
           // but do not erase previous data
@@ -712,6 +711,8 @@ class SembastDatabase extends Object
         rethrow;
       }
     });
+    await _flush();
+    return this;
   }
 
   // To call when in a databaseLock

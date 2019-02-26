@@ -146,6 +146,31 @@ void defineTests(DatabaseTestContext ctx) {
           await db?.close();
         }
       });
+
+      test('throw during first onVersionChanged', () async {
+        try {
+          await factory.openDatabase(dbPath, version: 1,
+              onVersionChanged: (db, _, __) async {
+            throw TestException();
+          });
+        } on TestException catch (_) {}
+        if (factory.hasStorage) {
+          expect(await getExistingDatabaseVersion(factory, dbPath), 0);
+        }
+      });
+
+      test('throw during second onVersionChanged', () async {
+        await (await factory.openDatabase(dbPath)).close();
+        if (factory.hasStorage) {
+          try {
+            await factory.openDatabase(dbPath, version: 2,
+                onVersionChanged: (db, _, __) async {
+              throw TestException();
+            });
+          } on TestException catch (_) {}
+          expect(await getExistingDatabaseVersion(factory, dbPath), 1);
+        }
+      });
     });
   });
 }

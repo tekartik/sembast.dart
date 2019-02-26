@@ -16,6 +16,11 @@ import 'package:sembast/src/sembast_fs.dart';
 
 export 'package:dev_test/test.dart';
 
+class TestException implements Exception {
+  @override
+  String toString() => 'TestException';
+}
+
 // For test in memory
 DatabaseTestContext get memoryDatabaseContext =>
     DatabaseTestContext()..factory = databaseFactoryMemory;
@@ -103,4 +108,13 @@ void devPrintJson(Map json) {
 
 Future<Database> reOpen(Database db, {DatabaseMode mode}) {
   return (db as SembastDatabase).reOpen(DatabaseOpenOptions(mode: mode));
+}
+
+/// Get an existing database version
+Future<int> getExistingDatabaseVersion(
+    DatabaseFactory factory, String path) async {
+  var db = await factory.openDatabase(path, mode: DatabaseMode.existing);
+  int version = db.version;
+  await db.close();
+  return version;
 }
