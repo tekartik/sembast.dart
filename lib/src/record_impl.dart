@@ -138,6 +138,7 @@ SembastRecord cloneRecord(Record record) {
   return null;
 }
 
+@deprecated
 List<Record> cloneRecordsSync(List<Record> records) {
   if (records != null) {
     return records.map((record) => cloneRecord(record)).toList();

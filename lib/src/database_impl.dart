@@ -134,6 +134,15 @@ class SembastDatabase extends Object
     }
   }
 
+  /// Get the list of current store that can be safely iterate even
+  /// in an async way.
+  List<SembastStore> getCurrentStores() => List<SembastStore>.from(stores);
+
+  /// Get the list of current records that can be safely iterate even
+  /// in an async way.
+  List<Record> getCurrentRecords(Store store) =>
+      (store as SembastStore).currentRecords;
+
   ///
   /// Compact the database (work in progress)
   ///
@@ -149,18 +158,21 @@ class SembastDatabase extends Object
 
       List<String> lines = [];
 
-      void _addStringLine(String line) {
+      Future _addStringLine(String line) async {
+        if (needCooperate) {
+          await cooperate();
+        }
         exportStat.lineCount++;
         lines.add(line);
       }
 
-      void _addLine(Map<String, dynamic> map) {
+      Future _addLine(Map<String, dynamic> map) async {
         String encoded;
         try {
           encoded = encodeMap(map);
-          _addStringLine(encoded);
+          await _addStringLine(encoded);
         } catch (e, st) {
-          // usefull for debugging...
+          // useful for debugging...
           print(map);
           print(e);
           print(st);
@@ -169,11 +181,13 @@ class SembastDatabase extends Object
       }
 
       // meta is always json
-      _addStringLine(json.encode(_meta.toMap()));
+      await _addStringLine(json.encode(_meta.toMap()));
 
+      var stores = getCurrentStores();
       for (Store store in stores) {
-        for (Record record in (store as SembastStore).recordMap.values) {
-          _addLine((record as SembastRecord).toMap());
+        final records = getCurrentRecords(store);
+        for (Record record in records) {
+          await _addLine((record as SembastRecord).toMap());
         }
       }
       await tmpStorage.appendLines(lines);
@@ -188,16 +202,19 @@ class SembastDatabase extends Object
     }
   }
 
-  // future or not
-  Future _commit() async {
+  /// Save all records to fix in memory
+  /// and commit later
+  Future lazyCommit() async {
     List<Record> txnRecords = [];
-    for (Store store in stores) {
-      if ((store as SembastStore).txnRecords != null) {
-        txnRecords.addAll((store as SembastStore).txnRecords.values);
+
+    var stores = getCurrentStores();
+    for (var store in stores) {
+      var records = store.currentTxnRecords;
+      if (records != null) {
+        txnRecords.addAll(records);
       }
     }
 
-    // end of commit
     void _saveInMemory() {
       for (Record record in txnRecords) {
         bool exists = setRecordInMemory(record);
@@ -211,6 +228,16 @@ class SembastDatabase extends Object
       }
     }
 
+    _saveInMemory();
+
+    // spawn commit
+    if (_storage.supported) {
+      await _commit(txnRecords);
+    }
+  }
+
+  // future or not
+  Future _commit(List<Record> txnRecords) async {
     if (_storage.supported) {
       if (txnRecords.isNotEmpty) {
         List<String> lines = [];
@@ -230,10 +257,7 @@ class SembastDatabase extends Object
           }
         }
         await _storage.appendLines(lines);
-        _saveInMemory();
       }
-    } else {
-      _saveInMemory();
     }
   }
 
@@ -270,17 +294,23 @@ class SembastDatabase extends Object
   ///
   @override
   Future<List<Record>> putRecords(List<Record> records) {
-    return transaction((txn) {
-      return cloneRecordsSync(
-          txnPutRecords(txn as SembastTransaction, records));
+    return transaction((txn) async {
+      return cloneRecords(
+          await txnPutRecords(txn as SembastTransaction, records));
     });
   }
 
   // in transaction
-  List<Record> txnPutRecords(SembastTransaction txn, List<Record> records) {
-    return records.map((Record record) {
-      return txnPutRecord(txn, _cloneAndFix(record));
-    }).toList();
+  Future<List<Record>> txnPutRecords(
+      SembastTransaction txn, List<Record> records) async {
+    var recordsResult = List<Record>(records.length);
+    for (int i = 0; i < records.length; i++) {
+      if (needCooperate) {
+        await cooperate();
+      }
+      recordsResult[i] = txnPutRecord(txn, _cloneAndFix(records[i]));
+    }
+    return recordsResult;
   }
 
   ///
@@ -741,7 +771,7 @@ class SembastDatabase extends Object
       T actionResult;
       try {
         actionResult = await Future<T>.sync(() => action(_transaction));
-        await _commit();
+        await lazyCommit();
       } catch (e) {
         _clearTxnData();
         _transactionCleanUp();
@@ -773,15 +803,33 @@ class SembastDatabase extends Object
   @override
   Future clear() => mainStore.clear();
 
-  final cooperator = Cooperator();
+  /// cooperate safe
+  Future<List<Record>> cloneRecords(List<Record> records) async {
+    if (records != null) {
+      var clones = <Record>[];
+      // make it safe for the loop
+      records = List<Record>.from(records, growable: false);
+      for (var record in records) {
+        if (needCooperate) {
+          await cooperate();
+        }
+        clones.add(cloneRecord(record));
+      }
+      return clones;
+    }
+    return null;
+  }
+
   //
   // Cooperate mode
   //
-  bool get cooperateMode => cooperator.cooperateMode;
+  final cooperator = Cooperator();
+
+  bool get cooperateOn => cooperator.cooperateOn;
 
   bool get needCooperate => cooperator.needCooperate;
 
-  Future cooperate() => cooperator.cooperate();
+  FutureOr cooperate() => cooperator.cooperate();
 }
 
 class DatabaseExportStat {

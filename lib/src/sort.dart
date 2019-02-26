@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// Copied and modified from dart_sdk
 // ignore_for_file: non_constant_identifier_names
 
 import 'package:sembast/src/cooperator.dart';
@@ -158,11 +159,12 @@ class Sort {
       //   2) for x in [less, k[ : x == pivot.
       //   3) for x in ]great, right[ : x > pivot.
       for (int k = less; k <= great; k++) {
+        var ak = a[k];
+        int comp = compare(ak, pivot);
         if (cooperator.needCooperate) {
           await cooperator.cooperate();
         }
-        var ak = a[k];
-        int comp = compare(ak, pivot);
+
         if (comp == 0) continue;
         if (comp < 0) {
           if (k != less) {
@@ -181,11 +183,11 @@ class Sort {
           // short amount of time. The invariant will be restored when the
           // pivots are put into their final positions.
           while (true) {
+            comp = compare(a[great], pivot);
             if (cooperator.needCooperate) {
               await cooperator.cooperate();
             }
 
-            comp = compare(a[great], pivot);
             if (comp > 0) {
               great--;
               // This is the only location in the while-loop where a new
@@ -227,12 +229,12 @@ class Sort {
       //   2. for x in [less, k[ : pivot1 <= x && x <= pivot2
       //   3. for x in ]great, right[ : x > pivot2
       for (int k = less; k <= great; k++) {
+        var ak = a[k];
+        int comp_pivot1 = compare(ak, pivot1);
         if (cooperator.needCooperate) {
           await cooperator.cooperate();
         }
 
-        var ak = a[k];
-        int comp_pivot1 = compare(ak, pivot1);
         if (comp_pivot1 < 0) {
           if (k != less) {
             a[k] = a[less];
@@ -241,12 +243,16 @@ class Sort {
           less++;
         } else {
           int comp_pivot2 = compare(ak, pivot2);
+          if (cooperator.needCooperate) {
+            await cooperator.cooperate();
+          }
           if (comp_pivot2 > 0) {
             while (true) {
+              int comp = compare(a[great], pivot2);
               if (cooperator.needCooperate) {
                 await cooperator.cooperate();
               }
-              int comp = compare(a[great], pivot2);
+
               if (comp > 0) {
                 great--;
                 if (great < k) break;
@@ -256,6 +262,10 @@ class Sort {
               } else {
                 // a[great] <= pivot2.
                 comp = compare(a[great], pivot1);
+                if (cooperator.needCooperate) {
+                  await cooperator.cooperate();
+                }
+
                 if (comp < 0) {
                   // Triple exchange.
                   a[k] = a[less];
@@ -334,11 +344,12 @@ class Sort {
       //   2. for x in [less, k[ : pivot1 < x && x < pivot2
       //   3. for x in ]great, * ] : x == pivot2
       for (int k = less; k <= great; k++) {
+        var ak = a[k];
+        int comp_pivot1 = compare(ak, pivot1);
         if (cooperator.needCooperate) {
           await cooperator.cooperate();
         }
-        var ak = a[k];
-        int comp_pivot1 = compare(ak, pivot1);
+
         if (comp_pivot1 == 0) {
           if (k != less) {
             a[k] = a[less];
@@ -349,10 +360,11 @@ class Sort {
           int comp_pivot2 = compare(ak, pivot2);
           if (comp_pivot2 == 0) {
             while (true) {
+              int comp = compare(a[great], pivot2);
               if (cooperator.needCooperate) {
                 await cooperator.cooperate();
               }
-              int comp = compare(a[great], pivot2);
+
               if (comp == 0) {
                 great--;
                 if (great < k) break;
@@ -362,6 +374,10 @@ class Sort {
               } else {
                 // a[great] < pivot2.
                 comp = compare(a[great], pivot1);
+                if (cooperator.needCooperate) {
+                  await cooperator.cooperate();
+                }
+
                 if (comp < 0) {
                   // Triple exchange.
                   a[k] = a[less];

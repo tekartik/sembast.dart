@@ -1,20 +1,26 @@
+import 'dart:async';
+
+/// Simple cooperate that checks every 4ms
 class Cooperator {
-//
   // Cooperate mode
   //
-  bool cooperateMode = true;
+  final bool cooperateOn = true;
   var cooperateStopWatch = Stopwatch()..start();
 
   // Need to cooperate every 16 milliseconds
   bool get needCooperate =>
-      cooperateMode && cooperateStopWatch.elapsedMilliseconds > 4;
+      cooperateOn && cooperateStopWatch.elapsedMilliseconds > 4;
 
-  Future cooperate() async {
-    cooperateStopWatch
-      ..stop()
-      ..reset()
-      ..start();
-    await Future.delayed(Duration(milliseconds: 0));
+  FutureOr cooperate() {
+    if (needCooperate) {
+      cooperateStopWatch
+        ..stop()
+        ..reset()
+        ..start();
+      return Future.delayed(Duration(milliseconds: 0));
+    } else {
+      return null;
+    }
     // await Future.value();
     //print('breath');
   }

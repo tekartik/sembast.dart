@@ -87,13 +87,15 @@ class SembastStore implements Store {
   Stream<Record> get records {
     StreamController<Record> ctlr = StreamController();
     // asynchronous feeding
-    _feedController(null, ctlr);
-    ctlr.close();
+    _feedController(null, ctlr).then((_) {
+      ctlr.close();
+    });
     return ctlr.stream;
   }
 
-  void _feedController(SembastTransaction txn, StreamController<Record> ctlr) {
-    _forEachRecords(txn, null, (Record record) {
+  Future _feedController(
+      SembastTransaction txn, StreamController<Record> ctlr) async {
+    await _forEachRecords(txn, null, (Record record) {
       ctlr.add(cloneRecord(record));
     });
   }
@@ -103,16 +105,28 @@ class SembastStore implements Store {
   ///
   Stream<Record> txnGetRecordsStream(SembastTransaction transaction) {
     StreamController<Record> ctlr = StreamController();
-    _feedController(transaction, ctlr);
-    ctlr.close();
+    _feedController(transaction, ctlr).then((_) {
+      ctlr.close();
+    });
     return ctlr.stream;
   }
 
+  /// Get the list of current records that can be safely iterate even
+  /// in an async way.
+  List<Record> get currentRecords =>
+      List<Record>.from(recordMap.values, growable: false);
+
+  /// Can be nulll
+  List<Record> get currentTxnRecords => txnRecords == null
+      ? null
+      : List<Record>.from(txnRecords.values, growable: false);
+
   Future _forEachRecords(
       SembastTransaction txn, Filter filter, void action(Record record)) async {
-// handle record in transaction first
+    // handle record in transaction first
     if (_hasTransactionRecords(txn)) {
-      for (var record in txnRecords.values) {
+      var records = List<Record>.from(txnRecords.values);
+      for (var record in records) {
         if (needCooperate) {
           await cooperate();
         }
@@ -123,7 +137,8 @@ class SembastStore implements Store {
       }
     }
 
-    for (var record in recordMap.values) {
+    var records = currentRecords;
+    for (var record in records) {
       // then the regular unless already in transaction
       if (needCooperate) {
         await cooperate();
@@ -208,26 +223,12 @@ class SembastStore implements Store {
     return results;
   }
 
-  Future<List<Record>> cloneRecords(List<Record> records) async {
-    if (records != null) {
-      var clones = <Record>[];
-      for (var record in records) {
-        if (needCooperate) {
-          await cooperate();
-        }
-        clones.add(cloneRecord(record));
-      }
-      return clones;
-    }
-    return null;
-  }
-
   ///
   /// find all records
   ///
   @override
   Future<List<Record>> findRecords(Finder finder) async {
-    return await cloneRecords(await txnFindRecords(null, finder));
+    return await database.cloneRecords(await txnFindRecords(null, finder));
   }
 
   Future<List<Record>> txnFindRecords(
@@ -244,7 +245,7 @@ class SembastStore implements Store {
     if (finder != null) {
       // sort
       //TODO fix sort
-      if (cooperateMode) {
+      if (cooperateOn) {
         var sort = Sort(database.cooperator);
         await sort.sort(
             results,
@@ -389,13 +390,17 @@ class SembastStore implements Store {
   ///
   @override
   Future<List<Record>> getRecords(Iterable keys) async {
-    return cloneRecordsSync(txnGetRecords(null, keys));
+    return database.cloneRecords(await txnGetRecords(null, keys));
   }
 
-  List<Record> txnGetRecords(SembastTransaction txn, Iterable keys) {
+  Future<List<Record>> txnGetRecords(
+      SembastTransaction txn, Iterable keys) async {
     List<Record> records = [];
 
     for (var key in keys) {
+      if (needCooperate) {
+        await cooperate();
+      }
       Record record = _getRecord(txn, key);
       if (record != null) {
         if (!record.deleted) {
@@ -465,10 +470,16 @@ class SembastStore implements Store {
     });
   }
 
-  List txnDeleteAll(SembastTransaction txn, Iterable keys) {
+  Future<List> txnDeleteAll(SembastTransaction txn, Iterable keys) async {
     List<Record> updates = [];
     List deletedKeys = [];
+
+    // make it safe in a async way
+    keys = List.from(keys, growable: false);
     for (var key in keys) {
+      if (needCooperate) {
+        await cooperate();
+      }
       Record record = _getRecord(txn, key);
       if (record != null) {
         Record clone = (record as SembastRecord).clone();
@@ -479,7 +490,7 @@ class SembastStore implements Store {
     }
 
     if (updates.isNotEmpty) {
-      database.txnPutRecords(txn, updates);
+      await database.txnPutRecords(txn, updates);
     }
     return deletedKeys;
   }
@@ -535,11 +546,11 @@ class SembastStore implements Store {
   Future clear() {
     return transaction((txn) {
       // first delete the one in transaction
-      txnClear(txn as SembastTransaction);
+      return txnClear(txn as SembastTransaction);
     });
   }
 
-  List txnClear(SembastTransaction txn) {
+  Future<List> txnClear(SembastTransaction txn) {
     if (_hasTransactionRecords(txn)) {
       return txnDeleteAll(txn, List.from(txnRecords.keys, growable: false));
     }
@@ -552,7 +563,7 @@ class SembastStore implements Store {
 //
   bool get needCooperate => database.needCooperate;
 
-  bool get cooperateMode => database.cooperateMode;
+  bool get cooperateOn => database.cooperateOn;
 
-  Future cooperate() => database.cooperate();
+  FutureOr cooperate() => database.cooperate();
 }

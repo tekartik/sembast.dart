@@ -28,7 +28,10 @@ Future<Map> exportDatabase(Database db) {
     List<Map> storesExport = [];
 
     // export all records from each store
-    for (var store in txn.stores) {
+
+    // Make it safe to iterate in an async way
+    var stores = List<StoreExecutor>.from(txn.stores);
+    for (var store in stores) {
       List keys = [];
       List values = [];
 
