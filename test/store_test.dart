@@ -66,6 +66,14 @@ void defineTests(DatabaseTestContext ctx) {
       });
     });
 
+    test('put/delete_store', () async {
+      Store store = db.getStore("test_store");
+      await store.put('test', 1);
+      await db.deleteStore('test_store');
+      store = db.getStore("test_store");
+      expect(await store.get(1), isNull);
+    });
+
     test('put/get', () {
       Store store1 = db.getStore("test1");
       Store store2 = db.getStore("test2");

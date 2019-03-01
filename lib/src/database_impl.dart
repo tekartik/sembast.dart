@@ -441,14 +441,14 @@ class SembastDatabase extends Object
   @override
   Future deleteStore(String storeName) {
     return transaction((txn) {
-      txnDeleteStore(txn as SembastTransaction, storeName);
+      return txnDeleteStore(txn as SembastTransaction, storeName);
     });
   }
 
-  void txnDeleteStore(SembastTransaction txn, String storeName) {
+  Future txnDeleteStore(SembastTransaction txn, String storeName) async {
     var store = txnFindStore(txn, storeName);
     if (store != null) {
-      store.store.txnClear(txn);
+      await store.store.txnClear(txn);
       // do not delete main
       if (store.store != mainStore) {
         _stores.remove(storeName);
