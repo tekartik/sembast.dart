@@ -90,6 +90,19 @@ void defineTests(DatabaseTestContext ctx) {
           unawaited(db.close());
           db = await factory.openDatabase(dbPath);
           expect(await db.get(1), 'test');
+          // Do it again
+          // don't await to make sure it gets written at some point
+          unawaited(db.transaction((txn) async {
+            await Future.delayed(const Duration(milliseconds: 10));
+            await txn.put('test2', 1);
+          }));
+          unawaited(db.close());
+          db = await factory.openDatabase(dbPath);
+          expect(await db.get(1), 'test2');
+
+          await db.close();
+          db = await factory.openDatabase(dbPath);
+          expect(await db.get(1), 'test2');
         } finally {
           await db.close();
         }

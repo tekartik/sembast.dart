@@ -12,7 +12,7 @@ void main() {
 }
 
 void defineTests(DatabaseTestContext ctx) {
-  DatabaseFactory factory = ctx.factory;
+  final factory = ctx.factory as DatabaseFactoryMixin;
   String dbPath;
 
   group('database_impl', () {
@@ -120,6 +120,25 @@ void defineTests(DatabaseTestContext ctx) {
             db.toJson()["exportStat"],
             // ignore: deprecated_member_use
             factory.hasStorage ? isNotNull : isNull);
+      });
+    });
+
+    group('openHelper', () {
+      Database db;
+
+      setUp(() {
+        return factory.deleteDatabase(dbPath).then((_) {});
+      });
+
+      tearDown(() {
+        return db?.close();
+      });
+
+      test('export', () async {
+        var db = await factory.openDatabase(dbPath) as SembastDatabase;
+        expect(factory.getExistingDatabaseOpenHelper(dbPath), isNotNull);
+        await db.close();
+        expect(factory.getExistingDatabaseOpenHelper(dbPath), isNull);
       });
     });
   });

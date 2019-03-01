@@ -52,6 +52,9 @@ class DatabaseOpenHelper {
         this.database = database;
       }
       await database.open(options);
+
+      // Force helper again in case it was removed by lockedClose
+      factory.setDatabaseOpenHelper(path, this);
       return this.database;
     });
   }
@@ -59,7 +62,7 @@ class DatabaseOpenHelper {
   Future lockedCloseDatabase() async {
     if (database != null) {
       factory.removeDatabaseOpenHelper(path);
-      database = null;
+      // database = null;
     }
     return database;
   }
@@ -73,6 +76,8 @@ abstract class SembastDatabaseFactory implements DatabaseFactory {
   SembastDatabase newDatabase(DatabaseOpenHelper openHelper);
 
   Future doDeleteDatabase(String path);
+
+  void setDatabaseOpenHelper(String path, DatabaseOpenHelper helper);
 
   void removeDatabaseOpenHelper(String path);
 }
@@ -128,6 +133,7 @@ mixin DatabaseFactoryMixin implements SembastDatabaseFactory {
     }
   }
 
+  @override
   void setDatabaseOpenHelper(String path, DatabaseOpenHelper helper) {
     if (path != null) {
       if (helper == null) {
