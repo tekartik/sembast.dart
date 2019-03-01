@@ -31,6 +31,7 @@ export 'package:sembast/src/sort_order.dart';
 export 'package:sembast/src/database.dart';
 export 'package:sembast/src/record.dart';
 export 'package:sembast/src/store.dart';
+export 'package:sembast/src/exception.dart';
 
 /// can return a future or not
 typedef OnVersionChangedFunction = FutureOr Function(
@@ -65,34 +66,6 @@ abstract class DatabaseFactory {
   /// Delete a database if existing
   ///
   Future deleteDatabase(String path);
-}
-
-///
-/// Exceptions
-///
-class DatabaseException implements Exception {
-  static int errBadParam = 0;
-  static int errDatabaseNotFound = 1;
-
-  /// This is sent if the codec used does not match the one of the database
-  static int errInvalidCodec = 2;
-
-  final int _code;
-  final String _message;
-
-  int get code => _code;
-
-  String get message => _message;
-
-  DatabaseException.badParam(this._message) : _code = errBadParam;
-
-  DatabaseException.databaseNotFound(this._message)
-      : _code = errDatabaseNotFound;
-
-  DatabaseException.invalidCodec(this._message) : _code = errInvalidCodec;
-
-  @override
-  String toString() => "[${_code}] ${_message}";
 }
 
 //import 'package:tekartik_core/dev_utils.dart';

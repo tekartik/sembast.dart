@@ -455,7 +455,10 @@ class SembastDatabase extends Object
     }
   }
 
-  Future _flush() {
+  Future flush() async {
+    // Wait for pending transaction
+    await transactionLock.synchronized(null);
+    // Wait for pending writes
     return databaseLock.synchronized(null);
   }
 
@@ -707,27 +710,28 @@ class SembastDatabase extends Object
         }
       } catch (_) {
         // on failure make sure to close the database
-        await lockedClosed();
+        await lockedClose();
         rethrow;
       }
     });
-    await _flush();
+    await flush();
     return this;
   }
 
   // To call when in a databaseLock
-  Future lockedClosed() async {
+  Future lockedClose() async {
     _opened = false;
-
-    await openHelper.closeDatabase();
+    await openHelper.lockedCloseDatabase();
   }
 
   @override
   Future close() async {
-    // Make sure any pending changes are committed
-    await _flush();
+    return openHelper.lock.synchronized(() async {
+      // Make sure any pending changes are committed
+      await flush();
 
-    await lockedClosed();
+      await lockedClose();
+    });
   }
 
   Map<String, dynamic> toJson() {
@@ -785,6 +789,7 @@ class SembastDatabase extends Object
       }
 
       T actionResult;
+
       try {
         actionResult = await Future<T>.sync(() => action(_transaction));
         await lazyCommit();
@@ -846,6 +851,14 @@ class SembastDatabase extends Object
   bool get needCooperate => cooperator.needCooperate;
 
   FutureOr cooperate() => cooperator.cooperate();
+
+  /// Ensure the transaction is still current
+  void checkTransaction(SembastTransaction transaction) {
+    if (transaction != null && transaction != currentTransaction) {
+      throw StateError(
+          'The transaction is no longer active. Make sure you (a)wait all pending operations in your transaction block');
+    }
+  }
 }
 
 class DatabaseExportStat {

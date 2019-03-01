@@ -28,6 +28,9 @@ class SembastStore implements Store {
   Map<dynamic, Record> recordMap = <dynamic, Record>{};
   Map<dynamic, Record> txnRecords;
 
+  void checkTransaction(SembastTransaction transaction) =>
+      database.checkTransaction(transaction);
+
   // bool get isInTransaction => database.isInTransaction;
 
   SembastStore(this.database, this.name);
@@ -348,6 +351,7 @@ class SembastStore implements Store {
     }
 
     // add to store transaction
+    checkTransaction(txn);
     if (txnRecords == null) {
       txnRecords = <dynamic, Record>{};
     }
@@ -359,6 +363,7 @@ class SembastStore implements Store {
     var record;
 
     // look in current transaction
+    checkTransaction(txn);
     if (_hasTransactionRecords(txn)) {
       record = txnRecords[key];
     }
@@ -515,7 +520,7 @@ class SembastStore implements Store {
   }
 
   bool _hasTransactionRecords(SembastTransaction txn) {
-    return txn != null && txnRecords != null;
+    return txn != null && txn == currentTransaction && txnRecords != null;
   }
 
   bool txnContainsKey(SembastTransaction txn, key) {

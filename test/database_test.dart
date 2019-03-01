@@ -1,6 +1,7 @@
 library sembast.database_test;
 
 // basically same as the io runner but with extra output
+import 'package:pedantic/pedantic.dart';
 import 'package:sembast/sembast.dart';
 
 import 'test_common.dart';
@@ -75,6 +76,20 @@ void defineTests(DatabaseTestContext ctx) {
         expect(db1, db3);
         expect(identical(db1, db3), isTrue);
         await db1.close();
+      });
+
+      test('open_close_open', () async {
+        var dbPath = ctx.dbPath;
+        var db = await factory.openDatabase(dbPath);
+        try {
+          // don't await to make sure it gets written at some point
+          unawaited(db.put('test', 1));
+          unawaited(db.close());
+          db = await factory.openDatabase(dbPath);
+          expect(await db.get(1), 'test');
+        } finally {
+          await db.close();
+        }
       });
     });
 

@@ -43,7 +43,7 @@ class DatabaseOpenHelper {
     return this.database;
   }
 
-  Future closeDatabase() async {
+  Future lockedCloseDatabase() async {
     if (database != null) {
       factory.removeDatabaseOpenHelper(path);
       database = null;
@@ -116,6 +116,15 @@ mixin DatabaseFactoryMixin implements SembastDatabaseFactory {
       } else {
         _databaseOpenHelpers[path] = helper;
       }
+    }
+  }
+
+  // Flush all opened databases
+  Future flush() async {
+    var helpers = List<DatabaseOpenHelper>.from(_databaseOpenHelpers.values,
+        growable: false);
+    for (var helper in helpers) {
+      await helper.database?.flush();
     }
   }
 }

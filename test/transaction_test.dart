@@ -129,5 +129,16 @@ void defineTests(DatabaseTestContext ctx) {
         });
       });
     });
+
+    test('put no await', () async {
+      Transaction transaction;
+      await db.transaction((txn) {
+        transaction = txn;
+      });
+      try {
+        await transaction.put('test');
+        fail('first put should fail');
+      } on StateError catch (_) {}
+    });
   });
 }
