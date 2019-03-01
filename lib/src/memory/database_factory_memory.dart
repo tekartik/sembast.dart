@@ -21,14 +21,16 @@ class DatabaseFactoryMemory extends SembastDatabaseFactory
   DatabaseFactoryMemory._();
 
   @override
-  Future deleteDatabase(String path) {
+  Future doDeleteDatabase(String path) async {
     if (path != null) {
       _databases.remove(path);
+      _exists.remove(path);
     }
-    return Future.value();
   }
 
   //Database _defaultDatabase;
+  // True when the database exists
+  final _exists = <String, bool>{};
   Map<String, SembastDatabase> _databases = {};
 
   @override
@@ -38,12 +40,16 @@ class DatabaseFactoryMemory extends SembastDatabaseFactory
   SembastDatabase newDatabase(DatabaseOpenHelper openHelper) {
     SembastDatabase db;
     var path = openHelper.path;
+    // For null path we always create a new database
     if (path != null) {
       db = _databases[path];
     }
 
     if (db == null) {
       db = SembastDatabase(openHelper, DatabaseStorageMemory(this, path));
+      if (path != null) {
+        _databases[path] = db;
+      }
     }
     return db;
   }
@@ -64,11 +70,14 @@ class DatabaseStorageMemory extends DatabaseStorage {
 
   @override
   Future<bool> find() {
-    return Future.value(factory._databases[path] != null);
+    return Future.value(factory._exists[path] == true);
   }
 
   @override
-  Future findOrCreate() => Future.value();
+  Future findOrCreate() async {
+    // Always create
+    factory._exists[path] = true;
+  }
 
   @override
   bool get supported => false;

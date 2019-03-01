@@ -10,6 +10,9 @@ class SembastCodecImpl implements SembastCodec {
   final Codec<Map<String, dynamic>, String> codec;
 
   SembastCodecImpl({@required this.signature, @required this.codec});
+
+  @override
+  String toString() => 'SembastCodex($signature)';
 }
 
 /// The encoded signature is a map {'signature': signature} encoded by itself!

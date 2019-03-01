@@ -112,7 +112,7 @@ linter:
     # - sort_constructors_first
     # removed alex:
     # - sort_unnamed_constructors_first
-    - super_goes_last
+    # - super_goes_last
     # - type_annotate_public_apis # subset of always_specify_types
     # remove alex:
     # - type_init_formals

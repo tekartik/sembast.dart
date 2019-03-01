@@ -1,3 +1,8 @@
+## 1.14.0
+
+* Make the database work in `cooperate` to avoid stuttering with big database
+* Commit changes lazily to the storage
+
 ## 1.13.3
 
 * Add support for user-defined codec to allow encryption

@@ -16,6 +16,21 @@ class DatabaseOpenOptions {
     this.mode,
     this.codec,
   });
+
+  @override
+  String toString() {
+    var map = <String, dynamic>{};
+    if (version != null) {
+      map['version'] = version;
+    }
+    if (mode != null) {
+      map['mode'] = mode;
+    }
+    if (codec != null) {
+      map['codec'] = codec;
+    }
+    return map.toString();
+  }
 }
 
 class DatabaseOpenHelper {
@@ -29,18 +44,16 @@ class DatabaseOpenHelper {
 
   SembastDatabase newDatabase(String path) => factory.newDatabase(this);
 
-  Future<Database> openDatabase() async {
-    if (this.database == null) {
-      await lock.synchronized(() async {
-        if (this.database == null) {
-          final database = newDatabase(path);
-          // Affect before open to properly clean
-          this.database = database;
-          await database.open(options);
-        }
-      });
-    }
-    return this.database;
+  Future<Database> openDatabase() {
+    return lock.synchronized(() async {
+      if (this.database == null) {
+        final database = newDatabase(path);
+        // Affect before open to properly clean
+        this.database = database;
+      }
+      await database.open(options);
+      return this.database;
+    });
   }
 
   Future lockedCloseDatabase() async {
@@ -50,10 +63,16 @@ class DatabaseOpenHelper {
     }
     return database;
   }
+
+  @override
+  String toString() => 'DatabaseOpenHelper($path, $options)';
 }
 
 abstract class SembastDatabaseFactory implements DatabaseFactory {
+  /// The actual implementation
   SembastDatabase newDatabase(DatabaseOpenHelper openHelper);
+
+  Future doDeleteDatabase(String path);
 
   void removeDatabaseOpenHelper(String path);
 }
@@ -117,6 +136,19 @@ mixin DatabaseFactoryMixin implements SembastDatabaseFactory {
         _databaseOpenHelpers[path] = helper;
       }
     }
+  }
+
+  @override
+  Future deleteDatabase(String path) async {
+    // Close existing open instance
+    var helper = getExistingDatabaseOpenHelper(path);
+    if (helper != null && helper.database != null) {
+      // Wait any pending open/close action
+      await helper.lock.synchronized(() {
+        return helper.lockedCloseDatabase();
+      });
+    }
+    return doDeleteDatabase(path);
   }
 
   // Flush all opened databases

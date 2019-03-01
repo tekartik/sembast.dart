@@ -136,15 +136,7 @@ class DatabaseFactoryFs extends SembastDatabaseFactory
       SembastDatabase(openHelper, _FsDatabaseStorage(fs, openHelper.path));
 
   @override
-  Future deleteDatabase(String path) async {
-    // Close existing open instance
-    var helper = getExistingDatabaseOpenHelper(path);
-    if (helper != null && helper.database != null) {
-      // Wait any pending open/close action
-      await helper.lock.synchronized(() {
-        return helper.lockedCloseDatabase();
-      });
-    }
+  Future doDeleteDatabase(String path) async {
     return _FsDatabaseStorage(fs, path).delete();
   }
 

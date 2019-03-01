@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:logging/logging.dart';
 import 'package:sembast/sembast.dart';
+import 'package:sembast/src/common_import.dart';
 import 'package:sembast/src/cooperator.dart';
 import 'package:sembast/src/database.dart';
 import 'package:sembast/src/database_factory_mixin.dart';
@@ -459,7 +460,7 @@ class SembastDatabase extends Object
     // Wait for pending transaction
     await transactionLock.synchronized(null);
     // Wait for pending writes
-    return databaseLock.synchronized(null);
+    await databaseLock.synchronized(null);
   }
 
   ///

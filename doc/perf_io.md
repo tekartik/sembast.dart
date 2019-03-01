@@ -8,12 +8,11 @@
 
 Generated from `test/database_perf_io_test.dart`
 
-
 ### Version 1.14.0 PC3
 
 2019/02/26
 
-With cooperative mode
+With cooperative mode and lazy commits
 
 |nb records|times|transaction|size kb|elapsed ms|
 |---|---|---|---|---|
