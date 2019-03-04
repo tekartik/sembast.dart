@@ -19,11 +19,6 @@ dev_dependencies:
   test: '>=1.5.1'
   dev_test: '>=0.13.0+3'
   process_run: '>=0.10.0+1'
-  chrome_travis:
-    git:
-      url: git://github.com/tekartik/chrome_travis.dart
-      ref: dart2
-    version: '>=0.1.4'
   build_runner: '>=0.9.0'
   build_web_compilers: '>=0.4.0+4'
   build_test: '>=0.10.2+5'
