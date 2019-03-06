@@ -75,13 +75,15 @@ Future<Database> importDatabase(
       version: version, mode: DatabaseMode.empty);
 
   await db.transaction((txn) async {
-    List<Map> storesExport = srcData[_stores] as List<Map>;
+    List<Map> storesExport =
+        (srcData[_stores] as Iterable)?.toList(growable: false)?.cast<Map>();
     if (storesExport != null) {
       for (Map storeExport in storesExport) {
         String storeName = storeExport[_name] as String;
 
-        List keys = storeExport[_keys] as List;
-        List values = storeExport[_values] as List;
+        List keys = (storeExport[_keys] as Iterable)?.toList(growable: false);
+        List values =
+            (storeExport[_values] as Iterable)?.toList(growable: false);
 
         var store = txn.getStore(storeName);
         for (int i = 0; i < keys.length; i++) {

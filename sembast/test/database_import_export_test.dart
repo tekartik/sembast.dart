@@ -1,6 +1,7 @@
 library sembast.database_import_export_test;
 
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:sembast/sembast.dart';
 import 'package:sembast/utils/sembast_import_export.dart';
@@ -24,7 +25,14 @@ void defineTests(DatabaseTestContext ctx) {
       Database importedDb =
           await importDatabase(export, ctx.factory, importDbPath);
       expect(await exportDatabase(importedDb), expectedExport);
+
       await importedDb.close();
+
+      // json round trip and export
+      var jsonExport = json.encode(export);
+      export = json.decode(jsonExport) as Map;
+      importedDb = await importDatabase(export, ctx.factory, importDbPath);
+      expect(await exportDatabase(importedDb), expectedExport);
     }
 
     test('no_version', () async {
