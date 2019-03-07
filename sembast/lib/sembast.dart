@@ -11,7 +11,9 @@ import 'package:sembast/src/filter.dart';
 import 'package:sembast/src/finder.dart';
 import 'package:sembast/src/sembast_codec_impl.dart';
 import 'package:sembast/src/sort_order.dart';
+
 export 'package:sembast/src/boundary.dart';
+export 'package:sembast/src/database.dart';
 export 'package:sembast/src/database_mode.dart'
     show
         DatabaseMode,
@@ -25,12 +27,17 @@ export 'package:sembast/src/database_mode.dart'
         databaseModeExisting,
         // ignore: deprecated_member_use, deprecated_member_use_from_same_package
         databaseModeNeverFails;
-export 'package:sembast/src/sort_order.dart';
-
-export 'package:sembast/src/database.dart';
-export 'package:sembast/src/record.dart';
-export 'package:sembast/src/store.dart';
 export 'package:sembast/src/exception.dart';
+export 'package:sembast/src/field.dart';
+export 'package:sembast/src/record.dart';
+export 'package:sembast/src/sort_order.dart';
+export 'package:sembast/src/store.dart';
+
+// ignore: deprecated_member_use, deprecated_member_use_from_same_package
+// ignore: deprecated_member_use, deprecated_member_use_from_same_package
+// ignore: deprecated_member_use, deprecated_member_use_from_same_package
+// ignore: deprecated_member_use, deprecated_member_use_from_same_package
+// ignore: deprecated_member_use, deprecated_member_use_from_same_package
 
 /// can return a future or not
 typedef OnVersionChangedFunction = FutureOr Function(

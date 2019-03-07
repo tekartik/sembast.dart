@@ -6,15 +6,14 @@ import 'package:sembast/src/record_impl.dart';
 import 'package:sembast/src/record_impl.dart' as record_impl;
 import 'package:sembast/src/sort.dart';
 import 'package:sembast/src/store/store_ref.dart';
+import 'package:sembast/src/store_executor_impl.dart';
 import 'package:sembast/src/transaction_impl.dart';
 import 'package:sembast/src/utils.dart';
-import 'package:sembast/src/store_executor_impl.dart';
 
 import 'common_import.dart';
 import 'database_impl.dart';
 
 class SembastStore with StoreExecutorMixin implements Store {
-  @override
   final SembastDatabase database;
   @override
   final StoreRef<dynamic, dynamic> ref;
@@ -65,8 +64,16 @@ class SembastStore with StoreExecutorMixin implements Store {
     });
   }
 
-  Future<dynamic> txnPut(SembastTransaction txn, var value, var key) async {
-    Record record = SembastRecord(this, value, key);
+  Future<dynamic> txnPut(SembastTransaction txn, var value, var key,
+      {bool merge}) async {
+    Record record;
+    if (merge == true) {
+      record = txnGetRecordSync(txn, key);
+      if (record != null) {
+        value = mergeValue(record.value, value);
+      }
+    }
+    record = SembastRecord(this, value, key);
 
     record = await txnPutRecord(txn, record);
     if (database.logV) {
@@ -642,4 +649,15 @@ class SembastStore with StoreExecutorMixin implements Store {
   bool get cooperateOn => database.cooperateOn;
 
   FutureOr cooperate() => database.cooperate();
+
+  @override
+  SembastDatabase get sembastDatabase => database;
+
+  @override
+  SembastStore get sembastStore => this;
+
+  @override
+  Future<T> inTransaction<T>(
+          FutureOr<T> Function(Transaction transaction) action) =>
+      transaction(action);
 }

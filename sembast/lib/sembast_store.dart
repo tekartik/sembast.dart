@@ -1,3 +1,4 @@
+import 'package:sembast/src/store/record_impl.dart';
 import 'package:sembast/src/store/record_ref.dart';
 
 export 'package:sembast/src/store/record_ref.dart'
@@ -20,12 +21,19 @@ abstract class Record<K, V> {
   V get value;
 
   ///
-  /// get the value of the specified [field]
+  /// for map records, get the value of the specified [field]
   ///
   dynamic operator [](String field);
 
   ///
   /// set the [value] of the specified [field]
   ///
-  void operator []=(String field, var value);
+  void operator []=(String field, dynamic value);
+
+  factory Record(RecordRef<K, V> ref, V value) => RecordImpl(ref, value);
 }
+
+///
+/// Executor
+///
+abstract class DatabaseClient {}

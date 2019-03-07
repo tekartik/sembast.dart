@@ -4,25 +4,6 @@ import 'package:sembast/src/store/record_ref.dart';
 import 'package:sembast/sembast_store.dart' as store;
 
 ///
-/// Special field access
-///
-class Field {
-  /// Our value field
-  static String value = "_value";
-
-  /// Our key field
-  static String key = "_key";
-}
-
-///
-/// Update values
-///
-class FieldValue {
-  const FieldValue._();
-  static FieldValue delete = const FieldValue._();
-}
-
-///
 /// Records
 ///
 abstract class Record extends store.Record<dynamic, dynamic> {

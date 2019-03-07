@@ -3,12 +3,11 @@ import 'dart:async';
 import 'package:sembast/sembast.dart';
 import 'package:sembast/src/database_impl.dart';
 import 'package:sembast/src/record_impl.dart';
+import 'package:sembast/src/store_executor_impl.dart';
 import 'package:sembast/src/store_impl.dart';
 import 'package:sembast/src/utils.dart';
-import 'package:sembast/src/store_executor_impl.dart';
 
 mixin DatabaseExecutorMixin implements DatabaseExecutor, StoreExecutor {
-  SembastDatabase get database;
   StoreExecutor get mainStore;
 
   @override
@@ -60,6 +59,7 @@ mixin DatabaseExecutorMixin implements DatabaseExecutor, StoreExecutor {
 
 abstract class TransactionExecutorMixin implements TransactionExecutor {
   SembastDatabase get database;
+
   SembastTransaction get transaction;
 
   @override
@@ -71,7 +71,7 @@ class SembastTransaction extends Object
     with DatabaseExecutorMixin, StoreExecutorMixin, TransactionExecutorMixin
     implements Transaction {
   @override
-  final SembastDatabase database;
+  final SembastDatabase sembastDatabase;
 
   int get id => _id;
 
@@ -81,7 +81,7 @@ class SembastTransaction extends Object
   // action is not a priority
   Completer completer = Completer();
 
-  SembastTransaction(this.database, this._id);
+  SembastTransaction(this.sembastDatabase, this._id);
 
   bool get isCompleted => completer.isCompleted;
 
@@ -131,68 +131,82 @@ class SembastTransaction extends Object
 
   SembastTransactionStore recordStore(Record record) =>
       (record.store ?? mainStore) as SembastTransactionStore;
+
+  @override
+  SembastDatabase get database => sembastDatabase;
+
+  @override
+  SembastStore get sembastStore => sembastDatabase.mainStore as SembastStore;
+
+  @override
+  Future<T> inTransaction<T>(
+          FutureOr<T> Function(Transaction transaction) action) async =>
+      action(this);
 }
 
 class SembastTransactionStore
     with StoreExecutorMixin
     implements StoreTransaction {
-  final SembastTransaction transaction;
+  final SembastTransaction sembastTransaction;
   @override
   final SembastStore store;
 
-  SembastTransactionStore(this.transaction, this.store);
+  SembastTransactionStore(this.sembastTransaction, this.store);
 
   @override
-  Future<bool> containsKey(key) async => store.txnContainsKey(transaction, key);
+  Future<bool> containsKey(key) async =>
+      store.txnContainsKey(sembastTransaction, key);
 
   @override
-  Future<int> count([Filter filter]) => store.txnCount(transaction, filter);
+  Future<int> count([Filter filter]) =>
+      store.txnCount(sembastTransaction, filter);
 
   @override
-  Future delete(key) async => store.txnDelete(transaction, key);
+  Future delete(key) async => store.txnDelete(sembastTransaction, key);
 
   @override
-  Future<Record> findRecord(Finder finder) async =>
-      store.makeOutRecord(await store.txnFindRecord(transaction, finder));
+  Future<Record> findRecord(Finder finder) async => store
+      .makeOutRecord(await store.txnFindRecord(sembastTransaction, finder));
 
   @override
-  Future<List<Record>> findRecords(Finder finder) async =>
-      store.makeOutRecords(await store.txnFindRecords(transaction, finder));
+  Future<List<Record>> findRecords(Finder finder) async => store
+      .makeOutRecords(await store.txnFindRecords(sembastTransaction, finder));
 
   @override
-  Future get(key) async => cloneValue(await store.txnGet(transaction, key));
+  Future get(key) async =>
+      cloneValue(await store.txnGet(sembastTransaction, key));
 
   @override
-  Future put(value, [key]) => store.txnPut(transaction, value, key);
+  Future put(value, [key]) => store.txnPut(sembastTransaction, value, key);
 
   @override
   Future update(value, key) async =>
-      cloneValue(await store.txnUpdate(transaction, value, key));
+      cloneValue(await store.txnUpdate(sembastTransaction, value, key));
 
   @override
-  Future clear() async => store.txnClear(transaction);
+  Future clear() async => store.txnClear(sembastTransaction);
 
   @override
   Future deleteAll(Iterable keys) async =>
-      store.txnDeleteAll(transaction, keys);
+      store.txnDeleteAll(sembastTransaction, keys);
 
   @override
-  Future<Record> getRecord(key) async =>
-      makeLazyMutableRecord(store, await store.txnGetRecord(transaction, key));
+  Future<Record> getRecord(key) async => makeLazyMutableRecord(
+      store, await store.txnGetRecord(sembastTransaction, key));
 
   @override
-  Future<List<Record>> getRecords(Iterable keys) async =>
-      await store.makeOutRecords(await store.txnGetRecords(transaction, keys));
+  Future<List<Record>> getRecords(Iterable keys) async => await store
+      .makeOutRecords(await store.txnGetRecords(sembastTransaction, keys));
 
   @override
-  Stream<Record> get records => store.txnGetRecordsStream(transaction);
+  Stream<Record> get records => store.txnGetRecordsStream(sembastTransaction);
 
   @override
-  Future findKey(Finder finder) => store.txnFindKey(transaction, finder);
+  Future findKey(Finder finder) => store.txnFindKey(sembastTransaction, finder);
 
   @override
   Future<List> findKeys(Finder finder) =>
-      store.txnFindKeys(transaction, finder);
+      store.txnFindKeys(sembastTransaction, finder);
 
   @override
   String toString() {
@@ -200,5 +214,13 @@ class SembastTransactionStore
   }
 
   @override
-  SembastDatabase get database => transaction.database;
+  SembastDatabase get sembastDatabase => sembastTransaction.database;
+
+  @override
+  SembastStore get sembastStore => store;
+
+  @override
+  Future<T> inTransaction<T>(
+          FutureOr<T> Function(Transaction transaction) action) async =>
+      action(sembastTransaction);
 }

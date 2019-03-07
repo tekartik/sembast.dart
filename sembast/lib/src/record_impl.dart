@@ -351,5 +351,9 @@ ImmutableSembastRecord makeImmutableRecord(Record record) {
 }
 
 LazyMutableSembastRecord makeLazyMutableRecord(
-        Store store, ImmutableSembastRecord record) =>
-    LazyMutableSembastRecord(store, record);
+    Store store, ImmutableSembastRecord record) {
+  if (record == null) {
+    return null;
+  }
+  return LazyMutableSembastRecord(store, record);
+}

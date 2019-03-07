@@ -14,10 +14,10 @@ import 'package:sembast/src/sembast_codec_impl.dart';
 import 'package:sembast/src/sembast_impl.dart';
 import 'package:sembast/src/storage.dart';
 import 'package:sembast/src/store/store_ref.dart';
+import 'package:sembast/src/store_executor_impl.dart';
 import 'package:sembast/src/store_impl.dart';
 import 'package:sembast/src/transaction_impl.dart';
 import 'package:synchronized/synchronized.dart';
-import 'package:sembast/src/store_executor_impl.dart';
 
 import 'database.dart';
 
@@ -300,8 +300,8 @@ class SembastDatabase extends Object
 
   bool _readImmutable;
 
-  bool get readImmutable =>
-      _readImmutable ??= database.openOptions?.settings?.readImmutable == true;
+  bool get readImmutable => _readImmutable ??=
+      sembastDatabase.openOptions?.settings?.readImmutable == true;
 
   /// cooperate safe
   Record makeOutRecord(ImmutableSembastRecord record) {
@@ -869,9 +869,6 @@ class SembastDatabase extends Object
   }
 
   @override
-  SembastDatabase get database => this;
-
-  @override
   Future clear() => mainStore.clear();
 
   /*
@@ -911,6 +908,17 @@ class SembastDatabase extends Object
           'The transaction is no longer active. Make sure you (a)wait all pending operations in your transaction block');
     }
   }
+
+  @override
+  SembastDatabase get sembastDatabase => this;
+
+  @override
+  SembastStore get sembastStore => mainStore as SembastStore;
+
+  @override
+  Future<T> inTransaction<T>(
+          FutureOr<T> Function(Transaction transaction) action) =>
+      transaction(action);
 }
 
 class DatabaseExportStat {
@@ -951,9 +959,5 @@ class DatabaseExportStat {
   }
 }
 
-SembastDatabase databaseFromExecutor(StoreExecutor storeExecutor) {
-  return (storeExecutor as StoreExecutorMixin).database;
-}
-
 void forceReadImmutable(StoreExecutor storeExecutor) =>
-    databaseFromExecutor(storeExecutor)._readImmutable = true;
+    (storeExecutor as StoreExecutorMixin).sembastDatabase._readImmutable = true;

@@ -2,7 +2,6 @@ import 'dart:collection';
 import 'dart:math';
 
 import 'package:sembast/sembast.dart';
-import 'package:sembast/src/record.dart';
 
 dynamic sanitizeValue(value) {
   if (value == null) {
@@ -143,11 +142,11 @@ dynamic cloneValue(dynamic value) {
       "value ${value} not supported${value != null ? ' type:${value.runtimeType}' : ''}");
 }
 
-T immutableValue<T>(T value) {
+dynamic immutableValue(dynamic value) {
   if (value is Map) {
-    return ImmutableMap(value) as T;
+    return ImmutableMap<String, dynamic>(value);
   } else if (value is Iterable) {
-    return ImmutableList(value) as T;
+    return ImmutableList(value);
   }
   return value;
 }
@@ -161,7 +160,7 @@ class ImmutableList<E> extends ListBase<E> {
   ImmutableList(Iterable<E> list) : _list = list.toList(growable: false);
 
   @override
-  E operator [](int index) => immutableValue(_list[index]);
+  E operator [](int index) => immutableValue(_list[index]) as E;
 
   @override
   void operator []=(int index, value) => throw StateError('read only');
@@ -173,9 +172,10 @@ class ImmutableList<E> extends ListBase<E> {
 class ImmutableMap<K, V> extends MapBase<K, V> {
   final Map<K, V> _map;
 
-  ImmutableMap(this._map);
+  ImmutableMap(Map map) : _map = map.cast<K, V>();
+
   @override
-  V operator [](Object key) => immutableValue(_map[key]);
+  V operator [](Object key) => immutableValue(_map[key]) as V;
 
   @override
   void operator []=(K key, V value) => throw StateError('read only');
@@ -184,7 +184,7 @@ class ImmutableMap<K, V> extends MapBase<K, V> {
   void clear() => throw StateError('read only');
 
   @override
-  Iterable<K> get keys => immutableValue(_map.keys);
+  Iterable<K> get keys => _map.keys;
 
   @override
   V remove(Object key) => throw StateError('read only');
