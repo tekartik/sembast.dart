@@ -1,6 +1,6 @@
 ## 1.14.0
 
-* Make the database work in `cooperate` to avoid stuttering with big database
+* Make the database work in `cooperate` mode to avoid stuttering with big databases on Flutter
 * Commit changes lazily to the storage
 
 ## 1.13.3
