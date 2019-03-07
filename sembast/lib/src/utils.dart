@@ -152,16 +152,16 @@ T immutableValue<T>(T value) {
   return value;
 }
 
-class ImmutableList extends ListBase<dynamic> {
-  final List _list;
+class ImmutableList<E> extends ListBase<E> {
+  final List<E> _list;
 
   @override
   int get length => _list.length;
 
-  ImmutableList(Iterable list) : _list = list.toList(growable: false);
+  ImmutableList(Iterable<E> list) : _list = list.toList(growable: false);
 
   @override
-  dynamic operator [](int index) => immutableValue(_list[index]);
+  E operator [](int index) => immutableValue(_list[index]);
 
   @override
   void operator []=(int index, value) => throw StateError('read only');
@@ -170,24 +170,24 @@ class ImmutableList extends ListBase<dynamic> {
   set length(int newLength) => throw StateError('read only');
 }
 
-class ImmutableMap extends MapBase<dynamic, dynamic> {
-  final Map _map;
+class ImmutableMap<K, V> extends MapBase<K, V> {
+  final Map<K, V> _map;
 
   ImmutableMap(this._map);
   @override
-  dynamic operator [](Object key) => immutableValue(_map[key]);
+  V operator [](Object key) => immutableValue(_map[key]);
 
   @override
-  void operator []=(key, value) => throw StateError('read only');
+  void operator []=(K key, V value) => throw StateError('read only');
 
   @override
   void clear() => throw StateError('read only');
 
   @override
-  Iterable get keys => immutableValue(_map.keys);
+  Iterable<K> get keys => immutableValue(_map.keys);
 
   @override
-  dynamic remove(Object key) => throw StateError('read only');
+  V remove(Object key) => throw StateError('read only');
 }
 
 T getPartsMapValue<T>(Map map, Iterable<String> parts) {

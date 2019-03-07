@@ -17,11 +17,12 @@ import 'package:sembast/src/store/store_ref.dart';
 import 'package:sembast/src/store_impl.dart';
 import 'package:sembast/src/transaction_impl.dart';
 import 'package:synchronized/synchronized.dart';
+import 'package:sembast/src/store_executor_impl.dart';
 
 import 'database.dart';
 
 class SembastDatabase extends Object
-    with DatabaseExecutorMixin
+    with DatabaseExecutorMixin, StoreExecutorMixin
     implements Database {
   // Can be modified by openHelper for test purpose
   DatabaseOpenHelper openHelper;
@@ -949,3 +950,10 @@ class DatabaseExportStat {
     return map;
   }
 }
+
+SembastDatabase databaseFromExecutor(StoreExecutor storeExecutor) {
+  return (storeExecutor as StoreExecutorMixin).database;
+}
+
+void forceReadImmutable(StoreExecutor storeExecutor) =>
+    databaseFromExecutor(storeExecutor)._readImmutable = true;

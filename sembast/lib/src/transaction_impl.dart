@@ -5,9 +5,9 @@ import 'package:sembast/src/database_impl.dart';
 import 'package:sembast/src/record_impl.dart';
 import 'package:sembast/src/store_impl.dart';
 import 'package:sembast/src/utils.dart';
+import 'package:sembast/src/store_executor_impl.dart';
 
-abstract class DatabaseExecutorMixin
-    implements DatabaseExecutor, StoreExecutor {
+mixin DatabaseExecutorMixin implements DatabaseExecutor, StoreExecutor {
   SembastDatabase get database;
   StoreExecutor get mainStore;
 
@@ -68,7 +68,7 @@ abstract class TransactionExecutorMixin implements TransactionExecutor {
 }
 
 class SembastTransaction extends Object
-    with DatabaseExecutorMixin, TransactionExecutorMixin
+    with DatabaseExecutorMixin, StoreExecutorMixin, TransactionExecutorMixin
     implements Transaction {
   @override
   final SembastDatabase database;
@@ -133,7 +133,9 @@ class SembastTransaction extends Object
       (record.store ?? mainStore) as SembastTransactionStore;
 }
 
-class SembastTransactionStore implements StoreTransaction {
+class SembastTransactionStore
+    with StoreExecutorMixin
+    implements StoreTransaction {
   final SembastTransaction transaction;
   @override
   final SembastStore store;
@@ -196,4 +198,7 @@ class SembastTransactionStore implements StoreTransaction {
   String toString() {
     return "${store}";
   }
+
+  @override
+  SembastDatabase get database => transaction.database;
 }

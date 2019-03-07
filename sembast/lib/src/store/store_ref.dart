@@ -1,3 +1,5 @@
+import 'package:sembast/sembast.dart';
+import 'package:sembast/src/database_impl.dart';
 import 'package:sembast/src/store/record_ref.dart';
 
 class StoreRefBase<K, V> with StoreRefMixin<K, V> {
@@ -28,6 +30,29 @@ mixin StoreRefMixin<K, V> implements StoreRef<K, V> {
     }
     return false;
   }
+
+  Future<RecordSnapshot<K, V>> findRecord(
+      StoreExecutor executor, Finder finder) async {
+    // Force immutable as soon as we use such api
+    forceReadImmutable(executor);
+
+    var record = await executor.findRecord(finder);
+    if (record == null) {
+      return null;
+    } else {
+      return RecordSnapshotImpl<K, V>(
+          record.ref?.cast<K, V>(), record.value as V);
+    }
+  }
+
+  /// Cast if needed
+  @override
+  StoreRef<RK, RV> cast<RK, RV>() {
+    if (this is StoreRef<RK, RV>) {
+      return this as StoreRef<RK, RV>;
+    }
+    return StoreRef<RK, RV>(name);
+  }
 }
 
 /// A pointer to a store
@@ -39,6 +64,9 @@ abstract class StoreRef<K, V> {
   RecordRef<K, V> record(K key);
 
   factory StoreRef(String name) => StoreRefBase(name);
+
+  /// Cast if needed
+  StoreRef<RK, RV> cast<RK, RV>();
 }
 
 //

@@ -11,7 +11,6 @@ import 'package:sembast/src/filter.dart';
 import 'package:sembast/src/finder.dart';
 import 'package:sembast/src/sembast_codec_impl.dart';
 import 'package:sembast/src/sort_order.dart';
-
 export 'package:sembast/src/boundary.dart';
 export 'package:sembast/src/database_mode.dart'
     show

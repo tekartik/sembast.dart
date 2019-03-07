@@ -1,4 +1,5 @@
 import 'package:sembast/sembast.dart';
+import 'package:sembast/src/database_impl.dart';
 import 'package:sembast/src/store/store_ref.dart';
 
 /// A pointer to a record
@@ -20,6 +21,9 @@ abstract class RecordRef<K, V> {
 
   /// delete a record
   Future delete(StoreExecutor executor);
+
+  /// Cast if needed
+  RecordRef<RK, RV> cast<RK, RV>();
 }
 
 mixin RecordRefMixin<K, V> implements RecordRef<K, V> {
@@ -32,14 +36,24 @@ mixin RecordRefMixin<K, V> implements RecordRef<K, V> {
   RecordSnapshot<K, V> snapshot(V value) => RecordSnapshotImpl(this, value);
 
   @override
-  Future<K> put(StoreExecutor executor, V value) async =>
-      (await executor.put(value, key)) as K;
+  Future<K> put(StoreExecutor executor, V value) async {
+    // Force
+    forceReadImmutable(executor);
+    return (await executor.put(value, key)) as K;
+  }
 
   @override
-  Future delete(StoreExecutor executor) => executor.delete(key);
+  Future delete(StoreExecutor executor) {
+    // Force
+    forceReadImmutable(executor);
+    return executor.delete(key);
+  }
 
   @override
   Future<RecordSnapshot<K, V>> get(StoreExecutor executor) async {
+    // Force
+    forceReadImmutable(executor);
+
     var record = await executor.getRecord(key);
     if (record == null) {
       return null;
@@ -49,6 +63,15 @@ mixin RecordRefMixin<K, V> implements RecordRef<K, V> {
 
   @override
   String toString() => 'Record(${store?.name}, $key)';
+
+  /// Cast if needed
+  @override
+  RecordRef<RK, RV> cast<RK, RV>() {
+    if (this is RecordRef<RK, RV>) {
+      return this as RecordRef<RK, RV>;
+    }
+    return store.cast<RK, RV>().record(key as RK);
+  }
 }
 
 class RecordRefImpl<K, V> with RecordRefMixin<K, V> {

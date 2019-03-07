@@ -1,6 +1,7 @@
 import 'package:sembast/sembast.dart';
 import 'package:sembast/src/record_impl.dart';
 import 'package:sembast/src/store/record_ref.dart';
+import 'package:sembast/sembast_store.dart' as store;
 
 ///
 /// Special field access
@@ -24,32 +25,13 @@ class FieldValue {
 ///
 /// Records
 ///
-abstract class Record {
-  /// The record reference
-  RecordRef<dynamic, dynamic> get ref;
-
-  /// The key of the record
-  dynamic get key;
-
-  /// its value (typically a map)
-  dynamic get value;
-
+abstract class Record extends store.Record<dynamic, dynamic> {
   /// true if the record has been deleted
   bool get deleted;
 
   /// its store
   /// 2019-03-06 Will be deprecated
   Store get store;
-
-  ///
-  /// get the value of the specified [field]
-  ///
-  dynamic operator [](String field);
-
-  ///
-  /// set the [value] of the specified [field]
-  ///
-  void operator []=(String field, var value);
 
   ///
   /// Create a record in a given [store] with a given [value] and

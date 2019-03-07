@@ -325,22 +325,6 @@ class SembastRecord
     return (key != null);
   }
 
-  @deprecated
-  // TODO needed?
-  SembastRecord.copy(
-      {Store store,
-      RecordRef<dynamic, dynamic> ref,
-      dynamic key,
-      dynamic value,
-      bool deleted}) {
-    this.ref = ref ?? store.ref.record(cloneKey(key));
-
-    /// Store kept for compatibility
-    this.store = store;
-    this._value = cloneValue(value);
-    this.deleted = deleted;
-  }
-
   ///
   /// Create a record in a given [store] with a given [value] and
   /// We know data has been sanitized before
