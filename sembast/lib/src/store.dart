@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:sembast/sembast.dart';
+import 'package:sembast/src/store/store_ref.dart';
 
 ///
 /// Method shared by Store and Database (main store)
@@ -87,6 +88,11 @@ abstract class StoreExecutor extends BaseExecutor {
 }
 
 abstract class Store extends StoreExecutor {
+  ///
+  /// Store reference
+  ///
+  StoreRef<dynamic, dynamic> get ref;
+
   ///
   /// Store name
   ///

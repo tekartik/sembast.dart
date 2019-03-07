@@ -84,18 +84,12 @@ void defineTests(DatabaseTestContext ctx) {
       });
     });
 
-    test('put_delete', () {
-      return db.put("hi", 1).then((_) {
-        return db.delete(1).then((key) {
-          expect(key, 1);
-          return db.get(1).then((value) {
-            expect(value, isNull);
-            return db.count().then((int count) {
-              expect(count, 0);
-            });
-          });
-        });
-      });
+    test('put_delete', () async {
+      expect(await db.put("hi", 1), 1);
+      expect(await db.delete(1), 1);
+      var value = await db.get(1);
+      expect(value, isNull);
+      expect(await db.count(), 0);
     });
 
     test('auto_increment put_get_map', () {

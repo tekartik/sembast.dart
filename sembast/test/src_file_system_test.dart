@@ -75,7 +75,7 @@ void defineTests(FileSystemTestContext ctx) {
   }
 
   Future<Directory> deleteDirectory(Directory dir) async {
-    var directory = await dir.delete(recursive: true) as Future<Directory>;
+    var directory = (await dir.delete(recursive: true)) as Directory;
     expect(dir, directory);
     return directory;
   }

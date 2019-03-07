@@ -1,3 +1,5 @@
+import 'package:sembast/src/store/store_ref.dart';
+
 const String dbVersionKey = "version";
 const String dbDembastVersionKey = "sembast";
 const String dbDembastCodecSignatureKey = "codec";
@@ -8,3 +10,4 @@ const String dbRecordValueKey =
 const String dbRecordDeletedKey = "deleted"; // boolean
 
 const String dbMainStore = "_main"; // main store name;
+final mainStoreRef = StoreRef<dynamic, dynamic>(dbMainStore);

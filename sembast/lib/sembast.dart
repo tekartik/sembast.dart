@@ -37,6 +37,13 @@ export 'package:sembast/src/exception.dart';
 typedef OnVersionChangedFunction = FutureOr Function(
     Database db, int oldVersion, int newVersion);
 
+/// Settings when opening database
+class DatabaseSettings {
+  /// if true record found are read-only, this might become in the future
+  /// to avoid cloning records when no
+  bool readImmutable;
+}
+
 ///
 /// The database factory that allow opening database
 ///
@@ -60,7 +67,8 @@ abstract class DatabaseFactory {
       {int version,
       OnVersionChangedFunction onVersionChanged,
       DatabaseMode mode,
-      SembastCodec codec});
+      SembastCodec codec,
+      DatabaseSettings settings});
 
   ///
   /// Delete a database if existing
@@ -177,7 +185,9 @@ abstract class Finder {
   /// Specify a [filter].
   ///
   /// Having a [start] and/or [end] boundary requires a sortOrders when the values
-  /// are specified. start/end is done after filtering
+  /// are specified. start/end is done after filtering.
+  ///
+  /// A finder without any info does not filter anything
   factory Finder(
       {Filter filter,
       List<SortOrder> sortOrders,

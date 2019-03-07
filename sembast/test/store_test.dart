@@ -20,15 +20,11 @@ void defineTests(DatabaseTestContext ctx) {
       return db.close();
     });
 
-    test('clear', () {
+    test('clear', () async {
       Store store = db.getStore("test");
-      return store.put("hi", 1).then((_) {
-        return store.clear();
-      }).then((_) {
-        return store.get(1).then((value) {
-          expect(value, null);
-        });
-      });
+      await store.put("hi", 1);
+      await store.clear();
+      expect(await store.get(1), isNull);
     });
 
     test('delete', () {

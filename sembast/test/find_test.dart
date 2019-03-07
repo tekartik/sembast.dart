@@ -313,6 +313,18 @@ void defineTests(DatabaseTestContext ctx) {
 
       tearDown(_tearDown);
 
+      test('readOnly', () async {
+        await db.close();
+        db = await ctx.factory.openDatabase(db.path,
+            settings: DatabaseSettings()..readImmutable = true);
+        var record = await db.findRecord(Finder());
+        try {
+          record['text'] = 'hu';
+          fail('should fail');
+        } on StateError catch (_) {}
+        record = record.clone();
+        record['text'] = 'hu';
+      });
       test('sort', () {
         Finder finder = Finder();
         finder.sortOrders = [SortOrder("value", true), SortOrder("text", true)];

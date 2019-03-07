@@ -9,12 +9,14 @@ class DatabaseOpenOptions {
   final OnVersionChangedFunction onVersionChanged;
   final DatabaseMode mode;
   final SembastCodec codec;
+  final DatabaseSettings settings;
 
   DatabaseOpenOptions({
     this.version,
     this.onVersionChanged,
     this.mode,
     this.codec,
+    this.settings,
   });
 
   @override
@@ -51,6 +53,9 @@ class DatabaseOpenHelper {
         // Affect before open to properly clean
         this.database = database;
       }
+      // Force helper again in case it was removed by lockedClose
+      database.openHelper = this;
+
       await database.open(options);
 
       // Force helper again in case it was removed by lockedClose
@@ -98,14 +103,16 @@ mixin DatabaseFactoryMixin implements SembastDatabaseFactory {
       {int version,
       OnVersionChangedFunction onVersionChanged,
       DatabaseMode mode,
-      SembastCodec codec}) {
+      SembastCodec codec,
+      DatabaseSettings settings}) {
     return openDatabaseWithOptions(
         path,
         DatabaseOpenOptions(
             version: version,
             onVersionChanged: onVersionChanged,
             mode: mode,
-            codec: codec));
+            codec: codec,
+            settings: settings));
   }
 
   DatabaseOpenHelper getDatabaseOpenHelper(

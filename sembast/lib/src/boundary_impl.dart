@@ -2,7 +2,7 @@ import 'package:sembast/sembast.dart';
 import 'package:sembast/src/record_impl.dart';
 
 class SembastBoundary implements Boundary {
-  Record record;
+  ImmutableSembastRecord record;
   List<dynamic> values;
 
   ///
@@ -11,7 +11,7 @@ class SembastBoundary implements Boundary {
   /// user withParam
   SembastBoundary({Record record, bool include, this.values})
       : include = include == true,
-        record = (record as SembastRecord)?.clone();
+        record = makeImmutableRecord(record);
 
   Map<String, dynamic> get _toDebugMap {
     Map<String, dynamic> debugMap = <String, dynamic>{};

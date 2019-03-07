@@ -1,3 +1,4 @@
+import 'dart:collection';
 import 'dart:math';
 
 import 'package:sembast/sembast.dart';
@@ -114,12 +115,16 @@ K cloneKey<K>(K key) {
       "key ${key} not supported${key != null ? ' type:${key.runtimeType}' : ''}");
 }
 
+bool isValueMutable(dynamic value) {
+  return value is Map || value is Iterable;
+}
+
 dynamic cloneValue(dynamic value) {
   if (value is Map) {
     return value.map<String, dynamic>(
         (key, value) => MapEntry(key as String, cloneValue(value)));
   }
-  if (value is List) {
+  if (value is Iterable) {
     return value.map((value) => cloneValue(value)).toList();
   }
   if (value is String) {
@@ -136,6 +141,53 @@ dynamic cloneValue(dynamic value) {
   }
   throw DatabaseException.badParam(
       "value ${value} not supported${value != null ? ' type:${value.runtimeType}' : ''}");
+}
+
+T immutableValue<T>(T value) {
+  if (value is Map) {
+    return ImmutableMap(value) as T;
+  } else if (value is Iterable) {
+    return ImmutableList(value) as T;
+  }
+  return value;
+}
+
+class ImmutableList extends ListBase<dynamic> {
+  final List _list;
+
+  @override
+  int get length => _list.length;
+
+  ImmutableList(Iterable list) : _list = list.toList(growable: false);
+
+  @override
+  dynamic operator [](int index) => immutableValue(_list[index]);
+
+  @override
+  void operator []=(int index, value) => throw StateError('read only');
+
+  @override
+  set length(int newLength) => throw StateError('read only');
+}
+
+class ImmutableMap extends MapBase<dynamic, dynamic> {
+  final Map _map;
+
+  ImmutableMap(this._map);
+  @override
+  dynamic operator [](Object key) => immutableValue(_map[key]);
+
+  @override
+  void operator []=(key, value) => throw StateError('read only');
+
+  @override
+  void clear() => throw StateError('read only');
+
+  @override
+  Iterable get keys => immutableValue(_map.keys);
+
+  @override
+  dynamic remove(Object key) => throw StateError('read only');
 }
 
 T getPartsMapValue<T>(Map map, Iterable<String> parts) {

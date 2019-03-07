@@ -1,5 +1,6 @@
 import 'package:sembast/sembast.dart';
 import 'package:sembast/src/record_impl.dart';
+import 'package:sembast/src/store/record_ref.dart';
 
 ///
 /// Special field access
@@ -24,6 +25,9 @@ class FieldValue {
 /// Records
 ///
 abstract class Record {
+  /// The record reference
+  RecordRef<dynamic, dynamic> get ref;
+
   /// The key of the record
   dynamic get key;
 
@@ -34,6 +38,7 @@ abstract class Record {
   bool get deleted;
 
   /// its store
+  /// 2019-03-06 Will be deprecated
   Store get store;
 
   ///
@@ -52,4 +57,9 @@ abstract class Record {
   ///
   factory Record(Store store, dynamic value, [dynamic key]) =>
       SembastRecord(store, value, key);
+
+  ///
+  /// allow cloning a record to start modifying it
+  ///
+  Record clone({RecordRef<dynamic, dynamic> ref, dynamic value});
 }
