@@ -62,8 +62,8 @@ record['path.sub'] = 1;
 // means {'path': {'sub': 1}}
 ```
 
-Follow the links with more informatin on how to [write](https://github.com/tekartik/sembast.dart/blob/master/doc/writes.md)
-or [read](https://github.com/tekartik/sembast.dart/blob/master/doc/queries.md) data
+Follow the links with more informatin on how to [write](https://github.com/tekartik/sembast.dart/blob/master/sembast/doc/writes.md)
+or [read](https://github.com/tekartik/sembast.dart/blob/master/sembast/doc/queries.md) data
 
 ### Auto increment
 
@@ -90,7 +90,7 @@ await db.transaction((txn) async {
 });
 ```
 
-More info on transaction [here](https://github.com/tekartik/sembast.dart/blob/master/doc/transactions.md)
+More info on transaction [here](https://github.com/tekartik/sembast.dart/blob/master/sembast/doc/transactions.md)
 
 ### Simple wrapping into a Record object
 
@@ -110,7 +110,7 @@ expect(record.key, key);
 
 Filtering and sorting can be done on any field
 
-More information [here](https://github.com/tekartik/sembast.dart/blob/master/doc/queries.md)
+More information [here](https://github.com/tekartik/sembast.dart/blob/master/sembast/doc/queries.md)
 
 ```dart
 // Store some objects
@@ -170,7 +170,7 @@ Database db = await factory.openDatabase(dbPath, codec: codec);
 
 ```
 
-More information [here](https://github.com/tekartik/sembast.dart/blob/master/doc/codec.md)
+More information [here](https://github.com/tekartik/sembast.dart/blob/master/sembast/doc/codec.md)
 
 ### idb_shim
 
@@ -215,7 +215,7 @@ followed by a rename to make it atomic.
 
 ### Supported types
 
-Supported types depends on JSON supported types. More information [here](https://github.com/tekartik/sembast.dart/blob/master/doc/data_types.md)
+Supported types depends on JSON supported types. More information [here](https://github.com/tekartik/sembast.dart/blob/master/sembast/doc/data_types.md)
 
 #### Keys
 

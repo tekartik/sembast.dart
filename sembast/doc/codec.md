@@ -2,7 +2,7 @@
 
 Sembast supports using a user-defined codec to encode/decode data when read/written to disk.
 It provides a way to support encryption. Encryption itself is not part of sembast but an example of an xxtea based
-encryption is provided in the [test folder](https://github.com/tekartik/sembast.dart/blob/master/test/xxtea_codec.dart).
+encryption is provided in the [test folder](https://github.com/tekartik/sembast.dart/blob/master/sembast/test/xxtea_codec.dart).
 
 ```dart
 // Initialize the encryption codec with a user password
@@ -29,7 +29,7 @@ The header of the database will contain a signature encoded by the codec itself 
 if the password is wrong.
 
 Any other custom encryption/codec can be used as long as you provide a way to encode/decode a Map to/from a String. If xxtea fits
-your need. Simply add a dependency on `xxtea` and copy [this file](https://github.com/tekartik/sembast.dart/blob/master/test/xxtea_codec.dart)
+your need. Simply add a dependency on `xxtea` and copy [this file](https://github.com/tekartik/sembast.dart/blob/master/sembast/test/xxtea_codec.dart)
 to your project.
 
 * More information on [xxtea on wikipedia](https://en.wikipedia.org/wiki/XXTEA)
