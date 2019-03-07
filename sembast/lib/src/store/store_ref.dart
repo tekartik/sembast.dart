@@ -1,3 +1,5 @@
+import 'package:sembast/sembast.dart';
+import 'package:sembast/sembast_store.dart';
 import 'package:sembast/src/store/record_ref.dart';
 import 'package:sembast/src/store/store_ref_impl.dart';
 
@@ -11,8 +13,29 @@ abstract class StoreRef<K, V> {
 
   factory StoreRef(String name) => StoreRefBase(name);
 
+  ///
+  /// delete all records in a store
+  ///
+  Future clear(DatabaseClient client);
+
+  ///
+  /// Get all records from a list of keys
+  ///
+  Future<List<RecordSnapshot<K, V>>> getAll(
+      DatabaseClient client, Iterable<K> keys);
+
+  ///
+  /// return the list of deleted keys
+  ///
+  Future deleteAll(DatabaseClient client, Iterable<K> keys);
+
   /// Cast if needed
   StoreRef<RK, RV> cast<RK, RV>();
+
+  ///
+  /// Find a single record
+  ///
+  Future<RecordSnapshot<K, V>> find(DatabaseClient client, Finder finder);
 }
 
 //

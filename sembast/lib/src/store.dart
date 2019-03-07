@@ -1,12 +1,11 @@
 import 'dart:async';
 
 import 'package:sembast/sembast.dart';
-import 'package:sembast/sembast_store.dart' show DatabaseClient;
 import 'package:sembast/src/store/store_ref.dart';
 
 ///
 /// Method shared by Store and Database (main store)
-abstract class BaseExecutor implements DatabaseClient {
+abstract class BaseExecutor {
   Store get store;
 
   ///

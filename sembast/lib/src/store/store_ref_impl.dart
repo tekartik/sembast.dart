@@ -1,8 +1,9 @@
 import 'package:sembast/sembast.dart';
-import 'package:sembast/src/database_impl.dart';
+import 'package:sembast/sembast_store.dart';
 import 'package:sembast/src/store/record_ref.dart';
 import 'package:sembast/src/store/record_ref_impl.dart';
 import 'package:sembast/src/store/store_ref.dart';
+import 'package:sembast/src/store_executor_impl.dart';
 
 class StoreRefBase<K, V> with StoreRefMixin<K, V> {
   StoreRefBase(String name) {
@@ -33,18 +34,48 @@ mixin StoreRefMixin<K, V> implements StoreRef<K, V> {
     return false;
   }
 
-  Future<RecordSnapshot<K, V>> findRecord(
-      StoreExecutor executor, Finder finder) async {
-    // Force immutable as soon as we use such api
-    forceReadImmutable(executor);
+  @override
+  Future<RecordSnapshot<K, V>> find(
+      DatabaseClient client, Finder finder) async {
+    final storeExecutor = storeExecutorMixin(client);
 
-    var record = await executor.findRecord(finder);
+    var record = await storeExecutor.findImmutableRecord(this, finder);
     if (record == null) {
       return null;
     } else {
-      return RecordSnapshotImpl<K, V>(
-          record.ref?.cast<K, V>(), record.value as V);
+      return RecordSnapshotImpl<K, V>.fromRecord(record);
     }
+  }
+
+  // Clear all
+  @override
+  Future clear(DatabaseClient client) {
+    final storeExecutor = storeExecutorMixin(client);
+    return storeExecutor.clear();
+  }
+
+  ///
+  /// Get all records from a list of keys
+  ///
+  @override
+  Future<List<RecordSnapshot<K, V>>> getAll(
+      DatabaseClient client, Iterable<K> keys) async {
+    final storeExecutor = storeExecutorMixin(client);
+    var snapshots = <RecordSnapshot<K, V>>[];
+    var records = await storeExecutor.getImmutableRecords(this, keys);
+    await storeExecutor.sembastDatabase.forEachRecords(records, (record) {
+      snapshots.add(RecordSnapshotImpl<K, V>.fromRecord(record));
+    });
+    return snapshots;
+  }
+
+  ///
+  /// return the list of deleted keys
+  ///
+  @override
+  Future deleteAll(DatabaseClient client, Iterable keys) {
+    final storeExecutor = storeExecutorMixin(client);
+    return storeExecutor.deleteAll(keys);
   }
 
   /// Cast if needed

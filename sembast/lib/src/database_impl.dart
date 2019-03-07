@@ -466,6 +466,7 @@ class SembastDatabase extends Object
   /// get or create a store
   /// an empty store will not be persistent
   ///
+  @override
   SembastStore getSembastStore(StoreRef ref) {
     var store = findStore(ref.name);
     if (store == null) {
@@ -913,12 +914,27 @@ class SembastDatabase extends Object
   SembastDatabase get sembastDatabase => this;
 
   @override
-  SembastStore get sembastStore => mainStore as SembastStore;
-
-  @override
   Future<T> inTransaction<T>(
           FutureOr<T> Function(Transaction transaction) action) =>
       transaction(action);
+
+  // records must not changed
+  Future forEachRecords(List<ImmutableSembastRecord> records,
+      void action(ImmutableSembastRecord record)) async {
+    // handle record in transaction first
+    for (var record in records) {
+      // then the regular unless already in transaction
+      if (needCooperate) {
+        await cooperate();
+      }
+      action(record);
+    }
+  }
+
+  // Only set during open
+  @override
+  SembastTransaction get sembastTransaction =>
+      _openTransaction as SembastTransaction;
 }
 
 class DatabaseExportStat {

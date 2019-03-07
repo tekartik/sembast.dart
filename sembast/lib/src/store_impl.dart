@@ -116,7 +116,7 @@ class SembastStore with StoreExecutorMixin implements Store {
 
   Future _feedController(
       SembastTransaction txn, StreamController<Record> ctlr) async {
-    await _forEachRecords(txn, null, (record) {
+    await forEachRecords(txn, null, (record) {
       ctlr.add(makeOutRecord(record));
     });
   }
@@ -149,7 +149,7 @@ class SembastStore with StoreExecutorMixin implements Store {
       ? null
       : List<TxnRecord>.from(txnRecords.values, growable: false);
 
-  Future _forEachRecords(SembastTransaction txn, Filter filter,
+  Future forEachRecords(SembastTransaction txn, Filter filter,
       void action(ImmutableSembastRecord record)) async {
     // handle record in transaction first
     if (_hasTransactionRecords(txn)) {
@@ -268,7 +268,7 @@ class SembastStore with StoreExecutorMixin implements Store {
     var sembastFinder = finder as SembastFinder;
     results = [];
 
-    await _forEachRecords(txn, sembastFinder?.filter, (record) {
+    await forEachRecords(txn, sembastFinder?.filter, (record) {
       results.add(record);
     });
 
@@ -517,7 +517,7 @@ class SembastStore with StoreExecutorMixin implements Store {
 
   Future<int> txnCount(SembastTransaction txn, Filter filter) async {
     int count = 0;
-    await _forEachRecords(txn, filter, (record) {
+    await forEachRecords(txn, filter, (record) {
       count++;
     });
     return count;
@@ -654,10 +654,11 @@ class SembastStore with StoreExecutorMixin implements Store {
   SembastDatabase get sembastDatabase => database;
 
   @override
-  SembastStore get sembastStore => this;
-
-  @override
   Future<T> inTransaction<T>(
           FutureOr<T> Function(Transaction transaction) action) =>
       transaction(action);
+
+  @override
+  SembastTransaction get sembastTransaction =>
+      sembastDatabase.sembastTransaction;
 }

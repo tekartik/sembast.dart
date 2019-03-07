@@ -34,6 +34,6 @@ abstract class Record<K, V> {
 }
 
 ///
-/// Executor
+/// Database client (either Database or Transaction)
 ///
 abstract class DatabaseClient {}

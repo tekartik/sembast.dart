@@ -5,6 +5,7 @@ import 'dart:convert';
 
 import 'package:meta/meta.dart';
 import 'package:sembast/sembast.dart';
+import 'package:sembast/sembast_store.dart' show DatabaseClient;
 import 'package:sembast/src/database.dart';
 import 'package:sembast/src/database_mode.dart';
 import 'package:sembast/src/filter.dart';
@@ -89,7 +90,8 @@ abstract class StoreTransaction extends StoreExecutor {}
 ///
 /// Database transaction
 ///
-abstract class Transaction implements StoreTransaction, TransactionExecutor {}
+abstract class Transaction
+    implements StoreTransaction, TransactionExecutor, DatabaseClient {}
 
 ///
 /// Filter for searching into the database

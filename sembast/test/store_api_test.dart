@@ -75,6 +75,14 @@ void defineTests(DatabaseTestContext ctx) {
           fail('should fail $client');
         } on StateError catch (_) {}
 
+        snapshot = await testStore.find(client, Finder());
+        expect(snapshot.value, {'value': 2, 'other': 4});
+
+        try {
+          snapshot.value['value'] = 3;
+          fail('should fail $client');
+        } on StateError catch (_) {}
+
         var map = Map<String, dynamic>.from(snapshot.value);
         map['value'] = 3;
         await record.put(client, map);

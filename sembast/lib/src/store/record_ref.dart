@@ -19,7 +19,9 @@ abstract class RecordRef<K, V> {
   /// if [merge] is true and the field exists, data is merged
   Future<K> put(DatabaseClient client, V value, {bool merge});
 
+  ///
   /// get a record from the database
+  ///
   Future<RecordSnapshot<K, V>> get(DatabaseClient client);
 
   /// delete a record

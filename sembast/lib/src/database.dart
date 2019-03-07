@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:sembast/sembast.dart';
+import 'package:sembast/sembast_store.dart' show DatabaseClient;
 
 abstract class TransactionExecutor extends DatabaseExecutor {
   /// The main store used
@@ -43,7 +44,7 @@ abstract class DatabaseExecutor extends StoreExecutor {
   Future deleteRecord(Record record);
 }
 
-abstract class Database extends DatabaseExecutor {
+abstract class Database extends DatabaseExecutor implements DatabaseClient {
   Store get mainStore;
 
   /// Version of the database

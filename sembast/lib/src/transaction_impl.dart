@@ -136,17 +136,18 @@ class SembastTransaction extends Object
   SembastDatabase get database => sembastDatabase;
 
   @override
-  SembastStore get sembastStore => sembastDatabase.mainStore as SembastStore;
-
-  @override
   Future<T> inTransaction<T>(
           FutureOr<T> Function(Transaction transaction) action) async =>
       action(this);
+
+  @override
+  SembastTransaction get sembastTransaction => this;
 }
 
 class SembastTransactionStore
     with StoreExecutorMixin
     implements StoreTransaction {
+  @override
   final SembastTransaction sembastTransaction;
   @override
   final SembastStore store;
@@ -215,9 +216,6 @@ class SembastTransactionStore
 
   @override
   SembastDatabase get sembastDatabase => sembastTransaction.database;
-
-  @override
-  SembastStore get sembastStore => store;
 
   @override
   Future<T> inTransaction<T>(
