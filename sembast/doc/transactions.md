@@ -21,7 +21,7 @@ Example on how to find and update in a transaction
 /// Update all records matching [where] with the [values] fields
 /// Returns the number of records updated
 ///
-Future<int> updateRecords(StoreExecutor executor, Map<String, dynamic> values,
+Future<int> updateRecords(sembastStore executor, Map<String, dynamic> values,
     {Finder where}) async {
   var records = await executor.findRecords(where);
   for (var record in records) {

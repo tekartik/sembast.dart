@@ -1,4 +1,5 @@
 import 'package:sembast/src/api/client.dart';
+import 'package:sembast/src/api/database.dart';
 import 'package:sembast/src/api/record_snapshot.dart';
 import 'package:sembast/src/api/store_ref.dart';
 import 'package:sembast/src/store/record_ref_impl.dart';
@@ -30,6 +31,11 @@ abstract class RecordRef<K, V> {
   /// get a record from the database
   ///
   Future<RecordSnapshot<K, V>> get(DatabaseClient client);
+
+  ///
+  /// get a record value from the database
+  ///
+  Future<V> getValue(Database db);
 
   /// delete a record
   Future delete(DatabaseClient client);

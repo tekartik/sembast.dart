@@ -37,7 +37,7 @@ void defineTests(DatabaseTestContext ctx) {
 
     test('update_map', () async {
       final store = intMapStoreFactory.store();
-      var key = await store.record().put(db, {"test": 1});
+      var key = await store.add(db, {"test": 1});
       expect(key, 1);
       var record = store.record(key);
       expect(await record.update(db, {'new': 2}), {'test': 1, 'new': 2});
@@ -49,9 +49,9 @@ void defineTests(DatabaseTestContext ctx) {
       });
     });
     test('put_nokey', () async {
-      var key = await mainStore.record().put(db, "hi");
+      var key = await mainStore.add(db, "hi");
       expect(key, 1);
-      var key2 = await mainStore.record().put(db, "hi");
+      var key2 = await mainStore.add(db, "hi");
       expect(key2, 2);
     });
 
@@ -63,7 +63,7 @@ void defineTests(DatabaseTestContext ctx) {
       String value = "hi";
       var record = mainStore.record(1);
       await record.put(db, value);
-      var readValue = (await record.get(db)).value;
+      var readValue = await record.getValue(db);
       expect(readValue, "hi");
       // immutable value are not clones
       expect(identical(value, readValue), isTrue);
@@ -88,9 +88,8 @@ void defineTests(DatabaseTestContext ctx) {
 
     test('auto_increment put_get_map', () async {
       Map info = {"info": 12};
-      var record = mainStore.record();
-      var key = await record.put(db, info);
-      record = mainStore.record(key);
+      var key = await mainStore.add(db, info);
+      var record = mainStore.record(key);
       var infoRead = (await record.get(db)).value;
       expect(infoRead, info);
       expect(identical(infoRead, info), isFalse);

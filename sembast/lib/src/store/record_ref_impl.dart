@@ -18,44 +18,50 @@ mixin RecordRefMixin<K, V> implements RecordRef<K, V> {
 
   @override
   Future<V> update(DatabaseClient client, V value) async {
-    var executorMixin = storeExecutorMixin(client);
-    return await executorMixin.inTransaction((txn) {
-      return executorMixin
+    var sembastStore = getSembastStore(client, store);
+    return await sembastStore.inTransaction((txn) {
+      return sembastStore
           .getSembastStore(store)
           .txnUpdate(txn as SembastTransaction, value, key);
     }) as V;
   }
 
+  /// Put record
   @override
   Future<K> put(DatabaseClient client, V value, {bool merge}) async {
-    var executorMixin = storeExecutorMixin(client);
-    return await executorMixin.inTransaction((txn) {
-      return executorMixin
-          .getSembastStore(store)
-          .txnPut(txn as SembastTransaction, value, key, merge: merge);
+    var sembastStore = getSembastStore(client, store);
+    return await sembastStore.inTransaction((txn) {
+      return sembastStore.txnPut(txn as SembastTransaction, value, key,
+          merge: merge);
     }) as K;
   }
 
+  /// Delete record
   @override
   Future delete(DatabaseClient client) {
-    var executorMixin = storeExecutorMixin(client);
-    return executorMixin.inTransaction((txn) {
-      return executorMixin
+    var sembastStore = getSembastStore(client, store);
+    return sembastStore.inTransaction((txn) {
+      return sembastStore
           .getSembastStore(store)
           .txnDelete(txn as SembastTransaction, key);
     });
   }
 
+  /// Get record
   @override
   Future<RecordSnapshot<K, V>> get(DatabaseClient client) async {
-    var executorMixin = storeExecutorMixin(client);
+    var sembastStore = getSembastStore(client, store);
 
-    var record = await executorMixin.getImmutableRecord(this);
+    var record = await sembastStore.getImmutableRecord(this);
     if (record == null) {
       return null;
     }
     return RecordSnapshotImpl.fromRecord(record);
   }
+
+  /// Get value
+  @override
+  Future<V> getValue(Database db) async => (await get(db)).value;
 
   @override
   String toString() => 'Record(${store?.name}, $key)';
@@ -83,6 +89,9 @@ mixin RecordSnapshotMixin<K, V> implements RecordSnapshot<K, V> {
 
   @override
   V value;
+
+  @override
+  String toString() => '$ref $value';
 }
 
 class RecordSnapshotImpl<K, V> with RecordSnapshotMixin<K, V> {

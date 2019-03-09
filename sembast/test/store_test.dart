@@ -1,7 +1,7 @@
-library sembast.compat.store_test;
+library sembast.store_test;
 
 // basically same as the io runner but with extra output
-import 'package:sembast/sembast.dart';
+import 'package:sembast/src/api/sembast.dart';
 import 'test_common.dart';
 
 void main() {
@@ -21,10 +21,11 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     test('clear', () async {
-      Store store = db.getStore("test");
-      await store.put("hi", 1);
-      await store.clear();
-      expect(await store.get(1), isNull);
+      var store = StoreRef('test');
+      var record = store.record(1);
+      await record.put(db, "hi");
+      await store.clear(db);
+      expect(await record.get(db), isNull);
     });
 
     test('delete', () {
@@ -39,9 +40,11 @@ void defineTests(DatabaseTestContext ctx) {
       });
     });
 
+    //TODO FROM HERE
+
     test('delete_main', () async {
       var mainStoreName = db.mainStore.name;
-      Store store = db.findStore(mainStoreName);
+      var store = db.findStore(mainStoreName);
       expect(store, isNotNull);
       expect(db.stores, [db.mainStore]);
       await db.deleteStore(mainStoreName);
@@ -50,7 +53,7 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     test('delete_main', () {
-      Store store = db.getStore(null);
+      var store = db.getStore(null);
       return db.deleteStore(null).then((_) {
         expect(db.findStore(null), store);
         expect(db.findStore(null), db.mainStore);
@@ -63,7 +66,7 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     test('put/delete_store', () async {
-      Store store = db.getStore("test_store");
+      var store = db.getStore("test_store");
       await store.put('test', 1);
       await db.deleteStore('test_store');
       store = db.getStore("test_store");
@@ -71,8 +74,8 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     test('put/get', () {
-      Store store1 = db.getStore("test1");
-      Store store2 = db.getStore("test2");
+      var store1 = db.getStore("test1");
+      var store2 = db.getStore("test2");
       return store1.put("hi", 1).then((key) {
         expect(key, 1);
       }).then((_) {
@@ -117,7 +120,7 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     test('bool', () async {
-      Store store = db.getStore("test");
+      var store = db.getStore("test");
       await store.put(true, 1);
       expect(await store.get(1), isTrue);
       await store.put(false, 1);
@@ -127,11 +130,11 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     test('records', () {
-      Store store = db.getStore("test");
+      var store = db.getStore("test");
       return store.put("hi").then((key) {
         int count = 0;
         return store.records
-            .listen((Record record) {
+            .listen((record) {
               expect(record.value, "hi");
               count++;
             })

@@ -3,6 +3,7 @@ import 'package:sembast/src/api/finder.dart';
 import 'package:sembast/src/api/store_ref.dart';
 import 'package:sembast/src/store/record_ref_impl.dart';
 import 'package:sembast/src/store_executor_impl.dart';
+import 'package:sembast/src/transaction_impl.dart';
 
 class StoreRefBase<K, V> with StoreRefMixin<K, V> {
   StoreRefBase(String name) {
@@ -33,12 +34,24 @@ mixin StoreRefMixin<K, V> implements StoreRef<K, V> {
     return false;
   }
 
+  /// Add
+  @override
+  Future<K> add(DatabaseClient client, V value) async {
+    var sembastStore = getSembastStore(client, this);
+    return await sembastStore.inTransaction((txn) {
+      return sembastStore
+          .getSembastStore(this)
+          // A null key will generate one
+          .txnPut(txn as SembastTransaction, value, null);
+    }) as K;
+  }
+
   @override
   Future<RecordSnapshot<K, V>> find(DatabaseClient client,
       {Finder finder}) async {
-    final storeExecutor = storeExecutorMixin(client);
+    final sembastStore = getSembastStore(client, this);
 
-    var record = await storeExecutor.findImmutableRecord(this, finder);
+    var record = await sembastStore.findImmutableRecord(this, finder);
     if (record == null) {
       return null;
     } else {
@@ -48,16 +61,16 @@ mixin StoreRefMixin<K, V> implements StoreRef<K, V> {
 
   @override
   Future<int> count(DatabaseClient client, {Filter filter}) {
-    final storeExecutor = storeExecutorMixin(client);
+    final store = getSembastStore(client, this);
     // no transaction for read
-    return storeExecutor.count(filter);
+    return store.count(filter);
   }
 
   // Clear all
   @override
   Future clear(DatabaseClient client) {
-    final storeExecutor = storeExecutorMixin(client);
-    return storeExecutor.clear();
+    final store = getSembastStore(client, this);
+    return store.clear();
   }
 
   ///
@@ -66,10 +79,10 @@ mixin StoreRefMixin<K, V> implements StoreRef<K, V> {
   @override
   Future<List<RecordSnapshot<K, V>>> getAll(
       DatabaseClient client, Iterable<K> keys) async {
-    final storeExecutor = storeExecutorMixin(client);
+    final store = getSembastStore(client, this);
     var snapshots = <RecordSnapshot<K, V>>[];
-    var records = await storeExecutor.getImmutableRecords(this, keys);
-    await storeExecutor.sembastDatabase.forEachRecords(records, (record) {
+    var records = await store.getImmutableRecords(this, keys);
+    await store.sembastDatabase.forEachRecords(records, (record) {
       snapshots.add(RecordSnapshotImpl<K, V>.fromRecord(record));
     });
     return snapshots;
@@ -80,8 +93,8 @@ mixin StoreRefMixin<K, V> implements StoreRef<K, V> {
   ///
   @override
   Future deleteAll(DatabaseClient client, Iterable keys) {
-    final storeExecutor = storeExecutorMixin(client);
-    return storeExecutor.deleteAll(keys);
+    final sembastStore = getSembastStore(client, this);
+    return sembastStore.deleteAll(keys);
   }
 
   /// Cast if needed

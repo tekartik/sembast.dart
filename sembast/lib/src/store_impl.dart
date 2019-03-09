@@ -12,7 +12,7 @@ import 'package:sembast/src/utils.dart';
 import 'common_import.dart';
 import 'database_impl.dart';
 
-class SembastStore with StoreExecutorMixin implements Store {
+class SembastStore with StoresembastStore implements Store {
   final SembastDatabase database;
   @override
   final StoreRef<dynamic, dynamic> ref;

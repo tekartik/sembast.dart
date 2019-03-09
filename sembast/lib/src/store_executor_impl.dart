@@ -6,7 +6,7 @@ import 'package:sembast/src/record_impl.dart';
 import 'package:sembast/src/store_impl.dart';
 import 'package:sembast/src/transaction_impl.dart';
 
-mixin StoreExecutorMixin implements StoreExecutor {
+mixin StoresembastStore implements StoreExecutor {
   Future<T> inTransaction<T>(FutureOr<T> action(Transaction transaction));
 
   SembastDatabase get sembastDatabase;
@@ -37,10 +37,14 @@ mixin StoreExecutorMixin implements StoreExecutor {
   }
 }
 
-StoreExecutorMixin storeExecutorMixin(DatabaseClient client) {
-  var storeExecutorMixin = client as StoreExecutorMixin;
+StoresembastStore _storesembastStore(DatabaseClient client) {
+  var storesembastStore = client as StoresembastStore;
   // Force
-  forceReadImmutable(storeExecutorMixin);
+  forceReadImmutable(storesembastStore);
 
-  return storeExecutorMixin;
+  return storesembastStore;
+}
+
+SembastStore getSembastStore(DatabaseClient client, StoreRef store) {
+  return _storesembastStore(client).getSembastStore(store);
 }
