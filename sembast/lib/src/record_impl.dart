@@ -1,9 +1,8 @@
 import 'package:sembast/sembast.dart';
-import 'package:sembast/src/database.dart';
-import 'package:sembast/src/record.dart';
+import 'package:sembast/src/api/compat/record.dart';
+import 'package:sembast/src/api/compat/store.dart';
+import 'package:sembast/src/api/record_ref.dart';
 import 'package:sembast/src/sembast_impl.dart';
-import 'package:sembast/src/store/record_ref.dart';
-import 'package:sembast/src/store/store_ref.dart';
 import 'package:sembast/src/utils.dart';
 
 mixin SembastRecordWithStoreMixin implements Record {

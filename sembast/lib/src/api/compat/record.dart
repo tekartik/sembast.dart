@@ -1,7 +1,8 @@
 import 'package:sembast/sembast.dart';
-import 'package:sembast/src/record_impl.dart';
-import 'package:sembast/src/store/record_ref.dart';
 import 'package:sembast/sembast_store.dart' as store;
+import 'package:sembast/src/api/compat/store.dart';
+import 'package:sembast/src/api/record_ref.dart';
+import 'package:sembast/src/record_impl.dart';
 
 ///
 /// Records

@@ -20,6 +20,7 @@ class FileMode {
   final int _mode;
 
   int get mode => _mode;
+
   const FileMode._internal(this._mode);
 }
 

@@ -1,4 +1,4 @@
-import 'package:sembast/src/store/store_ref.dart';
+import 'package:sembast/src/api/sembast.dart';
 
 const String dbVersionKey = "version";
 const String dbDembastVersionKey = "sembast";

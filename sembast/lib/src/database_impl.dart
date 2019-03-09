@@ -5,7 +5,6 @@ import 'package:logging/logging.dart';
 import 'package:sembast/sembast.dart';
 import 'package:sembast/src/common_import.dart';
 import 'package:sembast/src/cooperator.dart';
-import 'package:sembast/src/database.dart';
 import 'package:sembast/src/database_factory_mixin.dart';
 import 'package:sembast/src/meta.dart';
 import 'package:sembast/src/record_impl.dart';
@@ -13,13 +12,10 @@ import 'package:sembast/src/record_impl.dart' as record_impl;
 import 'package:sembast/src/sembast_codec_impl.dart';
 import 'package:sembast/src/sembast_impl.dart';
 import 'package:sembast/src/storage.dart';
-import 'package:sembast/src/store/store_ref.dart';
 import 'package:sembast/src/store_executor_impl.dart';
 import 'package:sembast/src/store_impl.dart';
 import 'package:sembast/src/transaction_impl.dart';
 import 'package:synchronized/synchronized.dart';
-
-import 'database.dart';
 
 class SembastDatabase extends Object
     with DatabaseExecutorMixin, StoreExecutorMixin

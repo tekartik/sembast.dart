@@ -1,5 +1,6 @@
-import 'package:sembast/sembast_store.dart';
-import 'package:sembast/src/store/store_ref.dart';
+import 'package:sembast/src/api/client.dart';
+import 'package:sembast/src/api/record_snapshot.dart';
+import 'package:sembast/src/api/store_ref.dart';
 
 ///
 /// An immutable record reference
@@ -29,13 +30,4 @@ abstract class RecordRef<K, V> {
 
   /// Cast if needed
   RecordRef<RK, RV> cast<RK, RV>();
-}
-
-/// A read record
-abstract class RecordSnapshot<K, V> {
-  /// Its reference
-  RecordRef<K, V> get ref;
-
-  /// The value
-  V get value;
 }

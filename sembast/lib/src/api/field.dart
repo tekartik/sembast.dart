@@ -14,5 +14,6 @@ class Field {
 ///
 class FieldValue {
   const FieldValue._();
+
   static FieldValue delete = const FieldValue._();
 }

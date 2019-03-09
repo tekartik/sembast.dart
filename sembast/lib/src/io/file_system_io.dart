@@ -6,8 +6,8 @@ import 'dart:io' as io;
 
 import 'package:path/path.dart';
 import 'package:path/path.dart' as _path;
-
 import 'package:sembast/src/file_system.dart' as fs;
+
 import 'file_mode_io.dart';
 
 ///

@@ -1,5 +1,6 @@
 import 'package:sembast/sembast_store.dart';
-import 'package:sembast/src/field.dart';
+import 'package:sembast/src/api/record_ref.dart';
+import 'package:sembast/src/api/sembast.dart';
 import 'package:sembast/src/utils.dart';
 
 mixin RecordMixin<K, V> implements Record<K, V> {

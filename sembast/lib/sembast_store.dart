@@ -1,15 +1,10 @@
+import 'package:sembast/src/api/record_ref.dart';
 import 'package:sembast/src/store/record_impl.dart';
-import 'package:sembast/src/store/record_ref.dart';
-
-export 'package:sembast/src/store/record_ref.dart'
-    show RecordRef, RecordSnapshot;
-export 'package:sembast/src/store/store_ref.dart'
-    show StoreRef, intMapStoreFactory, stringMapStoreFactory;
-export 'sembast.dart' show Database;
 
 ///
 /// Records
 ///
+@deprecated
 abstract class Record<K, V> {
   /// The record reference
   RecordRef<K, V> get ref;
@@ -32,8 +27,3 @@ abstract class Record<K, V> {
 
   factory Record(RecordRef<K, V> ref, V value) => RecordImpl(ref, value);
 }
-
-///
-/// Database client (either Database or Transaction)
-///
-abstract class DatabaseClient {}

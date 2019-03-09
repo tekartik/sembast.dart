@@ -1,4 +1,6 @@
 import 'package:sembast/sembast.dart';
+import 'package:sembast/src/api/boundary.dart';
+import 'package:sembast/src/api/compat/record.dart';
 import 'package:sembast/src/record_impl.dart';
 
 class SembastBoundary implements Boundary {

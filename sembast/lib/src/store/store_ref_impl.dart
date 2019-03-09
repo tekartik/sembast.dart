@@ -1,8 +1,7 @@
 import 'package:sembast/sembast.dart';
-import 'package:sembast/sembast_store.dart';
-import 'package:sembast/src/store/record_ref.dart';
+import 'package:sembast/src/api/finder.dart';
+import 'package:sembast/src/api/store_ref.dart';
 import 'package:sembast/src/store/record_ref_impl.dart';
-import 'package:sembast/src/store/store_ref.dart';
 import 'package:sembast/src/store_executor_impl.dart';
 
 class StoreRefBase<K, V> with StoreRefMixin<K, V> {

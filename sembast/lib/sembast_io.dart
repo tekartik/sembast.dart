@@ -1,7 +1,6 @@
 library sembast.io;
 
 import 'package:sembast/sembast.dart';
-
 import 'package:sembast/src/io/database_factory_io.dart' as database_io;
 
 DatabaseFactory get databaseFactoryIo => database_io.databaseFactoryIo;

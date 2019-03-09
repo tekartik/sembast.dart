@@ -2,7 +2,7 @@ library sembast.database_test;
 
 // basically same as the io runner but with extra output
 import 'package:pedantic/pedantic.dart';
-import 'package:sembast/sembast.dart';
+import 'package:sembast/src/api/sembast.dart';
 
 import 'test_common.dart';
 

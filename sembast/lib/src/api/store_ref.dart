@@ -1,7 +1,10 @@
 import 'package:sembast/sembast.dart';
-import 'package:sembast/sembast_store.dart';
-import 'package:sembast/src/store/record_ref.dart';
+import 'package:sembast/src/api/client.dart';
+import 'package:sembast/src/api/finder.dart';
+import 'package:sembast/src/api/record_ref.dart';
+import 'package:sembast/src/api/record_snapshot.dart';
 import 'package:sembast/src/store/store_ref_impl.dart';
+// New in 1.15
 
 /// A pointer to a store
 abstract class StoreRef<K, V> {
@@ -38,7 +41,7 @@ abstract class StoreRef<K, V> {
   Future<RecordSnapshot<K, V>> find(DatabaseClient client, Finder finder);
 }
 
-//
+///
 abstract class StoreFactory<K, V> {
   StoreRef<K, V> store(String name);
 }

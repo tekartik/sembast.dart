@@ -313,40 +313,6 @@ void defineTests(DatabaseTestContext ctx) {
 
       tearDown(_tearDown);
 
-      test('readOnly', () async {
-        await db.close();
-        db = await ctx.factory.openDatabase(db.path,
-            settings: DatabaseSettings()..readImmutable = true);
-        var record = await db.findRecord(Finder());
-        try {
-          record['text'] = 'hu';
-          fail('should fail');
-        } on StateError catch (_) {}
-        record = record.clone();
-        record['text'] = 'hu';
-      });
-      test('sort', () {
-        Finder finder = Finder();
-        finder.sortOrders = [SortOrder("value", true), SortOrder("text", true)];
-        return store.findRecords(finder).then((List<Record> records) {
-          expect(records.length, 3);
-          expect(records[0], record1);
-          expect(records[1], record3);
-          expect(records[2], record2);
-        }).then((_) {
-          finder.sortOrders = [
-            SortOrder("value", true),
-            SortOrder("text", false)
-          ];
-          return store.findRecords(finder).then((List<Record> records) {
-            expect(records.length, 3);
-            expect(records[0], record1);
-            expect(records[1], record2);
-            expect(records[2], record3);
-          });
-        });
-      });
-
       test('limit', () async {
         var finder = Finder(limit: 1);
         var records = await store.findRecords(finder);

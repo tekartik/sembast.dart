@@ -1,4 +1,6 @@
 import 'package:sembast/sembast.dart';
+import 'package:sembast/src/api/boundary.dart';
+import 'package:sembast/src/api/sort_order.dart';
 import 'package:sembast/src/boundary_impl.dart';
 
 class SembastSortOrder implements SortOrder {
