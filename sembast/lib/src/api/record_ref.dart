@@ -1,6 +1,7 @@
 import 'package:sembast/src/api/client.dart';
 import 'package:sembast/src/api/record_snapshot.dart';
 import 'package:sembast/src/api/store_ref.dart';
+import 'package:sembast/src/store/record_ref_impl.dart';
 
 ///
 /// An immutable record reference
@@ -20,6 +21,11 @@ abstract class RecordRef<K, V> {
   /// if [merge] is true and the field exists, data is merged
   Future<K> put(DatabaseClient client, V value, {bool merge});
 
+  /// Update a record
+  ///
+  /// If it does not exist, return null
+  Future<V> update(DatabaseClient client, V value);
+
   ///
   /// get a record from the database
   ///
@@ -30,4 +36,7 @@ abstract class RecordRef<K, V> {
 
   /// Cast if needed
   RecordRef<RK, RV> cast<RK, RV>();
+
+  /// Create record ref
+  factory RecordRef(StoreRef<K, V> store, K key) => RecordRefImpl(store, key);
 }

@@ -1,11 +1,9 @@
 import 'package:sembast/src/api/record_ref.dart';
-import 'package:sembast/src/store/record_impl.dart';
 
 ///
 /// Records
 ///
-@deprecated
-abstract class Record<K, V> {
+abstract class StoreRecord<K, V> {
   /// The record reference
   RecordRef<K, V> get ref;
 
@@ -25,5 +23,5 @@ abstract class Record<K, V> {
   ///
   void operator []=(String field, dynamic value);
 
-  factory Record(RecordRef<K, V> ref, V value) => RecordImpl(ref, value);
+// factory StoreRecord(RecordRef<K, V> ref, V value) => RecordImpl(ref, value);
 }

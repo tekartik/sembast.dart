@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:sembast/sembast.dart';
 import 'package:sembast/src/api/factory.dart';
 import 'package:sembast/src/database_impl.dart';
-import 'package:sembast/src/settings_impl.dart';
 import 'package:synchronized/synchronized.dart';
 
 class DatabaseOpenOptions {
@@ -11,14 +10,12 @@ class DatabaseOpenOptions {
   final OnVersionChangedFunction onVersionChanged;
   final DatabaseMode mode;
   final SembastCodec codec;
-  final DatabaseSettings settings;
 
   DatabaseOpenOptions({
     this.version,
     this.onVersionChanged,
     this.mode,
     this.codec,
-    this.settings,
   });
 
   @override
@@ -105,16 +102,14 @@ mixin DatabaseFactoryMixin implements SembastDatabaseFactory {
       {int version,
       OnVersionChangedFunction onVersionChanged,
       DatabaseMode mode,
-      SembastCodec codec,
-      DatabaseSettings settings}) {
+      SembastCodec codec}) {
     return openDatabaseWithOptions(
         path,
         DatabaseOpenOptions(
             version: version,
             onVersionChanged: onVersionChanged,
             mode: mode,
-            codec: codec,
-            settings: settings));
+            codec: codec));
   }
 
   DatabaseOpenHelper getDatabaseOpenHelper(

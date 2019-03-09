@@ -3,7 +3,7 @@ import 'package:sembast/src/api/record_ref.dart';
 import 'package:sembast/src/api/sembast.dart';
 import 'package:sembast/src/utils.dart';
 
-mixin RecordMixin<K, V> implements Record<K, V> {
+mixin RecordMixin<K, V> implements StoreRecord<K, V> {
   @override
   RecordRef<K, V> ref;
 

@@ -7,7 +7,7 @@ import 'package:sembast/src/record_impl.dart';
 ///
 /// Records
 ///
-abstract class Record extends store.Record<dynamic, dynamic> {
+abstract class Record extends store.StoreRecord<dynamic, dynamic> {
   /// true if the record has been deleted
   bool get deleted;
 

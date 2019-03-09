@@ -1,5 +1,4 @@
 import 'package:sembast/sembast.dart';
-import 'package:sembast/sembast_store.dart';
 
 import 'test_common.dart';
 
@@ -75,7 +74,7 @@ void defineTests(DatabaseTestContext ctx) {
           fail('should fail $client');
         } on StateError catch (_) {}
 
-        snapshot = await testStore.find(client, Finder());
+        snapshot = await testStore.find(client);
         expect(snapshot.value, {'value': 2, 'other': 4});
 
         try {

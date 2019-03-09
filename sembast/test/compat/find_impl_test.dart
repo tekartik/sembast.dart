@@ -4,9 +4,7 @@ library sembast.find_test;
 import 'dart:async';
 
 import 'package:sembast/sembast.dart';
-import 'package:sembast/src/database_factory_mixin.dart';
 import 'package:sembast/src/database_impl.dart';
-import 'package:sembast/src/settings_impl.dart';
 
 import 'test_common.dart';
 
@@ -53,14 +51,8 @@ void defineTests(DatabaseTestContext ctx) {
 
       test('readOnly', () async {
         await db.close();
-        db = await ctx.factory.openDatabase(db.path,
-            settings: DatabaseSettings()..readImmutable = true);
-        var openHelper = (db as SembastDatabase).openHelper;
-        (db as SembastDatabase).openHelper = DatabaseOpenHelper(
-            openHelper.factory,
-            openHelper.path,
-            DatabaseOpenOptions(
-                settings: DatabaseSettings()..readImmutable = true));
+        db = await ctx.factory.openDatabase(db.path);
+        (db as SembastDatabase).readImmutable = true;
         var record = await db.findRecord(Finder());
         try {
           record['text'] = 'hu';

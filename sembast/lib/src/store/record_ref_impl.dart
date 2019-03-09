@@ -17,6 +17,16 @@ mixin RecordRefMixin<K, V> implements RecordRef<K, V> {
   RecordSnapshot<K, V> snapshot(V value) => RecordSnapshotImpl(this, value);
 
   @override
+  Future<V> update(DatabaseClient client, V value) async {
+    var executorMixin = storeExecutorMixin(client);
+    return await executorMixin.inTransaction((txn) {
+      return executorMixin
+          .getSembastStore(store)
+          .txnUpdate(txn as SembastTransaction, value, key);
+    }) as V;
+  }
+
+  @override
   Future<K> put(DatabaseClient client, V value, {bool merge}) async {
     var executorMixin = storeExecutorMixin(client);
     return await executorMixin.inTransaction((txn) {

@@ -15,7 +15,7 @@ mixin StoreRefMixin<K, V> implements StoreRef<K, V> {
   String name;
 
   @override
-  RecordRef<K, V> record(K key) {
+  RecordRef<K, V> record([K key]) {
     return RecordRefImpl<K, V>(this, key);
   }
 
@@ -34,8 +34,8 @@ mixin StoreRefMixin<K, V> implements StoreRef<K, V> {
   }
 
   @override
-  Future<RecordSnapshot<K, V>> find(
-      DatabaseClient client, Finder finder) async {
+  Future<RecordSnapshot<K, V>> find(DatabaseClient client,
+      {Finder finder}) async {
     final storeExecutor = storeExecutorMixin(client);
 
     var record = await storeExecutor.findImmutableRecord(this, finder);
@@ -44,6 +44,13 @@ mixin StoreRefMixin<K, V> implements StoreRef<K, V> {
     } else {
       return RecordSnapshotImpl<K, V>.fromRecord(record);
     }
+  }
+
+  @override
+  Future<int> count(DatabaseClient client, {Filter filter}) {
+    final storeExecutor = storeExecutorMixin(client);
+    // no transaction for read
+    return storeExecutor.count(filter);
   }
 
   // Clear all
@@ -89,7 +96,7 @@ mixin StoreRefMixin<K, V> implements StoreRef<K, V> {
 
 mixin StoreFactoryMixin<K, V> implements StoreFactory<K, V> {
   @override
-  StoreRef<K, V> store(String name) {
+  StoreRef<K, V> store([String name]) {
     return StoreRefBase(name);
   }
 }

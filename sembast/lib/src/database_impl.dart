@@ -294,10 +294,9 @@ class SembastDatabase extends Object
     });
   }
 
-  bool _readImmutable;
-
-  bool get readImmutable => _readImmutable ??=
-      sembastDatabase.openOptions?.settings?.readImmutable == true;
+  /// Default to false for compatibility
+  /// switch to true when the new api is used
+  bool readImmutable = false;
 
   /// cooperate safe
   Record makeOutRecord(ImmutableSembastRecord record) {
@@ -510,7 +509,7 @@ class SembastDatabase extends Object
   ///
   Future<Database> open(DatabaseOpenOptions options) async {
     // Clear immutable cache in case re-opening
-    _readImmutable = null;
+    readImmutable = false;
 
     // Default mode
     var mode = options.mode ?? DatabaseMode.defaultMode;
@@ -972,4 +971,4 @@ class DatabaseExportStat {
 }
 
 void forceReadImmutable(StoreExecutor storeExecutor) =>
-    (storeExecutor as StoreExecutorMixin).sembastDatabase._readImmutable = true;
+    (storeExecutor as StoreExecutorMixin).sembastDatabase.readImmutable = true;

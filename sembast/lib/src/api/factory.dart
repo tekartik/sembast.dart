@@ -1,6 +1,5 @@
 import 'package:sembast/src/api/database_mode.dart';
 import 'package:sembast/src/api/sembast.dart';
-import 'package:sembast/src/settings_impl.dart';
 
 ///
 /// The database factory that allow opening database
@@ -25,8 +24,7 @@ abstract class DatabaseFactory {
       {int version,
       OnVersionChangedFunction onVersionChanged,
       DatabaseMode mode,
-      SembastCodec codec,
-      DatabaseSettings settings});
+      SembastCodec codec});
 
   ///
   /// Delete a database if existing

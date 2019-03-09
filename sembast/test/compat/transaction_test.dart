@@ -4,7 +4,6 @@ library sembast.transaction_test;
 import 'dart:async';
 
 import 'package:sembast/sembast.dart';
-import 'package:sembast/src/database.dart';
 
 import 'test_common.dart';
 
