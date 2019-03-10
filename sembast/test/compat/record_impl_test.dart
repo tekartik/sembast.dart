@@ -34,7 +34,7 @@ void defineTests(DatabaseTestContext ctx) {
         expect(record.key, 1);
         expect(record.value, 'hi');
         try {
-          // ignore: deprecated_member_use_from_same_package
+          // ignore: deprecated_member_use, deprecated_member_use_from_same_package
           record.store;
           fail('should fail');
         } on UnsupportedError catch (_) {}

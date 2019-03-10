@@ -3,9 +3,8 @@ import 'package:sembast/src/api/record_ref.dart';
 import 'package:sembast/src/api/record_snapshot.dart';
 import 'package:sembast/src/api/sembast.dart';
 import 'package:sembast/src/api/store_ref.dart';
+import 'package:sembast/src/database_client_impl.dart';
 import 'package:sembast/src/record_impl.dart';
-import 'package:sembast/src/store_executor_impl.dart';
-import 'package:sembast/src/transaction_impl.dart';
 
 mixin RecordRefMixin<K, V> implements RecordRef<K, V> {
   @override
@@ -17,46 +16,45 @@ mixin RecordRefMixin<K, V> implements RecordRef<K, V> {
   RecordSnapshot<K, V> snapshot(V value) => RecordSnapshotImpl(this, value);
 
   @override
-  Future<V> update(DatabaseClient client, V value) async {
-    var sembastStore = getSembastStore(client, store);
-    return await sembastStore.inTransaction((txn) {
-      return sembastStore
-          .getSembastStore(store)
-          .txnUpdate(txn as SembastTransaction, value, key);
+  Future<V> update(DatabaseClient databaseClient, V value) async {
+    var client = getClient(databaseClient);
+    return await client.inTransaction((txn) {
+      return client.getSembastStore(store).txnUpdate(txn, value, key);
     }) as V;
   }
 
   /// Put record
   @override
-  Future<K> put(DatabaseClient client, V value, {bool merge}) async {
-    var sembastStore = getSembastStore(client, store);
-    return await sembastStore.inTransaction((txn) {
-      return sembastStore.txnPut(txn as SembastTransaction, value, key,
-          merge: merge);
+  Future<K> put(DatabaseClient databaseClient, V value, {bool merge}) async {
+    var client = getClient(databaseClient);
+    return await client.inTransaction((txn) {
+      return client
+          .getSembastStore(store)
+          .txnPut(txn, value, key, merge: merge);
     }) as K;
   }
 
   /// Delete record
   @override
-  Future delete(DatabaseClient client) {
-    var sembastStore = getSembastStore(client, store);
-    return sembastStore.inTransaction((txn) {
-      return sembastStore
-          .getSembastStore(store)
-          .txnDelete(txn as SembastTransaction, key);
+  Future delete(DatabaseClient databaseClient) {
+    var client = getClient(databaseClient);
+    return client.inTransaction((txn) {
+      return client.getSembastStore(store).txnDelete(txn, key);
     });
   }
 
   /// Get record
   @override
-  Future<RecordSnapshot<K, V>> get(DatabaseClient client) async {
-    var sembastStore = getSembastStore(client, store);
+  Future<RecordSnapshot<K, V>> get(DatabaseClient databaseClient) async {
+    var client = getClient(databaseClient);
 
-    var record = await sembastStore.getImmutableRecord(this);
+    var record = await client
+        .getSembastStore(store)
+        .txnGetRecord(client.sembastTransaction, this.key);
     if (record == null) {
       return null;
     }
-    return RecordSnapshotImpl.fromRecord(record);
+    return RecordSnapshotImpl<K, V>.fromRecord(record);
   }
 
   /// Get value

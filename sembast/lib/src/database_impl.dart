@@ -5,6 +5,7 @@ import 'package:logging/logging.dart';
 import 'package:sembast/sembast.dart';
 import 'package:sembast/src/common_import.dart';
 import 'package:sembast/src/cooperator.dart';
+import 'package:sembast/src/database_client_impl.dart';
 import 'package:sembast/src/database_factory_mixin.dart';
 import 'package:sembast/src/meta.dart';
 import 'package:sembast/src/record_impl.dart';
@@ -12,14 +13,13 @@ import 'package:sembast/src/record_impl.dart' as record_impl;
 import 'package:sembast/src/sembast_codec_impl.dart';
 import 'package:sembast/src/sembast_impl.dart';
 import 'package:sembast/src/storage.dart';
-import 'package:sembast/src/store_executor_impl.dart';
 import 'package:sembast/src/store_impl.dart';
 import 'package:sembast/src/transaction_impl.dart';
 import 'package:synchronized/synchronized.dart';
 
 class SembastDatabase extends Object
-    with DatabasesembastStore, StoresembastStore
-    implements Database {
+    with DatabaseExecutorMixin
+    implements Database, SembastDatabaseClient {
   // Can be modified by openHelper for test purpose
   DatabaseOpenHelper openHelper;
   static Logger logger = Logger("Sembast");
@@ -910,8 +910,8 @@ class SembastDatabase extends Object
 
   @override
   Future<T> inTransaction<T>(
-          FutureOr<T> Function(Transaction transaction) action) =>
-      transaction(action);
+          FutureOr<T> Function(SembastTransaction transaction) action) =>
+      transaction((txn) => action(txn as SembastTransaction));
 
   // records must not changed
   Future forEachRecords(List<ImmutableSembastRecord> records,
@@ -969,6 +969,3 @@ class DatabaseExportStat {
     return map;
   }
 }
-
-void forceReadImmutable(StoreExecutor sembastStore) =>
-    (sembastStore as StoresembastStore).sembastDatabase.readImmutable = true;

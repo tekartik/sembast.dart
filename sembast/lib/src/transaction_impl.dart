@@ -1,13 +1,13 @@
 import 'dart:async';
 
 import 'package:sembast/sembast.dart';
+import 'package:sembast/src/database_client_impl.dart';
 import 'package:sembast/src/database_impl.dart';
 import 'package:sembast/src/record_impl.dart';
-import 'package:sembast/src/store_executor_impl.dart';
 import 'package:sembast/src/store_impl.dart';
 import 'package:sembast/src/utils.dart';
 
-mixin DatabasesembastStore implements DatabaseExecutor, StoreExecutor {
+mixin DatabaseExecutorMixin implements DatabaseExecutor, StoreExecutor {
   StoreExecutor get mainStore;
 
   @override
@@ -57,19 +57,9 @@ mixin DatabasesembastStore implements DatabaseExecutor, StoreExecutor {
   Stream<Record> get records => mainStore.records;
 }
 
-abstract class TransactionsembastStore implements TransactionExecutor {
-  SembastDatabase get database;
-
-  SembastTransaction get transaction;
-
-  @override
-  Future<Record> putRecord(Record record) async =>
-      database.makeOutRecord(await database.txnPutRecord(transaction, record));
-}
-
 class SembastTransaction extends Object
-    with DatabasesembastStore, StoresembastStore, TransactionsembastStore
-    implements Transaction {
+    with DatabaseExecutorMixin
+    implements Transaction, SembastDatabaseClient {
   @override
   final SembastDatabase sembastDatabase;
 
@@ -94,9 +84,6 @@ class SembastTransaction extends Object
 
   @override
   StoreExecutor get mainStore => toExecutor(database.mainStore);
-
-  @override
-  SembastTransaction get transaction => this;
 
   SembastTransactionStore toExecutor(Store store) => store != null
       ? SembastTransactionStore(this, store as SembastStore)
@@ -126,28 +113,33 @@ class SembastTransaction extends Object
       (record.store as SembastStore).txnDelete(this, record.key);
 
   @override
+  Future<Record> putRecord(Record record) async =>
+      database.makeOutRecord(await database.txnPutRecord(this, record));
+
+  @override
   Future<List<Record>> putRecords(List<Record> records) async =>
       database.makeOutRecords(await database.txnPutRecords(this, records));
 
   SembastTransactionStore recordStore(Record record) =>
       (record.store ?? mainStore) as SembastTransactionStore;
 
-  @override
+  /// local helper
   SembastDatabase get database => sembastDatabase;
 
   @override
   Future<T> inTransaction<T>(
-          FutureOr<T> Function(Transaction transaction) action) async =>
+          FutureOr<T> Function(SembastTransaction transaction) action) async =>
       action(this);
 
   @override
   SembastTransaction get sembastTransaction => this;
+
+  @override
+  SembastStore getSembastStore(StoreRef ref) =>
+      database.txnGetStore(this, ref.name).store;
 }
 
-class SembastTransactionStore
-    with StoresembastStore
-    implements StoreTransaction {
-  @override
+class SembastTransactionStore implements StoreTransaction {
   final SembastTransaction sembastTransaction;
   @override
   final SembastStore store;
@@ -213,12 +205,4 @@ class SembastTransactionStore
   String toString() {
     return "${store}";
   }
-
-  @override
-  SembastDatabase get sembastDatabase => sembastTransaction.database;
-
-  @override
-  Future<T> inTransaction<T>(
-          FutureOr<T> Function(Transaction transaction) action) async =>
-      action(sembastTransaction);
 }

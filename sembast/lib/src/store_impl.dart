@@ -5,14 +5,13 @@ import 'package:sembast/src/api/compat/finder.dart';
 import 'package:sembast/src/record_impl.dart';
 import 'package:sembast/src/record_impl.dart' as record_impl;
 import 'package:sembast/src/sort.dart';
-import 'package:sembast/src/store_executor_impl.dart';
 import 'package:sembast/src/transaction_impl.dart';
 import 'package:sembast/src/utils.dart';
 
 import 'common_import.dart';
 import 'database_impl.dart';
 
-class SembastStore with StoresembastStore implements Store {
+class SembastStore implements Store {
   final SembastDatabase database;
   @override
   final StoreRef<dynamic, dynamic> ref;
@@ -648,16 +647,4 @@ class SembastStore with StoresembastStore implements Store {
   bool get cooperateOn => database.cooperateOn;
 
   FutureOr cooperate() => database.cooperate();
-
-  @override
-  SembastDatabase get sembastDatabase => database;
-
-  @override
-  Future<T> inTransaction<T>(
-          FutureOr<T> Function(Transaction transaction) action) =>
-      transaction(action);
-
-  @override
-  SembastTransaction get sembastTransaction =>
-      sembastDatabase.sembastTransaction;
 }

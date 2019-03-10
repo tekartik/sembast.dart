@@ -1,9 +1,8 @@
 import 'package:sembast/sembast.dart';
 import 'package:sembast/src/api/finder.dart';
 import 'package:sembast/src/api/store_ref.dart';
+import 'package:sembast/src/database_client_impl.dart';
 import 'package:sembast/src/store/record_ref_impl.dart';
-import 'package:sembast/src/store_executor_impl.dart';
-import 'package:sembast/src/transaction_impl.dart';
 
 class StoreRefBase<K, V> with StoreRefMixin<K, V> {
   StoreRefBase(String name) {
@@ -36,22 +35,24 @@ mixin StoreRefMixin<K, V> implements StoreRef<K, V> {
 
   /// Add
   @override
-  Future<K> add(DatabaseClient client, V value) async {
-    var sembastStore = getSembastStore(client, this);
-    return await sembastStore.inTransaction((txn) {
-      return sembastStore
+  Future<K> add(DatabaseClient databaseClient, V value) async {
+    final client = getClient(databaseClient);
+    return await client.inTransaction((txn) {
+      return client
           .getSembastStore(this)
           // A null key will generate one
-          .txnPut(txn as SembastTransaction, value, null);
+          .txnPut(client.sembastTransaction, value, null);
     }) as K;
   }
 
   @override
-  Future<RecordSnapshot<K, V>> find(DatabaseClient client,
+  Future<RecordSnapshot<K, V>> find(DatabaseClient databaseClient,
       {Finder finder}) async {
-    final sembastStore = getSembastStore(client, this);
+    final client = getClient(databaseClient);
 
-    var record = await sembastStore.findImmutableRecord(this, finder);
+    var record = await client
+        .getSembastStore(this)
+        .txnFindRecord(client.sembastTransaction, finder);
     if (record == null) {
       return null;
     } else {
@@ -60,17 +61,19 @@ mixin StoreRefMixin<K, V> implements StoreRef<K, V> {
   }
 
   @override
-  Future<int> count(DatabaseClient client, {Filter filter}) {
-    final store = getSembastStore(client, this);
-    // no transaction for read
-    return store.count(filter);
+  Future<int> count(DatabaseClient databaseClient, {Filter filter}) {
+    final client = getClient(databaseClient);
+    // no transaction needed for read
+    return client.getSembastStore(this).count(filter);
   }
 
   // Clear all
   @override
-  Future clear(DatabaseClient client) {
-    final store = getSembastStore(client, this);
-    return store.clear();
+  Future clear(DatabaseClient databaseClient) {
+    final client = getClient(databaseClient);
+    return client.inTransaction((txn) {
+      return client.getSembastStore(this).txnClear(txn);
+    });
   }
 
   ///
@@ -78,11 +81,13 @@ mixin StoreRefMixin<K, V> implements StoreRef<K, V> {
   ///
   @override
   Future<List<RecordSnapshot<K, V>>> getAll(
-      DatabaseClient client, Iterable<K> keys) async {
-    final store = getSembastStore(client, this);
+      DatabaseClient databaseClient, Iterable<K> keys) async {
+    final client = getClient(databaseClient);
     var snapshots = <RecordSnapshot<K, V>>[];
-    var records = await store.getImmutableRecords(this, keys);
-    await store.sembastDatabase.forEachRecords(records, (record) {
+    var records = await client
+        .getSembastStore(this)
+        .txnGetRecords(client.sembastTransaction, keys);
+    await client.sembastDatabase.forEachRecords(records, (record) {
       snapshots.add(RecordSnapshotImpl<K, V>.fromRecord(record));
     });
     return snapshots;
@@ -92,9 +97,11 @@ mixin StoreRefMixin<K, V> implements StoreRef<K, V> {
   /// return the list of deleted keys
   ///
   @override
-  Future deleteAll(DatabaseClient client, Iterable keys) {
-    final sembastStore = getSembastStore(client, this);
-    return sembastStore.deleteAll(keys);
+  Future<List<K>> deleteAll(DatabaseClient databaseClient, Iterable<K> keys) {
+    final client = getClient(databaseClient);
+    return client.inTransaction((txn) async {
+      return (await client.getSembastStore(this).txnClear(txn))?.cast<K>();
+    });
   }
 
   /// Cast if needed
