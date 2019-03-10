@@ -63,18 +63,29 @@ void defineTests(DatabaseTestContext ctx) {
       String value = "hi";
       var record = mainStore.record(1);
       await record.put(db, value);
-      var readValue = await record.getValue(db);
+      var readValue = await record.get(db);
       expect(readValue, "hi");
       // immutable value are not clones
       expect(identical(value, readValue), isTrue);
       expect(await mainStore.count(db), 1);
     });
 
+    test('readOnly', () async {
+      final store = intMapStoreFactory.store();
+      var record = store.record(1);
+      await record.put(db, {'test': 1});
+      var snapshot = await record.getSnapshot(db);
+      try {
+        snapshot.value['test'] = 2;
+        fail('should fail');
+      } on StateError catch (_) {}
+    });
+
     test('put_update', () async {
       var record = mainStore.record(1);
       await record.put(db, "hi");
       await record.put(db, "ho");
-      expect((await record.get(db)).value, "ho");
+      expect((await record.get(db)), "ho");
       expect(await mainStore.count(db), 1);
     });
 
@@ -90,7 +101,7 @@ void defineTests(DatabaseTestContext ctx) {
       Map info = {"info": 12};
       var key = await mainStore.add(db, info);
       var record = mainStore.record(key);
-      var infoRead = (await record.get(db)).value;
+      var infoRead = await record.get(db);
       expect(infoRead, info);
       expect(identical(infoRead, info), isFalse);
     });

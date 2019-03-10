@@ -414,25 +414,13 @@ class SembastStore implements Store {
     return makeOutRecord(await txnGetRecord(null, key));
   }
 
-  bool get readImmutable => database.readImmutable;
-
   /// cooperate safe
-  Record makeOutRecord(ImmutableSembastRecord record) {
-    if (record == null) {
-      return null;
-    }
-    if (readImmutable) {
-      return record;
-    }
-    return record_impl.makeLazyMutableRecord(this, record);
-  }
+  Record makeOutRecord(ImmutableSembastRecord record) =>
+      record_impl.makeLazyMutableRecord(this, record);
 
   /// cooperate safe
   Future<List<Record>> makeOutRecords(
       List<ImmutableSembastRecord> records) async {
-    if (readImmutable) {
-      return records;
-    }
     if (records != null) {
       var clones = <Record>[];
       // make it safe for the loop

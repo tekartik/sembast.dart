@@ -294,18 +294,9 @@ class SembastDatabase extends Object
     });
   }
 
-  /// Default to false for compatibility
-  /// switch to true when the new api is used
-  bool readImmutable = false;
-
   /// cooperate safe
-  Record makeOutRecord(ImmutableSembastRecord record) {
-    if (readImmutable) {
-      return record;
-    } else {
-      return record_impl.makeLazyMutableRecord(_recordStore(record), record);
-    }
-  }
+  Record makeOutRecord(ImmutableSembastRecord record) =>
+      record_impl.makeLazyMutableRecord(_recordStore(record), record);
 
   /// cooperate safe
   Future<List<Record>> makeOutRecords(
@@ -508,9 +499,6 @@ class SembastDatabase extends Object
   /// open a database
   ///
   Future<Database> open(DatabaseOpenOptions options) async {
-    // Clear immutable cache in case re-opening
-    readImmutable = false;
-
     // Default mode
     var mode = options.mode ?? DatabaseMode.defaultMode;
     int version = options.version;

@@ -43,9 +43,15 @@ mixin RecordRefMixin<K, V> implements RecordRef<K, V> {
     });
   }
 
+  /// Get record value
+  @override
+  Future<V> get(DatabaseClient databaseClient) async =>
+      (await getSnapshot(databaseClient))?.value;
+
   /// Get record
   @override
-  Future<RecordSnapshot<K, V>> get(DatabaseClient databaseClient) async {
+  Future<RecordSnapshot<K, V>> getSnapshot(
+      DatabaseClient databaseClient) async {
     var client = getClient(databaseClient);
 
     var record = await client
@@ -56,10 +62,6 @@ mixin RecordRefMixin<K, V> implements RecordRef<K, V> {
     }
     return RecordSnapshotImpl<K, V>.fromRecord(record);
   }
-
-  /// Get value
-  @override
-  Future<V> getValue(Database db) async => (await get(db)).value;
 
   @override
   String toString() => 'Record(${store?.name}, $key)';

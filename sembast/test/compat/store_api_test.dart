@@ -39,14 +39,14 @@ void defineTests(DatabaseTestContext ctx) {
       var record = keyValueStore.record('foo');
       await record.put(db, 'bar');
 
-      var snapshot = await record.get(db);
+      var snapshot = await record.getSnapshot(db);
 
       expect(snapshot.ref.store.name, 'keyValue');
       expect(snapshot.ref.key, 'foo');
       expect(snapshot.value, 'bar');
 
       await record.put(db, 'new', merge: true);
-      snapshot = await record.get(db);
+      snapshot = await record.getSnapshot(db);
       expect(snapshot.value, 'new');
 
       await record.delete(db);
@@ -59,14 +59,14 @@ void defineTests(DatabaseTestContext ctx) {
 
         await record.put(client, {'value': 2});
 
-        var snapshot = await testStore.record(1).get(client);
+        var snapshot = await testStore.record(1).getSnapshot(client);
 
         expect(snapshot.ref.store.name, 'test');
         expect(snapshot.ref.key, 1);
         expect(snapshot.value, <String, dynamic>{'value': 2});
 
         await record.put(client, {'other': 4}, merge: true);
-        snapshot = await record.get(client);
+        snapshot = await record.getSnapshot(client);
         expect(snapshot.value, <String, dynamic>{'value': 2, 'other': 4});
 
         try {
@@ -85,7 +85,7 @@ void defineTests(DatabaseTestContext ctx) {
         var map = Map<String, dynamic>.from(snapshot.value);
         map['value'] = 3;
         await record.put(client, map);
-        snapshot = await record.get(client);
+        snapshot = await record.getSnapshot(client);
         expect(snapshot.value, <String, dynamic>{'value': 3, 'other': 4});
 
         await record.delete(client);

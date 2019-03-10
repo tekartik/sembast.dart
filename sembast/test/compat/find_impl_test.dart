@@ -4,7 +4,6 @@ library sembast.find_test;
 import 'dart:async';
 
 import 'package:sembast/sembast.dart';
-import 'package:sembast/src/database_impl.dart';
 
 import 'test_common.dart';
 
@@ -48,19 +47,6 @@ void defineTests(DatabaseTestContext ctx) {
       });
 
       tearDown(_tearDown);
-
-      test('readOnly', () async {
-        await db.close();
-        db = await ctx.factory.openDatabase(db.path);
-        (db as SembastDatabase).readImmutable = true;
-        var record = await db.findRecord(Finder());
-        try {
-          record['text'] = 'hu';
-          fail('should fail');
-        } on StateError catch (_) {}
-        record = record.clone();
-        record['text'] = 'hu';
-      });
     });
   });
 }
