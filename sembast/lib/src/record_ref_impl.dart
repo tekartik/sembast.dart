@@ -71,6 +71,17 @@ mixin RecordRefMixin<K, V> implements RecordRef<K, V> {
     }
     return store.cast<RK, RV>().record(key as RK);
   }
+
+  @override
+  int get hashCode => identityHashCode(key);
+
+  @override
+  bool operator ==(other) {
+    if (other is RecordRef) {
+      return other.store == store && other.key == key;
+    }
+    return false;
+  }
 }
 
 class RecordRefImpl<K, V> with RecordRefMixin<K, V> {

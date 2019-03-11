@@ -11,6 +11,9 @@ mixin RecordsRefMixin<K, V> implements RecordsRef<K, V> {
   @override
   List<K> keys;
 
+  @override
+  RecordRef<K, V> operator [](int index) => store.record(keys[index]);
+
   /// Delete records
   @override
   Future delete(DatabaseClient databaseClient) {
@@ -30,6 +33,21 @@ mixin RecordsRefMixin<K, V> implements RecordsRef<K, V> {
     return client
         .getSembastStore(store)
         .txnGetRecordSnapshots(client.sembastTransaction, this);
+  }
+
+  @override
+  Future<List<K>> put(DatabaseClient databaseClient, List<V> values,
+      {bool merge}) {
+    if (values.length != keys.length) {
+      throw ArgumentError('the list of values must match the list of keys');
+    }
+    var client = getClient(databaseClient);
+    return client.inTransaction((txn) async {
+      return (await client
+              .getSembastStore(store)
+              .txnPutAll(txn, values, keys, merge: merge))
+          ?.cast<K>();
+    });
   }
 
   @override

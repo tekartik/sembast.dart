@@ -1,9 +1,9 @@
-library sembast.compat.find_test;
+library sembast.find_test;
 
 // basically same as the io runner but with extra output
 import 'dart:async';
 
-import 'package:sembast/sembast.dart';
+import 'package:sembast/src/api/sembast.dart';
 
 import 'test_common.dart';
 
@@ -22,41 +22,32 @@ void defineTests(DatabaseTestContext ctx) {
       }
     }
 
-    Store store;
-    Record record1, record2, record3;
+    var store = StoreRef<int, String>.main();
+    RecordsRef<int, String> records = store.records([1, 2, 3]);
     setUp(() async {
       db = await setupForTest(ctx);
-      store = db.mainStore;
-      record1 = Record(store, "hi", 1);
-      record2 = Record(store, "ho", 2);
-      record3 = Record(store, "ha", 3);
-      return db.putRecords([record1, record2, record3]);
+      return records.put(db, ['hi', 'ho', 'ha']);
     });
 
     tearDown(_tearDown);
 
-    test('equal', () {
-      Finder finder = Finder();
-      finder.filter = Filter.equal(Field.value, "hi");
-      return store.findRecords(finder).then((List<Record> records) {
-        expect(records.length, 1);
-        expect(records[0], record1);
-      }).then((_) {
-        Finder finder = Finder();
-        finder.filter = Filter.equal(Field.value, "ho");
-        return store.findRecords(finder).then((List<Record> records) {
-          expect(records.length, 1);
-          expect(records[0], record2);
-        });
-      }).then((_) {
-        Finder finder = Finder();
-        finder.filter = Filter.equal(Field.value, "hum");
-        return store.findRecords(finder).then((List<Record> records) {
-          expect(records.length, 0);
-        });
-      });
+    test('equal', () async {
+      Finder finder = Finder(filter: Filter.equal(Field.value, "hi"));
+      var snapshots = await store.find(db, finder: finder);
+      expect(snapshots.length, 1);
+      expect(snapshots[0].ref, records[0]);
+
+      finder = Finder(filter: Filter.equal(Field.value, "ho"));
+      snapshots = await store.find(db, finder: finder);
+      expect(snapshots.length, 1);
+      expect(snapshots.first.ref, records[1]);
+
+      finder = Finder(filter: Filter.equal(Field.value, "hum"));
+      snapshots = await store.find(db, finder: finder);
+      expect(snapshots.length, 0);
     });
 
+    /*
     test('in_transaction', () {
       return db.transaction((Transaction txn) {
         var store = txn.mainStore;
@@ -633,5 +624,6 @@ void defineTests(DatabaseTestContext ctx) {
         expect(record['name'], 'Chair');
       }
     });
+    */
   });
 }

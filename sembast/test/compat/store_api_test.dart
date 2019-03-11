@@ -64,7 +64,7 @@ void defineTests(DatabaseTestContext ctx) {
           fail('should fail $client');
         } on StateError catch (_) {}
 
-        snapshot = await testStore.find(client);
+        snapshot = await testStore.findRecord(client);
         expect(snapshot.value, {'value': 2, 'other': 4});
 
         try {

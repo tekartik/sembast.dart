@@ -65,6 +65,12 @@ class SembastStore implements Store {
 
   Future<dynamic> txnPut(SembastTransaction txn, var value, var key,
       {bool merge}) async {
+    await cooperate();
+    return txnPutSync(txn, value, key, merge: merge);
+  }
+
+  Future<dynamic> txnPutSync(SembastTransaction txn, var value, var key,
+      {bool merge}) async {
     Record record;
     if (merge == true) {
       record = txnGetRecordSync(txn, key);
@@ -74,11 +80,20 @@ class SembastStore implements Store {
     }
     record = SembastRecord(this, value, key);
 
-    record = await txnPutRecord(txn, record);
+    record = txnPutRecordSync(txn, record);
     if (database.logV) {
       SembastDatabase.logger.fine("${txn} put ${record}");
     }
     return record.key;
+  }
+
+  Future<List> txnPutAll(SembastTransaction txn, List values, List keys,
+      {bool merge}) async {
+    List resultKeys = [];
+    for (int i = 0; i < values.length; i++) {
+      resultKeys.add(await txnPut(txn, values[i], keys[i], merge: merge));
+    }
+    return resultKeys;
   }
 
   Future<dynamic> txnUpdate(
@@ -262,10 +277,9 @@ class SembastStore implements Store {
 
   Future<List<ImmutableSembastRecord>> txnFindRecords(
       SembastTransaction txn, Finder finder) async {
-    List<ImmutableSembastRecord> results;
+    List<ImmutableSembastRecord> results = [];
 
     var sembastFinder = finder as SembastFinder;
-    results = [];
 
     await forEachRecords(txn, sembastFinder?.filter, (record) {
       results.add(record);

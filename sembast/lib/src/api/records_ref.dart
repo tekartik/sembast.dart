@@ -1,4 +1,5 @@
 import 'package:sembast/src/api/client.dart';
+import 'package:sembast/src/api/record_ref.dart';
 import 'package:sembast/src/api/record_snapshot.dart';
 import 'package:sembast/src/api/store_ref.dart';
 
@@ -12,6 +13,9 @@ abstract class RecordsRef<K, V> {
   /// Record key, null for new record
   List<K> get keys;
 
+  /// Record ref at a given index
+  RecordRef<K, V> operator [](int index);
+
   /// delete them record
   Future delete(DatabaseClient client);
 
@@ -23,4 +27,7 @@ abstract class RecordsRef<K, V> {
 
   /// Get all records snapshot
   Future<List<RecordSnapshot<K, V>>> getSnapshots(DatabaseClient client);
+
+  /// Put multiple record value. The list of values must match the list of key
+  Future<List<K>> put(DatabaseClient client, List<V> values, {bool merge});
 }

@@ -44,7 +44,14 @@ abstract class StoreRef<K, V> {
   ///
   /// Find a single record
   ///
-  Future<RecordSnapshot<K, V>> find(DatabaseClient client, {Finder finder});
+  Future<RecordSnapshot<K, V>> findRecord(DatabaseClient client,
+      {Finder finder});
+
+  ///
+  /// Find multiple records. Return an empty array if none found
+  ///
+  Future<List<RecordSnapshot<K, V>>> find(DatabaseClient client,
+      {Finder finder});
 
   ///
   /// count all records
