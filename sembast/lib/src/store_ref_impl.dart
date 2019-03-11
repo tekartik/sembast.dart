@@ -69,6 +69,7 @@ mixin StoreRefMixin<K, V> implements StoreRef<K, V> {
     });
   }
 
+  /// Find first record
   @override
   Future<RecordSnapshot<K, V>> findFirst(DatabaseClient databaseClient,
       {Finder finder}) async {
@@ -84,6 +85,7 @@ mixin StoreRefMixin<K, V> implements StoreRef<K, V> {
     }
   }
 
+  /// Find records
   @override
   Future<List<RecordSnapshot<K, V>>> find(DatabaseClient databaseClient,
       {Finder finder}) async {
@@ -95,6 +97,28 @@ mixin StoreRefMixin<K, V> implements StoreRef<K, V> {
     return records
         .map((immutable) => SembastRecordSnapshot<K, V>.fromRecord(immutable))
         ?.toList(growable: false);
+  }
+
+  /// Find first key
+  @override
+  Future<K> findKey(DatabaseClient databaseClient, {Finder finder}) async {
+    final client = getClient(databaseClient);
+
+    var key = await client
+        .getSembastStore(this)
+        .txnFindKey(client.sembastTransaction, finder);
+    return key as K;
+  }
+
+  @override
+  Future<List<K>> findKeys(DatabaseClient databaseClient,
+      {Finder finder}) async {
+    final client = getClient(databaseClient);
+
+    var keys = await client
+        .getSembastStore(this)
+        .txnFindKeys(client.sembastTransaction, finder);
+    return keys.cast<K>();
   }
 
   // find as stream

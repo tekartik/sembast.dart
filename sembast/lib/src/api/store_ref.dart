@@ -48,10 +48,26 @@ abstract class StoreRef<K, V> {
       {Finder finder});
 
   ///
-  /// Find multiple records. Return an empty array if none found
+  /// Find multiple records.
+  ///
+  /// Returns an empty array if none found.
   ///
   Future<List<RecordSnapshot<K, V>>> find(DatabaseClient client,
       {Finder finder});
+
+  ///
+  /// Find one key.
+  ///
+  /// Returns null if not found.
+  ///
+  Future<K> findKey(DatabaseClient client, {Finder finder});
+
+  ///
+  /// Find multiple keys.
+  ///
+  /// Return an empty array if none found.
+  ///
+  Future<List<K>> findKeys(DatabaseClient client, {Finder finder});
 
   /// Unsorted record stream
   Stream<RecordSnapshot<K, V>> stream(DatabaseClient client, {Filter filter});

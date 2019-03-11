@@ -46,6 +46,10 @@ void defineTests(DatabaseTestContext ctx) {
         finder = Finder(filter: Filter.equal(Field.value, "ho"));
         snapshots = await store.find(db, finder: finder);
         expect(snapshotsRefs(snapshots), [record2]);
+        // test the keys and findFirst, assume it is ok then...
+        expect((await store.findFirst(db, finder: finder)).ref, record2);
+        expect(await store.findKey(db, finder: finder), record2.key);
+        expect(await store.findKeys(db, finder: finder), [record2.key]);
 
         finder = Finder(filter: Filter.equal(Field.value, "hum"));
         snapshots = await store.find(db, finder: finder);
@@ -67,7 +71,16 @@ void defineTests(DatabaseTestContext ctx) {
           // Present in transaction
           snapshots = await store.find(txn, finder: finder);
           expect(snapshotsRefs(snapshots), [record4]);
+          // test the keys and findFirst, assume it is ok then...
+          expect((await store.findFirst(txn, finder: finder)).ref, record4);
+          expect(await store.findKey(txn, finder: finder), record4.key);
+          expect(await store.findKeys(txn, finder: finder), [record4.key]);
+
           // But not in db
+          expect(await store.find(db, finder: finder), []);
+          expect(await store.findFirst(db, finder: finder), isNull);
+          expect(await store.findKey(db, finder: finder), isNull);
+          expect(await store.findKeys(db, finder: finder), []);
 
           // delete ho
           await store.record(2).delete(txn);
@@ -525,6 +538,7 @@ void defineTests(DatabaseTestContext ctx) {
           var snapshot = await store.findFirst(db, finder: finder);
           // first is the Deco
           expect(snapshot['name'], 'Deco');
+          expect(await store.findKey(db, finder: finder), record4.key);
 
           var snapshots = await store.find(db, finder: finder);
 

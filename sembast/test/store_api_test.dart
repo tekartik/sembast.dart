@@ -109,6 +109,8 @@ void defineTests(DatabaseTestContext ctx) {
 
         snapshot = await testStore.findFirst(client);
         expect(snapshot.value, {'value': 2, 'other': 4});
+        expect(await testStore.findKey(client), snapshot.key);
+        expect(await testStore.findKeys(client), [snapshot.key]);
 
         try {
           snapshot.value['value'] = 3;
