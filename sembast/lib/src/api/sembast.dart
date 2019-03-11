@@ -8,6 +8,7 @@ export 'package:sembast/src/api/factory.dart';
 export 'package:sembast/src/api/filter.dart';
 export 'package:sembast/src/api/finder.dart';
 export 'package:sembast/src/api/record_ref.dart';
+export 'package:sembast/src/api/records_ref.dart';
 export 'package:sembast/src/api/record_snapshot.dart';
 export 'package:sembast/src/api/sort_order.dart';
 export 'package:sembast/src/api/store_ref.dart';

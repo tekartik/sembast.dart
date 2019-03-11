@@ -1,7 +1,6 @@
 import 'package:sembast/src/api/client.dart';
 import 'package:sembast/src/api/record_snapshot.dart';
 import 'package:sembast/src/api/store_ref.dart';
-import 'package:sembast/src/store/record_ref_impl.dart';
 
 ///
 /// An immutable record reference
@@ -12,9 +11,6 @@ abstract class RecordRef<K, V> {
 
   /// Record key, null for new record
   K get key;
-
-  /// Create a snapshot of a record with a given value
-  RecordSnapshot<K, V> snapshot(V value);
 
   /// Save a record, create if needed
   ///
@@ -43,5 +39,5 @@ abstract class RecordRef<K, V> {
   RecordRef<RK, RV> cast<RK, RV>();
 
   /// Create record ref
-  factory RecordRef(StoreRef<K, V> store, K key) => RecordRefImpl(store, key);
+// factory RecordRef(StoreRef<K, V> store, K key) => RecordRefImpl(store, key);
 }

@@ -13,9 +13,6 @@ mixin RecordRefMixin<K, V> implements RecordRef<K, V> {
   K key;
 
   @override
-  RecordSnapshot<K, V> snapshot(V value) => RecordSnapshotImpl(this, value);
-
-  @override
   Future<V> update(DatabaseClient databaseClient, V value) async {
     var client = getClient(databaseClient);
     return await client.inTransaction((txn) {

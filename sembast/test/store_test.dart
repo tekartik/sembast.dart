@@ -20,129 +20,76 @@ void defineTests(DatabaseTestContext ctx) {
       return db.close();
     });
 
+    test('null', () {
+      try {
+        StoreRef(null);
+        fail('should fail');
+      } on ArgumentError catch (_) {}
+    });
     test('clear', () async {
-      var store = StoreRef('test');
+      StoreRef store = StoreRef('test');
       var record = store.record(1);
       await record.put(db, "hi");
       await store.clear(db);
       expect(await record.get(db), isNull);
     });
 
-    test('delete', () {
-      var store = db.findStore("test");
-      expect(store, isNull);
-      store = db.getStore("test");
-      expect(store, isNotNull);
-      store = db.findStore("test");
-      expect(store, isNotNull);
-      return db.deleteStore("test").then((_) {
-        expect(db.findStore("test"), isNull);
-      });
+    test('delete', () async {
+      expect(db.storeNames, ['_main']);
+      await StoreRef("test").delete(db);
+      expect(db.storeNames, ['_main']);
     });
-
-    //TODO FROM HERE
 
     test('delete_main', () async {
-      var mainStoreName = db.mainStore.name;
-      var store = db.findStore(mainStoreName);
-      expect(store, isNotNull);
-      expect(db.stores, [db.mainStore]);
-      await db.deleteStore(mainStoreName);
-      expect(db.stores, [db.mainStore]);
-      expect(db.findStore(mainStoreName), isNotNull);
-    });
-
-    test('delete_main', () {
-      var store = db.getStore(null);
-      return db.deleteStore(null).then((_) {
-        expect(db.findStore(null), store);
-        expect(db.findStore(null), db.mainStore);
-        expect(db.stores, [db.mainStore]);
-        return db.deleteStore(db.mainStore.name).then((_) {
-          expect(db.findStore(null), db.mainStore);
-          expect(db.stores, [db.mainStore]);
-        });
-      });
+      expect(db.storeNames, ['_main']);
+      await StoreRef.main().delete(db);
+      expect(db.storeNames, ['_main']);
     });
 
     test('put/delete_store', () async {
-      var store = db.getStore("test_store");
-      await store.put('test', 1);
-      await db.deleteStore('test_store');
-      store = db.getStore("test_store");
-      expect(await store.get(1), isNull);
+      var store = StoreRef('test');
+      RecordRef record = store.record(1);
+      await record.put(db, 'test');
+      expect(db.storeNames, contains('test'));
+      await store.delete(db);
+      expect(db.storeNames, isNot(contains('test')));
+      expect(await record.get(db), isNull);
     });
 
-    test('put/get', () {
-      var store1 = db.getStore("test1");
-      var store2 = db.getStore("test2");
-      return store1.put("hi", 1).then((key) {
-        expect(key, 1);
-      }).then((_) {
-        return store2.put("ho", 1).then((key) {
-          expect(key, 1);
-        });
-      }).then((_) {
-        return store1.get(1).then((value) {
-          expect(value, "hi");
-        });
-      }).then((_) {
-        return store2.get(1).then((value) {
-          expect(value, "ho");
-        });
-      }).then((_) {
-        return store1.put(true, 2).then((key) {
-          expect(key, 2);
-        });
-      }).then((_) {
-        return store1.get(2).then((value) {
-          expect(value, true);
-        });
-      }).then((_) {
-        return store2.put(false, 2).then((key) {
-          expect(key, 2);
-        });
-      }).then((_) {
-        return store2.get(2).then((value) {
-          expect(value, false);
-        });
-      }).then((_) {
-        return reOpen(db).then((_) {
-          return store1.get(1).then((value) {
-            expect(value, "hi");
-          });
-        }).then((_) {
-          return store2.get(1).then((value) {
-            expect(value, "ho");
-          });
-        });
-      });
+    test('put/get', () async {
+      var store1 = StoreRef<int, dynamic>('test1');
+      var store2 = StoreRef<int, dynamic>("test2");
+      expect(await store1.record(1).put(db, "hi"), 1);
+      expect(await store2.record(1).put(db, "ho"), 1);
+      expect(await store1.record(1).get(db), "hi");
+      expect(await store2.record(1).get(db), "ho");
+      expect(await store1.record(2).put(db, true), 2);
+      db = await reOpen(db);
+      expect(await store1.record(1).get(db), "hi");
+      expect(await store1.record(2).get(db), true);
+      expect(await store2.record(1).get(db), "ho");
     });
 
     test('bool', () async {
-      var store = db.getStore("test");
-      await store.put(true, 1);
-      expect(await store.get(1), isTrue);
-      await store.put(false, 1);
-      expect(await store.get(1), isFalse);
-      await store.put(null, 1);
-      expect(await store.get(1), isNull);
+      var store = StoreRef<int, bool>('bool');
+      var record = store.record(1);
+      await record.put(db, true);
+      expect(await record.get(db), isTrue);
+      await record.put(db, false);
+      expect(await record.get(db), isFalse);
+      await record.put(db, null);
+      expect(await record.get(db), isNull);
+      expect((await record.getSnapshot(db)).value, isNull);
     });
 
-    test('records', () {
-      var store = db.getStore("test");
-      return store.put("hi").then((key) {
-        int count = 0;
-        return store.records
-            .listen((record) {
-              expect(record.value, "hi");
-              count++;
-            })
-            .asFuture()
-            .then((_) {
-              expect(count, 1);
-            });
-      });
+    test('records', () async {
+      var store = StoreRef("test");
+      RecordsRef records = store.records([1, 2]);
+      expect((await records.getSnapshots(db)), [null, null]);
+      expect((await records.get(db)), [null, null]);
+      await store.record(2).put(db, "hi");
+      expect((await records.get(db)), [null, "hi"]);
+      expect((await records.getSnapshots(db)).last.value, 'hi');
     });
   });
 }

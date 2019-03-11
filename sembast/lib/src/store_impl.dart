@@ -4,6 +4,7 @@ import 'package:sembast/sembast.dart';
 import 'package:sembast/src/api/compat/finder.dart';
 import 'package:sembast/src/record_impl.dart';
 import 'package:sembast/src/record_impl.dart' as record_impl;
+import 'package:sembast/src/record_ref_impl.dart';
 import 'package:sembast/src/sort.dart';
 import 'package:sembast/src/transaction_impl.dart';
 import 'package:sembast/src/utils.dart';
@@ -459,10 +460,11 @@ class SembastStore implements Store {
   ///
   @override
   Future<List<Record>> getRecords(Iterable keys) async {
-    return makeOutRecords(await txnGetRecords(null, keys));
+    return makeOutRecords(await txnGetRecordsCompat(null, keys));
   }
 
-  Future<List<ImmutableSembastRecord>> txnGetRecords(
+  /// Return records ignoring non found ones and deleted
+  Future<List<ImmutableSembastRecord>> txnGetRecordsCompat(
       SembastTransaction txn, Iterable keys) async {
     List<ImmutableSembastRecord> records = [];
 
@@ -478,6 +480,25 @@ class SembastStore implements Store {
       }
     }
     return records;
+  }
+
+  /// Return records, not found and delete as null
+  Future<List<RecordSnapshot<K, V>>> txnGetRecordSnapshots<K, V>(
+      SembastTransaction txn, RecordsRef<K, V> refs) async {
+    List<RecordSnapshot<K, V>> snapshots = [];
+
+    for (var key in refs.keys) {
+      var immutable = _getRecord(txn, key);
+      if (immutable != null && (!immutable.deleted)) {
+        snapshots.add(RecordSnapshotImpl<K, V>.fromRecord(immutable));
+      } else {
+        snapshots.add(null);
+      }
+      if (needCooperate) {
+        await cooperate();
+      }
+    }
+    return snapshots;
   }
 
   ///

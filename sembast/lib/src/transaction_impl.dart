@@ -188,8 +188,9 @@ class SembastTransactionStore implements StoreTransaction {
       store, await store.txnGetRecord(sembastTransaction, key));
 
   @override
-  Future<List<Record>> getRecords(Iterable keys) async => await store
-      .makeOutRecords(await store.txnGetRecords(sembastTransaction, keys));
+  Future<List<Record>> getRecords(Iterable keys) async =>
+      await store.makeOutRecords(
+          await store.txnGetRecordsCompat(sembastTransaction, keys));
 
   @override
   Stream<Record> get records => store.txnGetRecordsStream(sembastTransaction);

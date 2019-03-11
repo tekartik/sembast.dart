@@ -13,16 +13,6 @@ void main() {
 }
 
 void defineTests(DatabaseTestContext ctx) {
-  test('factory', () async {
-    var snapshot = storeFactory
-        .store('test')
-        .record(1)
-        .snapshot(<String, dynamic>{'test': 1});
-    expect(snapshot.ref.store.name, 'test');
-    expect(snapshot.ref.key, 1);
-    expect(snapshot.value, <String, dynamic>{'test': 1});
-  });
-
   group('find', () {
     Database db;
 

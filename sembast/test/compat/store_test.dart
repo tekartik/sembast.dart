@@ -9,7 +9,7 @@ void main() {
 }
 
 void defineTests(DatabaseTestContext ctx) {
-  group('store', () {
+  group('compat_store', () {
     Database db;
 
     setUp(() async {
@@ -49,7 +49,7 @@ void defineTests(DatabaseTestContext ctx) {
       expect(db.findStore(mainStoreName), isNotNull);
     });
 
-    test('delete_main', () {
+    test('delete_null', () {
       Store store = db.getStore(null);
       return db.deleteStore(null).then((_) {
         expect(db.findStore(null), store);

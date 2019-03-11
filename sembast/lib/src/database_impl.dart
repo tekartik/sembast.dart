@@ -63,6 +63,10 @@ class SembastDatabase extends Object
   @override
   Iterable<Store> get stores => _stores.values;
 
+  // Current store names
+  @override
+  Iterable<String> get storeNames => _stores.values.map((store) => store.name);
+
   SembastDatabase(this.openHelper, [this._storage]);
 
   ///

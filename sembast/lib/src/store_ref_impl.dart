@@ -1,11 +1,17 @@
 import 'package:sembast/sembast.dart';
 import 'package:sembast/src/api/finder.dart';
+import 'package:sembast/src/api/records_ref.dart';
 import 'package:sembast/src/api/store_ref.dart';
 import 'package:sembast/src/database_client_impl.dart';
-import 'package:sembast/src/store/record_ref_impl.dart';
+import 'package:sembast/src/record_ref_impl.dart';
+import 'package:sembast/src/records_ref_impl.dart';
 
 class StoreRefBase<K, V> with StoreRefMixin<K, V> {
   StoreRefBase(String name) {
+    if (name == null) {
+      throw ArgumentError(
+          'Store reference name can not be null. Use StoreRef.main() to get the main store');
+    }
     this.name = name;
   }
 }
@@ -15,8 +21,13 @@ mixin StoreRefMixin<K, V> implements StoreRef<K, V> {
   String name;
 
   @override
-  RecordRef<K, V> record([K key]) {
+  RecordRef<K, V> record(K key) {
     return RecordRefImpl<K, V>(this, key);
+  }
+
+  @override
+  RecordsRef<K, V> records(Iterable<K> keys) {
+    return RecordsRefImpl<K, V>(this, keys);
   }
 
   @override
@@ -31,6 +42,15 @@ mixin StoreRefMixin<K, V> implements StoreRef<K, V> {
       return other.name == name;
     }
     return false;
+  }
+
+  /// Delete the store
+  @override
+  Future delete(DatabaseClient databaseClient) {
+    final client = getClient(databaseClient);
+    return client.inTransaction((txn) {
+      return client.sembastDatabase.txnDeleteStore(txn, name);
+    });
   }
 
   /// Add
@@ -76,34 +96,6 @@ mixin StoreRefMixin<K, V> implements StoreRef<K, V> {
     });
   }
 
-  ///
-  /// Get all records from a list of keys
-  ///
-  @override
-  Future<List<RecordSnapshot<K, V>>> getAll(
-      DatabaseClient databaseClient, Iterable<K> keys) async {
-    final client = getClient(databaseClient);
-    var snapshots = <RecordSnapshot<K, V>>[];
-    var records = await client
-        .getSembastStore(this)
-        .txnGetRecords(client.sembastTransaction, keys);
-    await client.sembastDatabase.forEachRecords(records, (record) {
-      snapshots.add(RecordSnapshotImpl<K, V>.fromRecord(record));
-    });
-    return snapshots;
-  }
-
-  ///
-  /// return the list of deleted keys
-  ///
-  @override
-  Future<List<K>> deleteAll(DatabaseClient databaseClient, Iterable<K> keys) {
-    final client = getClient(databaseClient);
-    return client.inTransaction((txn) async {
-      return (await client.getSembastStore(this).txnClear(txn))?.cast<K>();
-    });
-  }
-
   /// Cast if needed
   @override
   StoreRef<RK, RV> cast<RK, RV>() {
@@ -117,7 +109,11 @@ mixin StoreRefMixin<K, V> implements StoreRef<K, V> {
 mixin StoreFactoryMixin<K, V> implements StoreFactory<K, V> {
   @override
   StoreRef<K, V> store([String name]) {
-    return StoreRefBase(name);
+    if (name == null) {
+      return StoreRef<K, V>.main();
+    } else {
+      return StoreRef<K, V>(name);
+    }
   }
 }
 

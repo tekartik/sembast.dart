@@ -9,7 +9,7 @@ void main() {
 }
 
 void defineTests(DatabaseTestContext ctx) {
-  group('crud', () {
+  group('compat_crud', () {
     Database db;
 
     setUp(() async {
