@@ -16,4 +16,7 @@ abstract class RecordSnapshot<K, V> {
   /// Will crash if attempting to access fields different than [Field.key] and
   /// [Field.value] if the value is not a map
   dynamic operator [](String field);
+
+  /// Cast if needed
+  RecordSnapshot<RK, RV> cast<RK, RV>();
 }

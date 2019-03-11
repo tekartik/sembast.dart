@@ -2,6 +2,7 @@ import 'package:sembast/sembast.dart';
 import 'package:sembast/src/api/compat/record.dart';
 import 'package:sembast/src/api/compat/store.dart';
 import 'package:sembast/src/api/record_ref.dart';
+import 'package:sembast/src/api/record_snapshot.dart';
 import 'package:sembast/src/record_snapshot_impl.dart';
 import 'package:sembast/src/sembast_impl.dart';
 import 'package:sembast/src/utils.dart';
@@ -152,6 +153,9 @@ class LazyMutableSembastRecord with SembastRecordHelperMixin implements Record {
 
   @override
   RecordRef get ref => record.ref;
+
+  @override
+  RecordSnapshot<RK, RV> cast<RK, RV>() => record.cast<RK, RV>();
 }
 
 /// Immutable record, used in storage
@@ -225,6 +229,9 @@ class TxnRecord with SembastRecordHelperMixin implements Record {
 
   @override
   RecordRef get ref => record.ref;
+
+  @override
+  RecordSnapshot<RK, RV> cast<RK, RV>() => record.cast<RK, RV>();
 }
 
 mixin MutableSembastRecordMixin implements Record {

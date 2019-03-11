@@ -57,10 +57,15 @@ mixin RecordRefMixin<K, V> implements RecordRef<K, V> {
     var record = await client
         .getSembastStore(store)
         .txnGetRecord(client.sembastTransaction, this.key);
-    if (record == null) {
-      return null;
-    }
-    return SembastRecordSnapshot<K, V>.fromRecord(record);
+    return record?.cast<K, V>();
+  }
+
+  @override
+  Future<bool> exists(DatabaseClient databaseClient) {
+    var client = getClient(databaseClient);
+    return client
+        .getSembastStore(store)
+        .txnRecordExists(client.sembastTransaction, this.key);
   }
 
   @override

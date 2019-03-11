@@ -1,4 +1,4 @@
-library sembast.transaction_test;
+library sembast.compat.transaction_test;
 
 // basically same as the io runner but with extra output
 import 'dart:async';
@@ -12,7 +12,7 @@ void main() {
 }
 
 void defineTests(DatabaseTestContext ctx) {
-  group('transaction', () {
+  group('compat_transaction', () {
     Database db;
 
     setUp(() async {

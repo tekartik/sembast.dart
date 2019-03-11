@@ -146,6 +146,24 @@ class SembastStore implements Store {
     return ctlr.stream;
   }
 
+  ///
+  /// stream all the records TODO
+  ///
+  Stream<RecordSnapshot<K, V>> txnGetStream<K, V>(
+      SembastTransaction transaction, Filter filter) {
+    var ctlr = StreamController<RecordSnapshot<K, V>>();
+
+    forEachRecords(transaction, filter, (record) {
+      if (ctlr.isClosed) {
+        return false;
+      }
+      ctlr.add(record.cast<K, V>());
+    }).whenComplete(() {
+      ctlr.close();
+    });
+    return ctlr.stream;
+  }
+
   /// Get the list of current records that can be safely iterate even
   /// in an async way.
   List<ImmutableSembastRecord> get currentRecords =>
@@ -163,8 +181,9 @@ class SembastStore implements Store {
       ? null
       : List<TxnRecord>.from(txnRecords.values, growable: false);
 
+  /// Cancel if false is returned
   Future forEachRecords(SembastTransaction txn, Filter filter,
-      void action(ImmutableSembastRecord record)) async {
+      bool action(ImmutableSembastRecord record)) async {
     // handle record in transaction first
     if (_hasTransactionRecords(txn)) {
       // Copy for cooperate
@@ -175,7 +194,9 @@ class SembastStore implements Store {
         }
 
         if (Filter.matchRecord(filter, record)) {
-          action(record);
+          if (action(record) == false) {
+            return;
+          }
         }
       }
     }
@@ -194,7 +215,9 @@ class SembastStore implements Store {
         }
       }
       if (Filter.matchRecord(filter, record)) {
-        action(record);
+        if (action(record) == false) {
+          return;
+        }
       }
     }
   }
@@ -468,8 +491,17 @@ class SembastStore implements Store {
     return record;
   }
 
+  Future<bool> txnRecordExists(SembastTransaction txn, key) async {
+    var record = _getRecord(txn, key);
+    // Cooperate after!
+    if (needCooperate) {
+      await cooperate();
+    }
+    return (record?.deleted == false);
+  }
+
   ImmutableSembastRecord txnGetRecordSync(SembastTransaction txn, key) {
-    ImmutableSembastRecord record = _getRecord(txn, key);
+    var record = _getRecord(txn, key);
     if (record == null || record.deleted) {
       return null;
     }

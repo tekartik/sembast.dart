@@ -53,8 +53,11 @@ abstract class StoreRef<K, V> {
   Future<List<RecordSnapshot<K, V>>> find(DatabaseClient client,
       {Finder finder});
 
+  /// Unsorted record stream
+  Stream<RecordSnapshot<K, V>> stream(DatabaseClient client, {Filter filter});
+
   ///
-  /// count all records
+  /// count records
   ///
   Future<int> count(DatabaseClient client, {Filter filter});
 

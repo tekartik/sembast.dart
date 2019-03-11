@@ -94,6 +94,17 @@ mixin StoreRefMixin<K, V> implements StoreRef<K, V> {
         ?.toList(growable: false);
   }
 
+  // find as stream
+  @override
+  Stream<RecordSnapshot<K, V>> stream(DatabaseClient databaseClient,
+      {Filter filter}) {
+    final client = getClient(databaseClient);
+
+    return client
+        .getSembastStore(this)
+        .txnGetStream(client.sembastTransaction, filter);
+  }
+
   @override
   Future<int> count(DatabaseClient databaseClient, {Filter filter}) {
     final client = getClient(databaseClient);

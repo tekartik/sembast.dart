@@ -17,12 +17,13 @@ import 'compat/key_test.dart' as key_test;
 import 'compat/record_test.dart' as record_test;
 import 'compat/src_file_system_test.dart' as src_file_system_test;
 import 'compat/store_test.dart' as compat_store_test;
-import 'compat/transaction_test.dart' as transaction_test;
+import 'compat/transaction_test.dart' as compat_transaction_test;
 import 'compat/value_test.dart' as value_test;
 import 'crud_test.dart' as crud_test;
 import 'find_test.dart' as find_test;
 import 'store_test.dart' as store_test;
 import 'test_common.dart';
+import 'transaction_test.dart' as transaction_test;
 
 // default use memory
 void main() {
@@ -42,6 +43,7 @@ void defineTests(DatabaseTestContext ctx) {
   crud_test.defineTests(ctx);
   store_test.defineTests(ctx);
   find_test.defineTests(ctx);
+  transaction_test.defineTests(ctx);
 
   database_perf_test.defineTests(ctx, 10);
   database_test.defineTests(ctx);
@@ -51,7 +53,7 @@ void defineTests(DatabaseTestContext ctx) {
   value_test.defineTests(ctx);
   compat_store_test.defineTests(ctx);
   compat_find_test.defineTests(ctx);
-  transaction_test.defineTests(ctx);
+  compat_transaction_test.defineTests(ctx);
   deprecated_test.defineTests(ctx);
   exception_test.defineTests(ctx);
   database_import_export_test.defineTests(ctx);

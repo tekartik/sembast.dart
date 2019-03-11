@@ -30,6 +30,14 @@ mixin RecordSnapshotMixin<K, V> implements RecordSnapshot<K, V> {
       return getMapFieldValue(value as Map, field);
     }
   }
+
+  @override
+  RecordSnapshot<RK, RV> cast<RK, RV>() {
+    if (this is RecordSnapshot<RK, RV>) {
+      return this as RecordSnapshot<RK, RV>;
+    }
+    return ref.cast<RK, RV>().snapshot(value as RV);
+  }
 }
 
 class SembastRecordSnapshot<K, V> with RecordSnapshotMixin<K, V> {

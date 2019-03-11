@@ -41,6 +41,6 @@ abstract class RecordRef<K, V> {
   /// Cast if needed
   RecordRef<RK, RV> cast<RK, RV>();
 
-  /// Create record ref
-// factory RecordRef(StoreRef<K, V> store, K key) => RecordRefImpl(store, key);
+  /// Return true if the record exists
+  Future<bool> exists(DatabaseClient client);
 }
