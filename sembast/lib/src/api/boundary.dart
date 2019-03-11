@@ -1,5 +1,4 @@
 import 'package:sembast/sembast.dart';
-import 'package:sembast/src/api/compat/record.dart';
 import 'package:sembast/src/boundary_impl.dart';
 
 ///
@@ -16,7 +15,10 @@ abstract class Boundary {
   /// if [include] is true, the record at the boundary will be included
   /// Number of values should match the number or sort orders
   ///
-  factory Boundary({Record record, bool include, List<dynamic> values}) {
+  /// [snapshot] superseeds record
+  ///
+  factory Boundary(
+      {RecordSnapshot record, bool include, List<dynamic> values}) {
     return SembastBoundary(record: record, include: include, values: values);
   }
 }

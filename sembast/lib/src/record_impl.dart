@@ -2,6 +2,7 @@ import 'package:sembast/sembast.dart';
 import 'package:sembast/src/api/compat/record.dart';
 import 'package:sembast/src/api/compat/store.dart';
 import 'package:sembast/src/api/record_ref.dart';
+import 'package:sembast/src/record_snapshot_impl.dart';
 import 'package:sembast/src/sembast_impl.dart';
 import 'package:sembast/src/utils.dart';
 
@@ -85,38 +86,14 @@ mixin SembastRecordHelperMixin implements Record {
   }
 }
 mixin SembastRecordMixin implements Record {
-  @override
-  RecordRef<dynamic, dynamic> ref;
-
-  @override
-  dynamic get key => ref.key;
-
-  var _value;
   bool _deleted;
-
-  @override
-  dynamic get value => _value;
 
   @override
   bool get deleted => _deleted == true;
 
   set deleted(bool deleted) => _deleted = deleted;
 
-  ///
-  /// get the value of the specified [field]
-  ///
-  @override
-  dynamic operator [](String field) {
-    if (field == Field.value) {
-      return _value;
-    } else if (field == Field.key) {
-      return key;
-    } else {
-      return getMapFieldValue(_value as Map, field);
-    }
-  }
-
-  set value(value) => _value = sanitizeValue(value);
+  set value(value) => value = sanitizeValue(value);
 }
 
 /// Record that can modified although not cloned right away
@@ -145,7 +122,7 @@ class LazyMutableSembastRecord with SembastRecordHelperMixin implements Record {
     if (record is ImmutableSembastRecord) {
       var immutable = record as ImmutableSembastRecord;
       // Clone it as compatibility SembastRecord
-      record = SembastRecord(store, cloneValue(immutable._value), record.key);
+      record = SembastRecord(store, cloneValue(immutable.value), record.key);
     }
     return record;
   }
@@ -178,7 +155,8 @@ class LazyMutableSembastRecord with SembastRecordHelperMixin implements Record {
 }
 
 /// Immutable record, used in storage
-class ImmutableSembastRecord with SembastRecordMixin, SembastRecordHelperMixin {
+class ImmutableSembastRecord
+    with SembastRecordMixin, SembastRecordHelperMixin, RecordSnapshotMixin {
   @override
   void operator []=(String field, value) {
     throw StateError('Record is immutable. Clone to modify it');
@@ -190,7 +168,7 @@ class ImmutableSembastRecord with SembastRecordMixin, SembastRecordHelperMixin {
   }
 
   @override
-  dynamic get value => immutableValue(_value);
+  dynamic get value => immutableValue(super.value);
 
   ImmutableSembastRecord.fromDatabaseRowMap(Database db, Map map) {
     String storeName = map[dbStoreNameKey] as String;
@@ -198,7 +176,7 @@ class ImmutableSembastRecord with SembastRecordMixin, SembastRecordHelperMixin {
         ? mainStoreRef
         : StoreRef<dynamic, dynamic>(storeName);
     this.ref = storeRef.record(map[dbRecordKey]);
-    _value = sanitizeValue(map[dbRecordValueKey]);
+    super.value = sanitizeValue(map[dbRecordValueKey]);
     _deleted = map[dbRecordDeletedKey] == true;
   }
 
@@ -210,7 +188,7 @@ class ImmutableSembastRecord with SembastRecordMixin, SembastRecordHelperMixin {
   ImmutableSembastRecord(RecordRef<dynamic, dynamic> ref, dynamic value,
       {bool deleted}) {
     this.ref = ref;
-    this._value = value;
+    super.value = value;
     this._deleted = deleted;
   }
 
@@ -263,19 +241,23 @@ mixin MutableSembastRecordMixin implements Record {
     } else if (field == Field.key) {
       ref = ref.store.record(value);
     } else {
-      if (!(value is Map)) {
+      if (!(this.value is Map)) {
         this.value = {};
       }
       setMapFieldValue(this.value as Map, field, value);
     }
   }
+
+  @override
+  void operator []=(String field, value) => setField(field, value);
 }
 
 class MutableSembastRecord
     with
         SembastRecordMixin,
         SembastRecordHelperMixin,
-        MutableSembastRecordMixin {
+        MutableSembastRecordMixin,
+        RecordSnapshotMixin {
   ///
   /// Create a record at a given [ref] with a given [value] and
   /// We know data has been sanitized before
@@ -283,11 +265,8 @@ class MutableSembastRecord
   ///
   MutableSembastRecord(RecordRef<dynamic, dynamic> ref, dynamic value) {
     this.ref = ref;
-    this._value = value;
+    this.value = value;
   }
-
-  @override
-  void operator []=(String field, value) => setField(field, value);
 
   @override
   Store get store =>
@@ -298,24 +277,9 @@ class SembastRecord
     with
         SembastRecordMixin,
         SembastRecordHelperMixin,
-        SembastRecordWithStoreMixin {
-  ///
-  /// set the [value] of the specified [field]
-  ///
-  @override
-  void operator []=(String field, var value) {
-    if (field == Field.value) {
-      _value = value;
-    } else if (field == Field.key) {
-      ref = ref.store.record(value);
-    } else {
-      if (!(_value is Map)) {
-        _value = {};
-      }
-      setMapFieldValue(_value as Map, field, value);
-    }
-  }
-
+        SembastRecordWithStoreMixin,
+        MutableSembastRecordMixin,
+        RecordSnapshotMixin {
   ///
   /// check whether the map specified looks like a record
   ///
@@ -347,6 +311,18 @@ ImmutableSembastRecord makeImmutableRecord(Record record) {
   }
   return ImmutableSembastRecord(record.ref, cloneValue(record.value),
       deleted: record.deleted);
+}
+
+RecordSnapshot makeImmutableRecordSnapshot(RecordSnapshot record) {
+  if (record is ImmutableSembastRecord) {
+    return record;
+  } else if (record is SembastRecordSnapshot) {
+    return record;
+  } else if (record == null) {
+    // This can happen when settings boundary
+    return null;
+  }
+  return SembastRecordSnapshot(record.ref, cloneValue(record.value));
 }
 
 LazyMutableSembastRecord makeLazyMutableRecord(

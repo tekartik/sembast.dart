@@ -12,7 +12,7 @@ void main() {
 }
 
 void defineTests(DatabaseTestContext ctx) {
-  group('find', () {
+  group('compat_find', () {
     Database db;
 
     Future _tearDown() async {

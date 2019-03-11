@@ -4,10 +4,11 @@ import 'package:sembast/src/api/records_ref.dart';
 import 'package:sembast/src/api/store_ref.dart';
 import 'package:sembast/src/database_client_impl.dart';
 import 'package:sembast/src/record_ref_impl.dart';
+import 'package:sembast/src/record_snapshot_impl.dart';
 import 'package:sembast/src/records_ref_impl.dart';
 
-class StoreRefBase<K, V> with StoreRefMixin<K, V> {
-  StoreRefBase(String name) {
+class SembastStoreRef<K, V> with StoreRefMixin<K, V> {
+  SembastStoreRef(String name) {
     if (name == null) {
       throw ArgumentError(
           'Store reference name can not be null. Use StoreRef.main() to get the main store');
@@ -22,12 +23,12 @@ mixin StoreRefMixin<K, V> implements StoreRef<K, V> {
 
   @override
   RecordRef<K, V> record(K key) {
-    return RecordRefImpl<K, V>(this, key);
+    return SembastRecordRef<K, V>(this, key);
   }
 
   @override
   RecordsRef<K, V> records(Iterable<K> keys) {
-    return RecordsRefImpl<K, V>(this, keys);
+    return SembastRecordsRef<K, V>(this, keys);
   }
 
   @override
@@ -66,7 +67,7 @@ mixin StoreRefMixin<K, V> implements StoreRef<K, V> {
   }
 
   @override
-  Future<RecordSnapshot<K, V>> findRecord(DatabaseClient databaseClient,
+  Future<RecordSnapshot<K, V>> findFirst(DatabaseClient databaseClient,
       {Finder finder}) async {
     final client = getClient(databaseClient);
 
@@ -76,7 +77,7 @@ mixin StoreRefMixin<K, V> implements StoreRef<K, V> {
     if (record == null) {
       return null;
     } else {
-      return RecordSnapshotImpl<K, V>.fromRecord(record);
+      return SembastRecordSnapshot<K, V>.fromRecord(record);
     }
   }
 
@@ -89,7 +90,7 @@ mixin StoreRefMixin<K, V> implements StoreRef<K, V> {
         .getSembastStore(this)
         .txnFindRecords(client.sembastTransaction, finder);
     return records
-        .map((immutable) => RecordSnapshotImpl<K, V>.fromRecord(immutable))
+        .map((immutable) => SembastRecordSnapshot<K, V>.fromRecord(immutable))
         ?.toList(growable: false);
   }
 
@@ -97,7 +98,9 @@ mixin StoreRefMixin<K, V> implements StoreRef<K, V> {
   Future<int> count(DatabaseClient databaseClient, {Filter filter}) {
     final client = getClient(databaseClient);
     // no transaction needed for read
-    return client.getSembastStore(this).count(filter);
+    return client
+        .getSembastStore(this)
+        .txnCount(client.sembastTransaction, filter);
   }
 
   // Clear all

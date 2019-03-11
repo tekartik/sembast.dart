@@ -12,6 +12,9 @@ abstract class RecordRef<K, V> {
   /// Record key, null for new record
   K get key;
 
+  /// Create a snapshot of a record with a given value
+  RecordSnapshot<K, V> snapshot(V value);
+
   /// Save a record, create if needed
   ///
   /// if [merge] is true and the field exists, data is merged

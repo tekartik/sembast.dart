@@ -26,14 +26,19 @@ class SembastSortOrder implements SortOrder {
     return ascending ? result : -result;
   }
 
+  int compareToSnapshotAscending(Record record, RecordSnapshot snapshot) {
+    var value1 = record[field];
+    var value2 = snapshot[field];
+    return compareValueAscending(value1, value2);
+  }
+
   int compareToBoundaryAscending(Record record, Boundary boundary, int index) {
     final sembastBoundary = boundary as SembastBoundary;
     if (sembastBoundary.values != null) {
       var value = sembastBoundary.values[index];
       return compareValueAscending(record[field], value);
-    }
-    if (sembastBoundary.record != null) {
-      return compare(record, sembastBoundary.record);
+    } else if (sembastBoundary.snapshot != null) {
+      return compareToSnapshotAscending(record, sembastBoundary.snapshot);
     }
     throw ArgumentError('either record or values must be provided');
   }

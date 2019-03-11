@@ -4,7 +4,7 @@ import 'package:sembast/sembast.dart';
 import 'package:sembast/src/api/compat/finder.dart';
 import 'package:sembast/src/record_impl.dart';
 import 'package:sembast/src/record_impl.dart' as record_impl;
-import 'package:sembast/src/record_ref_impl.dart';
+import 'package:sembast/src/record_snapshot_impl.dart';
 import 'package:sembast/src/sort.dart';
 import 'package:sembast/src/transaction_impl.dart';
 import 'package:sembast/src/utils.dart';
@@ -320,6 +320,13 @@ class SembastStore implements Store {
       if (sembastFinder.limit != null) {
         results = results.sublist(0, min(sembastFinder.limit, results.length));
       }
+    } else {
+      if (cooperateOn) {
+        var sort = Sort(database.cooperator);
+        await sort.sort(results, compareRecordKey);
+      } else {
+        results.sort(compareRecordKey);
+      }
     }
     return results;
   }
@@ -504,7 +511,7 @@ class SembastStore implements Store {
     for (var key in refs.keys) {
       var immutable = _getRecord(txn, key);
       if (immutable != null && (!immutable.deleted)) {
-        snapshots.add(RecordSnapshotImpl<K, V>.fromRecord(immutable));
+        snapshots.add(SembastRecordSnapshot<K, V>.fromRecord(immutable));
       } else {
         snapshots.add(null);
       }

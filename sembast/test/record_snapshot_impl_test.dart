@@ -1,5 +1,5 @@
 import 'package:sembast/sembast.dart';
-import 'package:sembast/src/record_ref_impl.dart';
+import 'package:sembast/src/record_snapshot_impl.dart';
 
 import 'test_common.dart';
 
@@ -16,7 +16,7 @@ void main() {
 void defineTests(DatabaseTestContext ctx) {
   test('factory', () async {
     var record = storeFactory.store('test').record(1);
-    var snapshot = RecordSnapshotImpl(record, <String, dynamic>{'test': 1});
+    var snapshot = SembastRecordSnapshot(record, <String, dynamic>{'test': 1});
     expect(snapshot.ref.store.name, 'test');
     expect(snapshot.ref.key, 1);
     expect(snapshot.value, <String, dynamic>{'test': 1});

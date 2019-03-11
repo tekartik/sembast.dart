@@ -27,7 +27,7 @@ void defineTests(DatabaseTestContext ctx) {
       } on ArgumentError catch (_) {}
     });
     test('clear', () async {
-      StoreRef store = StoreRef('test');
+      final store = StoreRef('test');
       var record = store.record(1);
       await record.put(db, "hi");
       await store.clear(db);
@@ -48,7 +48,7 @@ void defineTests(DatabaseTestContext ctx) {
 
     test('put/delete_store', () async {
       var store = StoreRef('test');
-      RecordRef record = store.record(1);
+      var record = store.record(1);
       await record.put(db, 'test');
       expect(db.storeNames, contains('test'));
       await store.delete(db);

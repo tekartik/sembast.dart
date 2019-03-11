@@ -4,13 +4,16 @@ import 'package:sembast/src/api/record_snapshot.dart';
 import 'package:sembast/src/api/sembast.dart';
 import 'package:sembast/src/api/store_ref.dart';
 import 'package:sembast/src/database_client_impl.dart';
-import 'package:sembast/src/record_impl.dart';
+import 'package:sembast/src/record_snapshot_impl.dart';
 
 mixin RecordRefMixin<K, V> implements RecordRef<K, V> {
   @override
   StoreRef<K, V> store;
   @override
   K key;
+
+  @override
+  RecordSnapshot<K, V> snapshot(V value) => SembastRecordSnapshot(this, value);
 
   @override
   Future<V> update(DatabaseClient databaseClient, V value) async {
@@ -57,7 +60,7 @@ mixin RecordRefMixin<K, V> implements RecordRef<K, V> {
     if (record == null) {
       return null;
     }
-    return RecordSnapshotImpl<K, V>.fromRecord(record);
+    return SembastRecordSnapshot<K, V>.fromRecord(record);
   }
 
   @override
@@ -84,32 +87,9 @@ mixin RecordRefMixin<K, V> implements RecordRef<K, V> {
   }
 }
 
-class RecordRefImpl<K, V> with RecordRefMixin<K, V> {
-  RecordRefImpl(StoreRef<K, V> store, K key) {
+class SembastRecordRef<K, V> with RecordRefMixin<K, V> {
+  SembastRecordRef(StoreRef<K, V> store, K key) {
     this.store = store;
     this.key = key;
-  }
-}
-
-mixin RecordSnapshotMixin<K, V> implements RecordSnapshot<K, V> {
-  @override
-  RecordRef<K, V> ref;
-
-  @override
-  V value;
-
-  @override
-  String toString() => '$ref $value';
-}
-
-class RecordSnapshotImpl<K, V> with RecordSnapshotMixin<K, V> {
-  RecordSnapshotImpl.fromRecord(ImmutableSembastRecord record) {
-    this.ref = record.ref?.cast<K, V>();
-    this.value = record.value as V;
-  }
-
-  RecordSnapshotImpl(RecordRef<K, V> ref, V value) {
-    this.ref = ref;
-    this.value = value;
   }
 }

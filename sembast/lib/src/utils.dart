@@ -2,6 +2,7 @@ import 'dart:collection';
 import 'dart:math';
 
 import 'package:sembast/sembast.dart';
+import 'package:sembast/src/record_impl.dart';
 
 dynamic sanitizeValue(value) {
   if (value == null) {
@@ -58,6 +59,10 @@ bool checkValue(value) {
 
 // default sort order
 int compareKey(dynamic key1, dynamic key2) => compareValue(key1, key2);
+
+int compareRecordKey(
+        ImmutableSembastRecord record1, ImmutableSembastRecord record2) =>
+    compareKey(record1.key, record2.key);
 
 // return <0 if value1 < value2 or >0 if greater
 // returns null if cannot be compared
@@ -138,7 +143,7 @@ dynamic cloneValue(dynamic value) {
   if (value == null) {
     return value;
   }
-  throw DatabaseException.badParam(
+  throw ArgumentError(
       "value ${value} not supported${value != null ? ' type:${value.runtimeType}' : ''}");
 }
 

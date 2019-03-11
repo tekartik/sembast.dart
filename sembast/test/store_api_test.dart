@@ -1,4 +1,5 @@
 import 'package:sembast/sembast.dart';
+import 'package:sembast/src/api/sembast.dart';
 
 import 'test_common.dart';
 
@@ -25,6 +26,33 @@ void defineTests(DatabaseTestContext ctx) {
       db = await setupForTest(ctx);
     });
 
+    test('public', () {
+      // What we want public
+      // ignore: unnecessary_statements
+      StoreRef;
+      // ignore: unnecessary_statements
+      RecordRef;
+      // ignore: unnecessary_statements
+      Database;
+      // ignore: unnecessary_statements
+      Transaction;
+      // ignore: unnecessary_statements
+      RecordSnapshot;
+      // ignore: unnecessary_statements
+      RecordsRef;
+      // ignore: unnecessary_statements
+      intMapStoreFactory;
+      // ignore: unnecessary_statements
+      stringMapStoreFactory;
+      // ignore: unnecessary_statements
+      SortOrder;
+      // ignore: unnecessary_statements
+      Finder;
+      // ignore: unnecessary_statements
+      Filter;
+      // ignore: unnecessary_statements
+      Boundary;
+    });
     test('put/get/find string', () async {
       var record = keyValueStore.record('foo');
       await record.put(db, 'bar');

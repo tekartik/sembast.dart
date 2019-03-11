@@ -25,10 +25,10 @@ abstract class StoreRef<K, V> {
   /// A null name means a the main store
   ///
   /// A name must not start with _
-  factory StoreRef(String name) => StoreRefBase(name);
+  factory StoreRef(String name) => SembastStoreRef(name);
 
   /// A pointer to the main store
-  factory StoreRef.main() => StoreRefBase(dbMainStore);
+  factory StoreRef.main() => SembastStoreRef(dbMainStore);
 
   /// Delete the store and its content
   Future delete(DatabaseClient client);
@@ -44,7 +44,7 @@ abstract class StoreRef<K, V> {
   ///
   /// Find a single record
   ///
-  Future<RecordSnapshot<K, V>> findRecord(DatabaseClient client,
+  Future<RecordSnapshot<K, V>> findFirst(DatabaseClient client,
       {Finder finder});
 
   ///

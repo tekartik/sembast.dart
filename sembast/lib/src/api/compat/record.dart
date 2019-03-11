@@ -1,5 +1,4 @@
 import 'package:sembast/sembast.dart';
-import 'package:sembast/sembast_store.dart' as store;
 import 'package:sembast/src/api/compat/store.dart';
 import 'package:sembast/src/api/record_ref.dart';
 import 'package:sembast/src/record_impl.dart';
@@ -7,7 +6,7 @@ import 'package:sembast/src/record_impl.dart';
 ///
 /// Records
 ///
-abstract class Record extends store.StoreRecord<dynamic, dynamic> {
+abstract class Record extends RecordSnapshot<dynamic, dynamic> {
   /// true if the record has been deleted
   bool get deleted;
 
@@ -26,4 +25,9 @@ abstract class Record extends store.StoreRecord<dynamic, dynamic> {
   /// allow cloning a record to start modifying it
   ///
   Record clone({RecordRef<dynamic, dynamic> ref, dynamic value});
+
+  ///
+  /// set the [value] of the specified [field]
+  ///
+  void operator []=(String field, dynamic value);
 }
