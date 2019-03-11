@@ -1,14 +1,13 @@
 import 'dart:async';
 
 import 'package:sembast/sembast.dart';
+import 'package:sembast/src/database_client_impl.dart';
 import 'package:sembast/src/database_impl.dart';
 import 'package:sembast/src/record_impl.dart';
 import 'package:sembast/src/store_impl.dart';
 import 'package:sembast/src/utils.dart';
 
-abstract class DatabaseExecutorMixin
-    implements DatabaseExecutor, StoreExecutor {
-  SembastDatabase get database;
+mixin DatabaseExecutorMixin implements DatabaseExecutor, StoreExecutor {
   StoreExecutor get mainStore;
 
   @override
@@ -58,20 +57,11 @@ abstract class DatabaseExecutorMixin
   Stream<Record> get records => mainStore.records;
 }
 
-abstract class TransactionExecutorMixin implements TransactionExecutor {
-  SembastDatabase get database;
-  SembastTransaction get transaction;
-
-  @override
-  Future<Record> putRecord(Record record) async =>
-      cloneRecord(await database.txnPutRecord(transaction, record));
-}
-
 class SembastTransaction extends Object
-    with DatabaseExecutorMixin, TransactionExecutorMixin
-    implements Transaction {
+    with DatabaseExecutorMixin
+    implements Transaction, SembastDatabaseClient {
   @override
-  final SembastDatabase database;
+  final SembastDatabase sembastDatabase;
 
   int get id => _id;
 
@@ -81,7 +71,7 @@ class SembastTransaction extends Object
   // action is not a priority
   Completer completer = Completer();
 
-  SembastTransaction(this.database, this._id);
+  SembastTransaction(this.sembastDatabase, this._id);
 
   bool get isCompleted => completer.isCompleted;
 
@@ -94,9 +84,6 @@ class SembastTransaction extends Object
 
   @override
   StoreExecutor get mainStore => toExecutor(database.mainStore);
-
-  @override
-  SembastTransaction get transaction => this;
 
   SembastTransactionStore toExecutor(Store store) => store != null
       ? SembastTransactionStore(this, store as SembastStore)
@@ -126,73 +113,94 @@ class SembastTransaction extends Object
       (record.store as SembastStore).txnDelete(this, record.key);
 
   @override
+  Future<Record> putRecord(Record record) async =>
+      database.makeOutRecord(await database.txnPutRecord(this, record));
+
+  @override
   Future<List<Record>> putRecords(List<Record> records) async =>
-      database.cloneRecords(await database.txnPutRecords(this, records));
+      database.makeOutRecords(await database.txnPutRecords(this, records));
 
   SembastTransactionStore recordStore(Record record) =>
       (record.store ?? mainStore) as SembastTransactionStore;
+
+  /// local helper
+  SembastDatabase get database => sembastDatabase;
+
+  @override
+  Future<T> inTransaction<T>(
+          FutureOr<T> Function(SembastTransaction transaction) action) async =>
+      action(this);
+
+  @override
+  SembastTransaction get sembastTransaction => this;
+
+  @override
+  SembastStore getSembastStore(StoreRef ref) =>
+      database.txnGetStore(this, ref.name).store;
 }
 
 class SembastTransactionStore implements StoreTransaction {
-  final SembastTransaction transaction;
+  final SembastTransaction sembastTransaction;
   @override
   final SembastStore store;
 
-  SembastTransactionStore(this.transaction, this.store);
+  SembastTransactionStore(this.sembastTransaction, this.store);
 
   @override
-  Future<bool> containsKey(key) async => store.txnContainsKey(transaction, key);
+  Future<bool> containsKey(key) async =>
+      store.txnContainsKey(sembastTransaction, key);
 
   @override
-  Future<int> count([Filter filter]) => store.txnCount(transaction, filter);
+  Future<int> count([Filter filter]) =>
+      store.txnCount(sembastTransaction, filter);
 
   @override
-  Future delete(key) async => store.txnDelete(transaction, key);
+  Future delete(key) async => store.txnDelete(sembastTransaction, key);
 
   @override
-  Future<Record> findRecord(Finder finder) async =>
-      cloneRecord(await store.txnFindRecord(transaction, finder));
+  Future<Record> findRecord(Finder finder) async => store
+      .makeOutRecord(await store.txnFindRecord(sembastTransaction, finder));
 
   @override
-  Future<List<Record>> findRecords(Finder finder) async =>
-      await transaction.database
-          .cloneRecords(await store.txnFindRecords(transaction, finder));
+  Future<List<Record>> findRecords(Finder finder) async => store
+      .makeOutRecords(await store.txnFindRecords(sembastTransaction, finder));
 
   @override
-  Future get(key) async => cloneValue(await store.txnGet(transaction, key));
+  Future get(key) async =>
+      cloneValue(await store.txnGet(sembastTransaction, key));
 
   @override
-  Future put(value, [key]) => store.txnPut(transaction, value, key);
+  Future put(value, [key]) => store.txnPut(sembastTransaction, value, key);
 
   @override
   Future update(value, key) async =>
-      cloneValue(await store.txnUpdate(transaction, value, key));
+      cloneValue(await store.txnUpdate(sembastTransaction, value, key));
 
   @override
-  Future clear() async => store.txnClear(transaction);
+  Future clear() async => store.txnClear(sembastTransaction);
 
   @override
   Future deleteAll(Iterable keys) async =>
-      store.txnDeleteAll(transaction, keys);
+      store.txnDeleteAll(sembastTransaction, keys);
 
   @override
-  Future<Record> getRecord(key) async =>
-      cloneRecord(await store.txnGetRecord(transaction, key));
+  Future<Record> getRecord(key) async => makeLazyMutableRecord(
+      store, await store.txnGetRecord(sembastTransaction, key));
 
   @override
   Future<List<Record>> getRecords(Iterable keys) async =>
-      await transaction.database
-          .cloneRecords(await store.txnGetRecords(transaction, keys));
+      await store.makeOutRecords(
+          await store.txnGetRecordsCompat(sembastTransaction, keys));
 
   @override
-  Stream<Record> get records => store.txnGetRecordsStream(transaction);
+  Stream<Record> get records => store.txnGetRecordsStream(sembastTransaction);
 
   @override
-  Future findKey(Finder finder) => store.txnFindKey(transaction, finder);
+  Future findKey(Finder finder) => store.txnFindKey(sembastTransaction, finder);
 
   @override
   Future<List> findKeys(Finder finder) =>
-      store.txnFindKeys(transaction, finder);
+      store.txnFindKeys(sembastTransaction, finder);
 
   @override
   String toString() {

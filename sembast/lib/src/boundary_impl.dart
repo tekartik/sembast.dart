@@ -1,24 +1,25 @@
 import 'package:sembast/sembast.dart';
+import 'package:sembast/src/api/boundary.dart';
 import 'package:sembast/src/record_impl.dart';
 
 class SembastBoundary implements Boundary {
-  Record record;
+  final RecordSnapshot snapshot;
   List<dynamic> values;
 
   ///
   /// default is [ascending] = true
   ///
   /// user withParam
-  SembastBoundary({Record record, bool include, this.values})
+  SembastBoundary({RecordSnapshot record, bool include, this.values})
       : include = include == true,
-        record = (record as SembastRecord)?.clone();
+        snapshot = makeImmutableRecordSnapshot(record);
 
   Map<String, dynamic> get _toDebugMap {
     Map<String, dynamic> debugMap = <String, dynamic>{};
-    if (record != null) {
-      debugMap['record'] = record.toString();
-    } else {
+    if (values != null) {
       debugMap['values'] = values.toString();
+    } else if (snapshot != null) {
+      debugMap['snapshot'] = snapshot.toString();
     }
     debugMap['include'] = include;
     return debugMap;

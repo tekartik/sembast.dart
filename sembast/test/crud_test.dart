@@ -1,7 +1,8 @@
 library sembast.crud_test;
 
 // basically same as the io runner but with extra output
-import 'package:sembast/sembast.dart';
+import 'package:sembast/src/api/sembast.dart';
+
 import 'test_common.dart';
 
 void main() {
@@ -12,6 +13,8 @@ void defineTests(DatabaseTestContext ctx) {
   group('crud', () {
     Database db;
 
+    final mainStore = StoreRef.main();
+
     setUp(() async {
       db = await setupForTest(ctx);
     });
@@ -20,24 +23,25 @@ void defineTests(DatabaseTestContext ctx) {
       return db.close();
     });
 
-    test('put', () {
-      return db.put("hi", 1).then((key) {
-        expect(key, 1);
-      });
+    test('put', () async {
+      final store = StoreRef<int, String>.main();
+      expect(await store.record(1).put(db, "hi"), 1);
     });
 
     test('update', () async {
-      // update none
-      expect(await db.update('hi', 1), isNull);
+      final store = StoreRef<int, String>.main();
+      expect(await store.record(1).update(db, 'hi'), isNull);
       await db.put('hi', 1);
       expect(await db.update('ho', 1), 'ho');
     });
 
     test('update_map', () async {
-      // update none
-      var key = await db.put({"test": 1});
-      expect(await db.update({'new': 2}, key), {'test': 1, 'new': 2});
-      expect(await db.update({'new': FieldValue.delete, 'a.b.c': 3}, key), {
+      final store = intMapStoreFactory.store();
+      var key = await store.add(db, {"test": 1});
+      expect(key, 1);
+      var record = store.record(key);
+      expect(await record.update(db, {'new': 2}), {'test': 1, 'new': 2});
+      expect(await record.update(db, {'new': FieldValue.delete, 'a.b.c': 3}), {
         'test': 1,
         'a': {
           'b': {'c': 3}
@@ -45,67 +49,61 @@ void defineTests(DatabaseTestContext ctx) {
       });
     });
     test('put_nokey', () async {
-      var key = await db.put("hi");
+      var key = await mainStore.add(db, "hi");
       expect(key, 1);
-      var key2 = await db.put("hi");
+      var key2 = await mainStore.add(db, "hi");
       expect(key2, 2);
     });
 
-    test('get none', () {
-      return db.get(1).then((value) {
-        expect(value, isNull);
-      });
+    test('get none', () async {
+      expect(await mainStore.record(1).get(db), isNull);
     });
 
-    test('put_get', () {
+    test('put_get', () async {
       String value = "hi";
-      return db.put(value, 1).then((_) {
-        return db.get(1).then((readValue) {
-          expect(readValue, "hi");
-          // immutable value are not clones
-          expect(identical(value, readValue), isTrue);
-          return db.count().then((int count) {
-            expect(count, 1);
-          });
-        });
-      });
+      var record = mainStore.record(1);
+      await record.put(db, value);
+      var readValue = await record.get(db);
+      expect(readValue, "hi");
+      // immutable value are not clones
+      expect(identical(value, readValue), isTrue);
+      expect(await mainStore.count(db), 1);
     });
 
-    test('put_update', () {
-      return db.put("hi", 1).then((_) {
-        return db.put("ho", 1).then((_) {
-          return db.get(1).then((value) {
-            expect(value, "ho");
-            return db.count().then((int count) {
-              expect(count, 1);
-            });
-          });
-        });
-      });
+    test('readOnly', () async {
+      final store = intMapStoreFactory.store();
+      var record = store.record(1);
+      await record.put(db, {'test': 1});
+      var snapshot = await record.getSnapshot(db);
+      try {
+        snapshot.value['test'] = 2;
+        fail('should fail');
+      } on StateError catch (_) {}
     });
 
-    test('put_delete', () {
-      return db.put("hi", 1).then((_) {
-        return db.delete(1).then((key) {
-          expect(key, 1);
-          return db.get(1).then((value) {
-            expect(value, isNull);
-            return db.count().then((int count) {
-              expect(count, 0);
-            });
-          });
-        });
-      });
+    test('put_update', () async {
+      var record = mainStore.record(1);
+      await record.put(db, "hi");
+      await record.put(db, "ho");
+      expect((await record.get(db)), "ho");
+      expect(await mainStore.count(db), 1);
     });
 
-    test('auto_increment put_get_map', () {
+    test('put_delete', () async {
+      var record = mainStore.record(1);
+      await record.put(db, "hi");
+      expect(await record.delete(db), 1);
+      expect(await record.get(db), isNull);
+      expect(await mainStore.count(db), 0);
+    });
+
+    test('auto_increment put_get_map', () async {
       Map info = {"info": 12};
-      return db.put(info).then((key) {
-        return db.get(key).then((infoRead) {
-          expect(infoRead, info);
-          expect(identical(infoRead, info), isFalse);
-        });
-      });
+      var key = await mainStore.add(db, info);
+      var record = mainStore.record(key);
+      var infoRead = await record.get(db);
+      expect(infoRead, info);
+      expect(identical(infoRead, info), isFalse);
     });
   });
 }

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:sembast/sembast.dart';
+import 'package:sembast/src/api/factory.dart';
 import 'package:sembast/src/database_impl.dart';
 import 'package:synchronized/synchronized.dart';
 
@@ -51,6 +52,9 @@ class DatabaseOpenHelper {
         // Affect before open to properly clean
         this.database = database;
       }
+      // Force helper again in case it was removed by lockedClose
+      database.openHelper = this;
+
       await database.open(options);
 
       // Force helper again in case it was removed by lockedClose

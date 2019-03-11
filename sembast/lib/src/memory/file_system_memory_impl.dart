@@ -3,7 +3,6 @@ library sembast.memory_file_system_impl;
 import 'dart:async';
 
 import 'package:path/path.dart';
-
 import 'package:sembast/src/file_system.dart' as fs;
 
 OSErrorMemory get _noSuchPathError =>

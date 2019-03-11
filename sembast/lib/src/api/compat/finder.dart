@@ -1,4 +1,9 @@
 import 'package:sembast/sembast.dart';
+import 'package:sembast/src/api/boundary.dart';
+import 'package:sembast/src/api/compat/record.dart';
+import 'package:sembast/src/api/filter.dart';
+import 'package:sembast/src/api/finder.dart';
+import 'package:sembast/src/api/sort_order.dart';
 import 'package:sembast/src/boundary_impl.dart';
 import 'package:sembast/src/sort_order_impl.dart';
 import 'package:sembast/src/utils.dart';
@@ -18,6 +23,7 @@ class SembastFinder implements Finder {
       this.offset,
       this.start,
       this.end});
+
   Boundary start;
   Boundary end;
   List<SortOrder> sortOrders = [];
@@ -75,9 +81,9 @@ class SembastFinder implements Finder {
     if (result == 0) {
       // Sort by key
       final sembastBoundary = boundary as SembastBoundary;
-      if (sembastBoundary.record?.key != null) {
+      if (sembastBoundary.snapshot?.key != null) {
         // Compare key
-        return compareKey(record.key, sembastBoundary.record.key);
+        return compareKey(record.key, sembastBoundary.snapshot.key);
       }
     }
 
@@ -103,8 +109,10 @@ class SembastFinder implements Finder {
   Finder clone({int limit}) {
     return Finder(
         filter: filter,
-        sortOrders: sortOrders, //
-        limit: limit == null ? this.limit : limit, //
+        sortOrders: sortOrders,
+        //
+        limit: limit == null ? this.limit : limit,
+        //
         offset: offset,
         start: start,
         end: end);

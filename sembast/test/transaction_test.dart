@@ -3,8 +3,7 @@ library sembast.transaction_test;
 // basically same as the io runner but with extra output
 import 'dart:async';
 
-import 'package:sembast/sembast.dart';
-import 'package:sembast/src/database.dart';
+import 'package:sembast/src/api/sembast.dart';
 
 import 'test_common.dart';
 
@@ -25,82 +24,92 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     test('put/get', () async {
-      var putFuture = db.put("hi", 1);
+      var store = StoreRef<int, String>.main();
+      var record = store.record(1);
+      var putFuture = record.put(db, "hi");
       // It is still null, put has not complete yet!
-      expect(await db.get(1), isNull);
+      expect(await record.get(db), isNull);
       await putFuture;
-      expect(await db.get(1), "hi");
+      expect(await record.get(db), "hi");
     });
 
     test('put/clear/get in transaction', () async {
+      var store = StoreRef<int, String>.main();
+      var record = store.record(1);
+
       await db.transaction((txn) async {
-        await txn.put("hi", 1);
-        await txn.mainStore.clear();
-        expect(await txn.get(1), isNull);
+        await record.put(txn, "hi");
+        await store.delete(txn);
+        expect(await record.get(db), isNull);
       });
     });
 
     test('put in transaction', () async {
+      var store = StoreRef<int, String>.main();
+      var record = store.record(1);
+
       List<Future> futures = [];
       futures.add(db.transaction((txn) async {
-        await txn.put("hi", 1);
-        expect(await txn.get(1), "hi");
+        await record.put(txn, 'hi');
+        expect(await record.get(txn), "hi");
       }));
 
       // here we are in a transaction so it will wait for the other to finish
       futures.add(db.transaction((txn) async {
-        expect(await txn.get(1), "hi");
+        expect(await record.get(txn), "hi");
       }));
 
       // here the value should not be loaded yet
-      expect(await db.get(1), isNull);
+      expect(await record.get(db), isNull);
       return Future.wait(futures);
     });
 
     test('transaction and read', () async {
+      var store = StoreRef<int, String>.main();
+      var record = store.record(1);
+
       List<Future> futures = [];
       var completer1 = Completer();
       var completer2 = Completer();
       futures.add(db.transaction((txn) async {
-        expect(await txn.containsKey(1), isFalse);
+        expect(await record.exists(txn), isFalse);
 
-        await txn.put("hi", 1);
+        await record.put(txn, 'hi');
         completer1.complete();
 
-        expect(await txn.get(1), "hi");
+        expect(await record.get(txn), "hi");
 
-        var records = await txn.findRecords(null);
+        var records = await store.find(txn);
         expect(records.length, 1);
 
-        records = await txn.records.toList();
+        records = await store.stream(txn).toList();
         expect(records.length, 1);
 
-        var count = await txn.count(null);
+        var count = await store.count(txn);
         expect(count, 1);
 
-        expect(await txn.containsKey(1), isTrue);
+        expect(await record.exists(txn), isTrue);
 
         await completer2.future;
       }));
 
       await completer1.future;
 
-      expect(await db.get(1), isNull);
-      expect(await db.mainStore.getRecord(1), isNull);
-      var records = await db.findRecords(null);
+      expect(await record.get(db), isNull);
+      var records = await store.find(db);
       expect(records.length, 0);
 
-      records = await db.records.toList();
+      records = await store.stream(db).toList();
       expect(records.length, 0);
 
-      var count = await db.count(null);
+      var count = await store.count(db);
       expect(count, 0);
 
-      expect(await db.containsKey(1), isFalse);
+      expect(await record.exists(db), isFalse);
 
       // here we are in a transaction so it will wait for the other to finish
       futures.add(db.transaction((txn) async {
-        expect(await txn.get(1), "hi");
+        expect(await record.get(txn), "hi");
       }));
 
       completer2.complete();
@@ -108,26 +117,23 @@ void defineTests(DatabaseTestContext ctx) {
       return Future.wait(futures);
     });
 
-    test('put and throw', () {
-      return db.transaction((Transaction txn) {
-        return txn.put("hi", 1).then((_) {
-          // still here
-          return txn.get(1).then((value) {
-            expect(value, "hi");
-          }).then((_) {
-            throw "some failure";
-          });
-        });
+    test('put and throw', () async {
+      var store = StoreRef<int, String>.main();
+      var record = store.record(1);
+
+      await db.transaction((Transaction txn) async {
+        await record.put(txn, "hi");
+        expect(await record.get(txn), "hi");
+
+        throw "some failure";
       }).catchError((err) {
         expect(err, "some failure");
-      }).then((_) {
-        // put something else to make sure the txn has been cleaned
-        return db.put("ho", 2).then((_) {
-          return db.get(1).then((value) {
-            expect(value, null);
-          });
-        });
       });
+      expect(await record.get(db), isNull);
+
+      // put something else to make sure the txn has been cleaned
+      await store.record(2).put(db, 'ho');
+      expect(await record.get(db), isNull);
     });
 
     test('put no await', () async {
@@ -136,7 +142,7 @@ void defineTests(DatabaseTestContext ctx) {
         transaction = txn;
       });
       try {
-        await transaction.put('test');
+        await StoreRef.main().add(transaction, 'test');
         fail('first put should fail');
       } on StateError catch (_) {}
     });

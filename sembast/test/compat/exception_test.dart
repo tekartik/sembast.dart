@@ -21,7 +21,7 @@ void defineTests(DatabaseTestContext ctx) {
       try {
         await db.put(DateTime.now());
         fail("should fail");
-      } on DatabaseException catch (_) {}
+      } on ArgumentError catch (_) {}
     });
   });
 }

@@ -1,90 +1,55 @@
 import 'package:sembast/sembast.dart';
-import 'package:sembast/src/database.dart';
-import 'package:sembast/src/database_impl.dart';
-import 'package:sembast/src/record.dart';
+import 'package:sembast/src/api/compat/record.dart';
+import 'package:sembast/src/api/compat/store.dart';
+import 'package:sembast/src/api/record_ref.dart';
+import 'package:sembast/src/api/record_snapshot.dart';
+import 'package:sembast/src/record_ref_impl.dart';
+import 'package:sembast/src/record_snapshot_impl.dart';
 import 'package:sembast/src/sembast_impl.dart';
 import 'package:sembast/src/utils.dart';
 
-class SembastRecord implements Record {
+mixin SembastRecordWithStoreMixin implements Record {
+  // Kept for compatibility
   @override
-  dynamic key;
-
-  @override
-  dynamic get value => _value;
-
-  @override
-  bool get deleted => _deleted == true;
-
-  set deleted(bool deleted) => _deleted = deleted;
-
-  @override
-  Store get store => _store;
-
-  set store(Store store) => _store = store;
-
-  Store _store;
-  var _value;
-  bool _deleted;
-
+  Store store;
+}
+mixin SembastRecordHelperMixin implements Record {
   ///
-  /// get the value of the specified [field]
+  /// allow cloning a record to start modifying it
   ///
   @override
-  dynamic operator [](String field) {
-    if (field == Field.value) {
-      return _value;
-    } else if (field == Field.key) {
-      return key;
-    } else {
-      return getMapFieldValue(_value as Map, field);
-    }
+  Record clone({RecordRef<dynamic, dynamic> ref, dynamic value}) =>
+      MutableSembastRecord(ref ?? this.ref, value ?? this.value);
+
+  ///
+  /// allow cloning a record to start modifying it
+  ///
+  ImmutableSembastRecord sembastClone(
+      {Store store,
+      dynamic key,
+      RecordRef<dynamic, dynamic> ref,
+      dynamic value,
+      bool deleted}) {
+    return ImmutableSembastRecord(ref ?? this.ref, value ?? this.value,
+        deleted: deleted);
   }
 
-  set value(value) => _value = sanitizeValue(value);
-
-  ///
-  /// set the [value] of the specified [field]
-  ///
-  @override
-  void operator []=(String field, var value) {
-    if (field == Field.value) {
-      _value = value;
-    } else if (field == Field.key) {
-      key = value;
-    } else {
-      if (!(_value is Map)) {
-        _value = {};
+  /*
+    if (ref == null) {
+      if (!(this is ImmutableSembastRecord)) {
+        store ??= this.store;
       }
-      setMapFieldValue(_value as Map, field, value);
+      return SembastRecord.copy(
+          store: store,
+          key: key ?? this.key,
+          value: value ?? this.value,
+          deleted: deleted ?? this.deleted,
+          ref: ref ?? this.ref);
+    } else {
+      // Forget store here
+      return SembastRecord(null, cloneValue(value ?? this.value));
     }
-  }
-
-  SembastRecord.fromMap(Database db, Map map)
-      : _store =
-            (db as SembastDatabase).getStore(map[dbStoreNameKey] as String),
-        key = map[dbRecordKey],
-        _value = sanitizeValue(map[dbRecordValueKey]),
-        _deleted = map[dbRecordDeletedKey] == true;
-
-  ///
-  /// allow overriding store to clean for main store
-  ///
-  Record clone({Store store}) {
-    return SembastRecord.copy(
-        store == null ? _store : store, key, _value, _deleted);
-  }
-
-  ///
-  /// check whether the map specified looks like a record
-  ///
-  static bool isMapRecord(Map map) {
-    var key = map[dbRecordKey];
-    return (key != null);
-  }
-
-  SembastRecord.copy(this._store, var key, var _value, [this._deleted])
-      : key = cloneKey(key),
-        _value = cloneValue(_value);
+    */
 
   Map<String, dynamic> _toBaseMap() {
     var map = <String, dynamic>{};
@@ -93,14 +58,14 @@ class SembastRecord implements Record {
     if (deleted == true) {
       map[dbRecordDeletedKey] = true;
     }
-    if (store != null && store.name != dbMainStore) {
-      map[dbStoreNameKey] = store.name;
+    if (ref.store != null && ref.store != mainStoreRef) {
+      map[dbStoreNameKey] = ref.store.name;
     }
     return map;
   }
 
   // The actual map written to disk
-  Map<String, dynamic> toMap() {
+  Map<String, dynamic> toDatabaseRowMap() {
     var map = _toBaseMap();
     map[dbRecordValueKey] = value;
     return map;
@@ -108,16 +73,8 @@ class SembastRecord implements Record {
 
   @override
   String toString() {
-    return toMap().toString();
+    return toDatabaseRowMap().toString();
   }
-
-  ///
-  /// Create a record in a given [store] with a given [value] and
-  /// an optional [key]
-  ///
-  SembastRecord(Store store, dynamic value, [this.key])
-      : this._store = store,
-        this._value = value;
 
   @override
   int get hashCode => key == null ? 0 : key.hashCode;
@@ -130,18 +87,258 @@ class SembastRecord implements Record {
     return false;
   }
 }
+mixin SembastRecordMixin implements Record {
+  bool _deleted;
 
-SembastRecord cloneRecord(Record record) {
-  if (record != null) {
-    return (record as SembastRecord).clone() as SembastRecord;
-  }
-  return null;
+  @override
+  bool get deleted => _deleted == true;
+
+  set deleted(bool deleted) => _deleted = deleted;
+
+  set value(value) => value = sanitizeValue(value);
 }
 
-@deprecated
-List<Record> cloneRecordsSync(List<Record> records) {
-  if (records != null) {
-    return records.map((record) => cloneRecord(record)).toList();
+/// Record that can modified although not cloned right away
+class LazyMutableSembastRecord with SembastRecordHelperMixin implements Record {
+  // For compatibility
+  // Will be remove in 2.0
+  @override
+  Store store;
+
+  // Can change overtime if modified
+  Record record;
+
+  LazyMutableSembastRecord(this.store, this.record) {
+    assert(record != null);
+    assert(!(record is LazyMutableSembastRecord));
   }
-  return null;
+
+  @override
+  void operator []=(String field, value) {
+    // Mutate if needed
+    mutableRecord[field] = value;
+  }
+
+  /// Mutate only once
+  Record get mutableRecord {
+    if (record is ImmutableSembastRecord) {
+      var immutable = record as ImmutableSembastRecord;
+      // Clone it as compatibility SembastRecord
+      record = SembastRecord(store, cloneValue(immutable.value), record.key);
+    }
+    return record;
+  }
+
+  @override
+  dynamic operator [](String field) {
+    var value = record[field];
+
+    if (record is ImmutableSembastRecord) {
+      // Need mutation?
+      if (isValueMutable(value)) {
+        return mutableRecord[field];
+      }
+    }
+    return value;
+  }
+
+  @override
+  bool get deleted => record.deleted;
+
+  @override
+  dynamic get key => record.key;
+
+  /// We allow the target to modify the map so clone it
+  @override
+  dynamic get value => mutableRecord.value;
+
+  @override
+  RecordRef get ref => record.ref;
+
+  @override
+  RecordSnapshot<RK, RV> cast<RK, RV>() => record.cast<RK, RV>();
+}
+
+/// Immutable record, used in storage
+class ImmutableSembastRecord
+    with SembastRecordMixin, SembastRecordHelperMixin, RecordSnapshotMixin {
+  @override
+  void operator []=(String field, value) {
+    throw StateError('Record is immutable. Clone to modify it');
+  }
+
+  @override
+  set value(value) {
+    throw StateError('Record is immutable. Clone to modify it');
+  }
+
+  @override
+  dynamic get value => immutableValue(super.value);
+
+  ImmutableSembastRecord.fromDatabaseRowMap(Database db, Map map) {
+    String storeName = map[dbStoreNameKey] as String;
+    StoreRef<dynamic, dynamic> storeRef = storeName == null
+        ? mainStoreRef
+        : StoreRef<dynamic, dynamic>(storeName);
+    this.ref = storeRef.record(map[dbRecordKey]);
+    super.value = sanitizeValue(map[dbRecordValueKey]);
+    _deleted = map[dbRecordDeletedKey] == true;
+  }
+
+  ///
+  /// Create a record at a given [ref] with a given [value] and
+  /// We know data has been sanitized before
+  /// an optional [key]
+  ///
+  ImmutableSembastRecord(RecordRef<dynamic, dynamic> ref, dynamic value,
+      {bool deleted}) {
+    this.ref = ref;
+    super.value = value;
+    this._deleted = deleted;
+  }
+
+  @override
+  @deprecated
+  Store get store => throw UnsupportedError(
+      'Deprecated for immutable record. use ref.store instead');
+}
+
+class TxnRecord with SembastRecordHelperMixin implements Record {
+  // Can change overtime if modified
+  ImmutableSembastRecord record;
+
+  TxnRecord(this.store, this.record);
+
+  @override
+  void operator []=(String field, value) =>
+      throw UnsupportedError('Not supported for txn records');
+
+  @override
+  dynamic operator [](String field) => record[field];
+
+  @override
+  bool get deleted => record.deleted;
+
+  @override
+  dynamic get key => record.key;
+
+  @override
+  Store store;
+
+  @override
+  dynamic get value => record.value;
+
+  @override
+  RecordRef get ref => record.ref;
+
+  @override
+  RecordSnapshot<RK, RV> cast<RK, RV>() => record.cast<RK, RV>();
+}
+
+mixin MutableSembastRecordMixin implements Record {
+  set value(dynamic value);
+
+  set ref(RecordRef<dynamic, dynamic> ref);
+
+  ///
+  /// set the [value] of the specified [field]
+  ///
+  void setField(String field, dynamic value) {
+    if (field == Field.value) {
+      this.value = value;
+    } else if (field == Field.key) {
+      ref = ref.store.record(value);
+    } else {
+      if (!(this.value is Map)) {
+        this.value = {};
+      }
+      setMapFieldValue(this.value as Map, field, value);
+    }
+  }
+
+  @override
+  void operator []=(String field, value) => setField(field, value);
+}
+
+class MutableSembastRecord
+    with
+        SembastRecordMixin,
+        SembastRecordHelperMixin,
+        MutableSembastRecordMixin,
+        RecordSnapshotMixin {
+  ///
+  /// Create a record at a given [ref] with a given [value] and
+  /// We know data has been sanitized before
+  /// an optional [key]
+  ///
+  MutableSembastRecord(RecordRef<dynamic, dynamic> ref, dynamic value) {
+    this.ref = ref;
+    this.value = value;
+  }
+
+  @override
+  Store get store =>
+      throw UnsupportedError('Deprecated. use ref.store instead');
+}
+
+class SembastRecord
+    with
+        SembastRecordMixin,
+        SembastRecordHelperMixin,
+        SembastRecordWithStoreMixin,
+        MutableSembastRecordMixin,
+        RecordSnapshotMixin {
+  ///
+  /// check whether the map specified looks like a record
+  ///
+  static bool isMapRecord(Map map) {
+    var key = map[dbRecordKey];
+    return (key != null);
+  }
+
+  ///
+  /// Create a record in a given [store] with a given [value] and
+  /// We know data has been sanitized before
+  /// an optional [key]
+  ///
+  SembastRecord(Store store, dynamic value, [dynamic key]) {
+    /// Store kept for compatibility
+    this.store = store;
+    this.value = value;
+    // The key could be null in the compat layer so we don't use
+    // store.record that will throw an exception
+    this.ref = SembastRecordRef(store?.ref ?? mainStoreRef, key);
+  }
+}
+
+/// Convert to immultable if needed
+ImmutableSembastRecord makeImmutableRecord(Record record) {
+  if (record is ImmutableSembastRecord) {
+    return record;
+  } else if (record == null) {
+    // This can happen when settings boundary
+    return null;
+  }
+  return ImmutableSembastRecord(record.ref, cloneValue(record.value),
+      deleted: record.deleted);
+}
+
+RecordSnapshot makeImmutableRecordSnapshot(RecordSnapshot record) {
+  if (record is ImmutableSembastRecord) {
+    return record;
+  } else if (record is SembastRecordSnapshot) {
+    return record;
+  } else if (record == null) {
+    // This can happen when settings boundary
+    return null;
+  }
+  return SembastRecordSnapshot(record.ref, cloneValue(record.value));
+}
+
+LazyMutableSembastRecord makeLazyMutableRecord(
+    Store store, ImmutableSembastRecord record) {
+  if (record == null) {
+    return null;
+  }
+  return LazyMutableSembastRecord(store, record);
 }

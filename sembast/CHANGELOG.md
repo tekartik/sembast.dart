@@ -1,3 +1,7 @@
+## 1.15.0
+
+* Add new API to allow strict typing on keys and values
+
 ## 1.14.0
 
 * Make the database work in `cooperate` mode to avoid stuttering with big databases on Flutter

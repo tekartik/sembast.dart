@@ -66,6 +66,7 @@ class DatabaseStorageMemory extends DatabaseStorage {
   final DatabaseFactoryMemory factory;
   @override
   final String path;
+
   DatabaseStorageMemory(this.factory, this.path);
 
   @override

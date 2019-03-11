@@ -5,10 +5,11 @@ import 'package:logging/logging.dart';
 import 'package:sembast/sembast.dart';
 import 'package:sembast/src/common_import.dart';
 import 'package:sembast/src/cooperator.dart';
-import 'package:sembast/src/database.dart';
+import 'package:sembast/src/database_client_impl.dart';
 import 'package:sembast/src/database_factory_mixin.dart';
 import 'package:sembast/src/meta.dart';
 import 'package:sembast/src/record_impl.dart';
+import 'package:sembast/src/record_impl.dart' as record_impl;
 import 'package:sembast/src/sembast_codec_impl.dart';
 import 'package:sembast/src/sembast_impl.dart';
 import 'package:sembast/src/storage.dart';
@@ -16,12 +17,11 @@ import 'package:sembast/src/store_impl.dart';
 import 'package:sembast/src/transaction_impl.dart';
 import 'package:synchronized/synchronized.dart';
 
-import 'database.dart';
-
 class SembastDatabase extends Object
     with DatabaseExecutorMixin
-    implements Database {
-  final DatabaseOpenHelper openHelper;
+    implements Database, SembastDatabaseClient {
+  // Can be modified by openHelper for test purpose
+  DatabaseOpenHelper openHelper;
   static Logger logger = Logger("Sembast");
   final bool logV = logger.isLoggable(Level.FINEST);
 
@@ -45,7 +45,7 @@ class SembastDatabase extends Object
 
   bool _opened = false;
 
-  DatabaseOpenOptions get _openOptions => openHelper.options;
+  DatabaseOpenOptions get openOptions => openHelper.options;
 
   // DatabaseMode _openMode;
   // Only set during open (used during onVersionChanged
@@ -62,6 +62,10 @@ class SembastDatabase extends Object
 
   @override
   Iterable<Store> get stores => _stores.values;
+
+  // Current store names
+  @override
+  Iterable<String> get storeNames => _stores.values.map((store) => store.name);
 
   SembastDatabase(this.openHelper, [this._storage]);
 
@@ -101,14 +105,15 @@ class SembastDatabase extends Object
   /// Exported for testing
   SembastTransaction get currentTransaction => _transaction;
 
-  SembastStore _recordStore(Record record) =>
-      (record.store ?? mainStore) as SembastStore;
+  SembastStore _recordStore(Record record) => getSembastStore(record.ref.store);
 
-  bool setRecordInMemory(Record record) {
-    return _recordStore(record).setRecordInMemory(record);
+//      (record.store ?? mainStore) as SembastStore;
+
+  bool setRecordInMemory(TxnRecord record) {
+    return _recordStore(record).setRecordInMemory(record?.record);
   }
 
-  void loadRecord(Record record) {
+  void loadRecord(ImmutableSembastRecord record) {
     _recordStore(record).loadRecord(record);
   }
 
@@ -120,16 +125,16 @@ class SembastDatabase extends Object
 
   /// Encode a map before writing it to disk
   String encodeMap(Map<String, dynamic> map) {
-    if (_openOptions.codec != null) {
-      return _openOptions.codec.codec.encode(map);
+    if (openOptions.codec != null) {
+      return openOptions.codec.codec.encode(map);
     } else {
       return json.encode(map);
     }
   }
 
   Map<String, dynamic> decodeString(String text) {
-    if (_openOptions.codec != null) {
-      return _openOptions.codec.codec.decode(text);
+    if (openOptions.codec != null) {
+      return openOptions.codec.codec.decode(text);
     } else {
       return (json.decode(text) as Map)?.cast<String, dynamic>();
     }
@@ -141,7 +146,7 @@ class SembastDatabase extends Object
 
   /// Get the list of current records that can be safely iterate even
   /// in an async way.
-  List<Record> getCurrentRecords(Store store) =>
+  List<ImmutableSembastRecord> getCurrentRecords(Store store) =>
       (store as SembastStore).currentRecords;
 
   ///
@@ -185,8 +190,8 @@ class SembastDatabase extends Object
       var stores = getCurrentStores();
       for (Store store in stores) {
         final records = getCurrentRecords(store);
-        for (Record record in records) {
-          await _addLine((record as SembastRecord).toMap());
+        for (var record in records) {
+          await _addLine(record.toDatabaseRowMap());
         }
       }
       await tmpStorage.appendLines(lines);
@@ -203,8 +208,8 @@ class SembastDatabase extends Object
 
   /// Save all records to fix in memory
   /// and commit later
-  Future lazyCommit() async {
-    List<Record> txnRecords = [];
+  void lazyCommit() {
+    List<TxnRecord> txnRecords = [];
 
     var stores = getCurrentStores();
     for (var store in stores) {
@@ -214,8 +219,13 @@ class SembastDatabase extends Object
       }
     }
 
+    // Not record, no commit
+    if (txnRecords.isEmpty) {
+      return;
+    }
+
     void _saveInMemory() {
-      for (Record record in txnRecords) {
+      for (var record in txnRecords) {
         bool exists = setRecordInMemory(record);
         // Try to estimated if compact will be needed
         if (_storage.supported) {
@@ -240,13 +250,13 @@ class SembastDatabase extends Object
   }
 
   // future or not
-  Future storageCommit(List<Record> txnRecords) async {
+  Future storageCommit(List<TxnRecord> txnRecords) async {
     if (txnRecords.isNotEmpty) {
       List<String> lines = [];
 
       // writable record
-      for (Record record in txnRecords) {
-        var map = (record as SembastRecord).toMap();
+      for (var record in txnRecords) {
+        var map = record.record.toDatabaseRowMap();
         String encoded;
         try {
           encoded = encodeMap(map);
@@ -262,25 +272,12 @@ class SembastDatabase extends Object
     }
   }
 
-  /// clone and fix the store
-  Record _cloneAndFix(Record record) {
-    Store store = record.store;
-    if (store == null) {
-      store = mainStore;
-    }
-    return (record as SembastRecord).clone(store: store);
-  }
-
   ///
   /// Put a record
   ///
   @override
-  Future<Record> putRecord(Record record) {
-    return transaction((txn) async {
-      return cloneRecord(
-          await txnPutRecord(txn as SembastTransaction, _cloneAndFix(record)));
-    });
-  }
+  Future<Record> putRecord(Record record) =>
+      getSembastStore(record.ref.store).putRecord(record);
 
   ///
   /// Get a record by its key
@@ -296,17 +293,41 @@ class SembastDatabase extends Object
   @override
   Future<List<Record>> putRecords(List<Record> records) {
     return transaction((txn) async {
-      return cloneRecords(
+      return makeOutRecords(
           await txnPutRecords(txn as SembastTransaction, records));
     });
   }
 
+  /// cooperate safe
+  Record makeOutRecord(ImmutableSembastRecord record) =>
+      record_impl.makeLazyMutableRecord(_recordStore(record), record);
+
+  /// cooperate safe
+  Future<List<Record>> makeOutRecords(
+      List<ImmutableSembastRecord> records) async {
+    if (records != null) {
+      var clones = <Record>[];
+      // make it safe for the loop
+      records = List<ImmutableSembastRecord>.from(records, growable: false);
+      for (var record in records) {
+        if (needCooperate) {
+          await cooperate();
+        }
+        clones.add(makeOutRecord(record));
+      }
+      return clones;
+    }
+    return null;
+  }
+
   // in transaction
-  Future<List<Record>> txnPutRecords(
+  Future<List<ImmutableSembastRecord>> txnPutRecords(
       SembastTransaction txn, List<Record> records) async {
-    var recordsResult = List<Record>(records.length);
+    // clone for safe loop
+    records = List<Record>.from(records);
+    var recordsResult = List<ImmutableSembastRecord>(records.length);
     for (int i = 0; i < records.length; i++) {
-      recordsResult[i] = await txnPutRecord(txn, _cloneAndFix(records[i]));
+      recordsResult[i] = await txnPutRecord(txn, records[i]);
     }
     return recordsResult;
   }
@@ -324,7 +345,8 @@ class SembastDatabase extends Object
     return mainStore.findRecord(finder);
   }
 
-  Future<Record> txnPutRecord(SembastTransaction txn, Record record) {
+  Future<ImmutableSembastRecord> txnPutRecord(
+      SembastTransaction txn, Record record) {
     return _recordStore(record).txnPutRecord(txn, record);
   }
 
@@ -367,6 +389,7 @@ class SembastDatabase extends Object
     return store.delete(key);
   }
 
+  /// Check if a record is present
   bool _noTxnHasRecord(Record record) {
     return _recordStore(record).txnContainsKey(null, record.key);
   }
@@ -377,7 +400,7 @@ class SembastDatabase extends Object
   Future<Database> reOpen([DatabaseOpenOptions options]) async {
     await close();
     // Reuse same open mode unless specified
-    return open(options ?? _openOptions);
+    return open(options ?? openOptions);
   }
 
   void _checkMainStore() {
@@ -427,6 +450,19 @@ class SembastDatabase extends Object
       store = _addStore(storeName);
     }
     return store;
+  }
+
+  ///
+  /// get or create a store
+  /// an empty store will not be persistent
+  ///
+  @override
+  SembastStore getSembastStore(StoreRef ref) {
+    var store = findStore(ref.name);
+    if (store == null) {
+      store = _addStore(ref.name);
+    }
+    return store as SembastStore;
   }
 
   SembastTransactionStore txnGetStore(
@@ -661,7 +697,8 @@ class SembastDatabase extends Object
 
             if (SembastRecord.isMapRecord(map)) {
               // record?
-              Record record = SembastRecord.fromMap(this, map);
+              ImmutableSembastRecord record =
+                  ImmutableSembastRecord.fromDatabaseRowMap(this, map);
               if (_noTxnHasRecord(record)) {
                 _exportStat.obsoleteLineCount++;
               }
@@ -793,7 +830,7 @@ class SembastDatabase extends Object
 
       try {
         actionResult = await Future<T>.sync(() => action(_transaction));
-        await lazyCommit();
+        lazyCommit();
       } catch (e) {
         _clearTxnData();
         _transactionCleanUp();
@@ -820,11 +857,9 @@ class SembastDatabase extends Object
   }
 
   @override
-  SembastDatabase get database => this;
-
-  @override
   Future clear() => mainStore.clear();
 
+  /*
   /// cooperate safe
   Future<List<Record>> cloneRecords(List<Record> records) async {
     if (records != null) {
@@ -841,6 +876,7 @@ class SembastDatabase extends Object
     }
     return null;
   }
+*/
 
   //
   // Cooperate mode
@@ -860,6 +896,32 @@ class SembastDatabase extends Object
           'The transaction is no longer active. Make sure you (a)wait all pending operations in your transaction block');
     }
   }
+
+  @override
+  SembastDatabase get sembastDatabase => this;
+
+  @override
+  Future<T> inTransaction<T>(
+          FutureOr<T> Function(SembastTransaction transaction) action) =>
+      transaction((txn) => action(txn as SembastTransaction));
+
+  // records must not changed
+  Future forEachRecords(List<ImmutableSembastRecord> records,
+      void action(ImmutableSembastRecord record)) async {
+    // handle record in transaction first
+    for (var record in records) {
+      // then the regular unless already in transaction
+      if (needCooperate) {
+        await cooperate();
+      }
+      action(record);
+    }
+  }
+
+  // Only set during open
+  @override
+  SembastTransaction get sembastTransaction =>
+      _openTransaction as SembastTransaction;
 }
 
 class DatabaseExportStat {
