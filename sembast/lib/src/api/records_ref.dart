@@ -16,7 +16,7 @@ abstract class RecordsRef<K, V> {
   /// Record ref at a given index
   RecordRef<K, V> operator [](int index);
 
-  /// delete them record
+  /// delete them
   Future delete(DatabaseClient client);
 
   /// Cast if needed

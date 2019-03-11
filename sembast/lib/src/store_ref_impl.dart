@@ -50,7 +50,7 @@ mixin StoreRefMixin<K, V> implements StoreRef<K, V> {
 
   /// Delete the store
   @override
-  Future delete(DatabaseClient databaseClient) {
+  Future drop(DatabaseClient databaseClient) {
     final client = getClient(databaseClient);
     return client.inTransaction((txn) {
       return client.sembastDatabase.txnDeleteStore(txn, name);
@@ -143,10 +143,22 @@ mixin StoreRefMixin<K, V> implements StoreRef<K, V> {
 
   // Clear all
   @override
-  Future clear(DatabaseClient databaseClient) {
+  Future<int> delete(DatabaseClient databaseClient, {Finder finder}) {
     final client = getClient(databaseClient);
-    return client.inTransaction((txn) {
-      return client.getSembastStore(this).txnClear(txn);
+    return client.inTransaction((txn) async {
+      return (await client.getSembastStore(this).txnClear(txn, finder: finder))
+          .length;
+    });
+  }
+
+  @override
+  Future<int> update(DatabaseClient databaseClient, V value, {Finder finder}) {
+    final client = getClient(databaseClient);
+    return client.inTransaction((txn) async {
+      return (await client
+              .getSembastStore(this)
+              .txnUpdateWhere(txn, value, finder: finder))
+          .length;
     });
   }
 

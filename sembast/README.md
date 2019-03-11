@@ -92,18 +92,43 @@ await db.transaction((txn) async {
 
 More info on transaction [here](https://github.com/tekartik/sembast.dart/blob/master/sembast/doc/transactions.md)
 
-### Simple wrapping into a Record object
+### Using the new Store API
 
-A record object holds the record content and key
+The new API takes advantage of strong mode to make database access less error prone.
 
 ```dart
-int key = await db.put({'offline': true});
-Record record = await db.getRecord(key);
+// Use the main store for storing key values as String
+var store = StoreRef<String, String>.main();
+
+// Writing the data
+await store.record('username').put(db, 'my_username');
+await store.record('url').put(db, 'my_url');
+
+// Reading the data
+var url = await store.record('url').get(db);
+var username = await store.record('username').get(db);
+```
+
+More info on the new API [here](https://github.com/tekartik/sembast.dart/blob/master/sembast/doc/new_api.md)
+
+### Store
+
+The store has some similarities with IndexedDB store and DataStore entities. The database always has a main store for easy access (like in the example aboves or typically to save singletons) and allows
+for an infinite number of stores where a developer would store entity specific data (such as list of record of the same 'type')
+
+```dart
+ // Use the animals store using Map records with int keys
+var store = intMapStoreFactory.store('animals');
+
+// Store some objects
+await db.transaction((txn) async {
+  await store.add(txn, {'name': 'fish'});
+  await store.add(txn, {'name': 'cat'});
   
-// A record can be accessed like a map
-expect(record['offline'], isTrue);
-// and has the key in it
-expect(record.key, key);
+  // You can specify a key
+  await store.record(10).put({'name': 'dog'});
+});
+ 
 ```
 
 ### Simple find mechanism
@@ -113,44 +138,26 @@ Filtering and sorting can be done on any field
 More information [here](https://github.com/tekartik/sembast.dart/blob/master/sembast/doc/queries.md)
 
 ```dart
+ // Use the animals store using Map records with int keys
+var store = intMapStoreFactory.store('animals');
+
 // Store some objects
 await db.transaction((txn) async {
-  await txn.put({'name': 'fish'});
-  await txn.put({'name': 'cat'});
-  await txn.put({'name': 'dog'});
+  await store.add(txn, {'name': 'fish'});
+  await store.add(txn, {'name': 'cat'});
+  await store.add(txn, {'name': 'dog'});
 });
 
 // Look for any animal "greater than" (alphabetically) 'cat'
 // ordered by name
 var finder = Finder(
-  filter: Filter.greaterThan('name', 'cat'),
-  sortOrders: [SortOrder('name')]);
-var records = await db.findRecords(finder);
+    filter: Filter.greaterThan('name', 'cat'),
+    sortOrders: [SortOrder('name')]);
+var records = await store.find(db, finder: finder);
 
 expect(records.length, 2);
 expect(records[0]['name'], 'dog');
 expect(records[1]['name'], 'fish');
-```
-
-### Store
-
-The store has some similarities with IndexedDB store and DataStore entities. The database always has a main store for easy access (like in the example aboves or typically to save singletons) and allows
-for an infinite number of stores where a developer would store entity specific data (such as list of record of the same 'type')
-
-```dart
-// Access the "animal" store
-Store animalStore = db.getStore("animal");
-// create animals in the store
-var cat = Record(animalStore, {'name': 'cat'});
-var dog = Record(animalStore, {'name': 'dog'});
-// save them
-await db.putRecords([cat, dog]);
-  
-// get all animals
-await animalStore.records.listen((Record animal) {
-  // here we know we have a single record
-  // .. you'll get dog and cat here
-}).asFuture();
 ```
 
 ### Codec and encryption
@@ -221,7 +228,7 @@ Supported types depends on JSON supported types. More information [here](https:/
 
 Supported key types are:
 - int (default with autoincrement when no key are passed)
-- String
+- String (String keys can also be generated à la firestore)
 - double
 
 #### Values

@@ -1,4 +1,4 @@
-library sembast.doc_test;
+library sembast.compat.doc_test;
 
 import 'dart:async';
 
@@ -14,8 +14,10 @@ void main() {
   defineTests(memoryDatabaseContext);
 }
 
+void unused(dynamic value) {}
+
 void defineTests(DatabaseTestContext ctx) {
-  group('doc', () {
+  group('compat_doc', () {
     Database db;
 
     setUp(() async {});
@@ -24,6 +26,20 @@ void defineTests(DatabaseTestContext ctx) {
       if (db != null) {
         await db.close();
         db = null;
+      }
+    });
+
+    test('pre_1.15 doc', () async {
+      db = await setupForTest(ctx);
+
+      {
+        // Cast necessary to manipulate the key
+        var key = await db.put({'offline': true}) as int;
+        Record record = await db.getRecord(key);
+        // Cast necessary to manipulate the data
+        var value = record.value as Map<String, dynamic>;
+
+        unused(value);
       }
     });
 
@@ -89,7 +105,7 @@ void defineFileSystemTests(FileSystemTestContext ctx) {
     return dbPath;
   }
 
-  group('doc', () {
+  group('compat_doc', () {
     test('codec_doc', () async {
       await prepareForDb();
 

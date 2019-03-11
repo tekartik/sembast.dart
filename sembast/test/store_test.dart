@@ -24,19 +24,19 @@ void defineTests(DatabaseTestContext ctx) {
       final store = StoreRef('test');
       var record = store.record(1);
       await record.put(db, "hi");
-      await store.clear(db);
+      await store.delete(db);
       expect(await record.get(db), isNull);
     });
 
     test('delete', () async {
       expect(db.storeNames, ['_main']);
-      await StoreRef("test").delete(db);
+      await StoreRef("test").drop(db);
       expect(db.storeNames, ['_main']);
     });
 
     test('delete_main', () async {
       expect(db.storeNames, ['_main']);
-      await StoreRef.main().delete(db);
+      await StoreRef.main().drop(db);
       expect(db.storeNames, ['_main']);
     });
 
@@ -45,7 +45,7 @@ void defineTests(DatabaseTestContext ctx) {
       var record = store.record(1);
       await record.put(db, 'test');
       expect(db.storeNames, contains('test'));
-      await store.delete(db);
+      await store.drop(db);
       expect(db.storeNames, isNot(contains('test')));
       expect(await record.get(db), isNull);
     });

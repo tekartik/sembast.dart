@@ -39,7 +39,7 @@ void defineTests(DatabaseTestContext ctx) {
 
       await db.transaction((txn) async {
         await record.put(txn, "hi");
-        await store.clear(txn);
+        await store.delete(txn);
         expect(await record.get(db), isNull);
       });
     });

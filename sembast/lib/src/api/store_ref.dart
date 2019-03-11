@@ -31,12 +31,7 @@ abstract class StoreRef<K, V> {
   factory StoreRef.main() => SembastStoreRef(dbMainStore);
 
   /// Delete the store and its content
-  Future delete(DatabaseClient client);
-
-  ///
-  /// delete all records in a store
-  ///
-  Future clear(DatabaseClient client);
+  Future drop(DatabaseClient client);
 
   /// Cast if needed
   StoreRef<RK, RV> cast<RK, RV>();
@@ -81,6 +76,16 @@ abstract class StoreRef<K, V> {
   /// Add a record, returns its generated int key
   ///
   Future<K> add(DatabaseClient client, V value);
+
+  /// Update records matching a given finder.
+  ///
+  /// Return the count updated. [value] is merged to the existing.
+  Future<int> update(DatabaseClient client, V value, {Finder finder});
+
+  /// Delete records matching a given finder.
+  ///
+  /// Return the count updated. Delete all if no finder
+  Future<int> delete(DatabaseClient client, {Finder finder});
 }
 
 ///

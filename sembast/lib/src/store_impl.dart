@@ -661,6 +661,31 @@ class SembastStore implements Store {
     return deletedKeys;
   }
 
+  Future<List> txnUpdateAll(
+      SembastTransaction txn, dynamic value, Iterable keys) async {
+    List<Record> updates = [];
+    List deletedKeys = [];
+
+    // make it safe in a async way
+    keys = List.from(keys, growable: false);
+    for (var key in keys) {
+      await cooperate();
+      var record = _getRecord(txn, key);
+      if (record != null && !record.deleted) {
+        // Clone and mark deleted
+        Record clone = record.sembastClone(deleted: true);
+
+        updates.add(clone);
+        deletedKeys.add(key);
+      }
+    }
+
+    if (updates.isNotEmpty) {
+      await database.txnPutRecords(txn, updates);
+    }
+    return deletedKeys;
+  }
+
   @override
   Future<bool> containsKey(key) async {
     return txnContainsKey(null, key);
@@ -716,12 +741,30 @@ class SembastStore implements Store {
     });
   }
 
-  Future<List> txnClear(SembastTransaction txn) {
-    if (_hasTransactionRecords(txn)) {
-      return txnDeleteAll(txn, List.from(txnRecords.keys, growable: false));
+  Future<List> txnClear(SembastTransaction txn, {Finder finder}) async {
+    if (finder == null) {
+      var deletedKeys = [];
+      if (_hasTransactionRecords(txn)) {
+        deletedKeys.addAll(await txnDeleteAll(
+            txn, List.from(txnRecords.keys, growable: false)));
+      }
+      Iterable keys = recordMap.keys;
+      deletedKeys
+          .addAll(await txnDeleteAll(txn, List.from(keys, growable: false)));
+      return deletedKeys;
+    } else {
+      var keys = await txnFindKeys(txn, finder);
+      return await txnDeleteAll(txn, List.from(keys, growable: false));
     }
-    Iterable keys = recordMap.keys;
-    return txnDeleteAll(txn, List.from(keys, growable: false));
+  }
+
+  Future<List> txnUpdateWhere(SembastTransaction txn, dynamic value,
+      {Finder finder}) async {
+    var keys = await txnFindKeys(txn, finder);
+    for (var key in keys) {
+      await txnPut(txn, value, key, merge: true);
+    }
+    return keys;
   }
 
   //
