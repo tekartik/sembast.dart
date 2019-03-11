@@ -8,7 +8,7 @@ import 'package:sembast/src/record_snapshot_impl.dart';
 import 'package:sembast/src/sort.dart';
 import 'package:sembast/src/transaction_impl.dart';
 import 'package:sembast/src/utils.dart';
-import 'package:sembast/utils/key_utils.dart';
+import 'package:sembast/src/key_utils.dart';
 
 import 'common_import.dart';
 import 'database_impl.dart';
