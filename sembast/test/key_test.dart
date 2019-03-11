@@ -82,8 +82,12 @@ void defineTests(DatabaseTestContext ctx) {
       await store.record(1.2).put(db, "test");
       expect(await store.record(1.2).get(db), "test");
       try {
-        await store.add(db, 'test');
-        fail('should fail');
+        var key = await store.add(db, 'test');
+        if (_isJavascriptVm) {
+          expect(key, 1);
+        } else {
+          fail('should fail');
+        }
       } on ArgumentError catch (_) {}
     });
   });
