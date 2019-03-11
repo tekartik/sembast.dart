@@ -1,4 +1,4 @@
-library sembast.key_test;
+library sembast.compat.key_test;
 
 // basically same as the io runner but with extra output
 import 'package:sembast/sembast.dart';
@@ -9,7 +9,7 @@ void main() {
 }
 
 void defineTests(DatabaseTestContext ctx) {
-  group('key', () {
+  group('compat_key', () {
     Database db;
 
     setUp(() async {

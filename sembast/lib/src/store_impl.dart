@@ -8,6 +8,7 @@ import 'package:sembast/src/record_snapshot_impl.dart';
 import 'package:sembast/src/sort.dart';
 import 'package:sembast/src/transaction_impl.dart';
 import 'package:sembast/src/utils.dart';
+import 'package:sembast/utils/key_utils.dart';
 
 import 'common_import.dart';
 import 'database_impl.dart';
@@ -27,7 +28,7 @@ class SembastStore implements Store {
   String get name => ref.name;
 
   // for key generation
-  int _lastIntKey = 0;
+  int lastIntKey = 0;
 
   Map<dynamic, ImmutableSembastRecord> recordMap =
       <dynamic, ImmutableSembastRecord>{};
@@ -67,6 +68,28 @@ class SembastStore implements Store {
       {bool merge}) async {
     await cooperate();
     return txnPutSync(txn, value, key, merge: merge);
+  }
+
+  Future<K> txnAdd<K, V>(SembastTransaction txn, var value) async {
+    await cooperate();
+    // We allow generating a string key
+    K key;
+
+    // We make sure the key is unique
+    do {
+      if (K == String) {
+        key = generateStringKey() as K;
+      } else {
+        try {
+          key = ++lastIntKey as K;
+        } catch (e) {
+          throw ArgumentError(
+              'Invalid key type $K for generating a key. You should either use String or int or generate the key yourself');
+        }
+      }
+    } while (await txnRecordExists(txn, key));
+
+    return (await txnPutSync(txn, value, key)) as K;
   }
 
   Future<dynamic> txnPutSync(SembastTransaction txn, var value, var key,
@@ -383,8 +406,8 @@ class SembastStore implements Store {
     setRecordInMemory(record);
     // update for auto increment
     if (key is int) {
-      if (key > _lastIntKey) {
-        _lastIntKey = key;
+      if (key > lastIntKey) {
+        lastIntKey = key;
       }
     }
   }
@@ -411,14 +434,14 @@ class SembastStore implements Store {
 
     // auto-gen key if needed
     if (sembastRecord.key == null) {
-      sembastRecord.ref = ref.record(++_lastIntKey);
+      sembastRecord.ref = ref.record(++lastIntKey);
     } else {
       // update last int key in case auto gen is needed again
       var recordKey = sembastRecord.key;
       if (recordKey is int) {
         int intKey = recordKey;
-        if (intKey > _lastIntKey) {
-          _lastIntKey = intKey;
+        if (intKey > lastIntKey) {
+          lastIntKey = intKey;
         }
       }
     }

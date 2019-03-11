@@ -3,6 +3,7 @@ import 'package:sembast/src/api/compat/record.dart';
 import 'package:sembast/src/api/compat/store.dart';
 import 'package:sembast/src/api/record_ref.dart';
 import 'package:sembast/src/api/record_snapshot.dart';
+import 'package:sembast/src/record_ref_impl.dart';
 import 'package:sembast/src/record_snapshot_impl.dart';
 import 'package:sembast/src/sembast_impl.dart';
 import 'package:sembast/src/utils.dart';
@@ -304,7 +305,9 @@ class SembastRecord
     /// Store kept for compatibility
     this.store = store;
     this.value = value;
-    this.ref = (store?.ref ?? mainStoreRef).record(key);
+    // The key could be null in the compat layer so we don't use
+    // store.record that will throw an exception
+    this.ref = SembastRecordRef(store?.ref ?? mainStoreRef, key);
   }
 }
 

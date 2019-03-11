@@ -11,7 +11,7 @@ class SembastStoreRef<K, V> with StoreRefMixin<K, V> {
   SembastStoreRef(String name) {
     if (name == null) {
       throw ArgumentError(
-          'Store reference name can not be null. Use StoreRef.main() to get the main store');
+          'Store reference name cannot be null. Use StoreRef.main() to get the main store');
     }
     this.name = name;
   }
@@ -23,6 +23,9 @@ mixin StoreRefMixin<K, V> implements StoreRef<K, V> {
 
   @override
   RecordRef<K, V> record(K key) {
+    if (key == null) {
+      throw ArgumentError('Record key cannot be null');
+    }
     return SembastRecordRef<K, V>(this, key);
   }
 
@@ -62,8 +65,8 @@ mixin StoreRefMixin<K, V> implements StoreRef<K, V> {
       return client
           .getSembastStore(this)
           // A null key will generate one
-          .txnPut(client.sembastTransaction, value, null);
-    }) as K;
+          .txnAdd<K, V>(client.sembastTransaction, value);
+    });
   }
 
   @override

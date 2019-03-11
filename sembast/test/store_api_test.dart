@@ -1,4 +1,3 @@
-import 'package:sembast/sembast.dart';
 import 'package:sembast/src/api/sembast.dart';
 
 import 'test_common.dart';
@@ -53,6 +52,22 @@ void defineTests(DatabaseTestContext ctx) {
       // ignore: unnecessary_statements
       Boundary;
     });
+
+    test('null_store', () {
+      try {
+        StoreRef(null);
+        fail('should fail');
+      } on ArgumentError catch (_) {}
+    });
+
+    test('key', () {
+      var store = StoreRef.main();
+      try {
+        store.record(null);
+        fail('should fail');
+      } on ArgumentError catch (_) {}
+    });
+
     test('put/get/find string', () async {
       var record = keyValueStore.record('foo');
       await record.put(db, 'bar');

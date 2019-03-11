@@ -20,12 +20,6 @@ void defineTests(DatabaseTestContext ctx) {
       return db.close();
     });
 
-    test('null', () {
-      try {
-        StoreRef(null);
-        fail('should fail');
-      } on ArgumentError catch (_) {}
-    });
     test('clear', () async {
       final store = StoreRef('test');
       var record = store.record(1);
