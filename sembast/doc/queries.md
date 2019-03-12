@@ -162,9 +162,10 @@ var record = await store.findFirst(db, finder: finder);
 expect(record['name'], 'fish');
 ```
 
-### Matching items in a list
+### Filtering list items
 
-`Filter.equals` and `Filter.matches` can also look any item if a field is a list
+`Filter.equals` and `Filter.matches` can also look for list items if a field is a list using the `anyInList` option. It
+will match if one item in the list matches the criteria.
 
 ```dart
 // Look for record with at least one category stating with f (i.e. food...), 

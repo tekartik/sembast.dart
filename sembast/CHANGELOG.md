@@ -1,3 +1,7 @@
+## 1.15.1
+
+* Add custom filter support and allow filtering on list content for `Filter.equals` and `Filter.matches`
+
 ## 1.15.0
 
 * Add new API to allow strict typing on keys and values
