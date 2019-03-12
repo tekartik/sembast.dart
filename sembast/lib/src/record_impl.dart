@@ -87,7 +87,13 @@ mixin SembastRecordHelperMixin implements Record {
     return false;
   }
 }
-mixin SembastRecordMixin implements Record {
+
+/// Used as an interface
+abstract class SembastRecordValue<V> {
+  V rawValue;
+}
+
+mixin SembastRecordMixin implements Record, SembastRecordValue {
   bool _deleted;
 
   @override
@@ -95,7 +101,7 @@ mixin SembastRecordMixin implements Record {
 
   set deleted(bool deleted) => _deleted = deleted;
 
-  set value(value) => value = sanitizeValue(value);
+  set value(value) => this.rawValue = sanitizeValue(value);
 }
 
 /// Record that can modified although not cloned right away

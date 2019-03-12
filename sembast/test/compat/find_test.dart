@@ -222,18 +222,9 @@ void defineTests(DatabaseTestContext ctx) {
           await store.findRecords(Finder(filter: Filter.notNull(Field.value)));
       expect(records.length, 3);
 
-      bool failed = false;
-      // int value
-      try {
-        await store
-            .findRecords(Finder(filter: Filter.matches(Field.key, '^hi')));
-        fail("should not be a failed exception");
-      } on TestFailure catch (e) {
-        fail('should not happen $e');
-      } catch (e) {
-        failed = true;
-      }
-      expect(failed, isTrue);
+      records = await store
+          .findRecords(Finder(filter: Filter.matches(Field.key, '^hi')));
+      expect(records, isEmpty);
 
       // empty value
       var record5 = Record(store, '', 5);

@@ -6,12 +6,14 @@ import 'package:sembast/src/record_impl.dart';
 ///
 /// Records
 ///
+/// @deprecated v2
 abstract class Record extends RecordSnapshot<dynamic, dynamic> {
   /// true if the record has been deleted
   bool get deleted;
 
   /// its store
   /// 2019-03-06 Will be deprecated
+  /// @deprecated v2
   Store get store;
 
   ///

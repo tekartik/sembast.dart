@@ -81,6 +81,16 @@ Or query on it
 var finder = Finder(filter: Filter.equals('product.code', 'AF8'));
 ```
 
+### Composite filter
+
+You can combine multiple filters using `Filter.or` or `Filter.and`
+
+```dart
+filter = Filter.and([
+  Filter.greaterThan(Field.value, "hi"),
+  Filter.lessThan(Field.value, "hum")
+]);
+```
 ### Using boundaries for paging
 
 `start` and `end` can specify a start and end boundary, similar to firestore
@@ -150,4 +160,15 @@ var finder = Finder(filter: Filter.matches('name', 'is'));
 var record = await store.findFirst(db, finder: finder);
 
 expect(record['name'], 'fish');
+```
+
+### Matching items in a list
+
+`Filter.equals` and `Filter.matches` can also look any item if a field is a list
+
+```dart
+// Look for record with at least one category stating with f (i.e. food...), 
+// if `categories` field is a list with text elements
+var finder = Finder(filter: Filter.matches('categories', '^f', anyInList: true));
+var record = await store.findFirst(db, finder: finder);
 ```

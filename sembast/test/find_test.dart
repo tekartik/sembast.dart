@@ -203,18 +203,9 @@ void defineTests(DatabaseTestContext ctx) {
             finder: Finder(filter: Filter.notNull(Field.value)));
         expect(snapshotsRefs(snapshots), [record1, record2, record3]);
 
-        bool failed = false;
-        // int value
-        try {
-          await store.find(db,
-              finder: Finder(filter: Filter.matches(Field.key, '^hi')));
-          fail("should not be a failed exception");
-        } on TestFailure catch (e) {
-          fail('should not happen $e');
-        } catch (e) {
-          failed = true;
-        }
-        expect(failed, isTrue);
+        snapshots = await store.find(db,
+            finder: Finder(filter: Filter.matches(Field.key, '^hi')));
+        expect(snapshots, isEmpty);
 
         // empty value
         var record5 = store.record(5);

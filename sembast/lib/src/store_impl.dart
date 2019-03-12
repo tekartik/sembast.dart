@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:sembast/sembast.dart';
 import 'package:sembast/src/api/compat/finder.dart';
+import 'package:sembast/src/filter_impl.dart';
 import 'package:sembast/src/record_impl.dart';
 import 'package:sembast/src/record_impl.dart' as record_impl;
 import 'package:sembast/src/record_snapshot_impl.dart';
@@ -207,6 +208,18 @@ class SembastStore implements Store {
   /// Cancel if false is returned
   Future forEachRecords(SembastTransaction txn, Filter filter,
       bool action(ImmutableSembastRecord record)) async {
+    bool _filterMatchRecord(Filter filter, Record record) {
+      if (filter is SembastFilterBase) {
+        if (record.deleted) {
+          return false;
+        }
+        return filterMatchesRecord(filter, record);
+      } else {
+        // compat
+        return Filter.matchRecord(filter, record);
+      }
+    }
+
     // handle record in transaction first
     if (_hasTransactionRecords(txn)) {
       // Copy for cooperate
@@ -216,7 +229,7 @@ class SembastStore implements Store {
           await cooperate();
         }
 
-        if (Filter.matchRecord(filter, record)) {
+        if (_filterMatchRecord(filter, record)) {
           if (action(record) == false) {
             return;
           }
@@ -237,7 +250,7 @@ class SembastStore implements Store {
           continue;
         }
       }
-      if (Filter.matchRecord(filter, record)) {
+      if (_filterMatchRecord(filter, record)) {
         if (action(record) == false) {
           return;
         }

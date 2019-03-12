@@ -176,6 +176,7 @@ class ImmutableList<E> extends ListBase<E> {
 
 class ImmutableMap<K, V> extends MapBase<K, V> {
   final Map<K, V> _map;
+  Map<K, V> get rawMap => _map;
 
   ImmutableMap(Map map) : _map = map.cast<K, V>();
 
@@ -207,6 +208,22 @@ T getPartsMapValue<T>(Map map, Iterable<String> parts) {
   return value as T;
 }
 
+T getPartsMapRawValue<T>(Map map, Iterable<String> parts) {
+  // Allow getting raw value
+  if (map is ImmutableMap) {
+    map = (map as ImmutableMap).rawMap;
+  }
+  dynamic value = map;
+  for (String part in parts) {
+    if (value is Map) {
+      value = value[part];
+    } else {
+      return null;
+    }
+  }
+  return value as T;
+}
+
 void setPartsMapValue<T>(Map map, List<String> parts, value) {
   for (int i = 0; i < parts.length - 1; i++) {
     String part = parts[i];
@@ -224,6 +241,11 @@ List<String> getFieldParts(String field) => field.split('.');
 
 T getMapFieldValue<T>(Map map, String field) {
   return getPartsMapValue(map, getFieldParts(field));
+}
+
+/// Avoid immutable map duplication
+T getMapFieldRawValue<T>(Map map, String field) {
+  return getPartsMapRawValue(map, getFieldParts(field));
 }
 
 void setMapFieldValue(Map map, String field, dynamic value) {

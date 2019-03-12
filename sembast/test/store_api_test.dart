@@ -51,6 +51,8 @@ void defineTests(DatabaseTestContext ctx) {
       Filter;
       // ignore: unnecessary_statements
       Boundary;
+      // ignore: unnecessary_statements
+      SembastCodec;
     });
 
     test('null_store', () {

@@ -11,6 +11,7 @@ import 'package:sembast/src/utils.dart';
 ///
 /// Helper to define one or multiple filters
 ///
+/// @deprecated v2
 class SembastFinder implements Finder {
   Filter filter;
   int offset;
