@@ -178,5 +178,30 @@ void main() {
       setPartsMapValue(map, ['test'], 1);
       expect(map, {'test': 1});
     });
+
+    test('backtick', () {
+      expect(backtickChrCode, 96);
+      expect(isBacktickEnclosed('``'), isTrue);
+      expect(isBacktickEnclosed('`é`'), isTrue);
+      expect(isBacktickEnclosed('```'), isTrue);
+      expect(isBacktickEnclosed(''), isFalse);
+      expect(isBacktickEnclosed('`'), isFalse);
+      expect(isBacktickEnclosed('`_'), isFalse);
+      expect(isBacktickEnclosed('_`'), isFalse);
+    });
+
+    test('mergeValue with backticks', () {
+      expect(mergeValue({'foo.bar': 1}, {'foo.bar': 2}), {
+        'foo.bar': 1,
+        'foo': {'bar': 2}
+      });
+      expect(
+          mergeValue({'foo.bar': 1}, {'foo.bar': 2}, allowDotsInKeys: true), {
+        'foo.bar': 2,
+      });
+      expect(mergeValue({'foo.bar': 1}, {'`foo.bar`': 2}), {
+        'foo.bar': 2,
+      });
+    });
   });
 }

@@ -33,7 +33,7 @@ this:
 
 ```dart
 // Writing a map
-var key = await db.put({
+var key = await store.add({
   'name': 'Felix',
   'age': 4,
   'address': {'city': 'Ledignan'}
@@ -47,13 +47,20 @@ using the `a.b.c` form instead of `'a':{'b':{'c'}}`
 
 ```dart
  // Updating some fields
-await db.update(
+await record.update(db,
   {'color': FieldValue.delete, 'address.city': 'San Francisco'}, key);
-expect(await db.get(key), {
+expect(await record.get(db), {
   'name': 'cat',
   'age': 4,
   'address': {'city': 'San Francisco'}
 });
+```
+
+Dots (`.`) are treated as separator for `record.update` calls (not `store.add` and `record.set`). To allow for keys with dot, you
+can escape them using `FieldKey.escape` 
+
+```dart
+await record.update(db, {FieldKey.escape('my.color'): 'red'});
 ```
 
 ## Bulk update

@@ -1,4 +1,4 @@
-library sembast.io_file_system_test;
+library sembast.compat.src_filter_test;
 
 // basically same as the io runner but with extra output
 //import 'package:tekartik_test/test_config.dart';

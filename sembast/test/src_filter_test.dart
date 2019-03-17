@@ -1,4 +1,4 @@
-library sembast.io_file_system_test;
+library sembast.src_filter_test;
 
 // basically same as the io runner but with extra output
 //import 'package:tekartik_test/test_config.dart';
@@ -53,6 +53,25 @@ void main() {
       expect(_match(filter, null), isFalse);
       expect(_match(filter, 'test'), isFalse);
       expect(_match(filter, []), isFalse);
+    });
+
+    test('sub.field', () {
+      var filter = Filter.equals('sub.field', 1);
+      expect(_match(filter, {'sub.field': 1}), isFalse);
+      expect(
+          _match(filter, {
+            'sub': {'field': 1}
+          }),
+          isTrue);
+    });
+    test('field_with_dot', () {
+      var filter = Filter.equals(FieldKey.escape('sub.field'), 1);
+      expect(_match(filter, {'sub.field': 1}), isTrue);
+      expect(
+          _match(filter, {
+            'sub': {'field': 1}
+          }),
+          isFalse);
     });
 
     test('greaterThanOrEguals', () {

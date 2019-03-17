@@ -4,6 +4,8 @@ import 'dart:math';
 import 'package:sembast/sembast.dart';
 import 'package:sembast/src/record_impl.dart';
 
+final backtickChrCode = '`'.codeUnitAt(0);
+
 dynamic sanitizeValue(value) {
   if (value == null) {
     return null;
@@ -237,7 +239,40 @@ void setPartsMapValue<T>(Map map, List<String> parts, value) {
   map[parts.last] = value;
 }
 
-List<String> getFieldParts(String field) => field.split('.');
+bool isBacktickEnclosed(String field) {
+  final length = field?.length ?? 0;
+  if (length < 2) {
+    return false;
+  }
+  return field.codeUnitAt(0) == backtickChrCode &&
+      field.codeUnitAt(length - 1) == backtickChrCode;
+}
+
+String _escapeKey(String field) => '`$field`';
+
+String escapeKey(String field) {
+  if (field == null) {
+    return null;
+  }
+  if (isBacktickEnclosed(field)) {
+    return _escapeKey(field);
+  } else if (field.contains('.')) {
+    return _escapeKey(field);
+  }
+  return field;
+}
+
+String _unescapeKey(String field) => field.substring(1, field.length - 1);
+
+/// For merged values and filters
+List<String> getFieldParts(String field) {
+  if (isBacktickEnclosed(field)) {
+    return [_unescapeKey(field)];
+  }
+  return getRawFieldParts(field);
+}
+
+List<String> getRawFieldParts(String field) => field.split('.');
 
 T getMapFieldValue<T>(Map map, String field) {
   return getPartsMapValue(map, getFieldParts(field));
@@ -253,7 +288,10 @@ void setMapFieldValue(Map map, String field, dynamic value) {
 }
 
 // Merge an existing value with a new value, Map only!
-dynamic mergeValue(dynamic existingValue, dynamic newValue) {
+dynamic mergeValue(dynamic existingValue, dynamic newValue,
+    {bool allowDotsInKeys}) {
+  allowDotsInKeys ??= false;
+
   if (newValue == null) {
     return existingValue;
   }
@@ -269,26 +307,33 @@ dynamic mergeValue(dynamic existingValue, dynamic newValue) {
       cloneValue(existingValue) as Map<String, dynamic>;
   Map currentMap = mergedMap;
 
+  // Here we have the new key and values to merge
   void merge(key, value) {
-    // Handle a.b.c
-    var keyParts = getFieldParts(key as String);
+    String stringKey = key as String;
+    // Handle a.b.c or `` `a.b.c` ``
+    List<String> keyParts;
+    if (allowDotsInKeys) {
+      keyParts = [stringKey];
+    } else {
+      keyParts = getFieldParts(stringKey);
+    }
     if (keyParts.length == 1) {
+      stringKey = keyParts[0];
       // delete the field?
       if (value == FieldValue.delete) {
-        currentMap.remove(key);
+        currentMap.remove(stringKey);
       } else if (value is Map) {
-        if (!(currentMap[key as String] is Map)) {
+        if (!(currentMap[stringKey] is Map)) {
           // replace if existing is not a map
-          currentMap[key as String] = value?.cast<String, dynamic>();
+          currentMap[stringKey] = value?.cast<String, dynamic>();
         } else {
           var previousMap = currentMap;
-          currentMap =
-              (currentMap[key as String] as Map)?.cast<String, dynamic>();
+          currentMap = (currentMap[stringKey] as Map)?.cast<String, dynamic>();
           value.forEach(merge);
           currentMap = previousMap;
         }
       } else {
-        currentMap[key as String] = value;
+        currentMap[stringKey] = value;
       }
     } else {
       if (value == FieldValue.delete) {

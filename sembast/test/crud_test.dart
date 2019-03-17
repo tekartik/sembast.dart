@@ -48,6 +48,26 @@ void defineTests(DatabaseTestContext ctx) {
         }
       });
     });
+
+    test('add_with_dot', () async {
+      final store = intMapStoreFactory.store();
+      // var record = store.record(1);
+      int key = await store.add(db, {'foo.bar': 1});
+      var record = store.record(key);
+      expect(await record.get(db), {'foo.bar': 1});
+    });
+
+    test('put_with_dot', () async {
+      final store = intMapStoreFactory.store();
+      var record = store.record(1);
+      await record.put(db, {'foo.bar': 1});
+      expect(await record.get(db), {'foo.bar': 1});
+      await record.put(db, {'foo.bar': 2});
+      expect(await record.get(db), {'foo.bar': 2});
+      await record.put(db, {'foo.bar': 3}, merge: true);
+      expect(await record.get(db), {'foo.bar': 3});
+    });
+
     test('put_nokey', () async {
       var key = await mainStore.add(db, "hi");
       expect(key, 1);

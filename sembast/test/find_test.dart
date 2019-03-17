@@ -501,6 +501,48 @@ void defineTests(DatabaseTestContext ctx) {
         });
       });
 
+      group('field_with_dot', () {
+        Database db;
+
+        tearDown(() async {
+          await db?.close();
+        });
+        var store = intMapStoreFactory.store();
+        var _records = store.records([1, 2, 3]);
+        // Convenient access for test
+        var record1 = _records[0];
+        var record2 = _records[1];
+        var record3 = _records[2];
+        setUp(() async {
+          db = await setupForTest(ctx);
+          return _records.put(db, [
+            {'foo.bar': 'a'},
+            {'foo.bar': 'c'},
+            {'foo.bar': 'b'},
+          ]);
+        });
+
+        test('sort', () async {
+          var finder =
+              Finder(sortOrders: [SortOrder(FieldKey.escape('foo.bar'), true)]);
+          var snapshots = await store.find(db, finder: finder);
+          expect(snapshotsRefs(snapshots), [record1, record3, record2]);
+
+          finder.filter = Filter.equals(FieldKey.escape('foo.bar'), 'b');
+          snapshots = await store.find(db, finder: finder);
+          expect(snapshotsRefs(snapshots), [record3]);
+        });
+
+        test('start', () async {
+          Finder finder =
+              Finder(sortOrders: [SortOrder(FieldKey.escape('foo.bar'), true)]);
+
+          finder.start = Boundary(values: ['b'], include: true);
+          var snapshots = await store.find(db, finder: finder);
+          expect(snapshotsRefs(snapshots), [record3, record2]);
+        });
+      });
+
       test('multi_sort_order', () async {
         Database db = await setupForTest(ctx);
 

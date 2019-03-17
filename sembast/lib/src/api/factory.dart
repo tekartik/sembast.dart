@@ -11,15 +11,18 @@ abstract class DatabaseFactory {
   bool get hasStorage;
 
   ///
-  /// Open a new of existing database
+  /// Open a new or existing database.
   ///
-  /// [path] is the location of the database
+  /// [path] is the location of the database.
+  ///
   /// [version] is the version expected, if not null and if the existing version is different, onVersionChanged is called.
-  /// [mode] is [DatabaseMode.DEFAULT] by default
+  /// When a database is created, its default version is 1.
   ///
-  /// A custom [code] can be used to load/save a record, allowing for user encryption
-  /// When a database is created, its default version is 1
+  /// [mode] is [DatabaseMode.defaultMode] by default.
   ///
+  /// A custom [codec] can be used to load/save a record, allowing for user encryption.
+  ///
+  /// Custom [settings] can be specified.
   Future<Database> openDatabase(String path,
       {int version,
       OnVersionChangedFunction onVersionChanged,

@@ -53,13 +53,15 @@ Map settings = await db.get('settings') as Map;
 await db.delete('version');
 ```
 
-Record fields can be reference using a dot (.).
+Record fields can be reference using a dot (.) unless escaped
 
 For example
 
 ```dart
-record['path.sub'] = 1;
-// means {'path': {'sub': 1}}
+var value = record['path.sub'];
+// means value at {'path': {'sub': value}}
+value = record[FieldKey.escape('path.sub')];
+// means value at {'path.sub': value}
 ```
 
 Follow the links with more informatin on how to [write](https://github.com/tekartik/sembast.dart/blob/master/sembast/doc/writes.md)

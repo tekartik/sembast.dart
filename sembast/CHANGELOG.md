@@ -1,3 +1,7 @@
+## 1.15.2
+
+* Add the ability to escape keys with dot in their names for updates and queries (filter, sort)
+
 ## 1.15.1
 
 * Add custom filter support and allow filtering on list content for `Filter.equals` and `Filter.matches`

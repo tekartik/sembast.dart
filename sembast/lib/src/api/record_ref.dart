@@ -22,7 +22,8 @@ abstract class RecordRef<K, V> {
 
   /// Update a record
   ///
-  /// If it does not exist, return null
+  /// If it does not exist, return null. if value is a map, keys with dot values
+  /// refer to a path in the map, unless the key is specifically escaped
   Future<V> update(DatabaseClient client, V value);
 
   ///

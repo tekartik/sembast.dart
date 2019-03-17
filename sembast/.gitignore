@@ -27,3 +27,7 @@ test_out
 
 # Local files
 .local/
+
+
+# Generated API doc default location
+/doc/api/

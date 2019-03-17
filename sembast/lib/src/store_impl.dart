@@ -99,7 +99,7 @@ class SembastStore implements Store {
     if (merge == true) {
       record = txnGetRecordSync(txn, key);
       if (record != null) {
-        value = mergeValue(record.value, value);
+        value = mergeValue(record.value, value, allowDotsInKeys: true);
       }
     }
     record = SembastRecord(this, value, key);
