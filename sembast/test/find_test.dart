@@ -37,13 +37,13 @@ void defineTests(DatabaseTestContext ctx) {
       tearDown(_tearDown);
 
       test('equal', () async {
-        Finder finder = Finder(filter: Filter.equal(Field.value, "hi"));
+        Finder finder = Finder(filter: Filter.equals(Field.value, "hi"));
         var snapshots = await store.find(db, finder: finder);
         expect(snapshotsRefs(snapshots), [record1]);
         // test the content once, assume it is ok then...
         expect(snapshots[0].value, "hi");
 
-        finder = Finder(filter: Filter.equal(Field.value, "ho"));
+        finder = Finder(filter: Filter.equals(Field.value, "ho"));
         snapshots = await store.find(db, finder: finder);
         expect(snapshotsRefs(snapshots), [record2]);
         // test the keys and findFirst, assume it is ok then...
@@ -51,14 +51,14 @@ void defineTests(DatabaseTestContext ctx) {
         expect(await store.findKey(db, finder: finder), record2.key);
         expect(await store.findKeys(db, finder: finder), [record2.key]);
 
-        finder = Finder(filter: Filter.equal(Field.value, "hum"));
+        finder = Finder(filter: Filter.equals(Field.value, "hum"));
         snapshots = await store.find(db, finder: finder);
         expect(snapshots, isEmpty);
       });
 
       test('in_transaction', () async {
         await db.transaction((Transaction txn) async {
-          Finder finder = Finder(filter: Filter.equal(Field.value, "hi"));
+          Finder finder = Finder(filter: Filter.equals(Field.value, "hi"));
           var snapshots = await store.find(txn, finder: finder);
           expect(snapshotsRefs(snapshots), [record1]);
           // test the content once, assume it is ok then...
@@ -67,7 +67,7 @@ void defineTests(DatabaseTestContext ctx) {
           var record4 = store.record(4);
           await record4.put(txn, "he");
 
-          finder.filter = Filter.equal(Field.value, "he");
+          finder.filter = Filter.equals(Field.value, "he");
           // Present in transaction
           snapshots = await store.find(txn, finder: finder);
           expect(snapshotsRefs(snapshots), [record4]);
@@ -86,7 +86,7 @@ void defineTests(DatabaseTestContext ctx) {
           await store.record(2).delete(txn);
 
           // Absent in transaction
-          finder.filter = Filter.equal(Field.value, "ho");
+          finder.filter = Filter.equals(Field.value, "ho");
           snapshots = await store.find(txn, finder: finder);
           expect(snapshots, isEmpty);
 

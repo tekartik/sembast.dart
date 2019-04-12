@@ -226,7 +226,7 @@ T getPartsMapRawValue<T>(Map map, Iterable<String> parts) {
   return value as T;
 }
 
-void setPartsMapValue<T>(Map map, List<String> parts, value) {
+void setPartsMapValue<T>(Map map, List<String> parts, T value) {
   for (int i = 0; i < parts.length - 1; i++) {
     String part = parts[i];
     dynamic sub = map[part];
@@ -283,7 +283,7 @@ T getMapFieldRawValue<T>(Map map, String field) {
   return getPartsMapRawValue(map, getFieldParts(field));
 }
 
-void setMapFieldValue(Map map, String field, dynamic value) {
+void setMapFieldValue<T>(Map map, String field, T value) {
   setPartsMapValue(map, getFieldParts(field), value);
 }
 
