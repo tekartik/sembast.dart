@@ -1,6 +1,7 @@
 ## 1.15.2
 
 * Add the ability to escape keys with dot in their names for updates and queries (filter, sort)
+* Fix codec signature check to compare the decrypted value instead of the encrypted one
 
 ## 1.15.1
 

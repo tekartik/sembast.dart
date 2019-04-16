@@ -22,8 +22,8 @@ Supports encryption using user-defined codec.
 A database is a single file represented by a path in the file system
 
 ```dart
-// File path to a file in the same directory than the current script
-String dbPath = join(dirname(Platform.script.toFilePath()), "sample.db");
+// File path to a file in the current directory
+String dbPath = 'sample.db';
 DatabaseFactory dbFactory = databaseFactoryIo;
 
 // We use the database factory to open the database
