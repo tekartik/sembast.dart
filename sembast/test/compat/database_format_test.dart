@@ -9,7 +9,7 @@ import 'package:sembast/src/file_system.dart';
 import 'package:sembast/src/sembast_codec_impl.dart';
 import 'package:sembast/src/sembast_fs.dart';
 
-import 'database_codec_test.dart';
+import 'test_codecs.dart';
 import 'test_common.dart';
 
 void main() {
