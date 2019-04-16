@@ -9,6 +9,7 @@ import 'package:sembast/src/file_system.dart';
 import 'package:sembast/src/sembast_codec_impl.dart';
 import 'package:sembast/src/sembast_fs.dart';
 
+import 'database_codec_test.dart';
 import 'test_common.dart';
 
 void main() {
@@ -46,8 +47,13 @@ void defineTests(FileSystemTestContext ctx, {SembastCodec codec}) {
       var expected = <String, dynamic>{"version": 1, "sembast": 1};
       if (codec != null) {
         expected['codec'] = getCodecEncodedSignature(codec);
+        var map = json.decode(lines.first);
+        expect(getCodecDecodedSignature(codec, map['codec'] as String),
+            {'signature': codec.signature});
       }
-      expect(json.decode(lines.first), expected);
+      if (!(codec?.codec is MyCustomRandomCodec)) {
+        expect(json.decode(lines.first), expected);
+      }
     });
 
     test('open_version_2', () async {
@@ -58,8 +64,13 @@ void defineTests(FileSystemTestContext ctx, {SembastCodec codec}) {
       var expected = <String, dynamic>{"version": 2, "sembast": 1};
       if (codec != null) {
         expected['codec'] = getCodecEncodedSignature(codec);
+        var map = json.decode(lines.first);
+        expect(getCodecDecodedSignature(codec, map['codec'] as String),
+            {'signature': codec.signature});
       }
-      expect(json.decode(lines.first), expected);
+      if (!(codec?.codec is MyCustomRandomCodec)) {
+        expect(json.decode(lines.first), expected);
+      }
     });
 
     dynamic decodeRecord(String line) {
@@ -130,8 +141,13 @@ void defineTests(FileSystemTestContext ctx, {SembastCodec codec}) {
       var expected = <String, dynamic>{"version": 2, "sembast": 1};
       if (codec != null) {
         expected['codec'] = getCodecEncodedSignature(codec);
+        var map = json.decode(lines.first);
+        expect(getCodecDecodedSignature(codec, map['codec'] as String),
+            {'signature': codec.signature});
       }
-      expect(json.decode(lines.first), expected);
+      if (!(codec?.codec is MyCustomRandomCodec)) {
+        expect(json.decode(lines.first), expected);
+      }
       expect(decodeRecord(lines[1]), {'key': 1, 'value': 'hi'});
     });
 
@@ -150,8 +166,13 @@ void defineTests(FileSystemTestContext ctx, {SembastCodec codec}) {
       var expected = <String, dynamic>{"version": 2, "sembast": 1};
       if (codec != null) {
         expected['codec'] = getCodecEncodedSignature(codec);
+        var map = json.decode(lines.first);
+        expect(getCodecDecodedSignature(codec, map['codec'] as String),
+            {'signature': codec.signature});
       }
-      expect(json.decode(lines.first), expected);
+      if (!(codec?.codec is MyCustomRandomCodec)) {
+        expect(json.decode(lines.first), expected);
+      }
       expect(decodeRecord(lines[1]), {'key': 1, 'value': 'hi'});
     });
 
@@ -170,14 +191,27 @@ void defineTests(FileSystemTestContext ctx, {SembastCodec codec}) {
       var expected = <String, dynamic>{"version": 1, "sembast": 1};
       if (codec != null) {
         expected['codec'] = getCodecEncodedSignature(codec);
+        var map = json.decode(lines.first);
+        expect(getCodecDecodedSignature(codec, map['codec'] as String),
+            {'signature': codec.signature});
       }
-      expect(json.decode(lines.first), expected);
+      if (!(codec?.codec is MyCustomRandomCodec)) {
+        expect(json.decode(lines.first), expected);
+      }
 
       var expectedV2 = <String, dynamic>{"version": 2, "sembast": 1};
+
       if (codec != null) {
         expectedV2['codec'] = getCodecEncodedSignature(codec);
+        var line = lines[2];
+        var map = json.decode(line);
+        expect(getCodecDecodedSignature(codec, map['codec'] as String),
+            {'signature': codec.signature});
       }
-      expect(json.decode(lines[2]), expectedV2);
+      if (!(codec?.codec is MyCustomRandomCodec)) {
+        var line = lines[2];
+        expect(json.decode(line), expectedV2);
+      }
 
       await db.close();
 
@@ -189,7 +223,17 @@ void defineTests(FileSystemTestContext ctx, {SembastCodec codec}) {
 
       lines = await readContent(fs, dbPath);
       expect(lines.length, 3);
-      expect(json.decode(lines[0]), expectedV2);
+      if (codec != null) {
+        var line = lines[0];
+        expectedV2['codec'] = getCodecEncodedSignature(codec);
+        var map = json.decode(line);
+        expect(getCodecDecodedSignature(codec, map['codec'] as String),
+            {'signature': codec.signature});
+      }
+      if (!(codec?.codec is MyCustomRandomCodec)) {
+        var line = lines[0];
+        expect(json.decode(line), expectedV2);
+      }
 
       await db.close();
 

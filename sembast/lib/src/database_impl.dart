@@ -659,11 +659,7 @@ class SembastDatabase extends Object
                 meta = Meta.fromMap(map);
 
                 // Check codec signature if any
-                if (getCodecEncodedSignature(options.codec) !=
-                    meta.codecSignature) {
-                  throw DatabaseException.invalidCodec(
-                      'Invalid codec signature');
-                }
+                checkCodecEncodedSignature(options.codec, meta.codecSignature);
                 firstLineRead = true;
                 continue;
               } else {
@@ -708,10 +704,7 @@ class SembastDatabase extends Object
               meta = Meta.fromMap(map);
 
               // Check codec signature if any
-              if (getCodecEncodedSignature(options.codec) !=
-                  meta.codecSignature) {
-                throw DatabaseException.invalidCodec('Invalid codec signature');
-              }
+              checkCodecEncodedSignature(options.codec, meta.codecSignature);
             } else {
               // If a codec is used, we fail
               if (_openMode == DatabaseMode.neverFails &&
