@@ -8,22 +8,36 @@ will greatly improve performances. See information on transaction [here](transac
 The code below use the Database object `db` but the same can be done with a
 `Store` or `Transaction` object
 
-## Writing raw data on the main store
+## Writing data on the main store
 
-You can add a simple data using `put`. Here the key is generated 
-(auto-incremented int)
+### Using auto-generated int key
+
+Add some data:
 
 ```dart
-var key = await db.put('value');
-expect(await db.get(key), 'value');
+// Use the main store for storing map data with an auto-generated
+// int key
+var store = intMapStoreFactory.store();
+
+// Add the data and get its new generated key
+var key = await store.add(db, {'value': 'test'});
+
+// Retrieve the record
+var record = store.record(key);
+var readMap = await record.get(db);
+
+expect(readMap, {'value': 'test'});
 ```
 
-`put` can also ne used to update data
+Update data:
 
 ```dart
-// Updating a string
-await db.put('new value', key);
-expect(await db.get(key), 'new value');
+ // Update the record
+await record.put(db, {'other_value': 'test2'}, merge: true);
+
+readMap = await record.get(db);
+
+expect(readMap, {'value': 'test', 'other_value': 'test2'});
 ```
 
 ## Updating fields

@@ -8,23 +8,26 @@ import 'package:sembast/src/sembast_impl.dart';
 import 'package:sembast/src/store_ref_impl.dart';
 // New in 1.15
 
-/// A pointer to a store
+/// A pointer to a store.
+///
+/// Provides access helper to data on the store using a given [DatabaseClient].
+///
 abstract class StoreRef<K, V> {
   /// The name of the store
   String get name;
 
   /// Create a record reference.
   ///
-  /// Key cannot be null
+  /// Key cannot be null.
   RecordRef<K, V> record(K key);
 
   /// Create a reference to multiple records
   ///
   RecordsRef<K, V> records(Iterable<K> keys);
 
-  /// A null name means a the main store
+  /// A null name means a the main store.
   ///
-  /// A name must not start with _
+  /// A name must not start with `_` (besides the main store).
   factory StoreRef(String name) => SembastStoreRef(name);
 
   /// A pointer to the main store
@@ -68,12 +71,12 @@ abstract class StoreRef<K, V> {
   Stream<RecordSnapshot<K, V>> stream(DatabaseClient client, {Filter filter});
 
   ///
-  /// count records
+  /// count records.
   ///
   Future<int> count(DatabaseClient client, {Filter filter});
 
   ///
-  /// Add a record, returns its generated int key
+  /// Add a record, returns its generated key.
   ///
   Future<K> add(DatabaseClient client, V value);
 
