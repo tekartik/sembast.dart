@@ -99,6 +99,16 @@ void defineTests(DatabaseTestContext ctx) {
         expect(records.length, 2);
         expect(records[0]['name'], 'dog');
         expect(records[1]['name'], 'fish');
+
+        // Find the first record matching the finder
+        var record = await store.findFirst(db, finder: finder);
+        // Get the record id
+        var recordId = record.key;
+        // Get the record value
+        var recordValue = record.value;
+
+        expect(recordId, 3);
+        expect(recordValue, {'name': 'dog'});
       }
 
       {

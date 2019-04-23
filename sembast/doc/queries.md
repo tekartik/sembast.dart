@@ -44,6 +44,19 @@ expect(records[0]['name'], 'dog');
 expect(records[1]['name'], 'fish');
 ```
 
+## Finding first
+
+You can limit your query to the first element found
+
+```dart
+// Find the first record matching the finder
+var record = await store.findFirst(db, finder: finder);
+// Get the record id
+var recordId = record.key;
+// Get the record value
+var recordValue = record.value;
+```
+
 ### Sorting by key
 
 Records can be sorted by key using the special `Field.key` field:
