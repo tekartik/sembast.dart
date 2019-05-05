@@ -1,5 +1,6 @@
 import 'package:sembast/sembast.dart';
 import 'package:sembast/src/record_snapshot_impl.dart';
+import 'package:sembast/src/utils.dart';
 
 import 'test_common.dart';
 
@@ -24,13 +25,16 @@ void defineTests(DatabaseTestContext ctx) {
 
   test('read-only', () async {
     var record = storeFactory.store('test').record(1);
-    var snapshot = SembastRecordSnapshot(record, <String, dynamic>{
-      'test': {'sub': 1}
-    });
-    //expect(snapshot.ref.store.name, 'test');
-    //expect(snapshot.ref.key, 1);
-    //expect(snapshot.value, <String, dynamic>{'test': 1});
-    (snapshot['test'] as Map)['sub'] = 2;
+    var snapshot = SembastRecordSnapshot(
+        record,
+        ImmutableMap(<String, dynamic>{
+          'test': {'sub': 1}
+        }));
+    try {
+      (snapshot['test'] as Map)['sub'] = 2;
+      fail('should fail');
+    } on StateError catch (_) {}
+
     expect(snapshot.value, <String, dynamic>{
       'test': {'sub': 1}
     });
