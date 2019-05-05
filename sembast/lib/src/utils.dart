@@ -178,6 +178,7 @@ class ImmutableList<E> extends ListBase<E> {
 
 class ImmutableMap<K, V> extends MapBase<K, V> {
   final Map<K, V> _map;
+
   Map<K, V> get rawMap => _map;
 
   ImmutableMap(Map map) : _map = map.cast<K, V>();

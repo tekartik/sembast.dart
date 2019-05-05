@@ -2,9 +2,10 @@ library sembast.memory_file_system_impl_test;
 
 // basically same as the io runner but with extra output
 //import 'package:tekartik_test/test_config.dart';
-import 'package:sembast/src/memory/file_system_memory_impl.dart';
-import 'package:sembast/src/file_system.dart';
 import 'package:path/path.dart';
+import 'package:sembast/src/file_system.dart';
+import 'package:sembast/src/memory/file_system_memory_impl.dart';
+
 import 'test_common.dart';
 
 void main() {

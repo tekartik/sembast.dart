@@ -2,6 +2,7 @@ library sembast.compat.crud_test;
 
 // basically same as the io runner but with extra output
 import 'package:sembast/sembast.dart';
+
 import 'test_common.dart';
 
 void main() {

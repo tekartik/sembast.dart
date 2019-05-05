@@ -2,7 +2,9 @@ library sembast.value_test;
 
 // basically same as the io runner but with extra output
 import 'dart:async';
+
 import 'package:sembast/sembast.dart';
+
 import 'test_common.dart';
 
 void main() {

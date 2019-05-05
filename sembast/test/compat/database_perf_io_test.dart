@@ -6,8 +6,8 @@ import 'dart:io';
 
 import 'package:path/path.dart';
 import 'package:sembast/sembast.dart';
-import 'package:test/test.dart';
 import 'package:sembast/sembast_io.dart';
+import 'package:test/test.dart';
 
 void main() {
   test('perf', () async {

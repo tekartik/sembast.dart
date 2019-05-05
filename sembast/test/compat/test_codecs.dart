@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'dart:math';
 
 class MyJsonEncoder extends Converter<Map<String, dynamic>, String> {

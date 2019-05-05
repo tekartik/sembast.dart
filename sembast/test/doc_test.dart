@@ -1,6 +1,7 @@
 library sembast.doc_test;
 
 import 'package:sembast/src/api/sembast.dart';
+import 'package:sembast/utils/value_utils.dart';
 
 import 'compat/doc_test.dart';
 import 'test_common.dart';
@@ -124,6 +125,22 @@ void defineTests(DatabaseTestContext ctx) {
         });
 
         // Read by key
+        var value = await store.record(key1).get(db);
+
+        // read values are immutable/read-only. If you want to modify it you
+        // should clone it first
+
+        // the following will throw an exception
+        try {
+          value['name'] = 'nice fish';
+          throw 'should fail';
+        } on StateError catch (_) {}
+
+        // clone the resulting map for modification
+        var map = cloneMap(value);
+        map['name'] = 'nice fish';
+
+        // existing remain un changed
         expect(await store.record(key1).get(db), {'name': 'fish'});
 
 // Read 2 records by key
@@ -156,6 +173,17 @@ void defineTests(DatabaseTestContext ctx) {
               sortOrders: [SortOrder('name', true)],
               start: Boundary(values: ['cat']));
           var record = await store.findFirst(db, finder: finder);
+          expect(record['name'], 'dog');
+
+          record = await store.findFirst(db, finder: finder);
+
+          // record snapshot are read-only.
+          // If you want to modify it you should clone it
+          var map = cloneMap(record.value);
+          map['name'] = 'nice dog';
+
+          // existing remains unchanged
+          record = await store.findFirst(db, finder: finder);
           expect(record['name'], 'dog');
         }
         {

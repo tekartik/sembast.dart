@@ -2,6 +2,7 @@ library sembast.store_test;
 
 // basically same as the io runner but with extra output
 import 'package:sembast/src/api/sembast.dart';
+
 import 'test_common.dart';
 
 void main() {
@@ -84,6 +85,32 @@ void defineTests(DatabaseTestContext ctx) {
       await store.record(2).put(db, "hi");
       expect((await records.get(db)), [null, "hi"]);
       expect((await records.getSnapshots(db)).last.value, 'hi');
+    });
+
+    test('read_only', () async {
+      var store = intMapStoreFactory.store("test");
+      var record = store.record(1);
+      await record.put(db, {
+        'test': {'sub': 1}
+      });
+      var snapshot = await store.findFirst(db);
+      expect(snapshot.value, {
+        'test': {'sub': 1}
+      });
+      try {
+        (snapshot.value['test'] as Map)['sub'] = 2;
+        fail('should fail');
+      } on StateError catch (_) {}
+
+      try {
+        (Map.from(snapshot.value)['test'] as Map)['sub'] = 2;
+
+        fail('should fail');
+      } on StateError catch (_) {}
+
+      expect(snapshot.value, {
+        'test': {'sub': 1}
+      });
     });
   });
 }

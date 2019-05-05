@@ -4,10 +4,12 @@ library sembast.src_filter_test;
 //import 'package:tekartik_test/test_config.dart';
 import 'package:sembast/sembast.dart';
 import 'package:sembast/src/filter_impl.dart' show filterMatchesRecord;
+
 import 'test_common.dart';
 
 var store = StoreRef.main();
 var record = store.record(1);
+
 RecordSnapshot snapshot(dynamic value) => record.snapshot(value);
 
 bool _match(Filter filter, dynamic value) {

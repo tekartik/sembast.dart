@@ -21,4 +21,18 @@ void defineTests(DatabaseTestContext ctx) {
     expect(snapshot.ref.key, 1);
     expect(snapshot.value, <String, dynamic>{'test': 1});
   });
+
+  test('read-only', () async {
+    var record = storeFactory.store('test').record(1);
+    var snapshot = SembastRecordSnapshot(record, <String, dynamic>{
+      'test': {'sub': 1}
+    });
+    //expect(snapshot.ref.store.name, 'test');
+    //expect(snapshot.ref.key, 1);
+    //expect(snapshot.value, <String, dynamic>{'test': 1});
+    (snapshot['test'] as Map)['sub'] = 2;
+    expect(snapshot.value, <String, dynamic>{
+      'test': {'sub': 1}
+    });
+  });
 }

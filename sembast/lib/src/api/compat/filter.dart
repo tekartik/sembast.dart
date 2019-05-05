@@ -1,8 +1,8 @@
 import 'package:sembast/src/api/compat/record.dart';
 import 'package:sembast/src/api/field.dart';
 import 'package:sembast/src/api/filter.dart';
-import 'package:sembast/src/record_snapshot_impl.dart';
 import 'package:sembast/src/filter_impl.dart';
+import 'package:sembast/src/record_snapshot_impl.dart';
 
 /// @deprecated v2
 @deprecated

@@ -3,6 +3,7 @@ library sembast.key_test;
 // basically same as the io runner but with extra output
 import 'package:sembast/src/api/sembast.dart';
 import 'package:sembast/src/store_impl.dart';
+
 import 'test_common.dart';
 
 void main() {
