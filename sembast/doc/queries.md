@@ -27,6 +27,30 @@ expect(records[1], {'name': 'dog'});
 ```
  
 
+## Modify a read result
+
+Records you get are immutable/read-only. When using map, it you want to use the resulting map as a base for a 
+new object for modification and creation, you should first clone the value:
+
+```dart
+import 'package:sembast/utils/value_utils.dart';
+
+ // Read by key
+var value = await store.record(key1).get(db);
+
+// read values are immutable/read-only. If you want to modify it you
+// should clone it first
+
+// the following will throw an exception
+value['name'] = 'nice fish'; // Will throw!
+
+// clone the resulting map for modification
+var map = cloneMap(value);
+map['name'] = 'nice fish';
+
+// map is ready to be stored
+```
+
 ## Filtering and sorting
 
 Filtering and sorting can be done on any field
@@ -55,6 +79,25 @@ var record = await store.findFirst(db, finder: finder);
 var recordId = record.key;
 // Get the record value
 var recordValue = record.value;
+```
+
+## Modify a record found
+
+Records you get are immutable/read-only. When using map, it you want to use the resulting map as a base for a 
+new object for modification and creation, you should first clone the value:
+
+```dart
+import 'package:sembast/utils/value_utils.dart';
+
+// find a record
+var record = await store.findFirst(db, finder: finder);
+          
+// record snapshot are read-only. 
+// If you want to modify it you should clone it
+var map = cloneMap(record.value);
+map['name'] = 'nice dog';
+
+// map is ready to be stored
 ```
 
 ### Sorting by key
