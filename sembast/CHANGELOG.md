@@ -1,3 +1,7 @@
+## 1.15.3
+
+* Add `cloneMap` utility to allow modifying a read record
+
 ## 1.15.2
 
 * Add the ability to escape keys with dot in their names for updates and queries (filter, sort)
