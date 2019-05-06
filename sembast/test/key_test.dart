@@ -10,8 +10,6 @@ void main() {
   defineTests(memoryDatabaseContext);
 }
 
-bool get _isJavascriptVm => identical(1.0, 1);
-
 void defineTests(DatabaseTestContext ctx) {
   group('key', () {
     Database db;
@@ -39,7 +37,7 @@ void defineTests(DatabaseTestContext ctx) {
       expect(await store.record(2.0).get(db), "test");
       // next will increment (or restart from 1 in js
       int intKey = await store.add(db, "test") as int;
-      if (_isJavascriptVm) {
+      if (isJavascriptVm) {
         expect(intKey, 3);
       } else {
         expect(intKey, 1);
@@ -84,7 +82,7 @@ void defineTests(DatabaseTestContext ctx) {
       expect(await store.record(1.2).get(db), "test");
       try {
         var key = await store.add(db, 'test');
-        if (_isJavascriptVm) {
+        if (isJavascriptVm) {
           expect(key, 1);
         } else {
           fail('should fail');

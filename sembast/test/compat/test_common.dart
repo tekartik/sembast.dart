@@ -118,3 +118,6 @@ Future<int> getExistingDatabaseVersion(
   await db.close();
   return version;
 }
+
+/// True on the browser
+bool get isJavascriptVm => identical(1.0, 1);

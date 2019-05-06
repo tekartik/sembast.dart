@@ -200,11 +200,19 @@ void defineTests(DatabaseTestContext ctx) {
         var key = await store.add(db, 1);
         var record = store.record(key);
         expect(await record.get(db), 1);
-        expect((await store.findFirst(db)).value, 1);
+
+        double value = (await store.findFirst(db)).value;
+        expect(value, 1);
+        if (!isJavascriptVm) {
+          expect(value.runtimeType, double);
+        }
         await db.close();
         db = await ctx.factory.openDatabase(db.path);
-        expect((await store.findFirst(db)).value, 1);
-        expect((await store.findFirst(db)).value.runtimeType, double);
+        value = (await store.findFirst(db)).value;
+        expect(value, 1);
+        if (!isJavascriptVm) {
+          expect(value.runtimeType, double);
+        }
       });
     });
 

@@ -4,8 +4,7 @@ library sembast.utils_test;
 import 'package:sembast/sembast.dart';
 import 'package:sembast/src/utils.dart';
 import 'package:test/test.dart';
-
-//import 'test_common.dart';
+import 'test_common.dart' show isJavascriptVm;
 
 void main() {
   group('utils', () {
@@ -44,6 +43,13 @@ void main() {
         sanitizeInputValue<List<int>>(list);
         fail('should fail');
       } on ArgumentError catch (_) {}
+    });
+
+    test('sanitize_int_as_double', () {
+      double value = sanitizeInputValue<double>(1);
+      if (!isJavascriptVm) {
+        expect(value.runtimeType, double);
+      }
     });
 
     test('convert_map', () {});
