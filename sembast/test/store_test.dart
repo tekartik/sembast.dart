@@ -124,6 +124,53 @@ void defineTests(DatabaseTestContext ctx) {
       });
     });
 
+    group('value_map', () {
+      test('add', () async {
+        // this is ok too
+        final store = StoreRef<String, Map<String, dynamic>>.main();
+        var innerMap = {'sub': 1};
+        var map = {'test': innerMap};
+        var key = await store.add(db, map);
+        var record = store.record(key);
+        expect(await record.get(db), {
+          'test': {'sub': 1}
+        });
+        innerMap['sub'] = 2;
+        expect(await record.get(db), {
+          'test': {'sub': 1}
+        });
+      });
+
+      test('type', () async {
+        final store = StoreRef<String, Map<String, dynamic>>.main();
+        var map = {
+          'int': 1,
+          'double': 0.1,
+          'String': 'text',
+          'List': [1],
+          'Map': {'sub': 1}
+        };
+        var key = await store.add(db, map);
+        var record = store.record(key);
+        expect(await record.get(db), {
+          'int': 1,
+          'double': 0.1,
+          'String': 'text',
+          'List': [1],
+          'Map': {'sub': 1}
+        });
+      });
+
+      test('datetime', () async {
+        final store = StoreRef<String, Map<String, dynamic>>.main();
+        var map = {'dateTime': DateTime.now()};
+        try {
+          await store.add(db, map);
+          fail('should have failed');
+        } on ArgumentError catch (_) {}
+      });
+    });
+
     group('value_bool', () {
       test('add', () async {
         // this is ok too
@@ -150,10 +197,14 @@ void defineTests(DatabaseTestContext ctx) {
       test('add', () async {
         // this is ok too
         final store = StoreRef<String, double>.main();
-        var key = await store.add(db, 0.1);
+        var key = await store.add(db, 1);
         var record = store.record(key);
-        expect(await record.get(db), 0.1);
-        expect((await store.findFirst(db)).value, 0.1);
+        expect(await record.get(db), 1);
+        expect((await store.findFirst(db)).value, 1);
+        await db.close();
+        db = await ctx.factory.openDatabase(db.path);
+        expect((await store.findFirst(db)).value, 1);
+        expect((await store.findFirst(db)).value.runtimeType, double);
       });
     });
 

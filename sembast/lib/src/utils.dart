@@ -172,7 +172,7 @@ dynamic cloneValue(dynamic value) {
     return value;
   }
   throw ArgumentError(
-      "value ${value} not supported${value != null ? ' type:${value.runtimeType}' : ''}");
+      "value ${value} unsupported${value != null ? ' type ${value.runtimeType}' : ''}");
 }
 
 dynamic immutableValue(dynamic value) {
