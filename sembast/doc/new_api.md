@@ -78,7 +78,7 @@ var value = await store.findFirst(db, finder: finder);
 
 ## Supported types
 
-`StoreRef<K, V>` supports the following declared types for keys (`K`) and values (`V`)
+`StoreRef<K, V>` supports the following declared types for keys (`K`) and values (`V`).
 
 ### Keys
 
@@ -91,7 +91,7 @@ Supported declared key types:
 Map must be explicitly of type `Map<String, dynamic>`. This is the most commonly used typed for saving a record with
 multiple fields.
 
-Supported value types are:
+Supported declared value types are:
 - String
 - int
 - num
