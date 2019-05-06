@@ -46,7 +46,7 @@ void main() {
     });
 
     test('sanitize_int_as_double', () {
-      double value = sanitizeInputValue<double>(1);
+      double value = sanitizeInputValue<double>(1.toDouble());
       if (!isJavascriptVm) {
         expect(value.runtimeType, double);
       }
