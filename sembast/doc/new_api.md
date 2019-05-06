@@ -75,3 +75,28 @@ var value = record.value as Map<String, dynamic>;
 var value = await store.findFirst(db, finder: finder);
 
 ```
+
+## Supported types
+
+`StoreRef<K, V>` supports the following declared types for keys (`K`) and values (`V`)
+
+### Keys
+
+Supported declared key types:
+- `int` (default with autoincrement when no key are passed)
+- `String` (String keys can also be generated à la firestore)
+
+#### Values
+
+Map must be explicitly of type `Map<String, dynamic>`. This is the most commonly used typed for saving a record with
+multiple fields.
+
+Supported value types are:
+- String
+- int
+- num
+- double
+- bool
+- `Map<String, dynamic>`
+- `List<dynamic>`
+

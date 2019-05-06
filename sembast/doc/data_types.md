@@ -20,6 +20,8 @@ Supported value types are:
 - bool
 - `null`
 
+Using the Store API, Map must be of type `Map<String, dynamic>`.
+
 ## Keys and map keys
 
 In general prefer ASCII keys.

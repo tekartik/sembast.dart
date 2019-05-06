@@ -6,6 +6,7 @@ import 'package:sembast/src/database_client_impl.dart';
 import 'package:sembast/src/record_ref_impl.dart';
 import 'package:sembast/src/record_snapshot_impl.dart';
 import 'package:sembast/src/records_ref_impl.dart';
+import 'package:sembast/src/utils.dart';
 
 class SembastStoreRef<K, V> with StoreRefMixin<K, V> {
   SembastStoreRef(String name) {
@@ -61,6 +62,7 @@ mixin StoreRefMixin<K, V> implements StoreRef<K, V> {
   @override
   Future<K> add(DatabaseClient databaseClient, V value) async {
     final client = getClient(databaseClient);
+    value = sanitizeInputValue<V>(value);
     return await client.inTransaction((txn) {
       return client
           .getSembastStore(this)
@@ -151,9 +153,11 @@ mixin StoreRefMixin<K, V> implements StoreRef<K, V> {
     });
   }
 
+  /// Value is sanitized first
   @override
   Future<int> update(DatabaseClient databaseClient, V value, {Finder finder}) {
     final client = getClient(databaseClient);
+    value = sanitizeInputValue<V>(value);
     return client.inTransaction((txn) async {
       return (await client
               .getSembastStore(this)

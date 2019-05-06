@@ -112,5 +112,122 @@ void defineTests(DatabaseTestContext ctx) {
         'test': {'sub': 1}
       });
     });
+
+    group('value_int', () {
+      test('add', () async {
+        // this is ok too
+        final store = StoreRef<String, int>.main();
+        var key = await store.add(db, 1);
+        var record = store.record(key);
+        expect(await record.get(db), 1);
+        expect((await store.findFirst(db)).value, 1);
+      });
+    });
+
+    group('value_bool', () {
+      test('add', () async {
+        // this is ok too
+        final store = StoreRef<String, bool>.main();
+        var key = await store.add(db, true);
+        var record = store.record(key);
+        expect(await record.get(db), true);
+        expect((await store.findFirst(db)).value, true);
+      });
+    });
+
+    group('value_string', () {
+      test('add', () async {
+        // this is ok too
+        final store = StoreRef<String, String>.main();
+        var key = await store.add(db, 'test');
+        var record = store.record(key);
+        expect(await record.get(db), 'test');
+        expect((await store.findFirst(db)).value, 'test');
+      });
+    });
+
+    group('value_double', () {
+      test('add', () async {
+        // this is ok too
+        final store = StoreRef<String, double>.main();
+        var key = await store.add(db, 0.1);
+        var record = store.record(key);
+        expect(await record.get(db), 0.1);
+        expect((await store.findFirst(db)).value, 0.1);
+      });
+    });
+
+    group('value_num', () {
+      test('add', () async {
+        // this is ok too
+        final store = StoreRef<String, num>.main();
+        var key = await store.add(db, 0.1);
+        var record = store.record(key);
+        expect(await record.get(db), 0.1);
+
+        var key2 = await store.add(db, 1);
+        var record2 = store.record(key2);
+        expect(await record2.get(db), 1);
+
+        expect((await store.findFirst(db)).value, 0.1);
+      });
+    });
+
+    group('map_string_string', () {
+      test('add', () async {
+        final store = StoreRef<String, Map<String, String>>.main();
+        try {
+          await store.add(db, {'test': 'value'});
+          fail('should fail');
+        } on ArgumentError catch (_) {}
+
+        try {
+          await store.update(db, {'test': 'value'});
+          fail('should fail');
+        } on ArgumentError catch (_) {}
+
+        var record = store.record('1');
+        try {
+          await record.put(db, {'test': 'value'});
+          fail('should fail');
+        } on ArgumentError catch (_) {}
+
+        try {
+          await record.update(db, {'test': 'value'});
+          fail('should fail');
+        } on ArgumentError catch (_) {}
+      });
+    });
+
+    group('map_dynamic_dynamic', () {
+      test('add', () async {
+        // this is ok too
+        final store = StoreRef<String, Map<dynamic, dynamic>>.main();
+        var key = await store.add(db, {'test': 'value'});
+        var record = store.record(key);
+
+        await record.get(db);
+      });
+    });
+
+    group('list', () {
+      test('add', () async {
+        final store = StoreRef<int, List>.main();
+        var key = await store.add(db, [1]);
+        var record = store.record(key);
+        List list = await record.get(db);
+        expect(list, [1]);
+      });
+    });
+
+    group('list_string', () {
+      test('add', () async {
+        final store = StoreRef<int, List<String>>.main();
+        try {
+          await store.add(db, ['1']);
+          fail('should fail');
+        } on ArgumentError catch (_) {}
+      });
+    });
   });
 }

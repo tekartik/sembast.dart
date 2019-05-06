@@ -238,8 +238,8 @@ Supported key types are:
 Supported value types are:
 - String.
 - num (int and double)
-- Map
-- List
+- Map (`Map<String, dynamic>`)
+- List (`List<dynamic>`)
 - bool
 - `null`
 

@@ -6,6 +6,32 @@ import 'package:sembast/src/record_impl.dart';
 
 final backtickChrCode = '`'.codeUnitAt(0);
 
+/// Sanitized an input value for the store
+V sanitizeInputValue<V>(dynamic value) {
+  if (value == null) {
+    return null;
+  } else if (value is num || value is String || value is bool) {
+    return value as V;
+  } else if (value is List) {
+    try {
+      return value.cast<dynamic>() as V;
+    } catch (e) {
+      throw ArgumentError.value(value, 'type $V not supported',
+          'List must be of type List<dynamic> for type ${value.runtimeType} value $value');
+    }
+  } else if (value is Map) {
+    try {
+      // We force the value map type for easy usage
+      return value.cast<String, dynamic>() as V;
+    } catch (e) {
+      throw ArgumentError.value(value, 'type $V not supported',
+          'Map must be of type Map<String, dynamic> for type ${value.runtimeType} value $value');
+    }
+  }
+  throw ArgumentError.value(
+      value, null, "type ${value.runtimeType} not supported");
+}
+
 dynamic sanitizeValue(value) {
   if (value == null) {
     return null;

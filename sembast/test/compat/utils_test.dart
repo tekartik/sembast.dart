@@ -15,6 +15,37 @@ void main() {
       expect(sanitizedMap, map);
     });
 
+    test('sanitize_input_map', () {
+      var map = <dynamic, dynamic>{"test": 1};
+      Map<String, dynamic> sanitizedMap =
+          sanitizeInputValue<Map<String, dynamic>>(map);
+      sanitizeInputValue<Map<String, Object>>(map);
+      expect(sanitizedMap, map);
+      try {
+        sanitizeInputValue<Map<String, String>>(map);
+        fail('should fail');
+      } on ArgumentError catch (_) {}
+      try {
+        sanitizeInputValue<Map<String, int>>(map);
+        fail('should fail');
+      } on ArgumentError catch (_) {}
+    });
+
+    test('sanitize_input_list', () {
+      var list = <dynamic>[1];
+      List sanitizedList = sanitizeInputValue<List<dynamic>>(list);
+      sanitizeInputValue<List<Object>>(list);
+      expect(sanitizedList, list);
+      try {
+        sanitizeInputValue<List<String>>(list);
+        fail('should fail');
+      } on ArgumentError catch (_) {}
+      try {
+        sanitizeInputValue<List<int>>(list);
+        fail('should fail');
+      } on ArgumentError catch (_) {}
+    });
+
     test('convert_map', () {});
 
     test('cloneValue', () {
