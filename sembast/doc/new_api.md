@@ -48,12 +48,21 @@ var value = record.value as Map<String, dynamic>;
 
 #### After
 
+Put/Get using an auto-generated key:
+
 ```dart
- // Lint warnings will warn you if you try to use different types
+// Lint warnings will warn you if you try to use different types
 var store = intMapStoreFactory.store();
+// autogenerate a key
 var key = await store.add(db, {'offline': true});
 var value = await store.record(key).get(db);
+```
 
+Create a record with a given key:
+```dart
+// specify a key
+key = 1234;
+await store.record(key).put(db, {'offline': true});
 ```
 
 ### Find

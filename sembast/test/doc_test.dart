@@ -76,6 +76,10 @@ void defineTests(DatabaseTestContext ctx) {
         var key = await store.add(db, {'offline': true});
         var value = await store.record(key).get(db);
 
+        // specify a key
+        key = 1234;
+        await store.record(key).put(db, {'offline': true});
+
         unused(value);
       }
 
