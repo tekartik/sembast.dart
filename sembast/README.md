@@ -137,7 +137,7 @@ await db.transaction((txn) async {
 
 Filtering and sorting can be done on any field
 
-More information [here](https://github.com/tekartik/sembast.dart/blob/master/sembast/doc/queries.md)
+More information [here](https://github.com/tekartik/sembast.dart/blob/master/sembast/doc/queries.md).
 
 ```dart
  // Use the animals store using Map records with int keys
@@ -179,7 +179,7 @@ Database db = await factory.openDatabase(dbPath, codec: codec);
 
 ```
 
-More information [here](https://github.com/tekartik/sembast.dart/blob/master/sembast/doc/codec.md)
+More information [here](https://github.com/tekartik/sembast.dart/blob/master/sembast/doc/codec.md).
 
 ### idb_shim
 
@@ -221,6 +221,8 @@ Data is stored in a text file where each line is (json format) either:
 Each data written is appended lazily to the file for best performance. Compact might happen at any moment
 to prevent record duplication. The whole compact information is done in a new file
 followed by a rename to make it atomic.
+
+More information [here](https://github.com/tekartik/sembast.dart/blob/master/sembast/doc/storage_format.md).
 
 ### Supported types
 

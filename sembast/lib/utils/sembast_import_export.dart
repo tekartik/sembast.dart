@@ -14,11 +14,11 @@ const String _values = "values"; // list
 const int _exportSignatureVersion = 1;
 
 ///
-/// Return the data in an exported format that (can be JSONify)
+/// Return the data in an exported format that (can be JSONified).
 ///
-Future<Map> exportDatabase(Database db) {
+Future<Map<String, dynamic>> exportDatabase(Database db) {
   return db.transaction((txn) async {
-    Map export = {
+    var export = <String, dynamic>{
       // our export signature
       _exportSignatureKey: _exportSignatureVersion,
       // the db version

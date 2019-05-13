@@ -17,7 +17,7 @@ void defineTests(DatabaseTestContext ctx) {
     tearDown(() {});
 
     Future _checkExportImport(Database db, Map expectedExport) async {
-      var export = await exportDatabase(db);
+      Map<String, dynamic> export = await exportDatabase(db);
       expect(export, expectedExport);
       await db.close();
 
@@ -31,7 +31,7 @@ void defineTests(DatabaseTestContext ctx) {
 
       // json round trip and export
       var jsonExport = json.encode(export);
-      export = json.decode(jsonExport) as Map;
+      export = (json.decode(jsonExport) as Map)?.cast<String, dynamic>();
       importedDb = await importDatabase(export, ctx.factory, importDbPath);
       expect(await exportDatabase(importedDb), expectedExport);
     }

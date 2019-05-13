@@ -1,6 +1,10 @@
 library sembast.doc_test;
 
+import 'dart:convert';
+
 import 'package:sembast/src/api/sembast.dart';
+import 'package:sembast/src/memory/database_factory_memory.dart';
+import 'package:sembast/utils/sembast_import_export.dart';
 import 'package:sembast/utils/value_utils.dart';
 
 import 'compat/doc_test.dart';
@@ -217,6 +221,60 @@ void defineTests(DatabaseTestContext ctx) {
           // After the lamp the more expensive one is the Table
           expect(record['name'], 'Table');
         }
+      }
+    });
+    test('new_1.15 shop_file_format', () async {
+      db = await setupForTest(ctx);
+      {
+// Our shop store sample data
+        var store = intMapStoreFactory.store('shop');
+
+        int lampKey;
+        int chairKey;
+        await db.transaction((txn) async {
+          // Add 2 records
+          lampKey = await store.add(txn, {'name': 'Lamp', 'price': 10});
+          chairKey = await store.add(txn, {'name': 'Chair', 'price': 15});
+        });
+
+// update the price of the lamp record
+        await store.record(lampKey).put(db, {'price': 12}, merge: true);
+
+        // Avoid unused warning that make the code easier-to read
+        expect(chairKey, 2);
+
+        var content = await exportDatabase(db);
+        expect(
+            content,
+            {
+              "sembast_export": 1,
+              "version": 1,
+              "stores": [
+                {
+                  "name": "shop",
+                  "keys": [1, 2],
+                  "values": [
+                    {"name": "Lamp", "price": 12},
+                    {"name": "Chair", "price": 15}
+                  ]
+                }
+              ]
+            },
+            reason: jsonEncode(content));
+
+        // Save as text
+        var saved = jsonEncode(content);
+
+        // await db.close();
+        var databaseFactory = databaseFactoryMemory;
+
+        // Import the data
+        var map = jsonDecode(saved) as Map;
+        var importedDb =
+            await importDatabase(map, databaseFactory, 'imported.db');
+
+        // Check the lamp price
+        expect((await store.record(lampKey).get(importedDb))['price'], 12);
       }
     });
   });
