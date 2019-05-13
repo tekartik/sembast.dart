@@ -47,7 +47,7 @@ this:
 
 ```dart
 // Writing a map
-var key = await store.add({
+var key = await store.add(db, {
   'name': 'Felix',
   'age': 4,
   'address': {'city': 'Ledignan'}
@@ -60,11 +60,12 @@ using the `a.b.c` form instead of `'a':{'b':{'c'}}`
 
 
 ```dart
+var record = store.record(key);
  // Updating some fields
 await record.update(db,
-  {'color': FieldValue.delete, 'address.city': 'San Francisco'}, key);
+  {'color': FieldValue.delete, 'address.city': 'San Francisco'});
 expect(await record.get(db), {
-  'name': 'cat',
+  'name': 'Felix',
   'age': 4,
   'address': {'city': 'San Francisco'}
 });
@@ -75,6 +76,26 @@ can escape them using `FieldKey.escape`
 
 ```dart
 await record.update(db, {FieldKey.escape('my.color'): 'red'});
+```
+
+## Write example
+
+Let's insert/update some data:
+
+```dart
+// Our shop store sample data
+var store = intMapStoreFactory.store('shop');
+
+int lampKey;
+int chairKey;
+await db.transaction((txn) async {
+  // Add 2 records
+  lampKey = await store.add(txn, {'name': 'Lamp', 'price': 10});
+  chairKey = await store.add(txn, {'name': 'Chair', 'price': 15});
+});
+
+// update the price of the lamp record
+await store.record(lampKey).update(db, {'price': 12});
 ```
 
 ## Bulk update

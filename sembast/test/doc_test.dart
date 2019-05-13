@@ -226,7 +226,7 @@ void defineTests(DatabaseTestContext ctx) {
     test('new_1.15 shop_file_format', () async {
       db = await setupForTest(ctx);
       {
-// Our shop store sample data
+        // Our shop store sample data
         var store = intMapStoreFactory.store('shop');
 
         int lampKey;
@@ -237,8 +237,8 @@ void defineTests(DatabaseTestContext ctx) {
           chairKey = await store.add(txn, {'name': 'Chair', 'price': 15});
         });
 
-// update the price of the lamp record
-        await store.record(lampKey).put(db, {'price': 12}, merge: true);
+        // update the price of the lamp record
+        await store.record(lampKey).update(db, {'price': 12});
 
         // Avoid unused warning that make the code easier-to read
         expect(chairKey, 2);

@@ -48,7 +48,7 @@ await db.transaction((txn) async {
 });
 
 // update the price of the lamp record
-await store.record(lampKey).put(db, {'price': 12}, merge: true);
+await store.record(lampKey).update(db, {'price': 12});
 ```
 If you look at the file stored you might see content like this
 
