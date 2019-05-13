@@ -788,6 +788,15 @@ class SembastDatabase extends Object
 
   DatabaseExportStat _exportStat;
 
+  /// Basic algorithm to tell whether the storage file must be updated
+  /// (compacted) or not.
+  ///
+  /// It has to be fast and compacting has a cost so good not to do it too
+  /// often.
+  ///
+  /// As of v1 the rule is following:
+  /// * There are at least 6 records
+  /// * There are 20% of obsolete lines to delete
   bool get _needCompact {
     return (_exportStat.obsoleteLineCount > 5 &&
         (_exportStat.obsoleteLineCount / _exportStat.lineCount > 0.20));

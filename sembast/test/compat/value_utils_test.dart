@@ -56,28 +56,28 @@ void main() {
     });
 
     test('equals', () {
-      // ignore: deprecated_member_use_from_same_package
+      // ignore: deprecated_member_use, deprecated_member_use_from_same_package
       expect(utils.equals(0, 0), isTrue);
-      // ignore: deprecated_member_use_from_same_package
+      // ignore: deprecated_member_use, deprecated_member_use_from_same_package
       expect(utils.equals(0, 1), isFalse);
 
       // array
-      // ignore: deprecated_member_use_from_same_package
+      // ignore: deprecated_member_use, deprecated_member_use_from_same_package
       expect(utils.equals([0], [0]), isTrue);
     });
 
     test('lessThen', () {
-      // ignore: deprecated_member_use_from_same_package
+      // ignore: deprecated_member_use, deprecated_member_use_from_same_package
       expect(utils.lessThan(0, 1), isTrue);
-      // ignore: deprecated_member_use_from_same_package
+      // ignore: deprecated_member_use, deprecated_member_use_from_same_package
       expect(utils.lessThan(0, 0), isFalse);
 
       // array
-      // ignore: deprecated_member_use_from_same_package
+      // ignore: deprecated_member_use, deprecated_member_use_from_same_package
       expect(utils.lessThan([0], [1]), isTrue);
-      // ignore: deprecated_member_use_from_same_package
+      // ignore: deprecated_member_use, deprecated_member_use_from_same_package
       expect(utils.lessThan([0], [0, 0]), isTrue);
-      // ignore: deprecated_member_use_from_same_package
+      // ignore: deprecated_member_use, deprecated_member_use_from_same_package
       expect(utils.lessThan([0], [0]), isFalse);
     });
   });
