@@ -29,11 +29,11 @@ Practically I would say that the overhead in size should max at 20%.
 
 There are methods to import/export the database.
 As of v1, the export is a jsonified Map (not optimized). Application should not rely on the inner format of 
-the exported data that should be only be consumed as a Map by `importDatabase`.
+the exported data that should only be consumed as a Map by `importDatabase`.
 
 ## Example
 
-Let's take insert some data:
+Let's insert/update some data:
 
 ```dart
 // Our shop store sample data
