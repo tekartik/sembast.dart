@@ -1,4 +1,8 @@
-## 1.15.3+1
+## 1.15.4
+
+* Fix inner map merging when updating a record
+
+## 1.15.3
 
 * Enforce `Map<String, dynamic>` for maps in the store API
 * Add `cloneMap` utility to allow modifying a read record
