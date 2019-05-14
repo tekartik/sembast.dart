@@ -1,4 +1,4 @@
-library sembast.value_test;
+library sembast.value_utils_test;
 
 // basically same as the io runner but with extra output
 import 'package:sembast/src/utils.dart';

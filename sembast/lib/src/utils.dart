@@ -349,17 +349,9 @@ dynamic mergeValue(dynamic existingValue, dynamic newValue,
       // delete the field?
       if (value == FieldValue.delete) {
         currentMap.remove(stringKey);
-      } else if (value is Map) {
-        if (!(currentMap[stringKey] is Map)) {
-          // replace if existing is not a map
-          currentMap[stringKey] = value?.cast<String, dynamic>();
-        } else {
-          var previousMap = currentMap;
-          currentMap = (currentMap[stringKey] as Map)?.cast<String, dynamic>();
-          value.forEach(merge);
-          currentMap = previousMap;
-        }
       } else {
+        // Replace the content. We don't want to merge here since we are the
+        // last part of the path specification
         currentMap[stringKey] = value;
       }
     } else {

@@ -100,6 +100,55 @@ void main() {
       expect(checkValue({'test.with.dot': 1}), isFalse);
     });
 
+    test('mergeInnerMap', () {
+      expect(
+          mergeValue({
+            't1': {'s1': 1}
+          }, {
+            't1': {'s2': 2}
+          }),
+          {
+            't1': {'s2': 2}
+          });
+      expect(
+          mergeValue({
+            't1': {'s1': 1}
+          }, {
+            't1.s2': 2
+          }),
+          {
+            't1': {'s1': 1, 's2': 2}
+          });
+    });
+    test('mergeSubInnerMap', () {
+      expect(
+          mergeValue({
+            't1': {
+              's1': {'u1': 1}
+            }
+          }, {
+            't1': {'s2': 2}
+          }),
+          {
+            't1': {'s2': 2}
+          });
+      expect(
+          mergeValue({
+            't1': {
+              's1': {'u1': 1}
+            },
+            's2': 2
+          }, {
+            't1.s1': {'u2': 3}
+          }),
+          {
+            't1': {
+              's1': {'u2': 3}
+            },
+            's2': 2
+          });
+    });
+
     test('mergeValue', () {
       expect(mergeValue(null, null), null);
       expect(mergeValue(null, 1), 1);
@@ -119,7 +168,7 @@ void main() {
             'sub': {'u': 2}
           }),
           {
-            'sub': {'t': 1, 'u': 2}
+            'sub': {'u': 2}
           });
 
       expect(
