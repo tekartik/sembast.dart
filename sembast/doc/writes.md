@@ -78,6 +78,24 @@ can escape them using `FieldKey.escape`
 await record.update(db, {FieldKey.escape('my.color'): 'red'});
 ```
 
+## Delete records
+
+You can delete one or multiple records using the store `delete` method.
+
+```dart
+// Delete all records with a price greater then 10
+var filter = Filter.greaterThan('price', 10);
+var finder = Finder(filter: filter);
+await store.delete(db, finder: finder);
+```
+
+You can also clear the whole store:
+
+```dart
+// Clear all records from the store
+await store.delete(db);
+```
+
 ## Write example
 
 Let's insert/update some data:
