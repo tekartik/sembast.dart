@@ -165,17 +165,17 @@ expect(records[1]['name'], 'fish');
 ### Codec and encryption
 
 Sembast supports using a user-defined codec to encode/decode data when read/written to disk.
-It provides a way to support encryption. Encryption itself is not part of sembast but an example of an xxtea based
-encryption is provided in the test folder:
+It provides a way to support encryption. Encryption itself is not part of sembast but an example of a simple
+encryption codec is provided in the test folder.
 
 ```dart
 // Initialize the encryption codec with a user password
-var codec = getXXTeaSembastCodec(password: '[your_user_password]');
+var codec = getEncryptSembastCodec(password: '[your_user_password]');
 
 // Open the database with the codec
 Database db = await factory.openDatabase(dbPath, codec: codec);
 
-// ...your database is ready to use as encrypted
+// ...your database is ready to use
 
 ```
 

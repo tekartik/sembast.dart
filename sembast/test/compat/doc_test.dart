@@ -6,8 +6,8 @@ import 'package:sembast/sembast.dart';
 import 'package:sembast/src/file_system.dart';
 import 'package:sembast/src/sembast_fs.dart';
 
+import '../encrypt_codec.dart';
 import 'test_common.dart';
-import 'xxtea_codec.dart';
 
 void main() {
   defineFileSystemTests(memoryFileSystemContext);
@@ -111,7 +111,7 @@ void defineFileSystemTests(FileSystemTestContext ctx) {
 
       {
         // Initialize the encryption codec with a user password
-        var codec = getXXTeaSembastCodec(password: '[your_user_password]');
+        var codec = getEncryptSembastCodec(password: '[your_user_password]');
 
         // Open the database with the codec
         Database db = await factory.openDatabase(dbPath, codec: codec);

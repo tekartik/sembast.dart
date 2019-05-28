@@ -8,10 +8,10 @@ import 'package:sembast/src/database_impl.dart';
 import 'package:sembast/src/file_system.dart';
 import 'package:sembast/src/sembast_fs.dart';
 
+import '../encrypt_codec.dart';
 import 'database_format_test.dart' as database_format_test;
 import 'test_codecs.dart';
 import 'test_common.dart';
-import 'xxtea_codec.dart';
 
 void main() {
   defineTests(memoryFileSystemContext);
@@ -147,8 +147,8 @@ void defineTests(FileSystemTestContext ctx) {
       });
     });
 
-    group('xxtea_codec', () {
-      var codec = getXXTeaSembastCodec(password: 'user_password');
+    group('encrypt_codec', () {
+      var codec = getEncryptSembastCodec(password: 'user_password');
       database_format_test.defineTests(ctx, codec: codec);
       _commonTests(codec);
 
@@ -160,7 +160,7 @@ void defineTests(FileSystemTestContext ctx) {
         expect(json.decode(lines.first), {
           "version": 1,
           "sembast": 1,
-          "codec": 'f6BJnfYOYu/JYOG/5AOmVAMjGZ+/av6MZi6+3g=='
+          "codec": '0ZyTUCS/dzr1hire36nemZMKvVJxF6Q='
         });
         expect(codec.codec.decode(lines[1]), {'key': 1, 'value': 'test'});
       });
@@ -179,7 +179,7 @@ void defineTests(FileSystemTestContext ctx) {
         expect(json.decode(lines.first), {
           "version": 1,
           "sembast": 1,
-          'codec': 'f6BJnfYOYu/JYOG/5AOmVAMjGZ+/av6MZi6+3g=='
+          'codec': '0ZyTUCS/dzr1hire36nemZMKvVJxF6Q='
         });
         expect(codec.codec.decode(lines[1]), {'key': 1, 'value': 'test'});
 
@@ -192,7 +192,7 @@ void defineTests(FileSystemTestContext ctx) {
 
         try {
           var codecWithABadPassword =
-              getXXTeaSembastCodec(password: "bad_password");
+              getEncryptSembastCodec(password: "bad_password");
           // Open again with a bad password
           db = await factory.openDatabase(dbPath, codec: codecWithABadPassword);
 
