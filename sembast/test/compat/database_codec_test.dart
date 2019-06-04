@@ -155,8 +155,8 @@ void defineTests(FileSystemTestContext ctx) {
       test('read existing', () async {
         dbPath = getDbPath();
         await writeContent(fs, dbPath, [
-          '{"version":1,"sembast":1,"codec":"Lmsi2D1AhIU=8/Y32H5ykIQBkoIeI38Hwz9F4v5ONPc="}',
-          'oxByFZ3B284=frnBGGbUlyg5s+4jFv90v7wjmdpZTvj8'
+          '{"version":1,"sembast":1,"codec":"i6/eGhL+yC4=gYCjWHqkgdawwoROer5+jQ0EzCdgFrk="}',
+          'GY9lA8yc56M=FSqctQswKkhfgzp/XaFdxOxSJhRGHB3a'
         ]);
         var db = await factory.openDatabase(dbPath, codec: codec);
         expect(await db.get(1), 'test');
@@ -166,7 +166,7 @@ void defineTests(FileSystemTestContext ctx) {
         var db = await _prepareOneRecordDatabase(codec: codec);
         await db.close();
         List<String> lines = await readContent(fs, dbPath);
-        print(lines);
+        // print(lines);
         expect(lines.length, 2);
         expect(codec.codec.decode(json.decode(lines.first)['codec'] as String),
             {'signature': 'encrypt'});

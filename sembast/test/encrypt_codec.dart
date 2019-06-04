@@ -17,10 +17,11 @@ Uint8List _randBytes(int length) {
 
 /// Generate an encryption password based on a user input password
 ///
-/// It uses SHA256. Although twice slower than md5/sha1, it is typically only
-/// called once.
+/// It uses MD5 which generates a 16 bytes blob, size needed for Salsa20
 Uint8List _generateEncryptPassword(String password) {
-  return Uint8List.fromList(sha256.convert(utf8.encode(password)).bytes);
+  var blob = Uint8List.fromList(md5.convert(utf8.encode(password)).bytes);
+  assert(blob.length == 16);
+  return blob;
 }
 
 /// Salsa20 based encoder
@@ -92,8 +93,8 @@ const _encryptCodecSignature = 'encrypt';
 
 /// Create a codec to use to open a database with encrypted stored data.
 ///
-/// Hash (SHA256) of the password is used (but never stored) as a key to encrypt
-/// the data using the Salsa20 algorithm.
+/// Hash (md5) of the password is used (but never stored) as a key to encrypt
+/// the data using the Salsa20 algorithm with a random (8 bytes) initial value
 ///
 /// This is just used as a demonstration and should not be considered as a
 /// reference since its implementation (and storage format) might change.

@@ -11,6 +11,7 @@ void main() {
     void _testCodec(SembastCodec codec) {
       var encrypted = codec.codec.encode({'test': 1});
       var encrypted2 = codec.codec.encode({'test': 1});
+
       expect(encrypted.length, 28);
       expect(encrypted2.length, 28);
       // They should not be equals!
@@ -25,6 +26,15 @@ void main() {
       _testCodec(getEncryptSembastCodec(
           password:
               'veryveryveryverylongpasswordveryveryveryverylongpasswordveryveryveryverylongpasswordveryveryveryverylongpassword'));
+    });
+    test('decode', () {
+      dynamic testDecode(String encrypted) {
+        expect(getEncryptSembastCodec(password: 'test').codec.decode(encrypted),
+            {'test': 1});
+      }
+
+      testDecode('57PnR5KpJv8=sKlpSc7eSt1F+w==');
+      testDecode('Yj6M09ZJZNI=FZ/6SmEhirNYiQ==');
     });
   });
 }
