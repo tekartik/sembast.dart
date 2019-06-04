@@ -20,6 +20,13 @@ Map mapWithoutCodec(Map map) {
   return Map.from(map)..remove('codec');
 }
 
+// Whether our test codec use random initialization value
+bool _hasRandomIv(SembastCodec codec) {
+  // Hardcoded for ou custom random codec and our encrypt codec
+  return (codec?.codec is MyCustomRandomCodec) ||
+      (codec?.signature == 'encrypt');
+}
+
 void defineTests(FileSystemTestContext ctx, {SembastCodec codec}) {
   FileSystem fs = ctx.fs;
   DatabaseFactory factory = DatabaseFactoryFs(fs);
@@ -51,7 +58,7 @@ void defineTests(FileSystemTestContext ctx, {SembastCodec codec}) {
         expect(getCodecDecodedSignature(codec, map['codec'] as String),
             {'signature': codec.signature});
       }
-      if (!(codec?.codec is MyCustomRandomCodec)) {
+      if (!_hasRandomIv(codec)) {
         expect(json.decode(lines.first), expected);
       }
     });
@@ -68,7 +75,7 @@ void defineTests(FileSystemTestContext ctx, {SembastCodec codec}) {
         expect(getCodecDecodedSignature(codec, map['codec'] as String),
             {'signature': codec.signature});
       }
-      if (!(codec?.codec is MyCustomRandomCodec)) {
+      if (!_hasRandomIv(codec)) {
         expect(json.decode(lines.first), expected);
       }
     });
@@ -145,7 +152,7 @@ void defineTests(FileSystemTestContext ctx, {SembastCodec codec}) {
         expect(getCodecDecodedSignature(codec, map['codec'] as String),
             {'signature': codec.signature});
       }
-      if (!(codec?.codec is MyCustomRandomCodec)) {
+      if (!_hasRandomIv(codec)) {
         expect(json.decode(lines.first), expected);
       }
       expect(decodeRecord(lines[1]), {'key': 1, 'value': 'hi'});
@@ -170,7 +177,7 @@ void defineTests(FileSystemTestContext ctx, {SembastCodec codec}) {
         expect(getCodecDecodedSignature(codec, map['codec'] as String),
             {'signature': codec.signature});
       }
-      if (!(codec?.codec is MyCustomRandomCodec)) {
+      if (!_hasRandomIv(codec)) {
         expect(json.decode(lines.first), expected);
       }
       expect(decodeRecord(lines[1]), {'key': 1, 'value': 'hi'});
@@ -195,7 +202,7 @@ void defineTests(FileSystemTestContext ctx, {SembastCodec codec}) {
         expect(getCodecDecodedSignature(codec, map['codec'] as String),
             {'signature': codec.signature});
       }
-      if (!(codec?.codec is MyCustomRandomCodec)) {
+      if (!_hasRandomIv(codec)) {
         expect(json.decode(lines.first), expected);
       }
 
@@ -208,7 +215,7 @@ void defineTests(FileSystemTestContext ctx, {SembastCodec codec}) {
         expect(getCodecDecodedSignature(codec, map['codec'] as String),
             {'signature': codec.signature});
       }
-      if (!(codec?.codec is MyCustomRandomCodec)) {
+      if (!_hasRandomIv(codec)) {
         var line = lines[2];
         expect(json.decode(line), expectedV2);
       }
@@ -230,7 +237,7 @@ void defineTests(FileSystemTestContext ctx, {SembastCodec codec}) {
         expect(getCodecDecodedSignature(codec, map['codec'] as String),
             {'signature': codec.signature});
       }
-      if (!(codec?.codec is MyCustomRandomCodec)) {
+      if (!_hasRandomIv(codec)) {
         var line = lines[0];
         expect(json.decode(line), expectedV2);
       }

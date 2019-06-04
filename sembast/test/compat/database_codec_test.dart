@@ -152,16 +152,24 @@ void defineTests(FileSystemTestContext ctx) {
       database_format_test.defineTests(ctx, codec: codec);
       _commonTests(codec);
 
+      test('read existing', () async {
+        dbPath = getDbPath();
+        await writeContent(fs, dbPath, [
+          '{"version":1,"sembast":1,"codec":"Lmsi2D1AhIU=8/Y32H5ykIQBkoIeI38Hwz9F4v5ONPc="}',
+          'oxByFZ3B284=frnBGGbUlyg5s+4jFv90v7wjmdpZTvj8'
+        ]);
+        var db = await factory.openDatabase(dbPath, codec: codec);
+        expect(await db.get(1), 'test');
+        await db.close();
+      });
       test('one_record', () async {
         var db = await _prepareOneRecordDatabase(codec: codec);
         await db.close();
         List<String> lines = await readContent(fs, dbPath);
+        print(lines);
         expect(lines.length, 2);
-        expect(json.decode(lines.first), {
-          "version": 1,
-          "sembast": 1,
-          "codec": '0ZyTUCS/dzr1hire36nemZMKvVJxF6Q='
-        });
+        expect(codec.codec.decode(json.decode(lines.first)['codec'] as String),
+            {'signature': 'encrypt'});
         expect(codec.codec.decode(lines[1]), {'key': 1, 'value': 'test'});
       });
 
@@ -176,11 +184,13 @@ void defineTests(FileSystemTestContext ctx) {
 
         List<String> lines = await readContent(fs, dbPath);
         expect(lines.length, 2);
-        expect(json.decode(lines.first), {
+        expect((json.decode(lines.first) as Map)..remove('codec'), {
           "version": 1,
           "sembast": 1,
-          'codec': '0ZyTUCS/dzr1hire36nemZMKvVJxF6Q='
         });
+        expect(codec.codec.decode(json.decode(lines.first)['codec'] as String),
+            {'signature': 'encrypt'});
+
         expect(codec.codec.decode(lines[1]), {'key': 1, 'value': 'test'});
 
         await db.close();
