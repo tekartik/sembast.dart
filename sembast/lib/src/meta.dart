@@ -18,7 +18,7 @@ class Meta {
     return map != null && map[dbVersionKey] != null;
   }
 
-  Meta({@required this.version, String this.codecSignature});
+  Meta({@required this.version, this.codecSignature});
 
   Map<String, dynamic> toMap() {
     var map = <String, dynamic>{

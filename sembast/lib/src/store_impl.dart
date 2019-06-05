@@ -156,6 +156,7 @@ class SembastStore implements Store {
       SembastTransaction txn, StreamController<Record> ctlr) async {
     await forEachRecords(txn, null, (record) {
       ctlr.add(makeOutRecord(record));
+      return true;
     });
   }
 
@@ -182,6 +183,7 @@ class SembastStore implements Store {
         return false;
       }
       ctlr.add(record.cast<K, V>());
+      return true;
     }).whenComplete(() {
       ctlr.close();
     });
@@ -342,6 +344,7 @@ class SembastStore implements Store {
 
     await forEachRecords(txn, sembastFinder?.filter, (record) {
       results.add(record);
+      return true;
     });
 
     if (finder != null) {
@@ -615,6 +618,7 @@ class SembastStore implements Store {
     int count = 0;
     await forEachRecords(txn, filter, (record) {
       count++;
+      return true;
     });
     return count;
   }

@@ -115,8 +115,8 @@ linter:
     # - super_goes_last
     # - type_annotate_public_apis # subset of always_specify_types
     # remove alex:
-    # - type_init_formals
-    # - unawaited_futures # https://github.com/flutter/flutter/issues/5793
+    - type_init_formals
+    - unawaited_futures # https://github.com/flutter/flutter/issues/5793
     # remove alex:
     # - unnecessary_brace_in_string_interps
     - unnecessary_const
