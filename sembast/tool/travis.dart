@@ -4,6 +4,9 @@ Future main() async {
   var shell = Shell();
 
   await shell.run('''
+
+dartanalyzer --fatal-warnings --fatal-infos .
+
 pub run test -p vm -j 1
 pub run build_runner test -- -p vm -j 1
 pub run build_runner test -- -p firefox -j 1
