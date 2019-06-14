@@ -1,4 +1,5 @@
 import 'package:sembast/src/api/client.dart';
+import 'package:sembast/src/api/database.dart';
 import 'package:sembast/src/api/record_snapshot.dart';
 import 'package:sembast/src/api/store_ref.dart';
 
@@ -35,6 +36,13 @@ abstract class RecordRef<K, V> {
   /// get a record snapshot from the database
   ///
   Future<RecordSnapshot<K, V>> getSnapshot(DatabaseClient client);
+
+  ///
+  /// get a stream of a record snapshot from the database.
+  ///
+  /// It allows listening to a single instance of a record.
+  ///
+  Stream<RecordSnapshot<K, V>> onSnapshot(Database database);
 
   /// delete a record
   Future delete(DatabaseClient client);

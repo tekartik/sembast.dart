@@ -7,6 +7,7 @@ import 'package:sembast/src/common_import.dart';
 import 'package:sembast/src/cooperator.dart';
 import 'package:sembast/src/database_client_impl.dart';
 import 'package:sembast/src/database_factory_mixin.dart';
+import 'package:sembast/src/listener.dart';
 import 'package:sembast/src/meta.dart';
 import 'package:sembast/src/record_impl.dart';
 import 'package:sembast/src/record_impl.dart' as record_impl;
@@ -16,6 +17,8 @@ import 'package:sembast/src/storage.dart';
 import 'package:sembast/src/store_impl.dart';
 import 'package:sembast/src/transaction_impl.dart';
 import 'package:synchronized/synchronized.dart';
+
+SembastDatabase getDatabase(Database database) => database as SembastDatabase;
 
 class SembastDatabase extends Object
     with DatabaseExecutorMixin
@@ -30,6 +33,10 @@ class SembastDatabase extends Object
   // Lock used for opening/writing/compacting
   final Lock databaseLock = Lock();
   final Lock transactionLock = Lock();
+  final Lock notificationLock = Lock();
+
+  /// Created after opening the database
+  DatabaseListener listener;
 
   @override
   String get path => _storage.path;
@@ -206,22 +213,35 @@ class SembastDatabase extends Object
     }
   }
 
-  /// Save all records to fix in memory
-  /// and commit later
-  void lazyCommit() {
+  /// Save all records to fix in memory.
+  ///
+  /// Prepare the records for listeners and returns a list of listener operations.
+  ///
+  /// and commit on storage later...
+  List<StoreListenerOperation> lazyCommit() {
     List<TxnRecord> txnRecords = [];
+    var listenerOperations = <StoreListenerOperation>[];
 
     var stores = getCurrentStores();
     for (var store in stores) {
       var records = store.currentTxnRecords;
-      if (records != null) {
+
+      if (records?.isNotEmpty == true) {
+        // Prepare listener operations
+        if (listener.isNotEmpty) {
+          var listener = this.listener.getStore(store.ref);
+          if (listener != null) {
+            listenerOperations.add(StoreListenerOperation(listener, records));
+          }
+        }
+
         txnRecords.addAll(records);
       }
     }
 
     // Not record, no commit
     if (txnRecords.isEmpty) {
-      return;
+      return listenerOperations;
     }
 
     void _saveInMemory() {
@@ -247,6 +267,8 @@ class SembastDatabase extends Object
         return storageCommit(txnRecords);
       });
     }
+
+    return listenerOperations;
   }
 
   // future or not
@@ -601,6 +623,9 @@ class SembastDatabase extends Object
           // mark it opened
           _opened = true;
 
+          // create listener
+          listener = DatabaseListener();
+
           if (needVersionChanged) {
             await _handleVersionChanged(oldVersion, version);
           }
@@ -817,6 +842,8 @@ class SembastDatabase extends Object
     if (_openTransaction != null) {
       return await action(_openTransaction);
     }
+    List<StoreListenerOperation> listenerOperations;
+
     return transactionLock.synchronized(() async {
       _transaction = SembastTransaction(this, ++_txnId);
 
@@ -832,7 +859,7 @@ class SembastDatabase extends Object
 
       try {
         actionResult = await Future<T>.sync(() => action(_transaction));
-        lazyCommit();
+        listenerOperations = lazyCommit();
       } catch (e) {
         _clearTxnData();
         _transactionCleanUp();
@@ -845,6 +872,25 @@ class SembastDatabase extends Object
 
       return actionResult;
     }).whenComplete(() async {
+      // Notify if needed
+      if (listenerOperations?.isNotEmpty == true) {
+        // Don't await on purpose here
+        // ignore: unawaited_futures
+        notificationLock.synchronized(() {
+          for (var operation in listenerOperations) {
+            // records
+            for (var record in operation.txnRecords) {
+              var ctlrs = operation.listener.getRecord(record.ref);
+              if (ctlrs != null) {
+                for (var ctlr in ctlrs) {
+                  ctlr.add(record.nonDeletedRecord);
+                }
+              }
+            }
+          }
+        });
+      }
+
       // the transaction is done
       // need compact?
       if (_storage.supported) {

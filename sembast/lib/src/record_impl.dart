@@ -239,6 +239,8 @@ class TxnRecord with SembastRecordHelperMixin implements Record {
 
   @override
   RecordSnapshot<RK, RV> cast<RK, RV>() => record.cast<RK, RV>();
+
+  ImmutableSembastRecord get nonDeletedRecord => deleted ? null : record;
 }
 
 mixin MutableSembastRecordMixin implements Record {

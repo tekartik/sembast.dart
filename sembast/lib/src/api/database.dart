@@ -8,6 +8,9 @@ import 'package:sembast/src/api/transaction.dart';
 export 'field.dart';
 
 abstract class Database extends DatabaseExecutor implements DatabaseClient {
+  /// Main store.
+  ///
+  /// v2 deprecated.
   Store get mainStore;
 
   /// Version of the database

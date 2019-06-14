@@ -3,7 +3,9 @@ import 'package:sembast/src/api/record_ref.dart';
 import 'package:sembast/src/api/record_snapshot.dart';
 import 'package:sembast/src/api/sembast.dart';
 import 'package:sembast/src/api/store_ref.dart';
+import 'package:sembast/src/common_import.dart';
 import 'package:sembast/src/database_client_impl.dart';
+import 'package:sembast/src/database_impl.dart';
 import 'package:sembast/src/record_snapshot_impl.dart';
 import 'package:sembast/src/utils.dart';
 
@@ -68,6 +70,20 @@ mixin RecordRefMixin<K, V> implements RecordRef<K, V> {
     return record?.cast<K, V>();
   }
 
+  /// Stream of record
+  ///
+  @override
+  Stream<RecordSnapshot<K, V>> onSnapshot(Database database) {
+    var db = getDatabase(database);
+    var ctlr = db.listener.addRecord(this);
+    // Add the existing snapshot
+    db.notificationLock.synchronized(() async {
+      var snapshot = await getSnapshot(database);
+      ctlr.add(snapshot);
+    });
+    return ctlr.stream;
+  }
+
   @override
   Future<bool> exists(DatabaseClient databaseClient) {
     var client = getClient(databaseClient);
@@ -89,7 +105,7 @@ mixin RecordRefMixin<K, V> implements RecordRef<K, V> {
   }
 
   @override
-  int get hashCode => identityHashCode(key);
+  int get hashCode => key.hashCode;
 
   @override
   bool operator ==(other) {

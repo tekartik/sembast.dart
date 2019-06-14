@@ -21,6 +21,15 @@ void defineTests(DatabaseTestContext ctx) {
       return db.close();
     });
 
+    test('equals', () {
+      var store1 = StoreRef.main();
+      var store2 = StoreRef.main();
+      expect(store1, store2);
+      expect(store1.hashCode, store2.hashCode);
+      expect(store1, isNot(StoreRef('test')));
+      expect(StoreRef('test'), StoreRef('test'));
+    });
+
     test('clear', () async {
       final store = StoreRef('test');
       var record = store.record(1);
