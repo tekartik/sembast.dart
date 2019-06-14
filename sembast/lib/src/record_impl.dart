@@ -34,23 +34,6 @@ mixin SembastRecordHelperMixin implements Record {
         deleted: deleted);
   }
 
-  /*
-    if (ref == null) {
-      if (!(this is ImmutableSembastRecord)) {
-        store ??= this.store;
-      }
-      return SembastRecord.copy(
-          store: store,
-          key: key ?? this.key,
-          value: value ?? this.value,
-          deleted: deleted ?? this.deleted,
-          ref: ref ?? this.ref);
-    } else {
-      // Forget store here
-      return SembastRecord(null, cloneValue(value ?? this.value));
-    }
-    */
-
   Map<String, dynamic> _toBaseMap() {
     var map = <String, dynamic>{};
     map[dbRecordKey] = key;
@@ -349,4 +332,11 @@ LazyMutableSembastRecord makeLazyMutableRecord(
     return null;
   }
   return LazyMutableSembastRecord(store, record);
+}
+
+List<SembastRecordSnapshot<K, V>> immutableListToSnapshots<K, V>(
+    List<ImmutableSembastRecord> records) {
+  return records
+      .map((immutable) => SembastRecordSnapshot<K, V>.fromRecord(immutable))
+      ?.toList(growable: false);
 }

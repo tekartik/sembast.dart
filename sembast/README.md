@@ -32,6 +32,8 @@ Database db = await dbFactory.openDatabase(dbPath);
 
 The db object is ready for use.
 
+More information [here](https://github.com/tekartik/sembast.dart/blob/master/sembast/doc/open.md).
+
 ### Simple put/get records
 
 For quick usage, data can be written and read quickly using the put/get/delete api on the database object

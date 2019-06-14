@@ -1,8 +1,11 @@
 import 'package:sembast/sembast.dart';
 import 'package:sembast/src/api/finder.dart';
+import 'package:sembast/src/api/query_ref.dart';
 import 'package:sembast/src/api/records_ref.dart';
 import 'package:sembast/src/api/store_ref.dart';
 import 'package:sembast/src/database_client_impl.dart';
+import 'package:sembast/src/query_ref_impl.dart';
+import 'package:sembast/src/record_impl.dart';
 import 'package:sembast/src/record_ref_impl.dart';
 import 'package:sembast/src/record_snapshot_impl.dart';
 import 'package:sembast/src/records_ref_impl.dart';
@@ -87,18 +90,23 @@ mixin StoreRefMixin<K, V> implements StoreRef<K, V> {
     }
   }
 
+  // Find immutables records
+  Future<List<ImmutableSembastRecord>> findImmutableRecords(
+      DatabaseClient databaseClient,
+      {Finder finder}) async {
+    final client = getClient(databaseClient);
+
+    return await client
+        .getSembastStore(this)
+        .txnFindRecords(client.sembastTransaction, finder);
+  }
+
   /// Find records
   @override
   Future<List<RecordSnapshot<K, V>>> find(DatabaseClient databaseClient,
       {Finder finder}) async {
-    final client = getClient(databaseClient);
-
-    var records = await client
-        .getSembastStore(this)
-        .txnFindRecords(client.sembastTransaction, finder);
-    return records
-        .map((immutable) => SembastRecordSnapshot<K, V>.fromRecord(immutable))
-        ?.toList(growable: false);
+    var records = await findImmutableRecords(databaseClient, finder: finder);
+    return immutableListToSnapshots<K, V>(records);
   }
 
   /// Find first key
@@ -164,6 +172,11 @@ mixin StoreRefMixin<K, V> implements StoreRef<K, V> {
               .txnUpdateWhere(txn, value, finder: finder))
           .length;
     });
+  }
+
+  @override
+  QueryRef<K, V> query({Finder finder}) {
+    return SembastQueryRef(this, finder as SembastFinder);
   }
 
   /// Cast if needed

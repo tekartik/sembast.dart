@@ -13,3 +13,4 @@ export 'package:sembast/src/api/records_ref.dart';
 export 'package:sembast/src/api/sort_order.dart';
 export 'package:sembast/src/api/store_ref.dart';
 export 'package:sembast/src/api/transaction.dart';
+export 'package:sembast/src/api/query_ref.dart';

@@ -31,6 +31,46 @@ await db.transaction((txn) async {
 
 ## Examples
 
+### Listen to changes
+
+You can listen to specific record changes
+
+```dart
+// Track record changes
+var subscription = record.onSnapshot(db).listen((snapshot) {
+  // if snapshot is null, the record is not present or has been
+  // deleted
+
+  // ...
+});
+
+// ...
+
+// cancel subscription. Important! not doing this might lead to
+// memory leaks
+unawaited(subscription?.cancel());
+```
+
+You can listen to changes for a given query in a store
+
+```dart
+// Track query changes
+var query = store.query(finder: finder);
+var subscription = query.onSnapshots(db).listen((snapshots) {
+  // snapshots always contains the list of records matching the query
+
+  // ...
+});
+
+// ...
+
+// cancel subscription. Important! not doing this might lead to
+// memory leaks
+unawaited(subscription?.cancel());
+```
+
+## New API migration examples
+
 Some examples to migrate your code:
 
 ### Put get data

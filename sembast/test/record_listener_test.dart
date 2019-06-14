@@ -23,7 +23,7 @@ void defineTests(DatabaseTestContext ctx) {
       return db.close();
     });
 
-    test('onSnapshot', () async {
+    test('Record.onSnapshot', () async {
       var database = getDatabase(db);
       var store = StoreRef<int, String>.main();
       var record = store.record(1);
@@ -32,6 +32,21 @@ void defineTests(DatabaseTestContext ctx) {
       var sub = record.onSnapshot(db).listen((snapshot) {});
       expect(database.listener.isNotEmpty, isTrue);
       var sub2 = record.onSnapshot(db).listen((snapshot) {});
+      await sub.cancel();
+      expect(database.listener.isNotEmpty, isTrue);
+      await sub2.cancel();
+      expect(database.listener.isEmpty, isTrue);
+    });
+
+    test('Query.onSnapshot', () async {
+      var database = getDatabase(db);
+      var store = StoreRef<int, String>.main();
+      var query = store.query();
+
+      expect(database.listener.isEmpty, isTrue);
+      var sub = query.onSnapshots(db).listen((snapshot) {});
+      expect(database.listener.isNotEmpty, isTrue);
+      var sub2 = query.onSnapshots(db).listen((snapshot) {});
       await sub.cancel();
       expect(database.listener.isNotEmpty, isTrue);
       await sub2.cancel();

@@ -70,7 +70,8 @@ mixin RecordRefMixin<K, V> implements RecordRef<K, V> {
     return record?.cast<K, V>();
   }
 
-  /// Stream of record
+  ///
+  /// Stream of record snapshot
   ///
   @override
   Stream<RecordSnapshot<K, V>> onSnapshot(Database database) {

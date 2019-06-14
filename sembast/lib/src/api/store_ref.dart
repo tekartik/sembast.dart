@@ -1,6 +1,7 @@
 import 'package:sembast/sembast.dart';
 import 'package:sembast/src/api/client.dart';
 import 'package:sembast/src/api/finder.dart';
+import 'package:sembast/src/api/query_ref.dart';
 import 'package:sembast/src/api/record_ref.dart';
 import 'package:sembast/src/api/record_snapshot.dart';
 import 'package:sembast/src/api/records_ref.dart';
@@ -52,6 +53,11 @@ abstract class StoreRef<K, V> {
   ///
   Future<List<RecordSnapshot<K, V>>> find(DatabaseClient client,
       {Finder finder});
+
+  ///
+  /// Create a query with a finder.
+  ///
+  QueryRef<K, V> query({Finder finder});
 
   ///
   /// Find one key.

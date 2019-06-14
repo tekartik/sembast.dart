@@ -1,3 +1,7 @@
+## 1.16.0-dev.1
+
+* Add record and query change tracking
+
 ## 1.15.4+1
 
 * Fix inner map merging when updating a record

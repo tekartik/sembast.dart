@@ -53,6 +53,14 @@ void defineTests(DatabaseTestContext ctx) {
       Boundary;
       // ignore: unnecessary_statements
       SembastCodec;
+      // ignore: unnecessary_statements
+      QueryRef;
+      // ignore: unnecessary_statements
+      FieldValue;
+      // ignore: unnecessary_statements
+      FieldKey;
+      // ignore: unnecessary_statements
+      Field;
     });
 
     test('null_store', () {

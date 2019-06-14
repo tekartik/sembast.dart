@@ -202,7 +202,7 @@ class SembastStore implements Store {
       ?.map((txnRecord) => txnRecord.record)
       ?.toList(growable: false);
 
-  /// Can be nulll
+  /// Can be null
   List<TxnRecord> get currentTxnRecords => txnRecords == null
       ? null
       : List<TxnRecord>.from(txnRecords.values, growable: false);
@@ -461,7 +461,6 @@ class SembastStore implements Store {
         }
       }
     }
-
     // add to store transaction
     checkTransaction(txn);
     if (txnRecords == null) {

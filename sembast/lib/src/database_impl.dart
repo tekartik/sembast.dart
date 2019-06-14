@@ -876,7 +876,7 @@ class SembastDatabase extends Object
       if (listenerOperations?.isNotEmpty == true) {
         // Don't await on purpose here
         // ignore: unawaited_futures
-        notificationLock.synchronized(() {
+        notificationLock.synchronized(() async {
           for (var operation in listenerOperations) {
             // records
             for (var record in operation.txnRecords) {
@@ -886,6 +886,10 @@ class SembastDatabase extends Object
                   ctlr.add(record.nonDeletedRecord);
                 }
               }
+            }
+            // Fix existing queries
+            for (var query in operation.listener.getQuery()) {
+              await query.update(operation.txnRecords, cooperator);
             }
           }
         });
