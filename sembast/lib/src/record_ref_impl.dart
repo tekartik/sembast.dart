@@ -79,8 +79,11 @@ mixin RecordRefMixin<K, V> implements RecordRef<K, V> {
     var ctlr = db.listener.addRecord(this);
     // Add the existing snapshot
     db.notificationLock.synchronized(() async {
-      var snapshot = await getSnapshot(database);
-      ctlr.add(snapshot);
+      // Don't crash here, the database might have been closed
+      try {
+        var snapshot = await getSnapshot(database);
+        ctlr.add(snapshot);
+      } catch (_) {}
     });
     return ctlr.stream;
   }

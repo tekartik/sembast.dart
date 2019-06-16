@@ -208,6 +208,17 @@ class DatabaseListener {
   }
 
   StoreListener getStore(StoreRef ref) => _stores[ref];
+
+  void close() {
+    _stores.values.forEach((storeListener) {
+      storeListener._queries.forEach((queryListener) {
+        queryListener.close();
+      });
+      storeListener._records.values.forEach((recordListeners) {
+        recordListeners.forEach((recordListener) => recordListener.close());
+      });
+    });
+  }
 }
 
 class StoreListenerOperation {

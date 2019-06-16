@@ -51,6 +51,7 @@ class SembastDatabase extends Object
   int get version => _meta.version;
 
   bool _opened = false;
+  bool _closed = false;
 
   DatabaseOpenOptions get openOptions => openHelper.options;
 
@@ -461,12 +462,19 @@ class SembastDatabase extends Object
     return txn.toExecutor(store);
   }
 
+  void _checkOpen() {
+    if (_closed) {
+      throw DatabaseException.closed();
+    }
+  }
+
   ///
   /// get or create a store
   /// an empty store will not be persistent
   ///
   @override
   Store getStore(String storeName) {
+    _checkOpen();
     var store = findStore(storeName);
     if (store == null) {
       store = _addStore(storeName);
@@ -480,6 +488,7 @@ class SembastDatabase extends Object
   ///
   @override
   SembastStore getSembastStore(StoreRef ref) {
+    _checkOpen();
     var store = findStore(ref.name);
     if (store == null) {
       store = _addStore(ref.name);
@@ -550,6 +559,9 @@ class SembastDatabase extends Object
     }
 
     await databaseLock.synchronized(() async {
+      // needed for reOpen
+      _closed = false;
+
       try {
         Meta meta;
 
@@ -777,12 +789,15 @@ class SembastDatabase extends Object
   // To call when in a databaseLock
   Future lockedClose() async {
     _opened = false;
+    _closed = true;
     await openHelper.lockedCloseDatabase();
   }
 
   @override
   Future close() async {
     return openHelper.lock.synchronized(() async {
+      // Cancel listener
+      listener.close();
       // Make sure any pending changes are committed
       await flush();
 

@@ -45,6 +45,17 @@ void defineTests(DatabaseTestContext ctx) {
       future = record.get(db);
       expect(await future, 'test');
     });
+
+    test('get closed', () async {
+      await db.close();
+      var record = StoreRef<int, String>.main().record(1);
+      try {
+        expect(await record.get(db), isNull);
+        fail('should fail');
+      } on DatabaseException catch (e) {
+        expect(e.code, DatabaseException.errDatabaseClosed);
+      }
+    });
     test('onSnapshot', () async {
       var store = StoreRef<int, String>.main();
       var record = store.record(1);
@@ -86,6 +97,27 @@ void defineTests(DatabaseTestContext ctx) {
       await completer.future;
       await sub.cancel();
       expect(index, 4);
+    });
+
+    test('onSnapshot.closeDb', () async {
+      var record = intMapStoreFactory.store().record(1);
+      try {
+        await record.onSnapshot(db).toList().timeout(Duration(milliseconds: 1));
+        fail('should timeout');
+      } on TimeoutException catch (_) {}
+
+      var completer = Completer();
+      var doneCompleter = Completer();
+      // Wait for first event before closing the db
+      var subscription = record.onSnapshot(db).listen((snapshot) {
+        completer.complete();
+      }, onDone: () {
+        doneCompleter.complete();
+      });
+      await completer.future;
+      await db.close();
+      await doneCompleter.future;
+      await subscription.cancel();
     });
 
     test('onSnapshotExisting', () async {
