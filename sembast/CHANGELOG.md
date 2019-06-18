@@ -1,4 +1,4 @@
-## 1.16.0-dev.2
+## 1.16.0
 
 * Add record and query change tracking
 
