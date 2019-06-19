@@ -39,5 +39,10 @@ value = record[FieldKey.escape('path.sub')];
 
 ## DateTime
 
-`DateTime` is not a supported SQLite type. Personally I store them as 
+`DateTime` is not a supported type. Personally I store them as 
 int (millisSinceEpoch) for easy sorting and queries or string (iso8601)
+
+## Blob
+
+`Uint8List` is not a supported type. It will be stored as `List<int>`. You can also encode it as base64 and save it
+as a `String`. Big blob could also be stored in a dedicated file.
