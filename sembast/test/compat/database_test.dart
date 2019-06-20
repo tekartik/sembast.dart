@@ -178,6 +178,50 @@ void defineTests(DatabaseTestContext ctx) {
         }
       });
 
+      test('txn during onVersionChanged', () async {
+        var db = await factory.openDatabase(dbPath, version: 1,
+            onVersionChanged: (db, _, __) async {
+          await db.transaction((txn) async {
+            await txn.put('test', 1);
+          });
+        });
+        await db.put('other', 2);
+
+        try {
+          expect(await db.get(1), 'test');
+          expect(db.version, 1);
+          await reOpen(db);
+          expect(await db.get(1), 'test');
+          expect(await db.get(2), 'other');
+          expect(db.version, 1);
+        } finally {
+          await db?.close();
+        }
+
+        db = await factory.openDatabase(dbPath, version: 2,
+            onVersionChanged: (db, oldVersion, __) async {
+          if (oldVersion == 1) {
+            await db.transaction((txn) async {
+              expect(await txn.get(1), 'test');
+              await txn.put('test2', 1);
+            });
+          }
+        });
+        await db.put('other2', 2);
+
+        try {
+          expect(await db.get(1), 'test2');
+          expect(await db.get(2), 'other2');
+          expect(db.version, 2);
+          await reOpen(db);
+          expect(await db.get(1), 'test2');
+          expect(await db.get(2), 'other2');
+          expect(db.version, 2);
+        } finally {
+          await db?.close();
+        }
+      });
+
       test('throw during first onVersionChanged', () async {
         try {
           await factory.openDatabase(dbPath, version: 1,
