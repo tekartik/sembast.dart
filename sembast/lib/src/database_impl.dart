@@ -213,13 +213,9 @@ class SembastDatabase extends Object
       }
       await tmpStorage.appendLines(lines);
       await _storage.tmpRecover();
-      /*
-        print(_storage.toString());
-        await _storage.readLines().forEach((String line) {
-          print(line);
-        });
-        */
+
       _exportStat = exportStat;
+      // devPrint('compacted: $_exportStat');
     }
   }
 
@@ -274,7 +270,7 @@ class SembastDatabase extends Object
   }
 
   // future or not
-  Future storageCommit(List<TxnRecord> txnRecords) async {
+  Future storageCommitRecords(List<TxnRecord> txnRecords) async {
     if (txnRecords.isNotEmpty) {
       List<String> lines = [];
 
@@ -763,6 +759,7 @@ class SembastDatabase extends Object
             // allow for 20% of lost lines
             // make sure _meta is known before compacting
             _meta = meta;
+            // devPrint('open needCompact $_needCompact corrupted $corrupted $_exportStat');
             if (_needCompact || corrupted) {
               await txnCompact();
             }
@@ -912,7 +909,10 @@ class SembastDatabase extends Object
       }
 
       // spawn commit if needed
+      // storagage commit and compacting is done lazily
       if (_storage.supported) {
+        bool hasRecords = commitData?.txnRecords?.isNotEmpty == true;
+
         /// Commit the transaction data to storage
         Future _storageCommit() async {
           // Write meta when upgrading, write before the records!
@@ -921,11 +921,18 @@ class SembastDatabase extends Object
             _exportStat.lineCount++;
           }
           if (commitData?.txnRecords?.isNotEmpty == true) {
-            await storageCommit(commitData.txnRecords);
+            await storageCommitRecords(commitData.txnRecords);
+          }
+
+          // devPrint('needCompact $_needCompact $_exportStat');
+
+          // Check compaction if records were changed only
+          // Lazy compact!
+          if (_needCompact) {
+            await txnCompact();
           }
         }
 
-        bool hasRecords = commitData?.txnRecords?.isNotEmpty == true;
         if (hasRecords || _upgrading) {
           // We only wait when we are opening/upgrading
           if (_upgrading) {
@@ -939,40 +946,12 @@ class SembastDatabase extends Object
             });
           }
         }
-        // Check compaction if records were changed only
-        if (hasRecords && !_upgrading) {
-          if (_needCompact) {
-            await databaseLock.synchronized(() async {
-              await txnCompact();
-              //print(_exportStat.toJson());
-            });
-          }
-        }
       }
     });
   }
 
   @override
   Future clear() => mainStore.clear();
-
-  /*
-  /// cooperate safe
-  Future<List<Record>> cloneRecords(List<Record> records) async {
-    if (records != null) {
-      var clones = <Record>[];
-      // make it safe for the loop
-      records = List<Record>.from(records, growable: false);
-      for (var record in records) {
-        if (needCooperate) {
-          await cooperate();
-        }
-        clones.add(cloneRecord(record));
-      }
-      return clones;
-    }
-    return null;
-  }
-*/
 
   //
   // Cooperate mode
@@ -1056,4 +1035,7 @@ class DatabaseExportStat {
     }
     return map;
   }
+
+  @override
+  String toString() => toJson().toString();
 }

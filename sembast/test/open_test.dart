@@ -12,6 +12,25 @@ void main() {
 void defineTests(DatabaseTestContext ctx) {
   var factory = ctx.factory;
   group('open', () {
+    test('version', () async {
+      var path = ctx.dbPath;
+
+      var db = await factory.openDatabase(path, version: 1,
+          onVersionChanged: (db, oldVersion, newVersion) async {
+        expect(oldVersion, 0);
+        expect(db.version, 0);
+      });
+      expect(db.version, 1);
+      await db.close();
+
+      db = await factory.openDatabase(path, version: 2,
+          onVersionChanged: (db, oldVersion, newVersion) async {
+        expect(oldVersion, 1);
+        expect(db.version, 1);
+      });
+      expect(db.version, 2);
+    });
+
     test('compacting during open', () async {
       // Deleting all the records during onVersionChanged could trigger
       // a compact that hangs the database
@@ -20,9 +39,9 @@ void defineTests(DatabaseTestContext ctx) {
 
       Future<Database> openDatabase(String path, int version) async {
         return await factory.openDatabase(path, version: version,
-            onVersionChanged: (dataBase, oldVersion, newVersion) async {
+            onVersionChanged: (db, oldVersion, newVersion) async {
           if (oldVersion == 1 && newVersion == 2) {
-            await dataBase.transaction((txn) async {
+            await db.transaction((txn) async {
               var records = await store.find(txn);
 
               for (var item in records) {

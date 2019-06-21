@@ -85,6 +85,7 @@ class _FsDatabaseStorage extends DatabaseStorage {
         log.warning('fail to delete $e');
         //return true;
       }
+      // devPrint('renaming $tmpPath to ${file.path}');
       await fs.file(tmpPath).rename(file.path);
 
       // ok
@@ -104,6 +105,7 @@ class _FsDatabaseStorage extends DatabaseStorage {
 
   @override
   Future appendLines(List<String> lines) {
+    // devPrint('${file.path} lines $lines');
     IOSink sink = file.openWrite(mode: FileMode.append);
 
     lines.forEach((String line) {

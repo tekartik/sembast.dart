@@ -1,6 +1,7 @@
-## 1.16.0
+## 1.16.0+1
 
 * Add record and query change tracking
+* Fix `onVersionChanged` hangs if compact is triggered
 
 ## 1.15.4+1
 
