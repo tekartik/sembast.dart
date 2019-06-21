@@ -15,6 +15,8 @@ void defineTests(DatabaseTestContext ctx) {
     test('version', () async {
       var path = ctx.dbPath;
 
+      await factory.deleteDatabase(path);
+
       var db = await factory.openDatabase(path, version: 1,
           onVersionChanged: (db, oldVersion, newVersion) async {
         expect(oldVersion, 0);
@@ -54,6 +56,8 @@ void defineTests(DatabaseTestContext ctx) {
       }
 
       var path = ctx.dbPath;
+
+      await factory.deleteDatabase(path);
 
       var db = await openDatabase(path, 1);
       // Add 21 records
