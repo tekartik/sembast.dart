@@ -48,7 +48,8 @@ void defineTests(FileSystemTestContext ctx, {SembastCodec codec}) {
 
     test('open_no_version', () async {
       await prepareForDb();
-      await factory.openDatabase(dbPath, codec: codec);
+      var db = await factory.openDatabase(dbPath, codec: codec);
+      await db.close();
       List<String> lines = await readContent(fs, dbPath);
       expect(lines.length, 1);
       var expected = <String, dynamic>{"version": 1, "sembast": 1};

@@ -102,7 +102,10 @@ void defineTests(DatabaseTestContext ctx) {
     test('onSnapshot.closeDb', () async {
       var record = intMapStoreFactory.store().record(1);
       try {
-        await record.onSnapshot(db).toList().timeout(Duration(milliseconds: 1));
+        await record
+            .onSnapshot(db)
+            .toList()
+            .timeout(const Duration(milliseconds: 1));
         fail('should timeout');
       } on TimeoutException catch (_) {}
 

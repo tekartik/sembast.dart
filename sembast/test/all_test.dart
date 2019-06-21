@@ -23,6 +23,7 @@ import 'crud_test.dart' as crud_test;
 import 'doc_test.dart' as doc_test;
 import 'find_test.dart' as find_test;
 import 'key_test.dart' as key_test;
+import 'open_test.dart' as open_test;
 import 'store_api_test.dart' as store_api_test;
 import 'store_test.dart' as store_test;
 import 'test_common.dart';
@@ -49,6 +50,7 @@ void defineTests(DatabaseTestContext ctx) {
   key_test.defineTests(ctx);
   store_api_test.defineTests(ctx);
   doc_test.defineTests(ctx);
+  open_test.defineTests(ctx);
 
   database_perf_test.defineTests(ctx, 10);
   database_test.defineTests(ctx);

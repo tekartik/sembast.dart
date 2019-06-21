@@ -20,6 +20,12 @@ import 'package:synchronized/synchronized.dart';
 
 SembastDatabase getDatabase(Database database) => database as SembastDatabase;
 
+class CommitData {
+  // Only when we have listeners
+  List<StoreListenerOperation> listenerOperations;
+  List<TxnRecord> txnRecords;
+}
+
 class SembastDatabase extends Object
     with DatabaseExecutorMixin
     implements Database, SembastDatabaseClient {
@@ -50,6 +56,9 @@ class SembastDatabase extends Object
   @override
   int get version => _meta.version;
 
+  // True during onVersionChanged
+  bool _upgrading = false;
+  Meta _upgradingMeta;
   bool _opened = false;
   bool _closed = false;
 
@@ -219,7 +228,7 @@ class SembastDatabase extends Object
   /// Prepare the records for listeners and returns a list of listener operations.
   ///
   /// and commit on storage later...
-  List<StoreListenerOperation> lazyCommit() {
+  CommitData commitInMemory() {
     List<TxnRecord> txnRecords = [];
     var listenerOperations = <StoreListenerOperation>[];
 
@@ -240,36 +249,28 @@ class SembastDatabase extends Object
       }
     }
 
+    var commitData = CommitData()
+      ..listenerOperations = listenerOperations
+      ..txnRecords = txnRecords;
     // Not record, no commit
-    if (txnRecords.isEmpty) {
-      return listenerOperations;
-    }
-
-    void _saveInMemory() {
-      for (var record in txnRecords) {
-        bool exists = setRecordInMemory(record);
-        // Try to estimated if compact will be needed
-        if (_storage.supported) {
-          if (exists) {
-            _exportStat.obsoleteLineCount++;
+    if (txnRecords.isNotEmpty) {
+      void _saveInMemory() {
+        for (var record in txnRecords) {
+          bool exists = setRecordInMemory(record);
+          // Try to estimated if compact will be needed
+          if (_storage.supported) {
+            if (exists) {
+              _exportStat.obsoleteLineCount++;
+            }
+            _exportStat.lineCount++;
           }
-          _exportStat.lineCount++;
         }
       }
+
+      _saveInMemory();
     }
 
-    _saveInMemory();
-
-    // spawn commit
-    if (_storage.supported) {
-      // Don't await on purpose here
-      // ignore: unawaited_futures
-      databaseLock.synchronized(() {
-        return storageCommit(txnRecords);
-      });
-    }
-
-    return listenerOperations;
+    return commitData;
   }
 
   // future or not
@@ -566,33 +567,32 @@ class SembastDatabase extends Object
         Meta meta;
 
         Future _handleVersionChanged(int oldVersion, int newVersion) async {
-          await transaction((txn) async {
-            var result;
-            try {
-              // create a transaction during open
-              _openTransaction = txn;
+          _upgrading = true;
+          try {
+            await transaction((txn) async {
+              var result;
+              try {
+                // create a transaction during open
+                _openTransaction = txn;
 
-              meta = Meta(
-                  version: newVersion,
-                  codecSignature: getCodecEncodedSignature(options.codec));
+                meta = _upgradingMeta = Meta(
+                    version: newVersion,
+                    codecSignature: getCodecEncodedSignature(options.codec));
 
-              // Eventually run onVersionChanged
-              // Change will be committed when the transaction terminates
-              if (options.onVersionChanged != null) {
-                result = await options.onVersionChanged(
-                    this, oldVersion, newVersion);
+                // Eventually run onVersionChanged
+                // Change will be committed when the transaction terminates
+                if (options.onVersionChanged != null) {
+                  result = await options.onVersionChanged(
+                      this, oldVersion, newVersion);
+                }
+              } finally {
+                _openTransaction = null;
               }
-
-              // Write meta first
-              if (_storage.supported) {
-                await _storage.appendLine(json.encode(meta.toMap()));
-                _exportStat.lineCount++;
-              }
-            } finally {
-              _openTransaction = null;
-            }
-            return result;
-          });
+              return result;
+            });
+          } finally {
+            _upgrading = false;
+          }
           // Make sure the changes are committed
         }
 
@@ -857,8 +857,9 @@ class SembastDatabase extends Object
     if (_openTransaction != null) {
       return await action(_openTransaction);
     }
-    List<StoreListenerOperation> listenerOperations;
+    CommitData commitData;
 
+    bool upgrading = _upgrading;
     return transactionLock.synchronized(() async {
       _transaction = SembastTransaction(this, ++_txnId);
 
@@ -874,7 +875,7 @@ class SembastDatabase extends Object
 
       try {
         actionResult = await Future<T>.sync(() => action(_transaction));
-        listenerOperations = lazyCommit();
+        commitData = commitInMemory();
       } catch (e) {
         _clearTxnData();
         _transactionCleanUp();
@@ -888,11 +889,11 @@ class SembastDatabase extends Object
       return actionResult;
     }).whenComplete(() async {
       // Notify if needed
-      if (listenerOperations?.isNotEmpty == true) {
+      if (commitData?.listenerOperations?.isNotEmpty == true) {
         // Don't await on purpose here
         // ignore: unawaited_futures
         notificationLock.synchronized(() async {
-          for (var operation in listenerOperations) {
+          for (var operation in commitData.listenerOperations) {
             // records
             for (var record in operation.txnRecords) {
               var ctlrs = operation.listener.getRecord(record.ref);
@@ -910,14 +911,42 @@ class SembastDatabase extends Object
         });
       }
 
-      // the transaction is done
-      // need compact?
+      // spawn commit if needed
       if (_storage.supported) {
-        if (_needCompact) {
-          await databaseLock.synchronized(() async {
-            await txnCompact();
-            //print(_exportStat.toJson());
-          });
+        /// Commit the transaction data to storage
+        Future _storageCommit() async {
+          // Write meta when upgrading, write before the records!
+          if (upgrading) {
+            await _storage.appendLine(json.encode(_upgradingMeta.toMap()));
+            _exportStat.lineCount++;
+          }
+          if (commitData?.txnRecords?.isNotEmpty == true) {
+            await storageCommit(commitData.txnRecords);
+          }
+        }
+
+        bool hasRecords = commitData?.txnRecords?.isNotEmpty == true;
+        if (hasRecords || _upgrading) {
+          // We only wait when we are opening/upgrading
+          if (_upgrading) {
+            // We are already locked here
+            await _storageCommit();
+          } else {
+            // Don't await on purpose here
+            // ignore: unawaited_futures
+            databaseLock.synchronized(() async {
+              await _storageCommit();
+            });
+          }
+        }
+        // Check compaction if records were changed only
+        if (hasRecords && !_upgrading) {
+          if (_needCompact) {
+            await databaseLock.synchronized(() async {
+              await txnCompact();
+              //print(_exportStat.toJson());
+            });
+          }
         }
       }
     });
