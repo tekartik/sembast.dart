@@ -18,6 +18,8 @@ import 'package:sembast/src/store_impl.dart';
 import 'package:sembast/src/transaction_impl.dart';
 import 'package:synchronized/synchronized.dart';
 
+final bool _debugStorage = false; // devWarning(true);
+
 SembastDatabase getDatabase(Database database) => database as SembastDatabase;
 
 class CommitData {
@@ -135,7 +137,7 @@ class SembastDatabase extends Object
   }
 
   Future compact() async {
-    return databaseLock.synchronized(() {
+    await databaseOperation(() {
       return txnCompact();
     });
   }
@@ -184,6 +186,9 @@ class SembastDatabase extends Object
       Future _addStringLine(String line) async {
         await cooperate();
         exportStat.lineCount++;
+        if (_debugStorage) {
+          print('tmp: $line');
+        }
         lines.add(line);
       }
 
@@ -280,6 +285,9 @@ class SembastDatabase extends Object
         String encoded;
         try {
           encoded = encodeMap(map);
+          if (_debugStorage) {
+            print('add: $encoded');
+          }
           lines.add(encoded);
         } catch (e, st) {
           print(map);
@@ -524,7 +532,7 @@ class SembastDatabase extends Object
     // Wait for pending transaction
     await transactionLock.synchronized(null);
     // Wait for pending writes
-    await databaseLock.synchronized(null);
+    await databaseOperation(null);
   }
 
   ///
@@ -823,6 +831,9 @@ class SembastDatabase extends Object
     return map;
   }
 
+  final lazyStorageOperations = <Future Function()>[];
+  final lazyListenerOperations = <Future Function()>[];
+
   DatabaseExportStat _exportStat;
 
   /// Basic algorithm to tell whether the storage file must be updated
@@ -846,6 +857,31 @@ class SembastDatabase extends Object
 
   @override
   Future<bool> containsKey(key) => _mainStore.containsKey(key);
+
+  /// Execute an exclusive operation on the database storage
+  Future databaseOperation(Future Function() action) async {
+    // Don't lock if no pending operation, nor action
+    if (lazyStorageOperations.isEmpty && action == null) {
+      return;
+    }
+    await databaseLock.synchronized(() async {
+      if (lazyStorageOperations.isNotEmpty) {
+        var list = List.from(lazyStorageOperations);
+        // devPrint('operation ${list.length}');
+        for (var operation in list) {
+          try {
+            await operation();
+          } catch (e) {
+            print('err $e');
+          }
+          lazyStorageOperations.remove(operation);
+        }
+      }
+      if (action != null) {
+        await action();
+      }
+    });
+  }
 
   @override
   Future<T> transaction<T>(
@@ -877,19 +913,45 @@ class SembastDatabase extends Object
         _clearTxnData();
         _transactionCleanUp();
         rethrow;
+      } finally {
+        if (_storage.supported) {
+          bool hasRecords = commitData?.txnRecords?.isNotEmpty == true;
+
+          if (hasRecords || _upgrading) {
+            Future postTransaction() async {
+              // spawn commit if needed
+              // storagage commit and compacting is done lazily
+
+              // Write meta when upgrading, write before the records!
+              if (upgrading) {
+                await _storage.appendLine(json.encode(_upgradingMeta.toMap()));
+                _exportStat.lineCount++;
+              }
+              if (commitData?.txnRecords?.isNotEmpty == true) {
+                await storageCommitRecords(commitData.txnRecords);
+              }
+
+              // devPrint('needCompact $_needCompact $_exportStat');
+
+              // Check compaction if records were changed only
+              // Lazy compact!
+              if (!_upgrading && _needCompact) {
+                await txnCompact();
+              }
+            }
+
+            if (upgrading) {
+              await postTransaction();
+            } else {
+              lazyStorageOperations.add(postTransaction);
+            }
+          }
+        }
       }
 
-      _clearTxnData();
-
-      _transactionCleanUp();
-
-      return actionResult;
-    }).whenComplete(() async {
       // Notify if needed
       if (commitData?.listenerOperations?.isNotEmpty == true) {
-        // Don't await on purpose here
-        // ignore: unawaited_futures
-        notificationLock.synchronized(() async {
+        lazyListenerOperations.add(() async {
           for (var operation in commitData.listenerOperations) {
             // records
             for (var record in operation.txnRecords) {
@@ -908,44 +970,35 @@ class SembastDatabase extends Object
         });
       }
 
-      // spawn commit if needed
-      // storagage commit and compacting is done lazily
-      if (_storage.supported) {
-        bool hasRecords = commitData?.txnRecords?.isNotEmpty == true;
+      _clearTxnData();
 
-        /// Commit the transaction data to storage
-        Future _storageCommit() async {
-          // Write meta when upgrading, write before the records!
-          if (upgrading) {
-            await _storage.appendLine(json.encode(_upgradingMeta.toMap()));
-            _exportStat.lineCount++;
-          }
-          if (commitData?.txnRecords?.isNotEmpty == true) {
-            await storageCommitRecords(commitData.txnRecords);
-          }
+      _transactionCleanUp();
 
-          // devPrint('needCompact $_needCompact $_exportStat');
-
-          // Check compaction if records were changed only
-          // Lazy compact!
-          if (_needCompact) {
-            await txnCompact();
+      return actionResult;
+    }).whenComplete(() async {
+      // Notify if needed
+      if (lazyListenerOperations.isNotEmpty) {
+        // Don't await on purpose here
+        // ignore: unawaited_futures
+        notificationLock.synchronized(() async {
+          if (lazyListenerOperations.isNotEmpty) {
+            var list = List.from(lazyListenerOperations);
+            // devPrint('listeners ${list.length}');
+            for (var operation in list) {
+              try {
+                await operation();
+              } catch (e) {
+                print('err $e');
+              }
+              lazyListenerOperations.remove(operation);
+            }
           }
-        }
+        });
+      }
 
-        if (hasRecords || _upgrading) {
-          // We only wait when we are opening/upgrading
-          if (_upgrading) {
-            // We are already locked here
-            await _storageCommit();
-          } else {
-            // Don't await on purpose here
-            // ignore: unawaited_futures
-            databaseLock.synchronized(() async {
-              await _storageCommit();
-            });
-          }
-        }
+      if (!upgrading) {
+        // trigger lazy operation
+        await databaseOperation(null);
       }
     });
   }

@@ -96,16 +96,14 @@ void defineTests(FileSystemTestContext ctx) {
       await prepareForDb();
       SembastDatabase db =
           await factory.openDatabase(dbPath) as SembastDatabase;
-      return db.put("hi", 1).then((_) {
-        return db.put("hi", 1);
-      }).then((_) {
-        return db.compact();
-      }).then((_) {
-        return readContent(fs, dbPath).then((List<String> lines) {
-          expect(lines.length, 2);
-          expect(json.decode(lines[1]), {'key': 1, 'value': 'hi'});
-        });
-      });
+      await db.put("hi", 1);
+      await db.put("hi", 1);
+      await db.compact();
+      await db.flush();
+      var lines = await readContent(fs, dbPath);
+      expect(lines.length, 2);
+      expect(json.decode(lines[1]), {'key': 1, 'value': 'hi'});
+      await db.close();
     });
 
     List<Record> generate(int count) {

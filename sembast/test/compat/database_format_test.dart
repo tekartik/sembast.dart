@@ -81,6 +81,39 @@ void defineTests(FileSystemTestContext ctx, {SembastCodec codec}) {
       }
     });
 
+    List<Map> linesAsMapList(List<String> lines) {
+      return lines
+          ?.map((line) => json.decode(line) as Map)
+          ?.toList(growable: false);
+    }
+
+    test('open_version_1_then_2', () async {
+      await prepareForDb();
+      var db = await factory.openDatabase(dbPath, version: 1, codec: codec);
+      await db.close();
+      db = await factory.openDatabase(dbPath, version: 2, codec: codec);
+      await db.close();
+      List<String> lines = await readContent(fs, dbPath);
+      expect(lines.length, 2);
+      if (codec == null) {
+        expect(linesAsMapList(lines), [
+          {"version": 1, "sembast": 1},
+          {"version": 2, "sembast": 1}
+        ]);
+      }
+
+      var expected = <String, dynamic>{"version": 2, "sembast": 1};
+      if (codec != null) {
+        expected['codec'] = getCodecEncodedSignature(codec);
+        var map = json.decode(lines.last);
+        expect(getCodecDecodedSignature(codec, map['codec'] as String),
+            {'signature': codec.signature});
+      }
+      if (!_hasRandomIv(codec)) {
+        expect(json.decode(lines.last), expected);
+      }
+    });
+
     dynamic decodeRecord(String line) {
       if (codec != null) {
         return codec.codec.decode(line);
