@@ -2,10 +2,11 @@
 
 Storage format is optimized for performance. It can also easily be read but not is optimized for size.
 Data is stored in a text file where each line is (json format) either:
-- meta information of the database (first line)
+- meta information of the database
 - record data
 
-Each data written is appended lazily to the file for best performance.
+Each data written is appended lazily to the file for best performance, even meta data so the first line might not
+reflect the current version of the database.
 
 Application should not rely on the file format that could evolve in the future. As of now, any evolution has handled
 compatibility on previous file formats and the plan is to continue to do so. 
@@ -68,6 +69,15 @@ continue adding data the content might get compacted to only contains
 {"key":2,"store":"shop","value":{"name":"Chair","price":15}}
 ```
 
+If you close the database and reopen with a new version 2, content would be like this:
+
+```json
+{"version":1,"sembast":1}
+{"key":1,"store":"shop","value":{"name":"Lamp","price":12}}
+{"key":2,"store":"shop","value":{"name":"Chair","price":15}}
+{"version":2,"sembast":1}
+```
+ 
 You can export the content using 
 
 ```dart
