@@ -22,6 +22,39 @@ void defineTests(DatabaseTestContext ctx) {
       return db.close();
     });
 
+    test('put/query timing', () async {
+      var record = StoreRef<int, String>.main().record(1);
+      var query = record.store.query();
+      var future1 = query.getSnapshots(db);
+      await record.put(db, 'test');
+      var future2 = query.getSnapshots(db);
+      await record.put(db, 'test2');
+      var future3 = query.getSnapshots(db);
+      await record.delete(db);
+      var future4 = query.getSnapshots(db);
+      expect(await future1, isEmpty);
+      expect((await future2).first.value, 'test');
+      expect((await future3).first.value, 'test2');
+      expect(await future4, isEmpty);
+    });
+
+    test('put/on timing', () async {
+      var record = StoreRef<int, String>.main().record(1);
+      var query = record.store.query();
+      var future1 = query.onSnapshots(db).first;
+      await record.put(db, 'test');
+      var future2 = query.onSnapshots(db).first;
+      await record.put(db, 'test2');
+      var future3 = query.onSnapshots(db).first;
+      await record.delete(db);
+      var future4 = query.onSnapshots(db).first;
+      expect(await future1, isEmpty);
+      expect((await future2), hasLength(1));
+      expect((await future2).first.value, 'test');
+      expect((await future3).first.value, 'test2');
+      expect(await future4, isEmpty);
+    });
+
     test('onSnapshots', () async {
       var store = StoreRef<int, String>.main();
       var record = store.record(1);
@@ -31,6 +64,7 @@ void defineTests(DatabaseTestContext ctx) {
       // When starting listening the record does not exists yet
       var query = store.query();
       var sub = query.onSnapshots(db).listen((snapshots) {
+        // devPrint('$index $snapshots');
         var first = snapshots.isNotEmpty ? snapshots.first : null;
         int key = first?.key;
         String value = first?.value;
@@ -62,6 +96,7 @@ void defineTests(DatabaseTestContext ctx) {
       //await Future.delayed(Duration(milliseconds: 1));
       // create
       await record.put(db, 'test');
+
       // add
       await store.record(2).put(db, 'test3');
       expect(await query.getSnapshots(db), hasLength(2));
@@ -128,6 +163,9 @@ void defineTests(DatabaseTestContext ctx) {
       // update
       await record.put(db, 'test1');
 
+      // change that does not affect the query
+      await store.record(3).put(db, 'dummy not in query');
+
       // delete
       await record.delete(db);
       await completer.future;
@@ -135,25 +173,83 @@ void defineTests(DatabaseTestContext ctx) {
       expect(index, 5);
     });
 
-    test('onSnapshotExisting', () async {
+    test('onSnapshotsExisting', () async {
       var store = StoreRef<int, String>.main();
       var record = store.record(1);
       await record.put(db, 'test');
-      expect((await record.onSnapshot(db).first).value, 'test');
+      expect((await store.query().onSnapshots(db).first).first.value, 'test');
     });
 
-    test('onSnapshot 2 records', () async {
+    test('onSnapshotsBeforeCreationAndUpdate', () async {
+      var store = StoreRef<int, String>.main();
+      var record = store.record(1);
+      var future1 = store.query().onSnapshots(db).first;
+      await record.put(db, 'test');
+      var future2 = store.query().onSnapshots(db).first;
+      await record.put(db, 'test2');
+      var future3 = store.query().onSnapshots(db).first;
+
+      expect(await future1, isEmpty);
+      expect((await future2).first.value, 'test');
+      expect((await future2).length, 1);
+      expect((await future3).first.value, 'test2');
+    });
+
+    test('onSnapshotsWithFinderBeforeCreationAndUpdate', () async {
       var store = StoreRef<int, String>.main();
       var record1 = store.record(1);
       var record2 = store.record(2);
-      var future1 = record1.onSnapshot(db).skip(1).first;
-      var future2 = record2.onSnapshot(db).skip(1).first;
+      var query = store.query(
+          finder: Finder(filter: Filter.greaterThan(Field.value, 'abc')));
+      var future1 = query.onSnapshots(db).first;
+      await record1.put(db, 'abcd');
+      var future2 = query.onSnapshots(db).first;
+      await record2.put(db, 'ab');
+      var future3 = query.onSnapshots(db).first;
+      await record2.put(db, 'abd');
+      var future4 = query.onSnapshots(db).first;
+      await record1.put(db, 'ab');
+      var future5 = query.onSnapshots(db).first;
+
+      expect(await future1, isEmpty);
+
+      expect((await future2).length, 1);
+      expect((await future2).first.value, 'abcd');
+
+      expect((await future3).length, 1);
+      expect((await future3).first.value, 'abcd');
+
+      expect((await future4).length, 2);
+      expect((await future4)[1].value, 'abd');
+      expect((await future4)[1].value, 'abd');
+
+      expect((await future4).first.value, 'abcd');
+      expect((await future5).first.value, 'abd');
+      expect((await future5).length, 1);
+    });
+
+    test('onSnapshotsExistingAfterOpen', () async {
+      var store = StoreRef<int, String>.main();
+      var record = store.record(1);
+      await record.put(db, 'test');
+      await db.close();
+      db = await ctx.factory.openDatabase(db.path);
+      expect((await store.query().onSnapshots(db).first).first.value, 'test');
+    });
+
+    test('onSnapshots 2 records', () async {
+      var store = StoreRef<int, String>.main();
+      var record1 = store.record(1);
+      var record2 = store.record(2);
+      var future1 = store.query().onSnapshots(db).first;
       await db.transaction((txn) async {
         await record1.put(txn, 'test1');
         await record2.put(txn, 'test2');
       });
-      expect((await future1).value, 'test1');
-      expect((await future2).value, 'test2');
+      var future2 = store.query().onSnapshots(db).first;
+      expect(await future1, isEmpty);
+      expect((await future2)[0].value, 'test1');
+      expect((await future2)[1].value, 'test2');
     });
   });
 }

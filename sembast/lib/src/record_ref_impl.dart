@@ -77,14 +77,25 @@ mixin RecordRefMixin<K, V> implements RecordRef<K, V> {
   Stream<RecordSnapshot<K, V>> onSnapshot(Database database) {
     var db = getDatabase(database);
     var ctlr = db.listener.addRecord(this);
+
+    var completer = Completer<RecordSnapshot<K, V>>();
     // Add the existing snapshot
     db.notificationLock.synchronized(() async {
+      var snapshot = await completer.future;
+      ctlr.add(snapshot);
+    });
+
+    // Read right away
+    () async {
       // Don't crash here, the database might have been closed
       try {
         var snapshot = await getSnapshot(database);
-        ctlr.add(snapshot);
-      } catch (_) {}
-    });
+        completer.complete(snapshot);
+      } catch (error, stackTrace) {
+        completer.completeError(error);
+        ctlr.addError(error, stackTrace);
+      }
+    }();
     return ctlr.stream;
   }
 

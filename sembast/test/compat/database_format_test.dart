@@ -112,6 +112,11 @@ void defineTests(FileSystemTestContext ctx, {SembastCodec codec}) {
       if (!_hasRandomIv(codec)) {
         expect(json.decode(lines.last), expected);
       }
+
+      await db.close();
+      db = await factory.openDatabase(dbPath, codec: codec);
+      expect(db.version, 2);
+      await db.close();
     });
 
     dynamic decodeRecord(String line) {

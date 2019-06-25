@@ -7,6 +7,7 @@ import 'package:sembast/src/common_import.dart';
 import 'package:sembast/src/cooperator.dart';
 import 'package:sembast/src/database_client_impl.dart';
 import 'package:sembast/src/database_factory_mixin.dart';
+import 'package:sembast/src/env_utils.dart';
 import 'package:sembast/src/listener.dart';
 import 'package:sembast/src/meta.dart';
 import 'package:sembast/src/record_impl.dart';
@@ -872,7 +873,7 @@ class SembastDatabase extends Object
           try {
             await operation();
           } catch (e) {
-            print('err $e');
+            print('lazy storage err $e');
           }
           lazyStorageOperations.remove(operation);
         }
@@ -958,13 +959,39 @@ class SembastDatabase extends Object
               var ctlrs = operation.listener.getRecord(record.ref);
               if (ctlrs != null) {
                 for (var ctlr in ctlrs) {
-                  ctlr.add(record.nonDeletedRecord);
+                  void _updateRecord() {
+                    ctlr.add(record.nonDeletedRecord);
+                  }
+
+                  if (ctlr.hasInitialData) {
+                    // devPrint('adding $record');
+                    _updateRecord();
+                  } else {
+                    // postpone
+                    // ignore: unawaited_futures
+                    notificationLock.synchronized(() async {
+                      _updateRecord();
+                    });
+                  }
                 }
               }
             }
             // Fix existing queries
-            for (var query in operation.listener.getQuery()) {
-              await query.update(operation.txnRecords, cooperator);
+            for (var query in List<QueryListenerController>.from(
+                operation.listener.getQuery())) {
+              Future _updateQuery() async {
+                await query.update(operation.txnRecords, cooperator);
+              }
+
+              if (query.hasInitialData) {
+                await _updateQuery();
+              } else {
+                // postpone
+                // ignore: unawaited_futures
+                notificationLock.synchronized(() async {
+                  await _updateQuery();
+                });
+              }
             }
           }
         });
@@ -987,8 +1014,11 @@ class SembastDatabase extends Object
             for (var operation in list) {
               try {
                 await operation();
-              } catch (e) {
-                print('err $e');
+              } catch (e, st) {
+                print('err lazy listeners $e');
+                if (isDebug) {
+                  print(st);
+                }
               }
               lazyListenerOperations.remove(operation);
             }

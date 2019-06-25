@@ -12,6 +12,10 @@ class QueryListenerController<K, V> {
   final SembastQueryRef<K, V> queryRef;
   StreamController<List<RecordSnapshot<K, V>>> _streamController;
 
+  /// True when the first data has arrived
+  bool get hasInitialData => _allMatching != null;
+
+  bool get isClosed => _streamController.isClosed;
   // The current list
   List<RecordSnapshot<K, V>> list;
   List<ImmutableSembastRecord> _allMatching;
@@ -25,11 +29,12 @@ class QueryListenerController<K, V> {
   }
 
   QueryListenerController(DatabaseListener listener, this.queryRef) {
+    // devPrint('query $queryRef');
     _streamController =
         StreamController<List<RecordSnapshot<K, V>>>(onCancel: () {
       // Auto remove
       listener.removeQuery(this);
-      _streamController = null;
+      close();
     });
   }
 
@@ -37,20 +42,49 @@ class QueryListenerController<K, V> {
 
   Future add(
       List<ImmutableSembastRecord> allMatching, Cooperator cooperator) async {
+    if (isClosed) {
+      return;
+    }
+
     // Filter only
     _allMatching = allMatching;
     var list = await sortAndLimit(_allMatching, finder, cooperator);
+
+    if (isClosed) {
+      return;
+    }
+    // devPrint('adding $allMatching / limit $list / $finder');
     _streamController?.add(immutableListToSnapshots<K, V>(list));
+  }
+
+  void addError(dynamic error, StackTrace stackTrace) {
+    if (isClosed) {
+      return;
+    }
+    _streamController.addError(error, stackTrace);
   }
 
   // We are async safe here
   Future update(List<TxnRecord> txnRecords, Cooperator cooperator) async {
+    if (isClosed) {
+      return;
+    }
     // Restart from the base we have for efficiency
     var allMatching = List<ImmutableSembastRecord>.from(_allMatching);
+    bool hasChanges = false;
     for (var txnRecord in txnRecords) {
+      if (isClosed) {
+        return;
+      }
       var ref = txnRecord.ref;
 
-      bool _where(snapshot) => snapshot.ref == ref;
+      bool _where(snapshot) {
+        if (snapshot.ref == ref) {
+          hasChanges = true;
+          return true;
+        }
+        return false;
+      }
 
       // Remove and reinsert if needed
       allMatching.removeWhere(_where);
@@ -62,36 +96,57 @@ class QueryListenerController<K, V> {
       }
 
       if (matches) {
+        hasChanges = true;
         // re-add
         allMatching.add(txnRecord.record);
       }
 
       await cooperator.cooperate();
     }
-    await add(allMatching, cooperator);
+    if (isClosed) {
+      return;
+    }
+    if (hasChanges) {
+      await add(allMatching, cooperator);
+    }
   }
 }
 
 class RecordListenerController<K, V> {
+  bool hasInitialData = false;
   StreamController<RecordSnapshot<K, V>> _streamController;
 
   void close() {
-    _streamController?.close();
+    _streamController.close();
   }
+
+  bool get isClosed => _streamController.isClosed;
 
   RecordListenerController(
       DatabaseListener listener, RecordRef<K, V> recordRef) {
     _streamController = StreamController<RecordSnapshot<K, V>>(onCancel: () {
+      // devPrint('onCancel');
       // Auto remove
       listener.removeRecord(recordRef, this);
-      _streamController = null;
+      close();
     });
   }
 
   Stream<RecordSnapshot<K, V>> get stream => _streamController.stream;
 
   void add(RecordSnapshot snapshot) {
+    if (isClosed) {
+      return;
+    }
+    hasInitialData = true;
     _streamController?.add(snapshot?.cast<K, V>());
+  }
+
+  void addError(dynamic error, StackTrace stackTrace) {
+    if (isClosed) {
+      return;
+    }
+    _streamController?.addError(error, stackTrace);
   }
 }
 
@@ -139,8 +194,9 @@ class StoreListener {
     return _records[recordRef.key]?.cast<RecordListenerController<K, V>>();
   }
 
+  /// Get list of query listeners, never null
   List<QueryListenerController<K, V>> getQuery<K, V>() {
-    return _queries?.cast<QueryListenerController<K, V>>();
+    return _queries.cast<QueryListenerController<K, V>>();
   }
 
   bool get isEmpty => _records.isEmpty && _queries.isEmpty;
@@ -165,15 +221,25 @@ class DatabaseListener {
   }
 
   QueryListenerController<K, V> addQuery<K, V>(QueryRef<K, V> queryRef) {
+    var ctlr = newQuery(queryRef);
+    addQueryController(ctlr);
+    return ctlr;
+  }
+
+  QueryListenerController<K, V> newQuery<K, V>(QueryRef<K, V> queryRef) {
     var ref = queryRef as SembastQueryRef<K, V>;
     var ctlr = QueryListenerController<K, V>(this, ref);
-    var storeRef = ref.store;
+    return ctlr;
+  }
+
+  void addQueryController<K, V>(QueryListenerController<K, V> ctlr) {
+    var storeRef = ctlr.queryRef.store;
     var store = _stores[storeRef];
     if (store == null) {
       store = StoreListener();
       _stores[storeRef] = store;
     }
-    return store.addQuery<K, V>(ctlr);
+    store.addQuery<K, V>(ctlr);
   }
 
   void removeRecord(RecordRef recordRef, RecordListenerController ctlr) {

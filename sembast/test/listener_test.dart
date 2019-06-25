@@ -2,6 +2,7 @@ library sembast.store_test;
 
 // basically same as the io runner but with extra output
 import 'package:sembast/src/api/sembast.dart';
+import 'package:sembast/src/common_import.dart';
 import 'package:sembast/src/database_impl.dart';
 
 import 'compat/test_common.dart';
@@ -38,6 +39,24 @@ void defineTests(DatabaseTestContext ctx) {
       expect(database.listener.isEmpty, isTrue);
     });
 
+    test('Record.onSnapshotDbClose', () async {
+      var database = getDatabase(db);
+      var store = StoreRef<int, String>.main();
+      var record = store.record(1);
+
+      var completer = Completer();
+
+      record.onSnapshot(db).listen((snapshot) {
+        fail('should be closed');
+      }, onDone: () {
+        completer.complete();
+      });
+      expect(database.listener.isNotEmpty, isTrue);
+      await db.close();
+      expect(database.listener.isEmpty, isTrue);
+      await completer.future;
+    });
+
     test('Query.onSnapshot', () async {
       var database = getDatabase(db);
       var store = StoreRef<int, String>.main();
@@ -50,6 +69,47 @@ void defineTests(DatabaseTestContext ctx) {
       await sub.cancel();
       expect(database.listener.isNotEmpty, isTrue);
       await sub2.cancel();
+      expect(database.listener.isEmpty, isTrue);
+    });
+
+    test('Query.onSnapshotDbClose', () async {
+      var database = getDatabase(db);
+      var store = StoreRef<int, String>.main();
+      var query = store.query();
+
+      var completer = Completer();
+      query.onSnapshots(db).listen((snapshots) {
+        fail('should be closed');
+      }, onDone: () {
+        completer.complete();
+      });
+      expect(database.listener.isNotEmpty, isTrue);
+      await db.close();
+      expect(database.listener.isEmpty, isTrue);
+      await completer.future;
+    });
+
+    test('Query.onSnapshotDone', () async {
+      var database = getDatabase(db);
+      var store = StoreRef<int, String>.main();
+      var record = store.record(1);
+      await record.put(db, 'test');
+      var query = store.query(
+          finder: Finder(filter: Filter.custom((record) => throw 'crash')));
+
+      var completer = Completer();
+      query.onSnapshots(db).listen((snapshot) {
+        fail('should be closed');
+      }, onDone: () {
+        // devPrint('onDone');
+        completer.complete();
+      });
+      expect(database.listener.isNotEmpty, isTrue);
+      var ctlr = database.listener.getStore(store).getQuery().first;
+      ctlr.close();
+
+      await completer.future;
+      // devPrint(list);
       expect(database.listener.isEmpty, isTrue);
     });
   });

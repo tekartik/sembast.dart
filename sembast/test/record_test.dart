@@ -39,11 +39,32 @@ void defineTests(DatabaseTestContext ctx) {
 
     test('put/get timing', () async {
       var record = StoreRef<int, String>.main().record(1);
-      var future = record.get(db);
+      var future1 = record.get(db);
       await record.put(db, 'test');
-      expect(await future, isNull);
-      future = record.get(db);
-      expect(await future, 'test');
+      var future2 = record.get(db);
+      await record.put(db, 'test2');
+      var future3 = record.get(db);
+      await record.delete(db);
+      var future4 = record.get(db);
+      expect(await future1, isNull);
+      expect(await future2, 'test');
+      expect(await future3, 'test2');
+      expect(await future4, isNull);
+    });
+
+    test('put/on timing', () async {
+      var record = StoreRef<int, String>.main().record(1);
+      var future1 = record.onSnapshot(db).first;
+      await record.put(db, 'test');
+      var future2 = record.onSnapshot(db).first;
+      await record.put(db, 'test2');
+      var future3 = record.onSnapshot(db).first;
+      await record.delete(db);
+      var future4 = record.onSnapshot(db).first;
+      expect(await future1, isNull);
+      expect((await future2).value, 'test');
+      expect((await future3).value, 'test2');
+      expect(await future4, isNull);
     });
 
     test('get closed', () async {
