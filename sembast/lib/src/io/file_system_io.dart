@@ -3,6 +3,7 @@ library sembast.io_file_system;
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io' as io;
+import 'dart:typed_data';
 
 import 'package:path/path.dart';
 import 'package:path/path.dart' as _path;
@@ -245,7 +246,7 @@ class FileIo extends FileSystemEntityIo implements fs.File {
       _wrap(ioFile.create(recursive: recursive)).then((io.File ioFile) => this);
 
   @override
-  Stream<List<int>> openRead([int start, int end]) //
+  Stream<Uint8List> openRead([int start, int end]) //
       =>
       ioFile.openRead(start, end);
 

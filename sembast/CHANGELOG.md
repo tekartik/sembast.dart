@@ -1,3 +1,7 @@
+## 1.17.0-dev.0
+
+* Sdk 2.5.0 support
+
 ## 1.16.0+3
 
 * Add record and query change tracking

@@ -55,9 +55,7 @@ void defineTests(FileSystemTestContext ctx) {
   }
 
   Stream<String> openReadLines(File file) {
-    return openRead(file)
-        .transform(utf8.decoder)
-        .transform(const LineSplitter());
+    return utf8.decoder.bind(openRead(file)).transform(const LineSplitter());
   }
 
   IOSink openWrite(File file) {

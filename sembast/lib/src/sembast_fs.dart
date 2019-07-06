@@ -97,10 +97,7 @@ class _FsDatabaseStorage extends DatabaseStorage {
 
   @override
   Stream<String> readLines() {
-    return file
-        .openRead()
-        .transform(utf8.decoder)
-        .transform(const LineSplitter());
+    return utf8.decoder.bind(file.openRead()).transform(const LineSplitter());
   }
 
   @override

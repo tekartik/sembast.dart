@@ -2,6 +2,7 @@ library sembast.memory_file_system;
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:sembast/src/file_system.dart' as fs;
 
@@ -116,7 +117,7 @@ class FileMemory extends FileSystemEntityMemory implements fs.File {
 
   // don't care about start end
   @override
-  Stream<List<int>> openRead([int start, int end]) => _fs._impl.openRead(path);
+  Stream<Uint8List> openRead([int start, int end]) => _fs._impl.openRead(path);
 
   // don't care about encoding - assume UTF8
   @override

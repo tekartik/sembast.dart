@@ -1,6 +1,7 @@
 library sembast.memory_file_system_impl;
 
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:path/path.dart';
 import 'package:sembast/src/file_system.dart' as fs;
@@ -74,14 +75,14 @@ class FileMemoryImpl extends FileSystemEntityMemoryImpl {
   FileMemoryImpl(DirectoryMemoryImpl parent, String segment)
       : super(parent, fs.FileSystemEntityType.file, segment);
 
-  Stream<List<int>> openRead() {
-    StreamController<List<int>> ctlr = StreamController(sync: true);
+  Stream<Uint8List> openRead() {
+    StreamController<Uint8List> ctlr = StreamController(sync: true);
     Future.sync(() async {
       openCount++;
       if (content != null) {
         content.forEach((String line) {
-          ctlr.add(line.codeUnits);
-          ctlr.add('\n'.codeUnits);
+          ctlr.add(Uint8List.fromList(line.codeUnits));
+          ctlr.add(Uint8List.fromList('\n'.codeUnits));
         });
       }
       try {
@@ -303,8 +304,8 @@ class FileSystemMemoryImpl {
     return null;
   }
 
-  Stream<List<int>> openRead(String path) {
-    var ctlr = StreamController<List<int>>(sync: true);
+  Stream<Uint8List> openRead(String path) {
+    var ctlr = StreamController<Uint8List>(sync: true);
     FileSystemEntityMemoryImpl fileImpl = getEntity(path);
     // if it exists we're fine
     if (fileImpl is FileMemoryImpl) {

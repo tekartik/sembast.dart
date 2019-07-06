@@ -74,10 +74,8 @@ Future<List<Record>> recordStreamToList(Stream<Record> stream) {
 ///
 Future<List<String>> readContent(FileSystem fs, String filePath) {
   List<String> content = [];
-  return fs
-      .file(filePath)
-      .openRead()
-      .transform(utf8.decoder)
+  return utf8.decoder
+      .bind(fs.file(filePath).openRead())
       .transform(const LineSplitter())
       .listen((String line) {
     content.add(line);

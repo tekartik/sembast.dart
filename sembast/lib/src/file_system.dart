@@ -3,6 +3,8 @@ library sembast.file_system;
 import 'dart:async';
 import 'dart:convert';
 
+import 'dart:typed_data';
+
 /// The modes in which a File can be opened.
 class FileMode {
   /// The mode for opening a file only for reading.
@@ -223,7 +225,7 @@ abstract class File extends FileSystemEntity {
   /// In order to make sure that system resources are freed, the stream
   /// must be read to completion or the subscription on the stream must
   /// be cancelled.
-  Stream<List<int>> openRead([int start, int end]);
+  Stream<Uint8List> openRead([int start, int end]);
 
   /// Creates a new independent [IOSink] for the file. The
   /// [IOSink] must be closed when no longer used, to free
