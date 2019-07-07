@@ -8,6 +8,7 @@ import 'dart:typed_data';
 import 'package:path/path.dart';
 import 'package:path/path.dart' as _path;
 import 'package:sembast/src/file_system.dart' as fs;
+import 'package:sembast/src/utils.dart';
 
 import 'file_mode_io.dart';
 
@@ -248,7 +249,7 @@ class FileIo extends FileSystemEntityIo implements fs.File {
   @override
   Stream<Uint8List> openRead([int start, int end]) //
       =>
-      ioFile.openRead(start, end);
+      intListStreamToUint8ListStream(ioFile.openRead(start, end));
 
   @override
   fs.IOSink openWrite(
