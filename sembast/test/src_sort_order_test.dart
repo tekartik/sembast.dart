@@ -5,7 +5,7 @@ library sembast.src_filter_test;
 import 'package:sembast/sembast.dart';
 import 'package:sembast/src/sort_order_impl.dart';
 
-import 'test_common.dart';
+import 'dev_test_common.dart';
 
 var store = StoreRef.main();
 var record = store.record(1);

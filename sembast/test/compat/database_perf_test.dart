@@ -9,10 +9,10 @@ import 'package:sembast/sembast.dart';
 import 'test_common.dart';
 
 void main() {
-  defineTests(memoryDatabaseContext, 10);
+  defineTests(devMemoryDatabaseContext, 10);
 }
 
-void defineTests(DatabaseTestContext ctx, int putCount,
+void defineTests(DevDatabaseTestContext ctx, int putCount,
     {int randomCount = 10, int randomChoices = 10}) {
   group('perf', () {
     Database db;

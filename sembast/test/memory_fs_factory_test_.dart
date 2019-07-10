@@ -5,7 +5,7 @@ import 'package:sembast/src/memory/database_factory_memory.dart'
     show DatabaseFactoryMemoryFs;
 
 import 'all_test.dart';
-import 'test_common.dart';
+import 'dev_test_common.dart';
 
 // default use memory
 void main() {

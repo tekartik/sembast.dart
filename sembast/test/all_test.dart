@@ -20,19 +20,19 @@ import 'compat/store_test.dart' as compat_store_test;
 import 'compat/transaction_test.dart' as compat_transaction_test;
 import 'compat/value_test.dart' as value_test;
 import 'crud_test.dart' as crud_test;
+import 'dev_test_common.dart';
 import 'doc_test.dart' as doc_test;
 import 'find_test.dart' as find_test;
 import 'key_test.dart' as key_test;
 import 'open_test.dart' as open_test;
 import 'store_api_test.dart' as store_api_test;
 import 'store_test.dart' as store_test;
-import 'test_common.dart';
 import 'transaction_test.dart' as transaction_test;
 
 // default use memory
 void main() {
   defineFileSystemTests(memoryFileSystemContext);
-  defineTests(memoryDatabaseContext);
+  defineTests(devMemoryDatabaseContext);
 }
 
 void defineFileSystemTests(FileSystemTestContext ctx) {
@@ -42,7 +42,7 @@ void defineFileSystemTests(FileSystemTestContext ctx) {
   database_impl_format_test.defineTests(ctx);
 }
 
-void defineTests(DatabaseTestContext ctx) {
+void defineTests(DevDatabaseTestContext ctx) {
   crud_test.defineTests(ctx);
   store_test.defineTests(ctx);
   find_test.defineTests(ctx);

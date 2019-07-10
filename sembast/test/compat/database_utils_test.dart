@@ -6,10 +6,10 @@ import 'package:sembast/utils/database_utils.dart';
 import 'test_common.dart';
 
 void main() {
-  defineTests(memoryDatabaseContext);
+  defineTests(devMemoryDatabaseContext);
 }
 
-void defineTests(DatabaseTestContext ctx) {
+void defineTests(DevDatabaseTestContext ctx) {
   group('utils', () {
     Database db;
 

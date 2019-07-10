@@ -9,10 +9,10 @@ import 'package:sembast/src/transaction_impl.dart';
 import 'test_common.dart';
 
 void main() {
-  defineTests(memoryDatabaseContext);
+  defineTests(devMemoryDatabaseContext);
 }
 
-void defineTests(DatabaseTestContext ctx) {
+void defineTests(DevDatabaseTestContext ctx) {
   group('currentTransaction', () {
     SembastDatabase db;
 

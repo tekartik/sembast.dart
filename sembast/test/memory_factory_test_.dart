@@ -5,23 +5,23 @@ import 'package:sembast/src/memory/database_factory_memory.dart'
     show DatabaseFactoryMemory;
 
 import 'all_test.dart';
-import 'test_common.dart';
+import 'dev_test_common.dart';
 
 void main() {
   test('type', () {
     expect(
         memoryFileSystemContext.fs.runtimeType.toString(), "FileSystemMemory");
-    expect(memoryDatabaseContext.factory,
+    expect(devMemoryDatabaseContext.factory,
         const TypeMatcher<DatabaseFactoryMemory>());
   });
 
-  defineMemoryDatabaseTests(memoryDatabaseContext);
-  defineTests(memoryDatabaseContext);
+  defineMemoryDatabaseTests(devMemoryDatabaseContext);
+  defineTests(devMemoryDatabaseContext);
 }
 
-void defineMemoryDatabaseTests(DatabaseTestContext ctx) {
+void defineMemoryDatabaseTests(DevDatabaseTestContext ctx) {
   test('null name', () async {
-    DatabaseFactory factory = memoryDatabaseContext.factory;
+    DatabaseFactory factory = devMemoryDatabaseContext.factory;
     String dbName;
 
     Database db = await factory.openDatabase(dbName);

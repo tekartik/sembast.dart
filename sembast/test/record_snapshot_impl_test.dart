@@ -2,7 +2,7 @@ import 'package:sembast/sembast.dart';
 import 'package:sembast/src/record_snapshot_impl.dart';
 import 'package:sembast/src/utils.dart';
 
-import 'test_common.dart';
+import 'dev_test_common.dart';
 
 final storeFactory = intMapStoreFactory;
 final otherStoreFactory = stringMapStoreFactory;
@@ -11,10 +11,10 @@ final otherStore = StoreRef<String, Map<String, dynamic>>('other');
 final keyValueStore = StoreRef<String, String>('keyValue');
 
 void main() {
-  defineTests(memoryDatabaseContext);
+  defineTests(devMemoryDatabaseContext);
 }
 
-void defineTests(DatabaseTestContext ctx) {
+void defineTests(DevDatabaseTestContext ctx) {
   test('factory', () async {
     var record = storeFactory.store('test').record(1);
     var snapshot = SembastRecordSnapshot(record, <String, dynamic>{'test': 1});

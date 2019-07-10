@@ -9,10 +9,10 @@ import 'package:sembast/utils/sembast_import_export.dart';
 import 'test_common.dart';
 
 void main() {
-  defineTests(memoryDatabaseContext);
+  defineTests(devMemoryDatabaseContext);
 }
 
-void defineTests(DatabaseTestContext ctx) {
+void defineTests(DevDatabaseTestContext ctx) {
   group('import_export', () {
     tearDown(() {});
 
@@ -42,7 +42,7 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     test('version_2', () async {
-      Database db = await ctx.open(2);
+      Database db = await ctx.open(version: 2);
       await _checkExportImport(db, {'sembast_export': 1, 'version': 2});
     });
 

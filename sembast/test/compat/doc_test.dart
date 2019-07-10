@@ -11,12 +11,10 @@ import 'test_common.dart';
 
 void main() {
   defineFileSystemTests(memoryFileSystemContext);
-  defineTests(memoryDatabaseContext);
+  defineTests(devMemoryDatabaseContext);
 }
 
-void unused(dynamic value) {}
-
-void defineTests(DatabaseTestContext ctx) {
+void defineTests(DevDatabaseTestContext ctx) {
   group('compat_doc', () {
     Database db;
 

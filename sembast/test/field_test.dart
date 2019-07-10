@@ -3,7 +3,7 @@ library sembast.field_test;
 // basically same as the io runner but with extra output
 //import 'package:tekartik_test/test_config.dart';
 import 'package:sembast/src/api/sembast.dart';
-import 'package:test/test.dart';
+import 'test_common.dart';
 
 void main() {
   group('field', () {

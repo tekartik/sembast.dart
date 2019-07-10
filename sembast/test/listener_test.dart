@@ -6,13 +6,13 @@ import 'package:sembast/src/common_import.dart';
 import 'package:sembast/src/database_impl.dart';
 
 import 'compat/test_common.dart';
-import 'test_common.dart';
+import 'dev_test_common.dart';
 
 void main() {
-  defineTests(memoryDatabaseContext);
+  defineTests(devMemoryDatabaseContext);
 }
 
-void defineTests(DatabaseTestContext ctx) {
+void defineTests(DevDatabaseTestContext ctx) {
   group('record_listener', () {
     Database db;
 

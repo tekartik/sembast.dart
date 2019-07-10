@@ -24,7 +24,7 @@ import 'value_test.dart' as value_test;
 // default use memory
 void main() {
   defineFileSystemTests(memoryFileSystemContext);
-  defineTests(memoryDatabaseContext);
+  defineTests(devMemoryDatabaseContext);
 }
 
 void defineFileSystemTests(FileSystemTestContext ctx) {
@@ -35,7 +35,7 @@ void defineFileSystemTests(FileSystemTestContext ctx) {
   doc_test.defineFileSystemTests(ctx);
 }
 
-void defineTests(DatabaseTestContext ctx) {
+void defineTests(DevDatabaseTestContext ctx) {
   database_perf_test.defineTests(ctx, 10);
   database_test.defineTests(ctx);
   crud_test.defineTests(ctx);

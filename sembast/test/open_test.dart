@@ -3,13 +3,13 @@ library sembast.open_test;
 // basically same as the io runner but with extra output
 import 'package:sembast/src/api/sembast.dart';
 
-import 'test_common.dart';
+import 'dev_test_common.dart';
 
 void main() {
-  defineTests(memoryDatabaseContext);
+  defineTests(devMemoryDatabaseContext);
 }
 
-void defineTests(DatabaseTestContext ctx) {
+void defineTests(DevDatabaseTestContext ctx) {
   var factory = ctx.factory;
   group('open', () {
     test('version', () async {

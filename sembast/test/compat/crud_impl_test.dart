@@ -6,10 +6,10 @@ import 'package:sembast/src/database_impl.dart';
 import 'test_common.dart';
 
 void main() {
-  defineTests(memoryDatabaseContext);
+  defineTests(devMemoryDatabaseContext);
 }
 
-void defineTests(DatabaseTestContext ctx) {
+void defineTests(DevDatabaseTestContext ctx) {
   group('crud_impl', () {
     SembastDatabase db;
 
