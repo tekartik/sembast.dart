@@ -4,6 +4,7 @@ library sembast.test.src.test_defs;
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:path/path.dart';
 import 'package:sembast/sembast.dart';
 import 'package:sembast/sembast_memory.dart';
 import 'package:sembast/src/database_factory_mixin.dart';
@@ -32,8 +33,12 @@ class FileSystemTestContext {
 FileSystemTestContext get memoryFileSystemContext =>
     FileSystemTestContext()..fs = memoryFileSystem;
 
-Future<Database> setupForTest(DatabaseTestContext ctx, {String name}) =>
-    ctx.open(dbPath: name);
+Future<Database> setupForTest(DatabaseTestContext ctx, {String name}) {
+  if (name != null) {
+    name = join('.dart_tool', 'sembast', 'test', name);
+  }
+  return ctx.open(dbPath: name);
+}
 
 Future<List<Record>> recordStreamToList(Stream<Record> stream) {
   List<Record> records = [];
