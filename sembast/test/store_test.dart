@@ -131,6 +131,29 @@ void defineTests(DevDatabaseTestContext ctx) {
         expect(await record.get(db), 1);
         expect((await store.findFirst(db)).value, 1);
       });
+      test('addAll', () async {
+        // this is ok too
+        final store = StoreRef<String, int>.main();
+        var keys = await store.addAll(db, [1, 2]);
+        expect(keys, hasLength(2));
+        var record = store.record(keys.first);
+        expect(await record.get(db), 1);
+        expect((await store.findFirst(db)).value, 1);
+        expect(await store.record(keys[1]).get(db), 2);
+      });
+
+      test('addAll_transaction', () async {
+        // this is ok too
+        final store = StoreRef<String, int>.main();
+        var keys = await db.transaction((txn) {
+          return store.addAll(txn, [1, 2]);
+        });
+        expect(keys, hasLength(2));
+        var record = store.record(keys.first);
+        expect(await record.get(db), 1);
+        expect((await store.findFirst(db)).value, 1);
+        expect(await store.record(keys[1]).get(db), 2);
+      });
     });
 
     group('value_map', () {

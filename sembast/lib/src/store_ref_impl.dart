@@ -69,9 +69,23 @@ mixin StoreRefMixin<K, V> implements StoreRef<K, V> {
     return await client.inTransaction((txn) {
       return client
           .getSembastStore(this)
-          // A null key will generate one
           .txnAdd<K, V>(client.sembastTransaction, value);
     });
+  }
+
+  /// Add all
+  @override
+  Future<List<K>> addAll(DatabaseClient databaseClient, List<V> values) async {
+    final client = getClient(databaseClient);
+    var sanitizedValues = values.map((value) => sanitizeInputValue<V>(value));
+    var keys = <K>[];
+    await client.inTransaction((txn) async {
+      var store = client.getSembastStore(this);
+      for (var value in sanitizedValues) {
+        keys.add(await store.txnAdd<K, V>(client.sembastTransaction, value));
+      }
+    });
+    return keys;
   }
 
   /// Find first record

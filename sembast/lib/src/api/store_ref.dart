@@ -86,6 +86,11 @@ abstract class StoreRef<K, V> {
   ///
   Future<K> add(DatabaseClient client, V value);
 
+  ///
+  /// Add multiple records, returns the list of generated keys.
+  ///
+  Future<List<K>> addAll(DatabaseClient client, List<V> values);
+
   /// Update records matching a given finder.
   ///
   /// Return the count updated. [value] is merged to the existing.
