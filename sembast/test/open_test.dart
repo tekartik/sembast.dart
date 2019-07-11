@@ -12,6 +12,19 @@ void main() {
 void defineTests(DevDatabaseTestContext ctx) {
   var factory = ctx.factory;
   group('open', () {
+    test('no_version', () async {
+      var path = ctx.dbPath;
+
+      await factory.deleteDatabase(path);
+
+      var db = await factory.openDatabase(path,
+          onVersionChanged: (db, oldVersion, newVersion) async {
+        expect(oldVersion, 0);
+        expect(db.version, 0);
+      });
+      expect(db.version, 1);
+      await db.close();
+    });
     test('version', () async {
       var path = ctx.dbPath;
 

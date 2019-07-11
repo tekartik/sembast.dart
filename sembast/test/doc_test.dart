@@ -8,7 +8,6 @@ import 'package:sembast/src/memory/database_factory_memory.dart';
 import 'package:sembast/utils/sembast_import_export.dart';
 import 'package:sembast/utils/value_utils.dart';
 
-// import 'compat/doc_test.dart';
 import 'test_common.dart';
 // import 'package:test/test.dart';
 
@@ -17,6 +16,8 @@ void main() {
 }
 
 void defineTests(DatabaseTestContext ctx) {
+  var factory = ctx.factory;
+
   group('doc', () {
     Database db;
 
@@ -33,7 +34,6 @@ void defineTests(DatabaseTestContext ctx) {
       db = await setupForTest(ctx, name: 'doc/new_1.15_doc.db');
 
       {
-        var factory = ctx.factory;
         var path = db.path;
         await db.close();
 
@@ -345,6 +345,26 @@ void defineTests(DatabaseTestContext ctx) {
 
         // Check the lamp price
         expect((await store.record(lampKey).get(importedDb))['price'], 12);
+      }
+    });
+
+    test('Preload data', () async {
+      var path = dbPathFromName('doc/preload_data.db');
+      await factory.deleteDatabase(path);
+      {
+        // Our shop store sample data
+        var store = intMapStoreFactory.store('shop');
+
+        var db = await factory.openDatabase(path, version: 1,
+            onVersionChanged: (db, oldVersion, newVersion) async {
+          // If the db does not exist, create some data
+          if (oldVersion == 0) {
+            await store.add(db, {'name': 'Lamp', 'price': 10});
+            await store.add(db, {'name': 'Chair', 'price': 15});
+          }
+        });
+
+        expect(await store.query().getSnapshots(db), hasLength(2));
       }
     });
   });

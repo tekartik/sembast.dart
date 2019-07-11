@@ -40,6 +40,23 @@ db = await factory.openDatabase(path, version: 2, onVersionChanged: (db, oldVers
     // ...
   }
 });
+```
 
-// 
+## Preloading data
+
+The basic versioning system can also be used to preload data. Data must be inserted record by record, coming
+from another database (or asset in flutter) or from a custom format.
+
+```dart
+// Our shop store sample data
+var store = intMapStoreFactory.store('shop');
+
+var db = await factory.openDatabase(path, version: 1,
+    onVersionChanged: (db, oldVersion, newVersion) async {
+  // If the db does not exist, create some data
+  if (oldVersion == 0) {
+    await store.add(db, {'name': 'Lamp', 'price': 10});
+    await store.add(db, {'name': 'Chair', 'price': 15});
+  }
+});
 ```

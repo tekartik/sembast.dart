@@ -33,9 +33,11 @@ class FileSystemTestContext {
 FileSystemTestContext get memoryFileSystemContext =>
     FileSystemTestContext()..fs = memoryFileSystem;
 
+String dbPathFromName(String name) =>
+    join('.dart_tool', 'sembast', 'test', name);
 Future<Database> setupForTest(DatabaseTestContext ctx, {String name}) {
   if (name != null) {
-    name = join('.dart_tool', 'sembast', 'test', name);
+    name = dbPathFromName(name);
   }
   return ctx.open(dbPath: name);
 }
