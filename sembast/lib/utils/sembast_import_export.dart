@@ -1,5 +1,6 @@
 library sembast.utils.sembast_import_export;
 
+// ignore_for_file: deprecated_member_use_from_same_package
 import 'dart:async';
 
 import 'package:sembast/src/api/sembast.dart';

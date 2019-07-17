@@ -1,6 +1,6 @@
 library sembast.database_test;
 
-// basically same as the io runner but with extra output
+// ignore_for_file: deprecated_member_use_from_same_package
 import 'package:sembast/sembast.dart';
 import 'package:sembast/src/database_factory_mixin.dart';
 import 'package:sembast/src/database_impl.dart';

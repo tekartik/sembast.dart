@@ -71,6 +71,7 @@ Future<Database> reOpen(Database db, {DatabaseMode mode}) {
 }
 
 bool hasStorage(DatabaseFactory factory) =>
+    // ignore: deprecated_member_use_from_same_package
     (factory as SembastDatabaseFactory).hasStorage;
 
 /// Get an existing database version

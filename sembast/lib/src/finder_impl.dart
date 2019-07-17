@@ -8,6 +8,8 @@ import 'package:sembast/src/utils.dart';
 import 'api/compat/finder.dart';
 import 'api/compat/record.dart';
 
+// ignore_for_file: deprecated_member_use_from_same_package
+
 Future<List<ImmutableSembastRecord>> sortAndLimit(
     List<ImmutableSembastRecord> results,
     SembastFinder finder,

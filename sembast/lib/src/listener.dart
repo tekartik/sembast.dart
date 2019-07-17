@@ -8,6 +8,8 @@ import 'package:sembast/src/finder_impl.dart';
 import 'package:sembast/src/query_ref_impl.dart';
 import 'package:sembast/src/record_impl.dart';
 
+// ignore_for_file: deprecated_member_use_from_same_package
+
 class QueryListenerController<K, V> {
   final SembastQueryRef<K, V> queryRef;
   StreamController<List<RecordSnapshot<K, V>>> _streamController;

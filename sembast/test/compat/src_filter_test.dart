@@ -1,7 +1,7 @@
 library sembast.compat.src_filter_test;
 
-// basically same as the io runner but with extra output
-//import 'package:tekartik_test/test_config.dart';
+// ignore_for_file: deprecated_member_use_from_same_package
+
 import 'package:sembast/sembast.dart';
 
 import 'test_common.dart';

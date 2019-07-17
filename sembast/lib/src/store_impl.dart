@@ -14,6 +14,8 @@ import 'package:sembast/src/utils.dart';
 import 'common_import.dart';
 import 'database_impl.dart';
 
+// ignore_for_file: deprecated_member_use_from_same_package
+
 class SembastStore implements Store {
   final SembastDatabase database;
   @override

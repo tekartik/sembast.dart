@@ -1,5 +1,6 @@
 library sembast.database_import_export_test;
 
+// ignore_for_file: deprecated_member_use_from_same_package
 import 'dart:async';
 import 'dart:convert';
 

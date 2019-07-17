@@ -1,5 +1,7 @@
 library sembast.test.compat.exp_test;
 
+// ignore_for_file: deprecated_member_use_from_same_package
+
 import 'dart:async';
 
 import 'package:sembast/sembast.dart';

@@ -8,6 +8,8 @@ import 'package:sembast/src/record_impl.dart';
 import 'package:sembast/src/store_ref_impl.dart';
 import 'package:sembast/src/api/v2/sembast.dart' as v2;
 
+// ignore_for_file: deprecated_member_use_from_same_package
+
 /// A query is unique
 class SembastQueryRef<K, V> implements QueryRef<K, V> {
   final StoreRef<K, V> store;

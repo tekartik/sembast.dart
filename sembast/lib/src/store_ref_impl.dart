@@ -11,6 +11,8 @@ import 'package:sembast/src/record_snapshot_impl.dart';
 import 'package:sembast/src/records_ref_impl.dart';
 import 'package:sembast/src/utils.dart';
 
+// ignore_for_file: deprecated_member_use_from_same_package
+
 class SembastStoreRef<K, V> with StoreRefMixin<K, V> {
   SembastStoreRef(String name) {
     if (name == null) {

@@ -8,10 +8,13 @@ import 'package:sembast/src/boundary_impl.dart';
 import 'package:sembast/src/sort_order_impl.dart';
 import 'package:sembast/src/utils.dart';
 
+// ignore_for_file: deprecated_member_use_from_same_package
+
+/// @deprecated v2
 ///
 /// Helper to define one or multiple filters
 ///
-/// @deprecated v2
+@deprecated
 class SembastFinder implements Finder {
   Filter filter;
   int offset;

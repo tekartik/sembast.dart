@@ -1,6 +1,7 @@
 library sembast.database_test;
 
-// basically same as the io runner but with extra output
+// ignore_for_file: deprecated_member_use_from_same_package
+
 import 'package:pedantic/pedantic.dart';
 import 'package:sembast/src/api/sembast.dart';
 

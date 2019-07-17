@@ -1,6 +1,8 @@
 @TestOn("vm")
 library sembast.test.io_test;
 
+// ignore_for_file: deprecated_member_use_from_same_package
+
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io' as io;

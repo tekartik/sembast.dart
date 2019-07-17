@@ -7,6 +7,7 @@ import 'package:sembast/src/record_impl.dart';
 ///
 /// Record
 ///
+@deprecated
 abstract class Record extends RecordSnapshot<dynamic, dynamic> {
   /// @deprecated v2
   ///

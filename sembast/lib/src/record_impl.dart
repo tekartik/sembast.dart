@@ -8,6 +8,8 @@ import 'package:sembast/src/record_snapshot_impl.dart';
 import 'package:sembast/src/sembast_impl.dart';
 import 'package:sembast/src/utils.dart';
 
+// ignore_for_file: deprecated_member_use_from_same_package
+
 mixin SembastRecordWithStoreMixin implements Record {
   // Kept for compatibility
   @override
