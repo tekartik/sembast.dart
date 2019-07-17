@@ -8,6 +8,7 @@ import 'package:sembast/src/database_client_impl.dart';
 import 'package:sembast/src/database_impl.dart';
 import 'package:sembast/src/record_snapshot_impl.dart';
 import 'package:sembast/src/utils.dart';
+import 'package:sembast/src/api/v2/sembast.dart' as v2;
 
 mixin RecordRefMixin<K, V> implements RecordRef<K, V> {
   @override
@@ -74,7 +75,7 @@ mixin RecordRefMixin<K, V> implements RecordRef<K, V> {
   /// Stream of record snapshot
   ///
   @override
-  Stream<RecordSnapshot<K, V>> onSnapshot(Database database) {
+  Stream<RecordSnapshot<K, V>> onSnapshot(v2.Database database) {
     var db = getDatabase(database);
     var ctlr = db.listener.addRecord(this);
 

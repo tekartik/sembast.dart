@@ -102,7 +102,7 @@ abstract class StoreRef<K, V> {
   Future<int> delete(DatabaseClient client, {Finder finder});
 }
 
-///
+/// Store factory interface
 abstract class StoreFactory<K, V> {
   StoreRef<K, V> store(String name);
 }

@@ -1,9 +1,11 @@
-library sembast.compat.crud_impl_test;
+library sembast.crud_test;
 
 // basically same as the io runner but with extra output
-import 'package:sembast/src/database_impl.dart';
+// import 'package:sembast/src/database_impl.dart' show SembastDatabase;
+/*
+import 'package:sembast/src/api/sembast.dart';
 
-import '../test_common.dart';
+import 'test_common.dart';
 
 void main() {
   defineTests(memoryDatabaseContext);
@@ -11,18 +13,19 @@ void main() {
 
 void defineTests(DatabaseTestContext ctx) {
   group('crud_impl', () {
-    SembastDatabase db;
+    DatabaseClient db;
 
     setUp(() async {
-      db = await setupForTest(ctx, 'compat/crud_impl.db') as SembastDatabase;
+      db = await setupForTest(ctx, 'compat/crud_impl.db');
     });
 
     tearDown(() {
       return db.close();
     });
 
-    test('put_close_get', () {
-      return db.put("hi", 1).then((_) {
+    test('put_close_get', () async {
+      await db.put("hi", 1);
+
         return db.reOpen().then((_) {
           return db.get(1).then((value) {
             expect(value, "hi");
@@ -94,3 +97,4 @@ void defineTests(DatabaseTestContext ctx) {
     });
   });
 }
+*/

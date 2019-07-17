@@ -1,5 +1,7 @@
-import 'package:sembast/sembast.dart';
+import 'package:sembast/src/api/sembast.dart';
 import 'package:sembast/src/api/record_snapshot.dart';
+import 'package:sembast/src/api/v2/sembast.dart' as v2;
+
 // New in 1.16
 
 ///
@@ -11,7 +13,7 @@ abstract class QueryRef<K, V> {
   ///
   /// Returns a single subscriber stream that must be cancelled.
   ///
-  Stream<List<RecordSnapshot<K, V>>> onSnapshots(Database database);
+  Stream<List<RecordSnapshot<K, V>>> onSnapshots(v2.Database database);
 
   ///
   /// Find multiple records.

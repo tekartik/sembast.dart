@@ -1,7 +1,7 @@
 library sembast.crud_test;
 
 // basically same as the io runner but with extra output
-import 'package:sembast/src/api/sembast.dart';
+import 'package:sembast/src/api/v2/sembast.dart';
 
 import 'test_common.dart';
 
@@ -30,9 +30,10 @@ void defineTests(DatabaseTestContext ctx) {
 
     test('update', () async {
       final store = StoreRef<int, String>.main();
-      expect(await store.record(1).update(db, 'hi'), isNull);
-      await db.put('hi', 1);
-      expect(await db.update('ho', 1), 'ho');
+      var record = store.record(1);
+      expect(await record.update(db, 'hi'), isNull);
+      await record.put(db, 'hi');
+      expect(await record.update(db, 'ho'), 'ho');
     });
 
     test('update_map', () async {

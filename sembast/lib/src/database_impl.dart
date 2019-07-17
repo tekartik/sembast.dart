@@ -18,10 +18,12 @@ import 'package:sembast/src/storage.dart';
 import 'package:sembast/src/store_impl.dart';
 import 'package:sembast/src/transaction_impl.dart';
 import 'package:synchronized/synchronized.dart';
+import 'package:sembast/src/api/v2/sembast.dart' as v2;
 
 final bool _debugStorage = false; // devWarning(true);
 
-SembastDatabase getDatabase(Database database) => database as SembastDatabase;
+SembastDatabase getDatabase(v2.Database database) =>
+    database as SembastDatabase;
 
 class CommitData {
   // Only when we have listeners

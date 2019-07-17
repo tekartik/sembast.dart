@@ -17,6 +17,7 @@ abstract class Filter {
     }
   }
 
+  /// @deprecated v2
   bool match(Record record) {
     if (record.deleted) {
       return false;
@@ -28,34 +29,39 @@ abstract class Filter {
   Filter();
 
   /// @deprecated 2018-11-29 will be deprecated in 2.0
+  ///
+  /// @Deprecated('uses Filter.equals instead')
   factory Filter.equal(String field, value) => Filter.equals(field, value);
 
-  /// [field] must be equals to [value]
+  /// [field] value must be equals to [value].
   factory Filter.equals(String field, value, {bool anyInList}) {
     return SembastEqualsFilter(field, value, anyInList);
   }
 
   /// @deprecated 2018-11-29 will be deprecated in 2.0
+  ///
+  /// @Deprecated('uses Filter.notEquals instead')
   factory Filter.notEqual(String field, value) =>
       Filter.notEquals(field, value);
 
-  /// Filter where the [field] is not equals to the specified value
+  /// Filter where the [field] value is not equals to the specified value.
   factory Filter.notEquals(String field, value) {
     return SembastFilterPredicate(field, FilterOperation.notEquals, value);
   }
 
-  /// Filter where the [field] is not null
+  /// Filter where the [field] value is not null.
   factory Filter.notNull(String field) => Filter.notEquals(field, null);
 
-  /// Filter where the [field] is null
+  /// Filter where the [field] value is null.
   factory Filter.isNull(String field) => Filter.equals(field, null);
 
-  /// Filter where the [field] is less than the specified [value]
+  /// Filter where the [field] value is less than the specified [value].
   factory Filter.lessThan(String field, value) {
     return SembastFilterPredicate(field, FilterOperation.lessThan, value);
   }
 
-  /// Filter where the [field] is less than or equals to the specified [value]
+  /// Filter where the [field] value is less than or equals to the
+  /// specified [value].
   factory Filter.lessThanOrEquals(String field, value) {
     return SembastFilterPredicate(
         field, FilterOperation.lessThanOrEquals, value);
@@ -84,7 +90,7 @@ abstract class Filter {
   factory Filter.matches(String field, String pattern, {bool anyInList}) =>
       Filter.matchesRegExp(field, RegExp(pattern), anyInList: anyInList);
 
-  /// Filter [field] using [regExp] regular expression.
+  /// Filter [field] value using [regExp] regular expression.
   ///
   /// If [anyInList] is true, it means that if field is a list, a record matches
   /// if any of the list item matches the pattern.
@@ -92,18 +98,20 @@ abstract class Filter {
     return SembastMatchesFilter(field, regExp, anyInList);
   }
 
-  /// Record must match any of the given [filters]
+  /// Record must match any of the given [filters].
   factory Filter.or(List<Filter> filters) => SembastCompositeFilter.or(filters);
 
-  /// Record must match all of the given [filters]
+  /// Record must match all of the given [filters].
   factory Filter.and(List<Filter> filters) =>
       SembastCompositeFilter.and(filters);
 
-  /// Filter by [key]
+  /// Filter by [key].
+  ///
+  /// Less efficient than using `store.record(key)`.
   factory Filter.byKey(key) => Filter.equals(Field.key, key);
 
   /// Custom filter, use with caution and do not modify record data as it
-  /// provides a raw access to the record internal value for efficiency
+  /// provides a raw access to the record internal value for efficiency.
   factory Filter.custom(bool matches(RecordSnapshot record)) =>
       SembastCustomFilter(matches);
 }
