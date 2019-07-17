@@ -7,7 +7,7 @@ import 'dart:io' as io;
 import 'package:path/path.dart';
 import 'package:sembast/src/io/file_system_io.dart';
 
-import 'test_common.dart';
+import '../test_common.dart';
 
 void main() {
   defineTests();

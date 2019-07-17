@@ -3,13 +3,13 @@ library sembast.database_utils_test;
 import 'package:sembast/sembast.dart';
 import 'package:sembast/utils/database_utils.dart';
 
-import 'test_common.dart';
+import '../test_common.dart';
 
 void main() {
-  defineTests(devMemoryDatabaseContext);
+  defineTests(memoryDatabaseContext);
 }
 
-void defineTests(DevDatabaseTestContext ctx) {
+void defineTests(DatabaseTestContext ctx) {
   group('utils', () {
     Database db;
 
@@ -23,7 +23,7 @@ void defineTests(DevDatabaseTestContext ctx) {
     });
 
     test('updateRecords', () async {
-      db = await setupForTest(ctx);
+      db = await setupForTest(ctx, 'compat/utils/update_records.db');
 
       // Store some objects
       dynamic key1, key2, key3;

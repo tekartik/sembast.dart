@@ -7,14 +7,14 @@ import 'package:sembast/src/file_system.dart';
 import 'package:sembast/src/sembast_fs.dart';
 
 import '../encrypt_codec.dart';
-import 'test_common.dart';
+import '../test_common.dart';
 
 void main() {
   defineFileSystemTests(memoryFileSystemContext);
-  defineTests(devMemoryDatabaseContext);
+  defineTests(memoryDatabaseContext);
 }
 
-void defineTests(DevDatabaseTestContext ctx) {
+void defineTests(DatabaseTestContext ctx) {
   group('compat_doc', () {
     Database db;
 
@@ -28,7 +28,7 @@ void defineTests(DevDatabaseTestContext ctx) {
     });
 
     test('pre_1.15 doc', () async {
-      db = await setupForTest(ctx);
+      db = await setupForTest(ctx, 'compat/doc/pre_1.15.db');
 
       {
         // Cast necessary to manipulate the key
@@ -42,7 +42,7 @@ void defineTests(DevDatabaseTestContext ctx) {
     });
 
     test('issue8_1', () async {
-      db = await setupForTest(ctx);
+      db = await setupForTest(ctx, 'compat/doc/issue8_1.db');
 
       dynamic lastKey;
       var macAddress = '00:0a:95:9d:68:16';
@@ -60,7 +60,7 @@ void defineTests(DevDatabaseTestContext ctx) {
     });
 
     test('issue8_2', () async {
-      db = await setupForTest(ctx);
+      db = await setupForTest(ctx, 'compat/doc/issue8_2.db');
       var beaconsStoreName = 'beacons';
       dynamic key2, key3;
       await db.transaction((txn) async {
@@ -93,11 +93,10 @@ void defineTests(DevDatabaseTestContext ctx) {
 void defineFileSystemTests(FileSystemTestContext ctx) {
   FileSystem fs = ctx.fs;
   DatabaseFactory factory = DatabaseFactoryFs(fs);
-  String getDbPath() => ctx.outPath + ".db";
   String dbPath;
 
   Future<String> prepareForDb() async {
-    dbPath = getDbPath();
+    dbPath = dbPathFromName('compat/doc_fs.db');
     // print(dbPath);
     await factory.deleteDatabase(dbPath);
     return dbPath;

@@ -5,18 +5,18 @@ import 'dart:async';
 
 import 'package:sembast/sembast.dart';
 
-import 'test_common.dart';
+import '../test_common.dart';
 
 void main() {
-  defineTests(devMemoryDatabaseContext);
+  defineTests(memoryDatabaseContext);
 }
 
-void defineTests(DevDatabaseTestContext ctx) {
+void defineTests(DatabaseTestContext ctx) {
   group('value', () {
     Database db;
 
     setUp(() async {
-      db = await setupForTest(ctx);
+      db = await setupForTest(ctx, 'compat/value.db');
     });
 
     tearDown(() {

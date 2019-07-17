@@ -12,8 +12,8 @@ import 'package:sembast/src/file_system.dart';
 import 'package:sembast/src/io/database_factory_io.dart' as impl;
 import 'package:sembast/src/io/file_system_io.dart';
 
-import 'io_test_common.dart';
-import 'test_common.dart';
+import '../io_test_common.dart';
+import '../test_common.dart';
 
 void main() {
   group("io", () {
@@ -29,11 +29,10 @@ void main() {
     FileSystem fs = ctx.fs;
 
     group('format', () {
-      String getDbPath() => ctx.outPath + ".db";
       String dbPath;
 
       Future<String> prepareForDb() async {
-        dbPath = getDbPath();
+        dbPath = dbPathFromName('compat/io/format.db');
         await fs
             .directory(dirname(dbPath))
             .create(recursive: true)

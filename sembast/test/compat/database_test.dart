@@ -4,18 +4,18 @@ library sembast.database_test;
 import 'package:pedantic/pedantic.dart';
 import 'package:sembast/src/api/sembast.dart';
 
-import 'test_common.dart';
+import '../test_common.dart';
 
 void main() {
-  defineTests(devMemoryDatabaseContext);
+  defineTests(memoryDatabaseContext);
 }
 
-void defineTests(DevDatabaseTestContext ctx) {
+void defineTests(DatabaseTestContext ctx) {
   DatabaseFactory factory = ctx.factory;
   String dbPath;
 
   group('database', () {
-    dbPath = ctx.dbPath;
+    dbPath = dbPathFromName('compat/database.db');
 
     group('open', () {
       Database db;
@@ -36,7 +36,6 @@ void defineTests(DevDatabaseTestContext ctx) {
       });
 
       test('open_existing_no_version', () async {
-        dbPath = ctx.dbPath;
         try {
           await factory.openDatabase(dbPath, mode: DatabaseMode.existing);
           fail("should fail");
@@ -46,7 +45,6 @@ void defineTests(DevDatabaseTestContext ctx) {
       });
 
       test('open_version', () async {
-        dbPath = ctx.dbPath;
         var db = await factory.openDatabase(dbPath, version: 1);
         expect(db.version, 1);
         expect(db.path, endsWith(dbPath));
@@ -54,7 +52,6 @@ void defineTests(DevDatabaseTestContext ctx) {
       });
 
       test('open_twice_no_close', () async {
-        var dbPath = ctx.dbPath;
         var db = await factory.openDatabase(dbPath, version: 1);
         expect(db.version, 1);
         expect(db.path, endsWith(dbPath));
@@ -66,7 +63,6 @@ void defineTests(DevDatabaseTestContext ctx) {
       });
 
       test('open_twice_same_instance', () async {
-        var dbPath = ctx.dbPath;
         var futureDb1 = factory.openDatabase(dbPath);
         var futureDb2 = factory.openDatabase(dbPath);
         var db1 = await futureDb1;
@@ -79,7 +75,6 @@ void defineTests(DevDatabaseTestContext ctx) {
       });
 
       test('open_close_open', () async {
-        var dbPath = ctx.dbPath;
         var db = await factory.openDatabase(dbPath);
         try {
           // don't await to make sure it gets written at some point

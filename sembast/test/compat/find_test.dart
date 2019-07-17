@@ -5,13 +5,13 @@ import 'dart:async';
 
 import 'package:sembast/sembast.dart';
 
-import 'test_common.dart';
+import '../test_common.dart';
 
 void main() {
-  defineTests(devMemoryDatabaseContext);
+  defineTests(memoryDatabaseContext);
 }
 
-void defineTests(DevDatabaseTestContext ctx) {
+void defineTests(DatabaseTestContext ctx) {
   group('compat_find', () {
     Database db;
 
@@ -25,7 +25,7 @@ void defineTests(DevDatabaseTestContext ctx) {
     Store store;
     Record record1, record2, record3;
     setUp(() async {
-      db = await setupForTest(ctx);
+      db = await setupForTest(ctx, 'compat/find.db');
       store = db.mainStore;
       record1 = Record(store, "hi", 1);
       record2 = Record(store, "ho", 2);
@@ -294,7 +294,7 @@ void defineTests(DevDatabaseTestContext ctx) {
       Store store;
       Record record1, record2, record3;
       setUp(() async {
-        db = await setupForTest(ctx);
+        db = await setupForTest(ctx, 'compat/find/find_complex.db');
         store = db.mainStore;
         record1 = Record(store, {"text": "hi", "value": 1}, 1);
         record2 = Record(store, {"text": "ho", "value": 2}, 2);
@@ -344,7 +344,7 @@ void defineTests(DevDatabaseTestContext ctx) {
 
     group('find_null', () {
       test('first_last', () async {
-        db = await setupForTest(ctx);
+        db = await setupForTest(ctx, 'compat/find/find_null.db');
         store = db.mainStore;
         record1 = Record(store, {"text": null}, 1);
         record2 = Record(store, {"text": "hi"}, 2);
@@ -386,7 +386,7 @@ void defineTests(DevDatabaseTestContext ctx) {
       Store store;
       Record record1, record2, record3;
       setUp(() async {
-        db = await setupForTest(ctx);
+        db = await setupForTest(ctx, 'compat/find/sub_field.db');
         store = db.mainStore;
         record1 = Record(
             store,
@@ -568,7 +568,7 @@ void defineTests(DevDatabaseTestContext ctx) {
     });
 
     test('multi_sort_order', () async {
-      db = await setupForTest(ctx);
+      db = await setupForTest(ctx, 'compat/find/multi_sort_order.db');
 
       // Store some objects
       dynamic key1, key2, key3, key4;

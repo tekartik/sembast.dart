@@ -4,13 +4,13 @@ import 'dart:async';
 
 import 'package:sembast/sembast.dart';
 
-import 'test_common.dart';
+import '../test_common.dart';
 
 void main() {
-  defineTests(devMemoryDatabaseContext);
+  defineTests(memoryDatabaseContext);
 }
 
-void defineTests(DevDatabaseTestContext ctx) {
+void defineTests(DatabaseTestContext ctx) {
   group('exp', () {
     Database db;
 
@@ -24,7 +24,7 @@ void defineTests(DevDatabaseTestContext ctx) {
     });
 
     test('issue8_1', () async {
-      db = await setupForTest(ctx);
+      db = await setupForTest(ctx, 'compat/exp/issue8_1');
 
       dynamic lastKey;
       var macAddress = '00:0a:95:9d:68:16';
@@ -42,7 +42,7 @@ void defineTests(DevDatabaseTestContext ctx) {
     });
 
     test('issue8_2', () async {
-      db = await setupForTest(ctx);
+      db = await setupForTest(ctx, 'compat/exp/issue8_2');
       var beaconsStoreName = 'beacons';
       dynamic key2, key3;
       await db.transaction((txn) async {

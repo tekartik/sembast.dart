@@ -5,19 +5,19 @@ import 'package:sembast/sembast.dart';
 import 'package:sembast/src/record_impl.dart';
 import 'package:sembast/src/sembast_impl.dart';
 
-import 'test_common.dart';
+import '../test_common.dart';
 
 void main() {
-  defineTests(devMemoryDatabaseContext);
+  defineTests(memoryDatabaseContext);
 }
 
-void defineTests(DevDatabaseTestContext ctx) {
+void defineTests(DatabaseTestContext ctx) {
   group('record_impl', () {
     group('db', () {
       Database db;
 
       setUp(() async {
-        db = await setupForTest(ctx);
+        db = await setupForTest(ctx, 'compat/record_impl.db');
       });
 
       tearDown(() {

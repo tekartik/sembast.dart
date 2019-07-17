@@ -6,19 +6,19 @@ import 'dart:math';
 
 import 'package:sembast/sembast.dart';
 
-import 'test_common.dart';
+import '../test_common.dart';
 
 void main() {
-  defineTests(devMemoryDatabaseContext, 10);
+  defineTests(memoryDatabaseContext, 10);
 }
 
-void defineTests(DevDatabaseTestContext ctx, int putCount,
+void defineTests(DatabaseTestContext ctx, int putCount,
     {int randomCount = 10, int randomChoices = 10}) {
   group('perf', () {
     Database db;
 
     setUp(() async {
-      db = await setupForTest(ctx);
+      db = await setupForTest(ctx, 'compat/perf.db');
     });
 
     tearDown(() {
@@ -55,11 +55,11 @@ void defineTests(DevDatabaseTestContext ctx, int putCount,
     });
   });
 
-  group('perf', () {
+  group('random_perf', () {
     Database db;
 
     setUp(() async {
-      db = await setupForTest(ctx);
+      db = await setupForTest(ctx, 'compat/random_perf.db');
     });
 
     tearDown(() {

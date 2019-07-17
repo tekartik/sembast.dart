@@ -9,9 +9,9 @@ import 'package:sembast/src/file_system.dart';
 import 'package:sembast/src/sembast_fs.dart';
 
 import '../encrypt_codec.dart';
+import '../test_common.dart';
 import 'database_format_test.dart' as database_format_test;
 import 'test_codecs.dart';
-import 'test_common.dart';
 
 void main() {
   defineTests(memoryFileSystemContext);
@@ -20,11 +20,11 @@ void main() {
 void defineTests(FileSystemTestContext ctx) {
   FileSystem fs = ctx.fs;
   DatabaseFactory factory = DatabaseFactoryFs(fs);
-  String getDbPath() => ctx.outPath + ".db";
+  // String getDbPath() => ctx.outPath + ".db";
   String dbPath;
 
   Future<String> prepareForDb() async {
-    dbPath = getDbPath();
+    dbPath = dbPathFromName('compat/database_codec.db');
     await factory.deleteDatabase(dbPath);
     return dbPath;
   }
@@ -153,7 +153,8 @@ void defineTests(FileSystemTestContext ctx) {
       _commonTests(codec);
 
       test('read existing', () async {
-        dbPath = getDbPath();
+        dbPath = dbPathFromName(
+            'compat/database_code/encrypt_codec/read_existing.db');
         await writeContent(fs, dbPath, [
           '{"version":1,"sembast":1,"codec":"i6/eGhL+yC4=gYCjWHqkgdawwoROer5+jQ0EzCdgFrk="}',
           'GY9lA8yc56M=FSqctQswKkhfgzp/XaFdxOxSJhRGHB3a'

@@ -27,7 +27,7 @@ DatabaseTestContext get memoryDatabaseContext =>
 class FileSystemTestContext {
   FileSystem fs;
 
-  String get outPath => fs.currentDirectory.path;
+  //String get outPath => fs.currentDirectory.path;
 }
 
 FileSystemTestContext get memoryFileSystemContext =>
@@ -37,7 +37,7 @@ String dbPathFromName(String name) =>
     join('.dart_tool', 'sembast', 'test', name);
 
 Future<Database> setupForTest(DatabaseTestContext ctx, String name) {
-  return ctx.open(dbPath: dbPathFromName(name));
+  return ctx.open(dbPathFromName(name));
 }
 
 Future<List<Record>> recordStreamToList(Stream<Record> stream) {

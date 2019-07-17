@@ -9,8 +9,8 @@ import 'package:sembast/src/file_system.dart';
 import 'package:sembast/src/sembast_codec_impl.dart';
 import 'package:sembast/src/sembast_fs.dart';
 
+import '../test_common.dart';
 import 'test_codecs.dart';
-import 'test_common.dart';
 
 void main() {
   defineTests(memoryFileSystemContext);
@@ -30,11 +30,11 @@ bool _hasRandomIv(SembastCodec codec) {
 void defineTests(FileSystemTestContext ctx, {SembastCodec codec}) {
   FileSystem fs = ctx.fs;
   DatabaseFactory factory = DatabaseFactoryFs(fs);
-  String getDbPath() => ctx.outPath + ".db";
+  //String getDbPath() => ctx.outPath + ".db";
   String dbPath;
 
   Future<String> prepareForDb() async {
-    dbPath = getDbPath();
+    dbPath = dbPathFromName('compat/database_format.db');
     await factory.deleteDatabase(dbPath);
     return dbPath;
   }

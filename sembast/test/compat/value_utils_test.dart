@@ -4,7 +4,7 @@ library sembast.value_utils_test;
 import 'package:sembast/src/utils.dart';
 import 'package:sembast/utils/value_utils.dart' as utils;
 
-import 'test_common.dart';
+import '../test_common.dart';
 
 void main() {
   group('value_utils', () {

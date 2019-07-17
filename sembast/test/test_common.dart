@@ -12,7 +12,7 @@ class DatabaseTestContext {
 
   // Delete the existing and open the database
   // ignore: always_require_non_null_named_parameters
-  Future<Database> open({String dbPath, int version}) async {
+  Future<Database> open(String dbPath, {int version}) async {
     assert(dbPath != null, 'dbPath cannot be null');
     // this.dbPath = dbPath;
 
