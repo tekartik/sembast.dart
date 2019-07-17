@@ -1,3 +1,7 @@
+## 1.17.2
+
+* Add `QueryRef.getSnapshot`
+
 ## 1.17.1
 
 * Add `StoreRef.addAll`

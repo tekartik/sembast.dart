@@ -52,4 +52,8 @@ class SembastQueryRef<K, V> implements QueryRef<K, V> {
   @override
   Future<List<RecordSnapshot<K, V>>> getSnapshots(DatabaseClient client) =>
       store.find(client, finder: finder);
+
+  @override
+  Future<RecordSnapshot<K, V>> getSnapshot(DatabaseClient client) =>
+      store.findFirst(client, finder: finder);
 }

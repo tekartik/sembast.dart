@@ -38,6 +38,28 @@ void defineTests(DatabaseTestContext ctx) {
       expect(await future4, isEmpty);
     });
 
+    test('getSnapshot(s)', () async {
+      var store = StoreRef<int, String>.main();
+      var record1 = store.record(1);
+      var record2 = store.record(2);
+      await record1.put(db, 'test');
+      await record2.put(db, 'test2');
+      var query = store.query();
+      expect((await query.getSnapshots(db)).map((snapshot) => snapshot.key),
+          [1, 2]);
+      expect((await query.getSnapshot(db)).key, 1);
+      query = store.query(
+          finder: Finder(filter: Filter.equals(Field.value, 'test2')));
+      expect(
+          (await query.getSnapshots(db)).map((snapshot) => snapshot.key), [2]);
+      expect((await query.getSnapshot(db)).key, 2);
+      query = store.query(
+          finder: Finder(filter: Filter.equals(Field.value, 'test3')));
+      expect(
+          (await query.getSnapshots(db)).map((snapshot) => snapshot.key), []);
+      expect((await query.getSnapshot(db)), isNull);
+    });
+
     test('put/on timing', () async {
       var record = StoreRef<int, String>.main().record(1);
       var query = record.store.query();
