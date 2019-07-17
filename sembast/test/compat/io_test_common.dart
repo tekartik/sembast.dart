@@ -15,7 +15,7 @@ DatabaseTestContextIo createDatabaseContextIo({String rootPath}) =>
     DatabaseTestContextIo()
       ..factory = createDatabaseFactoryIo(rootPath: rootPath);
 
-class DatabaseTestContextIo extends DatabaseTestContextFs {
+class DatabaseTestContextIo extends DevDatabaseTestContextFs {
   @override
   String get dbPath => testOutPath + ".db";
 }

@@ -5,18 +5,18 @@ import 'package:sembast/src/api/sembast.dart';
 import 'package:sembast/src/cooperator.dart';
 import 'package:sembast/src/sort.dart';
 
-import 'dev_test_common.dart';
+import 'test_common.dart';
 
 void main() {
-  defineTests(devMemoryDatabaseContext);
+  defineTests(memoryDatabaseContext);
 }
 
-void defineTests(DevDatabaseTestContext ctx) {
+void defineTests(DatabaseTestContext ctx) {
   group('sort', () {
     Database db;
 
     setUp(() async {
-      db = await setupForTest(ctx);
+      db = await setupForTest(ctx, 'sort.db');
     });
 
     tearDown(() {

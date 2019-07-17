@@ -3,17 +3,17 @@ library sembast.open_test;
 // basically same as the io runner but with extra output
 import 'package:sembast/src/api/sembast.dart';
 
-import 'dev_test_common.dart';
+import 'test_common.dart';
 
 void main() {
-  defineTests(devMemoryDatabaseContext);
+  defineTests(memoryDatabaseContext);
 }
 
-void defineTests(DevDatabaseTestContext ctx) {
+void defineTests(DatabaseTestContext ctx) {
   var factory = ctx.factory;
   group('open', () {
     test('no_version', () async {
-      var path = ctx.dbPath;
+      var path = dbPathFromName('open/no_version.db');
 
       await factory.deleteDatabase(path);
 
@@ -26,7 +26,7 @@ void defineTests(DevDatabaseTestContext ctx) {
       await db.close();
     });
     test('version', () async {
-      var path = ctx.dbPath;
+      var path = dbPathFromName('open/version.db');
 
       await factory.deleteDatabase(path);
 
@@ -68,7 +68,7 @@ void defineTests(DevDatabaseTestContext ctx) {
         });
       }
 
-      var path = ctx.dbPath;
+      var path = dbPathFromName('open/compacting_during_open.db');
 
       await factory.deleteDatabase(path);
 

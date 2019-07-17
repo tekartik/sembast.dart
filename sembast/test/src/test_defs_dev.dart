@@ -7,7 +7,6 @@ import '../compat/test_common.dart' as common;
 export 'package:dev_test/dev_test.dart';
 
 class DevDatabaseTestContext extends common.DatabaseTestContext {
-  @override
   String get dbPath => joinAll(testDescriptions) + ".db";
 
   // Delete the existing and open the database

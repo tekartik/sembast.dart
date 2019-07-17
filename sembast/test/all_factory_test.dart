@@ -4,16 +4,17 @@ library sembast.test_runner.all_test;
 import 'package:path/path.dart';
 
 import 'all_test.dart';
-import 'dev_test_common.dart';
+import 'fs_test_common.dart';
 import 'io_test_common.dart';
 import 'memory_factory_test_.dart';
+import 'test_common.dart';
 
 // default use memory
 void main() {
   //debugQuickLogging(Level.FINEST);
   group('memory', () {
-    defineMemoryDatabaseTests(devMemoryDatabaseContext);
-    defineTests(devMemoryDatabaseContext);
+    defineMemoryDatabaseTests(memoryDatabaseContext);
+    defineTests(memoryDatabaseContext);
   });
   group('io', () {
     defineFileSystemTests(fileSystemContextIo);

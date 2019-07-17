@@ -5,7 +5,7 @@ library sembast.src_filter_test;
 import 'package:sembast/sembast.dart';
 import 'package:sembast/src/filter_impl.dart' show filterMatchesRecord;
 
-import 'dev_test_common.dart';
+import 'test_common.dart';
 
 var store = StoreRef.main();
 var record = store.record(1);
