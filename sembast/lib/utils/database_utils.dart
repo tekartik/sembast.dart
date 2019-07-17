@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:sembast/sembast.dart';
 
+/// @deprecated v2
 ///
 /// Update all records matching [where] with the [values] fields
 /// Returns the number of records updated

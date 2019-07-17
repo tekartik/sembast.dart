@@ -70,6 +70,9 @@ Future<Database> reOpen(Database db, {DatabaseMode mode}) {
   return (db as SembastDatabase).reOpen(DatabaseOpenOptions(mode: mode));
 }
 
+bool hasStorage(DatabaseFactory factory) =>
+    (factory as SembastDatabaseFactory).hasStorage;
+
 /// Get an existing database version
 Future<int> getExistingDatabaseVersion(
     DatabaseFactory factory, String path) async {

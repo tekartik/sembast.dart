@@ -1,6 +1,4 @@
-library sembast.test.compat.exception_test;
-
-import 'package:sembast/sembast.dart';
+library sembast.exception_test;
 
 import 'test_common.dart';
 
@@ -17,9 +15,9 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     test('put', () async {
-      db = await setupForTest(ctx, 'compat/exception/put_date_time.db');
+      db = await setupForTest(ctx, 'exception/put_date_time.db');
       try {
-        await db.put(DateTime.now());
+        await StoreRef.main().add(db, DateTime.now());
         fail("should fail");
       } on ArgumentError catch (_) {}
     });

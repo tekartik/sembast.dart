@@ -140,8 +140,8 @@ void defineTests(FileSystemTestContext ctx, {SembastCodec codec}) {
       await prepareForDb();
       Database db = await factory.openDatabase(dbPath, codec: codec);
       (db as SembastDatabase).getStore('store1');
-      var store2 = (db as SembastDatabase).getStore('store2');
-      await store2.put("hi", 1);
+      (db as SembastDatabase).getStore('store2');
+      await StoreRef('store2').record(1).put(db, "hi");
       await db.close();
       List<String> lines = await readContent(fs, dbPath);
       expect(lines.length, 2);
@@ -180,7 +180,7 @@ void defineTests(FileSystemTestContext ctx, {SembastCodec codec}) {
       await prepareForDb();
       var db = await factory.openDatabase(dbPath, version: 2,
           onVersionChanged: (db, _, __) async {
-        await db.put('hi', 1);
+        await store.record(1).put(db, 'hi');
       }, codec: codec);
       await db.close();
       var lines = await readContent(fs, dbPath);
@@ -203,7 +203,7 @@ void defineTests(FileSystemTestContext ctx, {SembastCodec codec}) {
       var db = await factory.openDatabase(dbPath, version: 2,
           onVersionChanged: (db, _, __) async {
         await db.transaction((txn) async {
-          await txn.put('hi', 1);
+          await store.record(1).put(txn, 'hi');
         });
       }, codec: codec);
       await db.close();

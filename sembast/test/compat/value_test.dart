@@ -1,4 +1,4 @@
-library sembast.value_test;
+library sembast.test.compat.value_test;
 
 // basically same as the io runner but with extra output
 import 'dart:async';

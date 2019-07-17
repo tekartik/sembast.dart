@@ -1,9 +1,8 @@
-library sembast.test.compat.utils_test;
+library sembast.test.utils_test;
 
 // basically same as the io runner but with extra output
-import 'package:sembast/sembast.dart';
 import 'package:sembast/src/utils.dart';
-import 'package:test/test.dart';
+import 'test_common.dart';
 
 void main() {
   group('utils', () {

@@ -71,6 +71,39 @@ void defineTests(DatabaseTestContext ctx) {
       expect((await records.getSnapshots(db)).last.value, 'hi');
     });
 
+    test('update', () async {
+      var store = intMapStoreFactory.store('animals');
+      // Store some objects
+      int key1, key2, key3;
+      await db.transaction((txn) async {
+        //var store = txn.getStore('animals');
+        key1 = await store.add(txn, {'name': 'fish'});
+        key2 = await store.add(txn, {'name': 'cat'});
+        key3 = await store.add(txn, {'name': 'dog'});
+      });
+
+      // Filter for updating records
+      var finder = Finder(filter: Filter.greaterThan('name', 'cat'));
+
+      // Update without transaction
+      await store.update(db, {'age': 4}, finder: finder);
+      expect(await store.records([key1, key2, key3]).get(db), [
+        {'name': 'fish', 'age': 4},
+        {'name': 'cat'},
+        {'name': 'dog', 'age': 4}
+      ]);
+
+      // Update within transaction
+      await db.transaction((txn) async {
+        await store.update(txn, {'age': 5}, finder: finder);
+      });
+      expect(await store.records([key1, key2, key3]).get(db), [
+        {'name': 'fish', 'age': 5},
+        {'name': 'cat'},
+        {'name': 'dog', 'age': 5}
+      ]);
+    });
+
     test('read_only', () async {
       var store = intMapStoreFactory.store("test");
       var record = store.record(1);

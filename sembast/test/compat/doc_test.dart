@@ -40,53 +40,6 @@ void defineTests(DatabaseTestContext ctx) {
         unused(value);
       }
     });
-
-    test('issue8_1', () async {
-      db = await setupForTest(ctx, 'compat/doc/issue8_1.db');
-
-      dynamic lastKey;
-      var macAddress = '00:0a:95:9d:68:16';
-      await db.transaction((txn) async {
-        // put twice the same record
-        await txn.put({'macAddress': macAddress});
-        lastKey = await txn.put({'macAddress': macAddress});
-      });
-      // Sorting by key requires using the special Field.key
-      var finder = Finder(
-          filter: Filter.equal('macAddress', macAddress),
-          sortOrders: [SortOrder(Field.key, false)]);
-      // finding one record automatically set limit to 1
-      expect((await db.findRecord(finder)).key, lastKey);
-    });
-
-    test('issue8_2', () async {
-      db = await setupForTest(ctx, 'compat/doc/issue8_2.db');
-      var beaconsStoreName = 'beacons';
-      dynamic key2, key3;
-      await db.transaction((txn) async {
-        var store = txn.getStore(beaconsStoreName);
-        await store.put({'name': 'beacon1'});
-        key2 = await store.put({'name': 'beacon2'});
-        key3 = await store.put({'name': 'beacon3'});
-      });
-
-      var recordsIds = [key2, key3];
-      await db.transaction((txn) async {
-        var store = txn.getStore(beaconsStoreName);
-        List<Future> futures = [];
-        recordsIds.forEach(
-            (key) => futures.add(store.update({'flushed': true}, key)));
-        await Future.wait(futures);
-      });
-
-      var store = db.getStore(beaconsStoreName);
-      var records = await store.findRecords(null);
-      expect(getRecordsValues(records), [
-        {'name': 'beacon1'},
-        {'name': 'beacon2', 'flushed': true},
-        {'name': 'beacon3', 'flushed': true}
-      ]);
-    });
   });
 }
 

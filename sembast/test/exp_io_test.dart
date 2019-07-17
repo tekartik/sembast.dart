@@ -1,11 +1,11 @@
 @TestOn('vm')
-library sembast.test.compat.exp_io_test;
+library sembast.test.exp_io_est;
 
 import 'dart:async';
 
 import 'package:path/path.dart';
-import 'package:sembast/sembast.dart';
-import 'package:sembast/sembast_io.dart';
+import 'package:sembast/src/api/v2/sembast.dart';
+import 'package:sembast/src/api/v2/sembast_io.dart';
 
 import 'test_common.dart';
 
@@ -19,7 +19,7 @@ void main() {
 
       // Get the database in a safe way
       var db = await openHelper.getDatabase();
-      await db.put('value', 'key');
+      await StoreRef.main().record('key').put(db, 'value');
 
       var db1 = await openHelper.getDatabase();
       var db2 = await openHelper.getDatabase();
