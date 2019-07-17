@@ -1,7 +1,5 @@
 import 'package:sembast/src/api/sembast.dart';
 
-export 'package:test_api/test_api.dart' show TypeMatcher;
-
 export 'src/test/test.dart';
 export 'src/test_defs.dart';
 
