@@ -16,23 +16,25 @@ class SembastSortOrder implements SortOrder {
       : ascending = ascending != false,
         nullLast = nullLast == true;
 
-  int compare(Record record1, Record record2) {
+  int compare(RecordSnapshot record1, RecordSnapshot record2) {
     int result = compareAscending(record1, record2);
     return ascending ? result : -result;
   }
 
-  int compareToBoundary(Record record, Boundary boundary, int index) {
+  int compareToBoundary(RecordSnapshot record, Boundary boundary, int index) {
     int result = compareToBoundaryAscending(record, boundary, index);
     return ascending ? result : -result;
   }
 
-  int compareToSnapshotAscending(Record record, RecordSnapshot snapshot) {
+  int compareToSnapshotAscending(
+      RecordSnapshot record, RecordSnapshot snapshot) {
     var value1 = record[field];
     var value2 = snapshot[field];
     return compareValueAscending(value1, value2);
   }
 
-  int compareToBoundaryAscending(Record record, Boundary boundary, int index) {
+  int compareToBoundaryAscending(
+      RecordSnapshot record, Boundary boundary, int index) {
     final sembastBoundary = boundary as SembastBoundary;
     if (sembastBoundary.values != null) {
       var value = sembastBoundary.values[index];
@@ -43,7 +45,7 @@ class SembastSortOrder implements SortOrder {
     throw ArgumentError('either record or values must be provided');
   }
 
-  int compareAscending(Record record1, Record record2) {
+  int compareAscending(RecordSnapshot record1, RecordSnapshot record2) {
     var value1 = record1[field];
     var value2 = record2[field];
     return compareValueAscending(value1, value2);

@@ -1,21 +1,21 @@
 library sembast.store_test;
 
 // basically same as the io runner but with extra output
-import 'package:sembast/src/api/sembast.dart';
+
 import 'package:sembast/src/common_import.dart';
 
-import 'dev_test_common.dart';
+import 'test_common.dart';
 
 void main() {
-  defineTests(devMemoryDatabaseContext);
+  defineTests(memoryDatabaseContext);
 }
 
-void defineTests(DevDatabaseTestContext ctx) {
+void defineTests(DatabaseTestContext ctx) {
   group('query', () {
     Database db;
 
     setUp(() async {
-      db = await setupForTest(ctx);
+      db = await setupForTest(ctx, 'query.db');
     });
 
     tearDown(() {
@@ -36,6 +36,28 @@ void defineTests(DevDatabaseTestContext ctx) {
       expect((await future2).first.value, 'test');
       expect((await future3).first.value, 'test2');
       expect(await future4, isEmpty);
+    });
+
+    test('getSnapshot(s)', () async {
+      var store = StoreRef<int, String>.main();
+      var record1 = store.record(1);
+      var record2 = store.record(2);
+      await record1.put(db, 'test');
+      await record2.put(db, 'test2');
+      var query = store.query();
+      expect((await query.getSnapshots(db)).map((snapshot) => snapshot.key),
+          [1, 2]);
+      expect((await query.getSnapshot(db)).key, 1);
+      query = store.query(
+          finder: Finder(filter: Filter.equals(Field.value, 'test2')));
+      expect(
+          (await query.getSnapshots(db)).map((snapshot) => snapshot.key), [2]);
+      expect((await query.getSnapshot(db)).key, 2);
+      query = store.query(
+          finder: Finder(filter: Filter.equals(Field.value, 'test3')));
+      expect(
+          (await query.getSnapshots(db)).map((snapshot) => snapshot.key), []);
+      expect((await query.getSnapshot(db)), isNull);
     });
 
     test('put/on timing', () async {

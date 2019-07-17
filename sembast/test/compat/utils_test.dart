@@ -1,4 +1,4 @@
-library sembast.utils_test;
+library sembast.test.compat.utils_test;
 
 // basically same as the io runner but with extra output
 import 'package:sembast/sembast.dart';

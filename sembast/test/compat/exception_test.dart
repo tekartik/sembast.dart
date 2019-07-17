@@ -1,15 +1,14 @@
-library sembast.exception_test;
+library sembast.test.compat.exception_test;
 
-// basically same as the io runner but with extra output
 import 'package:sembast/sembast.dart';
 
 import 'test_common.dart';
 
 void main() {
-  defineTests(devMemoryDatabaseContext);
+  defineTests(memoryDatabaseContext);
 }
 
-void defineTests(DevDatabaseTestContext ctx) {
+void defineTests(DatabaseTestContext ctx) {
   group('exception', () {
     Database db;
 
@@ -18,7 +17,7 @@ void defineTests(DevDatabaseTestContext ctx) {
     });
 
     test('put', () async {
-      db = await ctx.open();
+      db = await setupForTest(ctx, 'compat/exception/put_date_time.db');
       try {
         await db.put(DateTime.now());
         fail("should fail");

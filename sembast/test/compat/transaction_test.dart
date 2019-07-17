@@ -8,15 +8,15 @@ import 'package:sembast/sembast.dart';
 import 'test_common.dart';
 
 void main() {
-  defineTests(devMemoryDatabaseContext);
+  defineTests(memoryDatabaseContext);
 }
 
-void defineTests(DevDatabaseTestContext ctx) {
+void defineTests(DatabaseTestContext ctx) {
   group('compat_transaction', () {
     Database db;
 
     setUp(() async {
-      db = await setupForTest(ctx);
+      db = await setupForTest(ctx, 'compat/transaction.db');
     });
 
     tearDown(() {

@@ -1,49 +1,37 @@
 library sembast.test_runner;
 
-import 'compat/crud_test.dart' as compat_crud_test;
-import 'compat/database_codec_test.dart' as database_codec_test;
-import 'compat/database_format_test.dart' as database_format_test;
-import 'compat/database_impl_format_test.dart' as database_impl_format_test;
-import 'compat/database_import_export_test.dart' as database_import_export_test;
-import 'compat/database_perf_test.dart' as database_perf_test;
-import 'compat/database_test.dart' as database_test;
-import 'compat/database_utils_test.dart' as database_utils_test;
-import 'compat/deprecated_test.dart' as deprecated_test;
-import 'compat/doc_test.dart' as compat_doc_test;
-import 'compat/exception_test.dart' as exception_test;
-import 'compat/exp_test.dart' as exp_test;
-import 'compat/find_test.dart' as compat_find_test;
-import 'compat/key_test.dart' as compat_key_test;
-import 'compat/record_test.dart' as record_test;
-import 'compat/src_file_system_test.dart' as src_file_system_test;
-import 'compat/store_test.dart' as compat_store_test;
-import 'compat/transaction_test.dart' as compat_transaction_test;
-import 'compat/value_test.dart' as value_test;
+import 'crud_impl_test.dart' as crud_impl_test;
 import 'crud_test.dart' as crud_test;
-import 'dev_test_common.dart';
+import 'database_codec_test.dart' as database_codec_test;
+import 'database_format_test.dart' as database_format_test;
+import 'database_test.dart' as database_test;
 import 'doc_test.dart' as doc_test;
+import 'exception_test.dart' as exception_test;
+import 'exp_test.dart' as exp_test;
 import 'find_test.dart' as find_test;
 import 'key_test.dart' as key_test;
 import 'open_test.dart' as open_test;
 import 'store_api_test.dart' as store_api_test;
 import 'store_test.dart' as store_test;
+import 'test_common.dart';
 import 'transaction_test.dart' as transaction_test;
+import 'value_test.dart' as value_test;
 
 // default use memory
 void main() {
   defineFileSystemTests(memoryFileSystemContext);
-  defineTests(devMemoryDatabaseContext);
+  defineTests(memoryDatabaseContext);
 }
 
 void defineFileSystemTests(FileSystemTestContext ctx) {
-  src_file_system_test.defineTests(ctx);
   database_format_test.defineTests(ctx);
   database_codec_test.defineTests(ctx);
-  database_impl_format_test.defineTests(ctx);
 }
 
-void defineTests(DevDatabaseTestContext ctx) {
+void defineTests(DatabaseTestContext ctx) {
   crud_test.defineTests(ctx);
+  crud_impl_test.defineTests(ctx);
+  database_test.defineTests(ctx);
   store_test.defineTests(ctx);
   find_test.defineTests(ctx);
   transaction_test.defineTests(ctx);
@@ -51,20 +39,7 @@ void defineTests(DevDatabaseTestContext ctx) {
   store_api_test.defineTests(ctx);
   doc_test.defineTests(ctx);
   open_test.defineTests(ctx);
-
-  database_perf_test.defineTests(ctx, 10);
-  database_test.defineTests(ctx);
-  compat_crud_test.defineTests(ctx);
-  record_test.defineTests(ctx);
-  compat_key_test.defineTests(ctx);
-  value_test.defineTests(ctx);
-  compat_store_test.defineTests(ctx);
-  compat_find_test.defineTests(ctx);
-  compat_transaction_test.defineTests(ctx);
-  deprecated_test.defineTests(ctx);
   exception_test.defineTests(ctx);
-  database_import_export_test.defineTests(ctx);
   exp_test.defineTests(ctx);
-  database_utils_test.defineTests(ctx);
-  compat_doc_test.defineTests(ctx);
+  value_test.defineTests(ctx);
 }

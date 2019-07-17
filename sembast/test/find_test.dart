@@ -3,15 +3,13 @@ library sembast.find_test;
 // basically same as the io runner but with extra output
 import 'dart:async';
 
-import 'package:sembast/src/api/sembast.dart';
-
-import 'dev_test_common.dart';
+import 'test_common.dart';
 
 void main() {
-  defineTests(devMemoryDatabaseContext);
+  defineTests(memoryDatabaseContext);
 }
 
-void defineTests(DevDatabaseTestContext ctx) {
+void defineTests(DatabaseTestContext ctx) {
   List<RecordRef> snapshotsRefs(List<RecordSnapshot> snapshots) =>
       snapshots.map((snapshot) => snapshot.ref)?.toList(growable: false);
 
@@ -30,7 +28,7 @@ void defineTests(DevDatabaseTestContext ctx) {
       var record2 = _records[1];
       var record3 = _records[2];
       setUp(() async {
-        db = await setupForTest(ctx);
+        db = await setupForTest(ctx, 'find/simple_value.db');
         return _records.put(db, ['hi', 'ho', 'ha']);
       });
 
@@ -267,7 +265,7 @@ void defineTests(DevDatabaseTestContext ctx) {
       var record2 = _records[1];
       var record3 = _records[2];
       setUp(() async {
-        db = await setupForTest(ctx);
+        db = await setupForTest(ctx, 'find/map_values.db');
         return _records.put(db, [
           {"text": "hi", "value": 1},
           {"text": "ho", "value": 2},
@@ -310,7 +308,7 @@ void defineTests(DevDatabaseTestContext ctx) {
       });
 
       test('null_first_last', () async {
-        db = await setupForTest(ctx);
+        db = await setupForTest(ctx, 'find/null_first_last.db');
         var store = intMapStoreFactory.store();
 
         record1 = store.record(1);
@@ -353,7 +351,7 @@ void defineTests(DevDatabaseTestContext ctx) {
         var record2 = _records[1];
         var record3 = _records[2];
         setUp(() async {
-          db = await setupForTest(ctx);
+          db = await setupForTest(ctx, 'find/sub_field.db');
           return _records.put(db, [
             {
               "path": {"sub": 'a'}
@@ -514,7 +512,7 @@ void defineTests(DevDatabaseTestContext ctx) {
         var record2 = _records[1];
         var record3 = _records[2];
         setUp(() async {
-          db = await setupForTest(ctx);
+          db = await setupForTest(ctx, 'find/field_with_dot.db');
           return _records.put(db, [
             {'foo.bar': 'a'},
             {'foo.bar': 'c'},
@@ -544,7 +542,7 @@ void defineTests(DevDatabaseTestContext ctx) {
       });
 
       test('multi_sort_order', () async {
-        Database db = await setupForTest(ctx);
+        Database db = await setupForTest(ctx, 'find/multi_sort_order.db');
 
         var store = intMapStoreFactory.store();
         // var _records = store.records([1, 2, 3, 4]);

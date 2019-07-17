@@ -5,7 +5,7 @@ import 'dart:typed_data';
 import 'package:crypto/crypto.dart';
 import 'package:encrypt/encrypt.dart';
 import 'package:meta/meta.dart';
-import 'package:sembast/sembast.dart';
+import 'package:sembast/src/api/v2/sembast.dart';
 
 var _random = Random.secure();
 

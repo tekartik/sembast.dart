@@ -1,4 +1,4 @@
-library sembast.database_impl_format_test;
+library sembast.test.compat.database_impl_format_test;
 
 import 'dart:async';
 import 'dart:convert';
@@ -8,8 +8,8 @@ import 'package:sembast/src/database_impl.dart';
 import 'package:sembast/src/file_system.dart';
 import 'package:sembast/src/sembast_fs.dart';
 
+import '../test_common_impl.dart';
 import 'test_common.dart';
-import 'test_common_impl.dart';
 
 void main() {
   defineTests(memoryFileSystemContext);
@@ -18,11 +18,10 @@ void main() {
 void defineTests(FileSystemTestContext ctx) {
   FileSystem fs = ctx.fs;
   DatabaseFactory factory = DatabaseFactoryFs(fs);
-  String getDbPath() => ctx.outPath + ".db";
   String dbPath;
 
   Future<String> prepareForDb() async {
-    dbPath = getDbPath();
+    dbPath = dbPathFromName('compat/database_impl_format.db');
     await factory.deleteDatabase(dbPath);
     // await fs.file(dbPath).delete().catchError((_) {});
     return dbPath;

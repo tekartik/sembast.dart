@@ -24,7 +24,8 @@ void defineTests(FileSystemTestContext ctx) {
   String outDataPath = testOutPath(fs);
 */
 
-  String namePath(String name) => join(ctx.outPath, name);
+  String rootPath = dbPathFromName('compat/src_file_system');
+  String namePath(String name) => join(rootPath, name);
 
   File nameFile(String name) => fs.file(namePath(name));
   Directory nameDir(String name) => fs.directory(namePath(name));
@@ -79,9 +80,9 @@ void defineTests(FileSystemTestContext ctx) {
   }
 
   Future clearOutFolder() async {
-    await deleteDirectory(fs.directory(ctx.outPath)).catchError((e, st) {
-      //devPrint("${e}\n${st}");
-    });
+    try {
+      await deleteDirectory(fs.directory(rootPath));
+    } catch (_) {}
   }
 
   Future<List<String>> readContent(File file) {

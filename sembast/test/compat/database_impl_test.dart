@@ -8,15 +8,15 @@ import 'package:sembast/src/database_impl.dart';
 import 'test_common.dart';
 
 void main() {
-  defineTests(devMemoryDatabaseContext);
+  defineTests(memoryDatabaseContext);
 }
 
-void defineTests(DevDatabaseTestContext ctx) {
+void defineTests(DatabaseTestContext ctx) {
   final factory = ctx.factory as DatabaseFactoryMixin;
   String dbPath;
 
   group('database_impl', () {
-    dbPath = ctx.dbPath;
+    dbPath = dbPathFromName('compat/database_impl.db');
 
     group('open', () {
       Database db;

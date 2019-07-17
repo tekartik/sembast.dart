@@ -1,4 +1,4 @@
-library sembast.crud_test;
+library sembast.compat.crud_impl_test;
 
 // basically same as the io runner but with extra output
 import 'package:sembast/src/database_impl.dart';
@@ -6,15 +6,15 @@ import 'package:sembast/src/database_impl.dart';
 import 'test_common.dart';
 
 void main() {
-  defineTests(devMemoryDatabaseContext);
+  defineTests(memoryDatabaseContext);
 }
 
-void defineTests(DevDatabaseTestContext ctx) {
+void defineTests(DatabaseTestContext ctx) {
   group('crud_impl', () {
     SembastDatabase db;
 
     setUp(() async {
-      db = await setupForTest(ctx) as SembastDatabase;
+      db = await setupForTest(ctx, 'compat/crud_impl.db') as SembastDatabase;
     });
 
     tearDown(() {

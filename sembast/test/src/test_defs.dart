@@ -1,33 +1,32 @@
 library sembast.test.src.test_defs;
 
-// basically same as the io runner but with extra output
 import 'dart:async';
 import 'dart:convert';
 
 import 'package:path/path.dart';
-import 'package:sembast/sembast.dart';
-import 'package:sembast/sembast_memory.dart';
+import 'package:sembast/src/api/v2/sembast.dart';
+import 'package:sembast/src/api/v2/sembast_memory.dart';
+
 import 'package:sembast/src/database_factory_mixin.dart';
 import 'package:sembast/src/database_impl.dart';
 import 'package:sembast/src/file_system.dart';
 import 'package:sembast/src/memory/file_system_memory.dart';
 
 import '../test_common.dart';
-// import 'test_defs_dev.dart';
+
+DatabaseTestContext get memoryDatabaseContext =>
+    DatabaseTestContext()..factory = databaseFactoryMemory;
 
 class TestException implements Exception {
   @override
   String toString() => 'TestException';
 }
 
-DatabaseTestContext get memoryDatabaseContext =>
-    DatabaseTestContext()..factory = databaseFactoryMemory;
-
 // FileSystem context
 class FileSystemTestContext {
   FileSystem fs;
 
-  String get outPath => fs.currentDirectory.path;
+  //String get outPath => fs.currentDirectory.path;
 }
 
 FileSystemTestContext get memoryFileSystemContext =>
@@ -35,21 +34,9 @@ FileSystemTestContext get memoryFileSystemContext =>
 
 String dbPathFromName(String name) =>
     join('.dart_tool', 'sembast', 'test', name);
-Future<Database> setupForTest(DatabaseTestContext ctx, {String name}) {
-  if (name != null) {
-    name = dbPathFromName(name);
-  }
-  return ctx.open(dbPath: name);
-}
 
-Future<List<Record>> recordStreamToList(Stream<Record> stream) {
-  List<Record> records = [];
-  return stream
-      .listen((Record record) {
-        records.add(record);
-      })
-      .asFuture()
-      .then((_) => records);
+Future<Database> setupForTest(DatabaseTestContext ctx, String name) {
+  return ctx.open(dbPathFromName(name));
 }
 
 ///
@@ -63,14 +50,6 @@ Future<List<String>> readContent(FileSystem fs, String filePath) {
       .listen((String line) {
     content.add(line);
   }).asFuture(content);
-}
-
-List getRecordsValues(List<Record> records) {
-  var list = [];
-  for (var record in records) {
-    list.add(record.value);
-  }
-  return list;
 }
 
 Future writeContent(FileSystem fs, String filePath, List<String> lines) async {
@@ -90,6 +69,9 @@ void devPrintJson(Map json) {
 Future<Database> reOpen(Database db, {DatabaseMode mode}) {
   return (db as SembastDatabase).reOpen(DatabaseOpenOptions(mode: mode));
 }
+
+bool hasStorage(DatabaseFactory factory) =>
+    (factory as SembastDatabaseFactory).hasStorage;
 
 /// Get an existing database version
 Future<int> getExistingDatabaseVersion(

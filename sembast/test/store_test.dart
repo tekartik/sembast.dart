@@ -1,20 +1,17 @@
 library sembast.store_test;
 
-// basically same as the io runner but with extra output
-import 'package:sembast/src/api/sembast.dart';
-
-import 'dev_test_common.dart';
+import 'test_common.dart';
 
 void main() {
-  defineTests(devMemoryDatabaseContext);
+  defineTests(memoryDatabaseContext);
 }
 
-void defineTests(DevDatabaseTestContext ctx) {
+void defineTests(DatabaseTestContext ctx) {
   group('store', () {
     Database db;
 
     setUp(() async {
-      db = await setupForTest(ctx);
+      db = await setupForTest(ctx, 'store.db');
     });
 
     tearDown(() {
@@ -35,28 +32,6 @@ void defineTests(DevDatabaseTestContext ctx) {
       var record = store.record(1);
       await record.put(db, "hi");
       await store.delete(db);
-      expect(await record.get(db), isNull);
-    });
-
-    test('delete', () async {
-      expect(db.storeNames, ['_main']);
-      await StoreRef("test").drop(db);
-      expect(db.storeNames, ['_main']);
-    });
-
-    test('delete_main', () async {
-      expect(db.storeNames, ['_main']);
-      await StoreRef.main().drop(db);
-      expect(db.storeNames, ['_main']);
-    });
-
-    test('put/delete_store', () async {
-      var store = StoreRef('test');
-      var record = store.record(1);
-      await record.put(db, 'test');
-      expect(db.storeNames, contains('test'));
-      await store.drop(db);
-      expect(db.storeNames, isNot(contains('test')));
       expect(await record.get(db), isNull);
     });
 
@@ -94,6 +69,39 @@ void defineTests(DevDatabaseTestContext ctx) {
       await store.record(2).put(db, "hi");
       expect((await records.get(db)), [null, "hi"]);
       expect((await records.getSnapshots(db)).last.value, 'hi');
+    });
+
+    test('update', () async {
+      var store = intMapStoreFactory.store('animals');
+      // Store some objects
+      int key1, key2, key3;
+      await db.transaction((txn) async {
+        //var store = txn.getStore('animals');
+        key1 = await store.add(txn, {'name': 'fish'});
+        key2 = await store.add(txn, {'name': 'cat'});
+        key3 = await store.add(txn, {'name': 'dog'});
+      });
+
+      // Filter for updating records
+      var finder = Finder(filter: Filter.greaterThan('name', 'cat'));
+
+      // Update without transaction
+      await store.update(db, {'age': 4}, finder: finder);
+      expect(await store.records([key1, key2, key3]).get(db), [
+        {'name': 'fish', 'age': 4},
+        {'name': 'cat'},
+        {'name': 'dog', 'age': 4}
+      ]);
+
+      // Update within transaction
+      await db.transaction((txn) async {
+        await store.update(txn, {'age': 5}, finder: finder);
+      });
+      expect(await store.records([key1, key2, key3]).get(db), [
+        {'name': 'fish', 'age': 5},
+        {'name': 'cat'},
+        {'name': 'dog', 'age': 5}
+      ]);
     });
 
     test('read_only', () async {

@@ -6,6 +6,7 @@ import 'package:sembast/src/common_import.dart';
 import 'package:sembast/src/database_impl.dart';
 import 'package:sembast/src/record_impl.dart';
 import 'package:sembast/src/store_ref_impl.dart';
+import 'package:sembast/src/api/v2/sembast.dart' as v2;
 
 /// A query is unique
 class SembastQueryRef<K, V> implements QueryRef<K, V> {
@@ -19,7 +20,7 @@ class SembastQueryRef<K, V> implements QueryRef<K, V> {
   String toString() => '$store $finder)';
 
   @override
-  Stream<List<RecordSnapshot<K, V>>> onSnapshots(Database database) {
+  Stream<List<RecordSnapshot<K, V>>> onSnapshots(v2.Database database) {
     var db = getDatabase(database);
     // Create the query but don't add it until first result is set
     var ctlr = db.listener.addQuery(this);
@@ -51,4 +52,8 @@ class SembastQueryRef<K, V> implements QueryRef<K, V> {
   @override
   Future<List<RecordSnapshot<K, V>>> getSnapshots(DatabaseClient client) =>
       store.find(client, finder: finder);
+
+  @override
+  Future<RecordSnapshot<K, V>> getSnapshot(DatabaseClient client) =>
+      store.findFirst(client, finder: finder);
 }

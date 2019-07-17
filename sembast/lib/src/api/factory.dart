@@ -1,10 +1,11 @@
 import 'package:sembast/src/api/database_mode.dart';
 import 'package:sembast/src/api/sembast.dart';
+import 'package:sembast/src/api/v2/sembast.dart' as v2;
 
 ///
 /// The database factory that allow opening database
 ///
-abstract class DatabaseFactory {
+abstract class DatabaseFactory implements v2.DatabaseFactory {
   ///
   /// True if it has an associated storage (fs)
   ///
@@ -23,6 +24,7 @@ abstract class DatabaseFactory {
   /// A custom [codec] can be used to load/save a record, allowing for user encryption.
   ///
   /// Custom [settings] can be specified.
+  @override
   Future<Database> openDatabase(String path,
       {int version,
       OnVersionChangedFunction onVersionChanged,
@@ -32,5 +34,6 @@ abstract class DatabaseFactory {
   ///
   /// Delete a database if existing
   ///
+  @override
   Future deleteDatabase(String path);
 }

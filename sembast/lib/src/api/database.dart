@@ -1,61 +1,35 @@
 import 'dart:async';
 
-import 'package:sembast/src/api/client.dart';
-import 'package:sembast/src/api/compat/sembast.dart';
-import 'package:sembast/src/api/compat/store.dart';
+import 'package:sembast/src/api/compat/database.dart';
 import 'package:sembast/src/api/transaction.dart';
+import 'package:sembast/src/api/v2/sembast.dart' as v2;
 
-export 'field.dart';
+export 'package:sembast/src/api/field.dart';
 
-abstract class Database extends DatabaseExecutor implements DatabaseClient {
-  /// Main store.
-  ///
-  /// v2 deprecated.
-  Store get mainStore;
-
-  /// Version of the database
+/// Database.
+///
+/// The database object and client for the store and record operations
+abstract class Database extends DatabaseCompat implements v2.Database {
+  /// Version of the database.
+  @override
   int get version;
 
-  /// Database  path
+  /// Database path.
+  @override
   String get path;
 
-  /// Get current store names in the database.
-  Iterable<String> get storeNames;
-
-  ///
-  /// execute the action in a transaction
-  /// use the current if any
-  ///
+  /// Executes the action in a transaction.
+  @override
   Future<T> transaction<T>(FutureOr<T> action(Transaction transaction));
 
-  ///
-  /// Close the database
-  ///
+  /// Closes the database.
+  @override
   Future close();
-
-  //
-  // Deprecated API below
-  //
-  /// All the stores in the database
-  Iterable<Store> get stores;
-
-  ///
-  /// get or create a store
-  /// an empty store will not be persistent
-  ///
-  Store getStore(String storeName);
-
-  ///
-  /// clear and delete a store
-  ///
-  Future deleteStore(String storeName);
-
-  ///
-  /// find existing store
-  ///
-  Store findStore(String storeName);
 }
 
-/// can return a future or not
+/// Callback interface called when the existing version differs from the
+/// one expected.
+///
+/// Allow to perform migration or data change. Can return a future or not.
 typedef OnVersionChangedFunction = FutureOr Function(
     Database db, int oldVersion, int newVersion);

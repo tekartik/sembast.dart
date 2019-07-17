@@ -3,7 +3,7 @@ library sembast.doc_test;
 import 'dart:convert';
 
 import 'package:pedantic/pedantic.dart';
-import 'package:sembast/src/api/sembast.dart';
+import 'package:sembast/src/api/v2/sembast.dart';
 import 'package:sembast/src/memory/database_factory_memory.dart';
 import 'package:sembast/utils/sembast_import_export.dart';
 import 'package:sembast/utils/value_utils.dart';
@@ -31,7 +31,7 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     test('new_1.15 doc', () async {
-      db = await setupForTest(ctx, name: 'doc/new_1.15_doc.db');
+      db = await setupForTest(ctx, 'doc/new_1.15_doc.db');
 
       {
         var path = db.path;
@@ -294,7 +294,7 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     test('New 1.15 shop_file_format', () async {
-      db = await setupForTest(ctx, name: 'doc/new_1.15_shop_file_format.db');
+      db = await setupForTest(ctx, 'doc/new_1.15_shop_file_format.db');
       {
         // Our shop store sample data
         var store = intMapStoreFactory.store('shop');

@@ -1,6 +1,4 @@
-import 'package:sembast/src/api/sembast.dart';
-
-import 'dev_test_common.dart';
+import 'test_common.dart';
 
 final storeFactory = intMapStoreFactory;
 final otherStoreFactory = stringMapStoreFactory;
@@ -9,11 +7,11 @@ final otherStore = StoreRef<String, Map<String, dynamic>>('other');
 final keyValueStore = StoreRef<String, String>('keyValue');
 
 void main() {
-  defineTests(devMemoryDatabaseContext);
+  defineTests(memoryDatabaseContext);
 }
 
-void defineTests(DevDatabaseTestContext ctx) {
-  group('find', () {
+void defineTests(DatabaseTestContext ctx) {
+  group('store_api', () {
     Database db;
 
     tearDown(() async {
@@ -22,7 +20,7 @@ void defineTests(DevDatabaseTestContext ctx) {
     });
 
     setUp(() async {
-      db = await setupForTest(ctx);
+      db = await setupForTest(ctx, 'store_api.db');
     });
 
     test('public', () {
@@ -144,8 +142,6 @@ void defineTests(DevDatabaseTestContext ctx) {
     });
 
     test('updateRecords', () async {
-      db = await setupForTest(ctx);
-
       var store = intMapStoreFactory.store('animals');
       // Store some objects
       int key1, key2, key3;

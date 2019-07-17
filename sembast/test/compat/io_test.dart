@@ -29,11 +29,10 @@ void main() {
     FileSystem fs = ctx.fs;
 
     group('format', () {
-      String getDbPath() => ctx.outPath + ".db";
       String dbPath;
 
       Future<String> prepareForDb() async {
-        dbPath = getDbPath();
+        dbPath = dbPathFromName('compat/io/format.db');
         await fs
             .directory(dirname(dbPath))
             .create(recursive: true)

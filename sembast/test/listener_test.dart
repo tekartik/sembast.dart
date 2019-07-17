@@ -1,23 +1,21 @@
 library sembast.store_test;
 
 // basically same as the io runner but with extra output
-import 'package:sembast/src/api/sembast.dart';
 import 'package:sembast/src/common_import.dart';
 import 'package:sembast/src/database_impl.dart';
 
-import 'compat/test_common.dart';
-import 'dev_test_common.dart';
+import 'test_common.dart';
 
 void main() {
-  defineTests(devMemoryDatabaseContext);
+  defineTests(memoryDatabaseContext);
 }
 
-void defineTests(DevDatabaseTestContext ctx) {
+void defineTests(DatabaseTestContext ctx) {
   group('record_listener', () {
     Database db;
 
     setUp(() async {
-      db = await setupForTest(ctx);
+      db = await setupForTest(ctx, 'record_listener.db');
     });
 
     tearDown(() {

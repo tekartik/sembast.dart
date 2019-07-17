@@ -1,11 +1,12 @@
 library sembast.test.memory_fs_factory_test_;
 
-import 'package:sembast/sembast_memory.dart';
+import 'package:sembast/src/api/v2/sembast_memory.dart';
 import 'package:sembast/src/memory/database_factory_memory.dart'
     show DatabaseFactoryMemoryFs;
 
 import 'all_test.dart';
-import 'dev_test_common.dart';
+import 'fs_test_common.dart';
+import 'test_common.dart';
 
 // default use memory
 void main() {
