@@ -1,3 +1,7 @@
+## 1.19.0-dev.1
+
+* Deprecated old APIs
+
 ## 1.17.2
 
 * Add `QueryRef.getSnapshot`
