@@ -1,7 +1,7 @@
 library sembast.key_test;
 
 // basically same as the io runner but with extra output
-import 'package:sembast/src/api/sembast.dart';
+import 'package:sembast/src/api/v2/sembast.dart';
 
 import 'encrypt_codec.dart';
 import 'test_common.dart';

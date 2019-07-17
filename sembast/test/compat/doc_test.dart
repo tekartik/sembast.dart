@@ -7,7 +7,7 @@ import 'package:sembast/src/file_system.dart';
 import 'package:sembast/src/sembast_fs.dart';
 
 import '../encrypt_codec.dart';
-import '../test_common.dart';
+import 'test_common.dart';
 
 void main() {
   defineFileSystemTests(memoryFileSystemContext);

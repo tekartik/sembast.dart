@@ -1,6 +1,9 @@
 library sembast.test_runner;
 
+import 'crud_impl_test.dart' as crud_impl_test;
 import 'crud_test.dart' as crud_test;
+import 'database_codec_test.dart' as database_codec_test;
+import 'database_format_test.dart' as database_format_test;
 import 'doc_test.dart' as doc_test;
 import 'find_test.dart' as find_test;
 import 'key_test.dart' as key_test;
@@ -16,10 +19,14 @@ void main() {
   defineTests(memoryDatabaseContext);
 }
 
-void defineFileSystemTests(FileSystemTestContext ctx) {}
+void defineFileSystemTests(FileSystemTestContext ctx) {
+  database_format_test.defineTests(ctx);
+  database_codec_test.defineTests(ctx);
+}
 
 void defineTests(DatabaseTestContext ctx) {
   crud_test.defineTests(ctx);
+  crud_impl_test.defineTests(ctx);
   store_test.defineTests(ctx);
   find_test.defineTests(ctx);
   transaction_test.defineTests(ctx);

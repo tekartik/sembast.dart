@@ -1,12 +1,11 @@
-@deprecated
 library sembast.test.compat.io_test_common;
 
 // import 'package:dev_test/test.dart';
 import 'package:sembast/sembast_io.dart';
 import 'package:sembast/src/io/file_system_io.dart';
 
-import '../fs_test_common.dart';
-import '../test_common.dart';
+import 'fs_test_common.dart';
+import 'test_common.dart';
 
 // For test in memory
 DatabaseTestContextIo get databaseContextIo =>

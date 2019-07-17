@@ -1,9 +1,4 @@
-library sembast.crud_test;
-
-// basically same as the io runner but with extra output
-// import 'package:sembast/src/database_impl.dart' show SembastDatabase;
-/*
-import 'package:sembast/src/api/sembast.dart';
+library sembast.test.crud_impl_test;
 
 import 'test_common.dart';
 
@@ -13,10 +8,12 @@ void main() {
 
 void defineTests(DatabaseTestContext ctx) {
   group('crud_impl', () {
-    DatabaseClient db;
+    Database db;
+
+    var store = StoreRef.main();
 
     setUp(() async {
-      db = await setupForTest(ctx, 'compat/crud_impl.db');
+      db = await setupForTest(ctx, 'crud_impl.db');
     });
 
     tearDown(() {
@@ -24,77 +21,52 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     test('put_close_get', () async {
-      await db.put("hi", 1);
+      var record = store.record(1);
+      await record.put(db, "hi");
+      await reOpen(db);
 
-        return db.reOpen().then((_) {
-          return db.get(1).then((value) {
-            expect(value, "hi");
-          });
-        });
-      });
+      expect(await record.get(db), "hi");
     });
 
-    test('put_nokey_close_put', () {
-      return db.put("hi").then((key) {
-        return db.reOpen().then((_) {
-          return db.put("hi").then((key) {
-            expect(key, 2);
-          });
-        });
-      });
+    test('put_nokey_close_put', () async {
+      expect(await store.add(db, 'hi'), 1);
+      await reOpen(db);
+      expect(await store.add(db, 'hi'), 2);
     });
 
-    test('put_update_close_get', () {
-      return db.put("hi", 1).then((_) {
-        return db.put("ho", 1).then((_) {
-          return db.reOpen().then((_) {
-            return db.get(1).then((value) {
-              expect(value, "ho");
-              return db.count().then((int count) {
-                expect(count, 1);
-              });
-            });
-          });
-        });
-      });
+    test('put_update_close_get', () async {
+      var record = store.record(1);
+      await record.put(db, "hi");
+      await record.put(db, "ho");
+      await reOpen(db);
+      expect(await record.get(db), "ho");
+      expect(await store.count(db), 1);
     });
 
-    test('put_delete_close_get', () {
-      return db.put("hi", 1).then((_) {
-        return db.delete(1).then((key) {
-          return db.reOpen().then((_) {
-            return db.get(1).then((value) {
-              expect(value, isNull);
-              return db.count().then((int count) {
-                expect(count, 0);
-              });
-            });
-          });
-        });
-      });
+    test('put_delete_close_get', () async {
+      var record = store.record(1);
+      await record.put(db, "hi");
+      await record.delete(db);
+      await reOpen(db);
+      expect(await record.get(db), isNull);
+      expect(await store.count(db), 0);
     });
 
-    test('put_close_get_key_string', () {
-      return db.put("hi", "1").then((_) {
-        return db.reOpen().then((_) {
-          return db.get("1").then((value) {
-            expect(value, "hi");
-          });
-        });
-      });
+    test('put_close_get_key_string', () async {
+      var record = store.record("1");
+      await record.put(db, "hi");
+      await reOpen(db);
+      expect(await record.get(db), "hi");
     });
 
-    test('put_close_get_map', () {
+    test('put_close_get_map', () async {
+      var record = store.record(1);
       Map info = {"info": 12};
-      return db.put(info, 1).then((_) {
-        return db.reOpen().then((_) {
-          return db.get(1).then((infoRead) {
-            expect(infoRead, info);
-            expect(identical(infoRead, info), isFalse);
-          });
-        });
-      });
+      await record.put(db, info);
+      await reOpen(db);
+      var infoRead = await record.get(db);
+      expect(infoRead, info);
+      expect(identical(infoRead, info), isFalse);
     });
   });
 }
-*/

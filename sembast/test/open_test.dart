@@ -1,8 +1,5 @@
 library sembast.open_test;
 
-// basically same as the io runner but with extra output
-import 'package:sembast/src/api/sembast.dart';
-
 import 'test_common.dart';
 
 void main() {

@@ -1,16 +1,15 @@
-library sembast.test.compat.database_codec_test;
+library sembast.test.database_codec_test;
 
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:sembast/sembast.dart';
 import 'package:sembast/src/database_impl.dart';
 import 'package:sembast/src/file_system.dart';
 import 'package:sembast/src/sembast_fs.dart';
 
-import '../encrypt_codec.dart';
-import '../test_codecs.dart';
 import 'database_format_test.dart' as database_format_test;
+import 'encrypt_codec.dart';
+import 'test_codecs.dart';
 import 'test_common.dart';
 
 void main() {
@@ -22,6 +21,7 @@ void defineTests(FileSystemTestContext ctx) {
   DatabaseFactory factory = DatabaseFactoryFs(fs);
   // String getDbPath() => ctx.outPath + ".db";
   String dbPath;
+  var store = StoreRef.main();
 
   Future<String> prepareForDb() async {
     dbPath = dbPathFromName('compat/database_codec.db');
@@ -32,7 +32,7 @@ void defineTests(FileSystemTestContext ctx) {
   Future<Database> _prepareOneRecordDatabase({SembastCodec codec}) async {
     await prepareForDb();
     var db = await factory.openDatabase(dbPath, codec: codec);
-    await db.put('test');
+    await store.add(db, 'test');
     return db;
   }
 
@@ -129,7 +129,7 @@ void defineTests(FileSystemTestContext ctx) {
         await db.close();
 
         db = await factory.openDatabase(dbPath, codec: codec);
-        expect(await db.get(1), 'test');
+        expect(await store.record(1).get(db), 'test');
 
         await (db as SembastDatabase).compact();
 
@@ -160,7 +160,7 @@ void defineTests(FileSystemTestContext ctx) {
           'GY9lA8yc56M=FSqctQswKkhfgzp/XaFdxOxSJhRGHB3a'
         ]);
         var db = await factory.openDatabase(dbPath, codec: codec);
-        expect(await db.get(1), 'test');
+        expect(await store.record(1).get(db), 'test');
         await db.close();
       });
       test('one_record', () async {
@@ -179,7 +179,7 @@ void defineTests(FileSystemTestContext ctx) {
         await db.close();
 
         db = await factory.openDatabase(dbPath, codec: codec);
-        expect(await db.get(1), 'test');
+        expect(await store.record(1).get(db), 'test');
 
         await (db as SembastDatabase).compact();
 
@@ -214,7 +214,7 @@ void defineTests(FileSystemTestContext ctx) {
 
         // Open again with the proper password
         db = await factory.openDatabase(dbPath, codec: codec);
-        expect(await db.get(1), 'test');
+        expect(await store.record(1).get(db), 'test');
         await db.close();
       });
     });

@@ -1,6 +1,6 @@
 library sembast.test.io_test_common;
 
-import 'package:sembast/sembast_io.dart';
+import 'package:sembast/src/api/v2/sembast_io.dart';
 import 'package:sembast/src/io/file_system_io.dart';
 
 import 'fs_test_common.dart';

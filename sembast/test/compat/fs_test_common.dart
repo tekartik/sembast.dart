@@ -1,4 +1,4 @@
-import 'package:sembast/src/api/v2/sembast_memory.dart';
+import 'package:sembast/sembast_memory.dart';
 import 'package:sembast/src/file_system.dart';
 import 'package:sembast/src/sembast_fs.dart';
 

@@ -8,7 +8,7 @@ import 'dart:convert';
 import 'package:path/path.dart';
 import 'package:sembast/src/file_system.dart';
 
-import '../test_common.dart';
+import 'test_common.dart';
 
 void main() {
   group('memory', () {

@@ -3,8 +3,7 @@ library sembast.doc_test;
 import 'dart:convert';
 
 import 'package:pedantic/pedantic.dart';
-import 'package:sembast/src/api/sembast.dart';
-import 'package:sembast/src/api/v2/sembast.dart' as v2;
+import 'package:sembast/src/api/v2/sembast.dart';
 import 'package:sembast/src/memory/database_factory_memory.dart';
 import 'package:sembast/utils/sembast_import_export.dart';
 import 'package:sembast/utils/value_utils.dart';
@@ -20,7 +19,7 @@ void defineTests(DatabaseTestContext ctx) {
   var factory = ctx.factory;
 
   group('doc', () {
-    v2.Database db;
+    Database db;
 
     setUp(() async {});
 

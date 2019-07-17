@@ -3,9 +3,9 @@ library sembast.test.io_factory_test_;
 
 import 'package:path/path.dart';
 
-import '../io_test_common.dart';
-import '../test_common.dart';
 import 'all_test.dart';
+import 'io_test_common.dart';
+import 'test_common.dart';
 
 // already tested by all_factory_test
 // helper for testing

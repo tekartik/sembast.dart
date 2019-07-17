@@ -4,7 +4,7 @@ library sembast.compat.src_filter_test;
 //import 'package:tekartik_test/test_config.dart';
 import 'package:sembast/sembast.dart';
 
-import '../test_common.dart';
+import 'test_common.dart';
 
 class CompatCustomFilter implements Filter {
   @override

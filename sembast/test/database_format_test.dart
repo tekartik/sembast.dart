@@ -1,15 +1,13 @@
-library sembast.test.compat.database_format_test;
+library sembast.database_format_test;
 
 import 'dart:async';
 import 'dart:convert';
-
-import 'package:sembast/sembast.dart';
 import 'package:sembast/src/database_impl.dart';
 import 'package:sembast/src/file_system.dart';
 import 'package:sembast/src/sembast_codec_impl.dart';
 import 'package:sembast/src/sembast_fs.dart';
 
-import '../test_codecs.dart';
+import 'test_codecs.dart';
 import 'test_common.dart';
 
 void main() {
@@ -32,6 +30,7 @@ void defineTests(FileSystemTestContext ctx, {SembastCodec codec}) {
   DatabaseFactory factory = DatabaseFactoryFs(fs);
   //String getDbPath() => ctx.outPath + ".db";
   String dbPath;
+  var store = StoreRef.main();
 
   Future<String> prepareForDb() async {
     dbPath = dbPathFromName('compat/database_format.db');
@@ -130,7 +129,7 @@ void defineTests(FileSystemTestContext ctx, {SembastCodec codec}) {
     test('1 string record', () async {
       await prepareForDb();
       var db = await factory.openDatabase(dbPath, codec: codec);
-      await db.put("hi", 1);
+      await store.record(1).put(db, "hi");
       await db.close();
       var lines = await readContent(fs, dbPath);
       expect(lines.length, 2);
@@ -140,8 +139,8 @@ void defineTests(FileSystemTestContext ctx, {SembastCodec codec}) {
     test('1_record_in_2_stores', () async {
       await prepareForDb();
       Database db = await factory.openDatabase(dbPath, codec: codec);
-      db.getStore('store1');
-      Store store2 = db.getStore('store2');
+      (db as SembastDatabase).getStore('store1');
+      var store2 = (db as SembastDatabase).getStore('store2');
       await store2.put("hi", 1);
       await db.close();
       List<String> lines = await readContent(fs, dbPath);
@@ -152,9 +151,10 @@ void defineTests(FileSystemTestContext ctx, {SembastCodec codec}) {
 
     test('twice same record', () async {
       await prepareForDb();
+      var record = store.record(1);
       var db = await factory.openDatabase(dbPath, codec: codec);
-      await db.put("hi", 1);
-      await db.put("hi", 1);
+      await record.put(db, "hi");
+      await record.put(db, "hi");
       await db.close();
       var lines = await readContent(fs, dbPath);
       expect(lines.length, 3);
@@ -165,7 +165,8 @@ void defineTests(FileSystemTestContext ctx, {SembastCodec codec}) {
     test('1 map record', () async {
       await prepareForDb();
       var db = await factory.openDatabase(dbPath);
-      await db.put({'test': 2}, 1);
+      var record = store.record(1);
+      await record.put(db, {'test': 2});
       await db.close();
       var lines = await readContent(fs, dbPath);
       expect(lines.length, 2);
@@ -225,11 +226,11 @@ void defineTests(FileSystemTestContext ctx, {SembastCodec codec}) {
     test('open_version_1_then_2_then_compact', () async {
       await prepareForDb();
       var db = await factory.openDatabase(dbPath, codec: codec);
-      await db.put('test1');
+      await store.add(db, 'test1');
       await db.close();
       db = await factory.openDatabase(dbPath, version: 2, codec: codec);
 
-      await db.put('test2');
+      await store.add(db, 'test2');
       await db.close();
 
       List<String> lines = await readContent(fs, dbPath);
@@ -262,8 +263,10 @@ void defineTests(FileSystemTestContext ctx, {SembastCodec codec}) {
       await db.close();
 
       db = await factory.openDatabase(dbPath, codec: codec);
-      expect(await db.get(1), 'test1');
-      expect(await db.get(2), 'test2');
+      var record1 = store.record(1);
+      var record2 = store.record(2);
+      expect(await record1.get(db), 'test1');
+      expect(await record2.get(db), 'test2');
       expect((await readContent(fs, dbPath)).length, 4);
       await (db as SembastDatabase).compact();
 
@@ -284,8 +287,8 @@ void defineTests(FileSystemTestContext ctx, {SembastCodec codec}) {
       await db.close();
 
       db = await factory.openDatabase(dbPath, codec: codec);
-      expect(await db.get(1), 'test1');
-      expect(await db.get(2), 'test2');
+      expect(await record1.get(db), 'test1');
+      expect(await record2.get(db), 'test2');
       await db.close();
     });
   });

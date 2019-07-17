@@ -4,7 +4,7 @@ library sembast.database_test;
 import 'package:pedantic/pedantic.dart';
 import 'package:sembast/src/api/sembast.dart';
 
-import '../test_common.dart';
+import 'test_common.dart';
 
 void main() {
   defineTests(memoryDatabaseContext);

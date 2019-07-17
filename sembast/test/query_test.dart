@@ -1,7 +1,7 @@
 library sembast.store_test;
 
 // basically same as the io runner but with extra output
-import 'package:sembast/src/api/sembast.dart';
+
 import 'package:sembast/src/common_import.dart';
 
 import 'test_common.dart';

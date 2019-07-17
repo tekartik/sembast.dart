@@ -1,6 +1,5 @@
 library sembast.test.memory_factory_test_;
 
-import 'package:sembast/sembast.dart';
 import 'package:sembast/src/memory/database_factory_memory.dart'
     show DatabaseFactoryMemory;
 
@@ -25,11 +24,15 @@ void defineMemoryDatabaseTests(DatabaseTestContext ctx) {
     String dbName;
 
     Database db = await factory.openDatabase(dbName);
-    var key = await db.put('hi');
-    expect(await db.get(key), 'hi');
+    var store = StoreRef.main();
+    var key = await store.add(db, 'hi');
+    expect(await store.record(key).get(db), 'hi');
 
     // open null db again should not match
     var db2 = await factory.openDatabase(dbName);
-    expect(await db2.get(key), isNull);
+    expect(await store.record(key).get(db2), isNull);
+
+    await db.close();
+    await db2.close();
   });
 }

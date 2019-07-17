@@ -6,7 +6,7 @@ import 'package:path/path.dart';
 import 'package:sembast/src/file_system.dart';
 import 'package:sembast/src/memory/file_system_memory_impl.dart';
 
-import '../test_common.dart';
+import 'test_common.dart';
 
 void main() {
   group('memory_file_system_impl', () {

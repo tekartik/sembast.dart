@@ -1,6 +1,6 @@
 library sembast.test_runner;
 
-import '../test_common.dart';
+import 'crud_impl_test.dart' as crud_impl_test;
 import 'crud_test.dart' as crud_test;
 import 'database_codec_test.dart' as database_codec_test;
 import 'database_format_test.dart' as database_format_test;
@@ -17,6 +17,7 @@ import 'key_test.dart' as key_test;
 import 'record_test.dart' as record_test;
 import 'src_file_system_test.dart' as src_file_system_test;
 import 'store_test.dart' as store_test;
+import 'test_common.dart';
 import 'transaction_test.dart' as transaction_test;
 import 'value_test.dart' as value_test;
 
@@ -38,6 +39,7 @@ void defineTests(DatabaseTestContext ctx) {
   database_perf_test.defineTests(ctx, 10);
   database_test.defineTests(ctx);
   crud_test.defineTests(ctx);
+  crud_impl_test.defineTests(ctx);
   record_test.defineTests(ctx);
   key_test.defineTests(ctx);
   value_test.defineTests(ctx);

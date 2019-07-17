@@ -1,5 +1,3 @@
-import 'package:sembast/src/api/sembast.dart';
-
 import 'test_common.dart';
 
 final storeFactory = intMapStoreFactory;

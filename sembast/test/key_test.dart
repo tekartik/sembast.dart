@@ -1,7 +1,7 @@
 library sembast.key_test;
 
 // basically same as the io runner but with extra output
-import 'package:sembast/src/api/sembast.dart';
+import 'package:sembast/src/database_impl.dart';
 import 'package:sembast/src/store_impl.dart';
 
 import 'test_common.dart';
@@ -53,7 +53,7 @@ void defineTests(DatabaseTestContext ctx) {
       expect(key, 3);
 
       // Tweak to restart from 1 and make sure the existing keys are skipped
-      (db.mainStore as SembastStore).lastIntKey = 0;
+      ((db as SembastDatabase).mainStore as SembastStore).lastIntKey = 0;
       key = await store.add(db, "test");
       expect(key, 1);
       key = await store.add(db, "test");

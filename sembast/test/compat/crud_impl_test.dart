@@ -3,7 +3,7 @@ library sembast.compat.crud_impl_test;
 // basically same as the io runner but with extra output
 import 'package:sembast/src/database_impl.dart';
 
-import '../test_common.dart';
+import 'test_common.dart';
 
 void main() {
   defineTests(memoryDatabaseContext);

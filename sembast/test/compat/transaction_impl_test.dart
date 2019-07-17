@@ -6,7 +6,7 @@ import 'dart:async';
 import 'package:sembast/src/database_impl.dart';
 import 'package:sembast/src/transaction_impl.dart';
 
-import '../test_common.dart';
+import 'test_common.dart';
 
 void main() {
   defineTests(memoryDatabaseContext);

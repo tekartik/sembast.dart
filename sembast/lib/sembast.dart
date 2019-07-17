@@ -4,4 +4,4 @@ library sembast;
 export 'package:sembast/src/api/compat/sembast.dart';
 
 /// The API
-export 'package:sembast/src/api/sembast.dart' hide Database;
+export 'package:sembast/src/api/sembast.dart';

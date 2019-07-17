@@ -6,7 +6,7 @@ import 'dart:convert';
 import 'package:sembast/sembast.dart';
 import 'package:sembast/utils/sembast_import_export.dart';
 
-import '../test_common.dart';
+import 'test_common.dart';
 
 void main() {
   defineTests(memoryDatabaseContext);

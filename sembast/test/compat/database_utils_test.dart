@@ -3,7 +3,7 @@ library sembast.database_utils_test;
 import 'package:sembast/sembast.dart';
 import 'package:sembast/utils/database_utils.dart';
 
-import '../test_common.dart';
+import 'test_common.dart';
 
 void main() {
   defineTests(memoryDatabaseContext);

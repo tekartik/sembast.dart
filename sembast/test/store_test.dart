@@ -1,8 +1,5 @@
 library sembast.store_test;
 
-// basically same as the io runner but with extra output
-import 'package:sembast/src/api/sembast.dart';
-
 import 'test_common.dart';
 
 void main() {
@@ -35,28 +32,6 @@ void defineTests(DatabaseTestContext ctx) {
       var record = store.record(1);
       await record.put(db, "hi");
       await store.delete(db);
-      expect(await record.get(db), isNull);
-    });
-
-    test('delete', () async {
-      expect(db.storeNames, ['_main']);
-      await StoreRef("test").drop(db);
-      expect(db.storeNames, ['_main']);
-    });
-
-    test('delete_main', () async {
-      expect(db.storeNames, ['_main']);
-      await StoreRef.main().drop(db);
-      expect(db.storeNames, ['_main']);
-    });
-
-    test('put/delete_store', () async {
-      var store = StoreRef('test');
-      var record = store.record(1);
-      await record.put(db, 'test');
-      expect(db.storeNames, contains('test'));
-      await store.drop(db);
-      expect(db.storeNames, isNot(contains('test')));
       expect(await record.get(db), isNull);
     });
 

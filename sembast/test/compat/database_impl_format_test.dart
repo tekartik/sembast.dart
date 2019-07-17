@@ -8,7 +8,7 @@ import 'package:sembast/src/database_impl.dart';
 import 'package:sembast/src/file_system.dart';
 import 'package:sembast/src/sembast_fs.dart';
 
-import '../test_common.dart';
+import 'test_common.dart';
 import 'test_common_impl.dart';
 
 void main() {
