@@ -25,7 +25,7 @@ void defineTests(DatabaseTestContext ctx) {
 
     test('put', () async {
       final store = StoreRef<int, String>.main();
-      expect(await store.record(1).put(db, "hi"), 1);
+      expect(await store.record(1).put(db, "hi"), 'hi');
     });
 
     test('update', () async {
@@ -48,6 +48,15 @@ void defineTests(DatabaseTestContext ctx) {
           'b': {'c': 3}
         }
       });
+      expect(
+          await record.put(db, {'test': FieldValue.delete, 'a.b.c': 4},
+              merge: true),
+          {
+            'a': {
+              'b': {'c': 3}
+            },
+            'a.b.c': 4
+          });
     });
 
     test('add_with_dot', () async {
