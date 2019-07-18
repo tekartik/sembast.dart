@@ -105,7 +105,6 @@ var value = record['path.sub'];
 // value = 'my_value'
 var value2 = record[FieldKey.escape('with.dots')];
 // value2 = 'my_other_value'
-
 ```
 
 Follow the links with more informatin on how to [write](https://github.com/tekartik/sembast.dart/blob/master/sembast/doc/writes.md)
@@ -121,7 +120,6 @@ var store = StoreRef<int, String>.main();
 var key1 = await store.add(db, 'value1');
 var key2 = await store.add(db, 'value2');
 // key1 = 1, key2 = 2...
-expect([key1, key2], [1,2]);
 ```
 
 ### Transaction
