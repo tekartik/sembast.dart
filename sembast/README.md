@@ -34,86 +34,28 @@ The db object is ready for use.
 
 More information [here](https://github.com/tekartik/sembast.dart/blob/master/sembast/doc/open.md).
 
-### Simple put/get records
+### Reading and writing records
 
-For quick usage, data can be written and read quickly using the put/get/delete api on the database object
+Simple example of writing and reading records
 
 ```dart
+// unsounded store
+var store = StoreRef.main();
 // Easy to put/get simple values or map
-// A key can be anything (int, String) as long is it can
+// A key can be of type int or String and the value can be anything as long is it can
 // be properly JSON encoded/decoded
-await db.put('Simple application', 'title');
-await db.put(10, 'version');
-await db.put({'offline': true}, 'settings');
+await store.record('title').put(db, 'Simple application');
+await store.record('version').put(db, 10);
+await store.record('settings').put(db, {'offline': true});
 
 // read values
-String title = await db.get('title') as String; 
-int version = await db.get('version') as int;
-Map settings = await db.get('settings') as Map;
+var title = await store.record('title').get(db) as String;
+var version = await store.record('version').get(db) as int;
+var settings = await store.record('settings').get(db) as Map;
   
 // ...and delete
-await db.delete('version');
+await store.record('version').delete(db);
 ```
-
-Record fields can be reference using a dot (.) unless escaped
-
-For example
-
-```dart
-var value = record['path.sub'];
-// means value at {'path': {'sub': value}}
-value = record[FieldKey.escape('path.sub')];
-// means value at {'path.sub': value}
-```
-
-Follow the links with more informatin on how to [write](https://github.com/tekartik/sembast.dart/blob/master/sembast/doc/writes.md)
-or [read](https://github.com/tekartik/sembast.dart/blob/master/sembast/doc/queries.md) data
-
-### Auto increment
-
-If no key is provided, the object is inserted with an auto-increment value
-
-```dart
-// Auto incrementation is built-in
-int key1 = await db.put('value1') as int;
-int key2 = await db.put('value2') as int;
-// key1 = 1, key2 = 2...
-```
-
-### Transaction
-
-Actions can be group in transaction for consistency and optimization (single write on the file system). 
-If an error is thrown, the transaction is cancelled and the changes reverted.
-
-To prevent deadlock, never use an existing Database or Store object.
-
-```dart
-await db.transaction((txn) async {
-  await txn.put('value1');
-  await txn.put('value2');
-});
-```
-
-More info on transaction [here](https://github.com/tekartik/sembast.dart/blob/master/sembast/doc/transactions.md)
-
-### Using the new Store API
-
-The new API takes advantage of strong mode to make database access less error prone.
-
-```dart
-// Use the main store for storing key values as String
-var store = StoreRef<String, String>.main();
-
-// Writing the data
-await store.record('username').put(db, 'my_username');
-await store.record('url').put(db, 'my_url');
-
-// Reading the data
-var url = await store.record('url').get(db);
-var username = await store.record('username').get(db);
-```
-
-More info on the new API [here](https://github.com/tekartik/sembast.dart/blob/master/sembast/doc/new_api.md)
 
 ### Store
 
@@ -132,8 +74,71 @@ await db.transaction((txn) async {
   // You can specify a key
   await store.record(10).put({'name': 'dog'});
 });
- 
+
 ```
+
+The API takes advantage of strong mode to make database access less error prone.
+
+```dart
+// Use the main store for storing key values as String
+var store = StoreRef<String, String>.main();
+
+// Writing the data
+await store.record('username').put(db, 'my_username');
+await store.record('url').put(db, 'my_url');
+
+// Reading the data
+var url = await store.record('url').get(db);
+var username = await store.record('username').get(db);
+```
+
+More info on the store API [here](https://github.com/tekartik/sembast.dart/blob/master/sembast/doc/new_api.md)
+
+When record value are Map, record fields can be reference using a dot (.) unless escaped.
+
+```dart
+var store = intMapStoreFactory.store();
+var key = await store.add(db, {'path': {'sub': 'my_value'}, 'with.dots': 'my_other_value'});
+
+var record = await store.record(key).getSnapshot(db);
+var value = record['path.sub'];
+// value = 'my_value'
+var value2 = record[FieldKey.escape('with.dots')];
+// value2 = 'my_other_value'
+
+```
+
+Follow the links with more informatin on how to [write](https://github.com/tekartik/sembast.dart/blob/master/sembast/doc/writes.md)
+or [read](https://github.com/tekartik/sembast.dart/blob/master/sembast/doc/queries.md) data
+
+### Auto increment
+
+If no key is provided, the object is inserted with an auto-increment value
+
+```dart
+var store = StoreRef<int, String>.main();
+// Auto incrementation is built-in
+var key1 = await store.add(db, 'value1');
+var key2 = await store.add(db, 'value2');
+// key1 = 1, key2 = 2...
+expect([key1, key2], [1,2]);
+```
+
+### Transaction
+
+Actions can be group in transaction for consistency and optimization (single write on the file system). 
+If an error is thrown, the transaction is cancelled and the changes reverted.
+
+To prevent deadlock, never use an existing Database or Store object.
+
+```dart
+await db.transaction((txn) async {
+  await store.add(txn, 'value1');
+  await store.add(txn, 'value2');
+});
+```
+
+More info on transaction [here](https://github.com/tekartik/sembast.dart/blob/master/sembast/doc/transactions.md)
 
 ### Simple find mechanism
 
