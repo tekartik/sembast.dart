@@ -35,14 +35,14 @@ mixin RecordRefMixin<K, V> implements RecordRef<K, V> {
   ///
   /// value is sanitized first
   @override
-  Future<K> put(DatabaseClient databaseClient, V value, {bool merge}) async {
+  Future<V> put(DatabaseClient databaseClient, V value, {bool merge}) async {
     var client = getClient(databaseClient);
     value = sanitizeInputValue<V>(value);
     return await client.inTransaction((txn) {
       return client
           .getSembastStore(store)
           .txnPut(txn, value, key, merge: merge);
-    }) as K;
+    }) as V;
   }
 
   /// Delete record

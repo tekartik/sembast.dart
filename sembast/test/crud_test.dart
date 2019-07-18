@@ -25,7 +25,7 @@ void defineTests(DatabaseTestContext ctx) {
 
     test('put', () async {
       final store = StoreRef<int, String>.main();
-      expect(await store.record(1).put(db, "hi"), 1);
+      expect(await store.record(1).put(db, "hi"), 'hi');
     });
 
     test('update', () async {

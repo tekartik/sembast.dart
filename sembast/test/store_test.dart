@@ -38,11 +38,11 @@ void defineTests(DatabaseTestContext ctx) {
     test('put/get', () async {
       var store1 = StoreRef<int, dynamic>('test1');
       var store2 = StoreRef<int, dynamic>("test2");
-      expect(await store1.record(1).put(db, "hi"), 1);
-      expect(await store2.record(1).put(db, "ho"), 1);
+      expect(await store1.record(1).put(db, "hi"), 'hi');
+      expect(await store2.record(1).put(db, "ho"), 'ho');
       expect(await store1.record(1).get(db), "hi");
       expect(await store2.record(1).get(db), "ho");
-      expect(await store1.record(2).put(db, true), 2);
+      expect(await store1.record(2).put(db, true), true);
       db = await reOpen(db);
       expect(await store1.record(1).get(db), "hi");
       expect(await store1.record(2).get(db), true);

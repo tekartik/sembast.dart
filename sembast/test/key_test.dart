@@ -32,8 +32,9 @@ void defineTests(DatabaseTestContext ctx) {
 
     test('dynamic_rounded', () async {
       var store = StoreRef.main();
-      var key = await store.record(2.0).put(db, "test");
-      expect(key, 2.0);
+      var value = await store.record(2.0).put(db, "test");
+      expect(value, 'test');
+      expect((await store.findFirst(db)).key, 2.0);
       expect(await store.record(2.0).get(db), "test");
       // next will increment (or restart from 1 in js
       int intKey = await store.add(db, "test") as int;
@@ -46,10 +47,10 @@ void defineTests(DatabaseTestContext ctx) {
 
     test('int', () async {
       var store = StoreRef<int, String>.main();
-      int key = await store.record(2).put(db, "test");
-      expect(key, 2);
+      var value = await store.record(2).put(db, "test");
+      expect(value, 'test');
       // next will increment
-      key = await store.add(db, "test");
+      var key = await store.add(db, "test");
       expect(key, 3);
 
       // Tweak to restart from 1 and make sure the existing keys are skipped

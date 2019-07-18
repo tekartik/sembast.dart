@@ -172,7 +172,13 @@ class SembastTransactionStore implements StoreTransaction {
       cloneValue(await store.txnGet(sembastTransaction, key));
 
   @override
-  Future put(value, [key]) => store.txnPut(sembastTransaction, value, key);
+  Future put(value, [key]) {
+    if (key == null) {
+      return store.txnAdd(sembastTransaction, value);
+    } else {
+      return store.txnPut(sembastTransaction, value, key).then((_) => key);
+    }
+  }
 
   @override
   Future update(value, key) async =>
