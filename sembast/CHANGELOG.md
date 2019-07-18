@@ -1,6 +1,7 @@
-## 1.19.0-dev.1
+## 1.19.0-dev.2
 
 * Deprecated old APIs
+* **BREAKING CHANGE** `RecordRef.put` returns the value, not the key
 
 ## 1.17.2
 
