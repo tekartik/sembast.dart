@@ -30,9 +30,59 @@ void defineTests(DatabaseTestContext ctx) {
       }
     });
 
-    test('new_1.15 doc', () async {
-      db = await setupForTest(ctx, 'doc/new_1.15_doc.db');
+    test('store', () async {
+      db = await setupForTest(ctx, 'doc/store.db');
 
+      // Simple writes
+      {
+        var store = StoreRef.main();
+
+        await store.record('title').put(db, 'Simple application');
+        await store.record('version').put(db, 10);
+        await store.record('settings').put(db, {'offline': true});
+        var title = await store.record('title').get(db) as String;
+        var version = await store.record('version').get(db) as int;
+        var settings = await store.record('settings').get(db) as Map;
+
+        await store.record('version').delete(db);
+
+        unused([title, version, settings]);
+      }
+
+      // records
+      {
+        var store = intMapStoreFactory.store();
+        var key = await store.add(db, {
+          'path': {'sub': 'my_value'},
+          'with.dots': 'my_other_value'
+        });
+
+        var record = await store.record(key).getSnapshot(db);
+        var value = record['path.sub'];
+        // value = 'my_value'
+        var value2 = record[FieldKey.escape('with.dots')];
+        // value2 = 'my_other_value'
+
+        expect(value, 'my_value');
+        expect(value2, 'my_other_value');
+      }
+
+      {
+        await db.close();
+        db = await setupForTest(ctx, 'doc/store.db');
+
+        var store = StoreRef<int, String>.main();
+        // Auto incrementation is built-in
+        var key1 = await store.add(db, 'value1');
+        var key2 = await store.add(db, 'value2');
+        // key1 = 1, key2 = 2...
+        expect([key1, key2], [1, 2]);
+
+        await db.transaction((txn) async {
+          await store.add(txn, 'value1');
+          await store.add(txn, 'value2');
+        });
+      }
       {
         var path = db.path;
         await db.close();
