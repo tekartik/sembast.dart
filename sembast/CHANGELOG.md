@@ -1,4 +1,4 @@
-## 1.17.2+1
+## 1.17.2+2
 
 * Add `QueryRef.getSnapshot`
 * **BREAKING CHANGE** `RecordRef.put` returns the value not the key
