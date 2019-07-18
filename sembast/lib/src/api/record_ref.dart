@@ -19,7 +19,9 @@ abstract class RecordRef<K, V> {
   /// Save a record, create if needed.
   ///
   /// if [merge] is true and the field exists, data is merged
-  Future<K> put(DatabaseClient client, V value, {bool merge});
+  ///
+  /// Returns the updated value.
+  Future<V> put(DatabaseClient client, V value, {bool merge});
 
   /// Update a record.
   ///

@@ -53,8 +53,13 @@ class SembastStore implements Store {
   // return the key
   @override
   Future put(var value, [var key]) {
-    return transaction((txn) {
-      return txnPut(txn as SembastTransaction, value, key);
+    return transaction((txn) async {
+      if (key == null) {
+        return txnAdd(txn as SembastTransaction, value);
+      } else {
+        await txnPut(txn as SembastTransaction, value, key);
+        return key;
+      }
     });
   }
 
@@ -90,7 +95,8 @@ class SembastStore implements Store {
       }
     } while (await txnRecordExists(txn, key));
 
-    return (await txnPutSync(txn, value, key)) as K;
+    await txnPutSync(txn, value, key);
+    return key;
   }
 
   Future<dynamic> txnPutSync(SembastTransaction txn, var value, var key,
@@ -108,7 +114,7 @@ class SembastStore implements Store {
     if (database.logV) {
       SembastDatabase.logger.fine("${txn} put ${record}");
     }
-    return record.key;
+    return record.value;
   }
 
   Future<List> txnPutAll(SembastTransaction txn, List values, List keys,
