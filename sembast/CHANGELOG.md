@@ -1,3 +1,7 @@
+## 2.0.0
+
+* No change. Currently deprecated APIs will be removed.
+
 ## 1.19.0-dev.3
 
 * Deprecated old APIs
