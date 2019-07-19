@@ -30,6 +30,7 @@ abstract class Filter {
   }
 
   /// @deprecated v2
+  @deprecated
   Filter();
 
   /// @deprecated 2018-11-29 will be deprecated in 2.0
