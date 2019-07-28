@@ -1,3 +1,7 @@
+## 2.0.1
+
+* Add `RecordRef.add` to insert a record if it does not exist.
+
 ## 2.0.0+1
 
 * No change. Currently deprecated APIs will be removed.

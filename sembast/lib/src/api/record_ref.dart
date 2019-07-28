@@ -16,6 +16,11 @@ abstract class RecordRef<K, V> {
   /// Create a snapshot of a record with a given value.
   RecordSnapshot<K, V> snapshot(V value);
 
+  /// Create a record if it does not exist.
+  ///
+  /// Returns the key if inserted, null otherwise.
+  Future<K> add(DatabaseClient client, V value);
+
   /// Save a record, create if needed.
   ///
   /// if [merge] is true and the field exists, data is merged

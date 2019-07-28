@@ -3,12 +3,12 @@ import 'package:sembast/src/api/record_ref.dart';
 import 'package:sembast/src/api/record_snapshot.dart';
 import 'package:sembast/src/api/sembast.dart';
 import 'package:sembast/src/api/store_ref.dart';
+import 'package:sembast/src/api/v2/sembast.dart' as v2;
 import 'package:sembast/src/common_import.dart';
 import 'package:sembast/src/database_client_impl.dart';
 import 'package:sembast/src/database_impl.dart';
 import 'package:sembast/src/record_snapshot_impl.dart';
 import 'package:sembast/src/utils.dart';
-import 'package:sembast/src/api/v2/sembast.dart' as v2;
 
 mixin RecordRefMixin<K, V> implements RecordRef<K, V> {
   @override
@@ -43,6 +43,18 @@ mixin RecordRefMixin<K, V> implements RecordRef<K, V> {
           .getSembastStore(store)
           .txnPut(txn, value, key, merge: merge);
     }) as V;
+  }
+
+  /// Add a record
+  ///
+  /// value is sanitized first
+  @override
+  Future<K> add(DatabaseClient databaseClient, V value) async {
+    var client = getClient(databaseClient);
+    value = sanitizeInputValue<V>(value);
+    return await client.inTransaction((txn) {
+      return client.getSembastStore(store).txnAdd(txn, value, key);
+    });
   }
 
   /// Delete record
