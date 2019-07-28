@@ -78,24 +78,27 @@ class SembastStore implements Store {
     return txnPutSync(txn, value, key, merge: merge);
   }
 
-  Future<K> txnAdd<K, V>(SembastTransaction txn, var value) async {
+  Future<K> txnAdd<K, V>(SembastTransaction txn, var value, [K key]) async {
     await cooperate();
     // We allow generating a string key
-    K key;
 
-    // We make sure the key is unique
-    do {
-      if (K == String) {
-        key = generateStringKey() as K;
-      } else {
-        try {
-          key = ++lastIntKey as K;
-        } catch (e) {
-          throw ArgumentError(
-              'Invalid key type $K for generating a key. You should either use String or int or generate the key yourself');
+    if (key == null) {
+      // We make sure the key is unique
+      do {
+        if (K == String) {
+          key = generateStringKey() as K;
+        } else {
+          try {
+            key = ++lastIntKey as K;
+          } catch (e) {
+            throw ArgumentError(
+                'Invalid key type $K for generating a key. You should either use String or int or generate the key yourself');
+          }
         }
-      }
-    } while (await txnRecordExists(txn, key));
+      } while (await txnRecordExists(txn, key));
+    } else if (await txnRecordExists(txn, key)) {
+      return null;
+    }
 
     await txnPutSync(txn, value, key);
     return key;

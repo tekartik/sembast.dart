@@ -66,6 +66,11 @@ void defineTests(DatabaseTestContext ctx) {
       expect(await future4, isNull);
     });
 
+    test('add', () async {
+      var record = StoreRef<int, String>.main().record(1);
+      expect(await record.add(db, 'test'), 1);
+      expect(await record.add(db, 'test'), isNull);
+    });
     test('get closed', () async {
       await db.close();
       var record = StoreRef<int, String>.main().record(1);
