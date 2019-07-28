@@ -20,6 +20,8 @@ import 'package:sembast/src/transaction_impl.dart';
 import 'package:synchronized/synchronized.dart';
 import 'package:sembast/src/api/v2/sembast.dart' as v2;
 
+// ignore_for_file: deprecated_member_use_from_same_package
+
 final bool _debugStorage = false; // devWarning(true);
 
 SembastDatabase getDatabase(v2.Database database) =>

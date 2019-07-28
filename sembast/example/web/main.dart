@@ -6,12 +6,12 @@ import 'package:sembast/sembast_memory.dart';
 
 Future main() async {
   Database db = await databaseFactoryMemoryFs.openDatabase("record_demo.db");
-  Store store = db.getStore("my_store");
-  Record record = Record(store, {"name": "ugly"});
-  record = await db.putRecord(record);
-  record = await store.getRecord(record.key);
+  var store = intMapStoreFactory.store("my_store");
+
+  var key = await store.add(db, {"name": "ugly"});
+  var record = await store.record(key).getSnapshot(db);
   record =
-      (await store.findRecords(Finder(filter: Filter.byKey(record.key)))).first;
-  record = await store.getRecord(record.key);
+      (await store.find(db, finder: Finder(filter: Filter.byKey(record.key))))
+          .first;
   print(record);
 }

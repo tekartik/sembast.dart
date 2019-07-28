@@ -1,6 +1,6 @@
 library sembast.database_perf_test;
 
-// basically same as the io runner but with extra output
+// ignore_for_file: deprecated_member_use_from_same_package
 import 'dart:async';
 import 'dart:math';
 

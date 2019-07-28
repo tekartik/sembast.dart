@@ -42,7 +42,7 @@ void defineTests(DatabaseTestContext ctx) {
       expect(await store2.record(1).put(db, "ho"), 'ho');
       expect(await store1.record(1).get(db), "hi");
       expect(await store2.record(1).get(db), "ho");
-      expect(await store1.record(2).put(db, true), isTrue);
+      expect(await store1.record(2).put(db, true), true);
       db = await reOpen(db);
       expect(await store1.record(1).get(db), "hi");
       expect(await store1.record(2).get(db), true);

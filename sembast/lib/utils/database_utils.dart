@@ -1,5 +1,7 @@
 import 'dart:async';
 
+// ignore_for_file: deprecated_member_use_from_same_package
+
 import 'package:sembast/sembast.dart';
 
 /// @deprecated v2
@@ -7,6 +9,7 @@ import 'package:sembast/sembast.dart';
 /// Update all records matching [where] with the [values] fields
 /// Returns the number of records updated
 ///
+@deprecated
 Future<int> updateRecords(StoreExecutor executor, Map<String, dynamic> values,
     {Finder where}) async {
   var records = await executor.findRecords(where);

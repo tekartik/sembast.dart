@@ -1,3 +1,11 @@
+## 2.0.0+1
+
+* No change. Currently deprecated APIs will be removed.
+
+## 1.19.0-dev.3
+
+* Deprecated old APIs
+
 ## 1.17.2+2
 
 * Add `QueryRef.getSnapshot`

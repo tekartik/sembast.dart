@@ -1,6 +1,7 @@
 import 'package:sembast/src/api/compat/sembast.dart';
 
 /// @deprecated v2
+@deprecated
 abstract class DatabaseCompat extends DatabaseExecutor {
   //
   // v2 Deprecated API below
@@ -9,6 +10,7 @@ abstract class DatabaseCompat extends DatabaseExecutor {
   /// @deprecated v2
   ///
   /// All the stores in the database
+  @deprecated
   Iterable<Store> get stores;
 
   /// @deprecated v2
@@ -16,28 +18,33 @@ abstract class DatabaseCompat extends DatabaseExecutor {
   /// get or create a store
   /// an empty store will not be persistent
   ///
+  @deprecated
   Store getStore(String storeName);
 
   /// @deprecated v2
   ///
   /// clear and delete a store
   ///
+  @deprecated
   Future deleteStore(String storeName);
 
   /// @deprecated v2
   ///
   /// find existing store
   ///
+  @deprecated
   Store findStore(String storeName);
 
   /// @deprecated v2
   ///
   /// Main store.
   ///
+  @deprecated
   Store get mainStore;
 
   /// @deprecated v2
   ///
   /// Get current store names in the database.
+  @deprecated
   Iterable<String> get storeNames;
 }

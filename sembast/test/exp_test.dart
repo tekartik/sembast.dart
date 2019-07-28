@@ -53,10 +53,9 @@ void defineTests(DatabaseTestContext ctx) {
 
       var recordsIds = [key2, key3];
       await db.transaction((txn) async {
-        var store = txn.getStore(beaconsStoreName);
         List<Future> futures = [];
-        recordsIds.forEach(
-            (key) => futures.add(store.update({'flushed': true}, key)));
+        recordsIds.forEach((key) =>
+            futures.add(store.record(key).update(txn, {'flushed': true})));
         await Future.wait(futures);
       });
 

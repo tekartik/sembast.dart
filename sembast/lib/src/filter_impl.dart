@@ -6,6 +6,8 @@ import 'package:sembast/src/api/filter.dart';
 import 'package:sembast/src/api/record_snapshot.dart';
 import 'package:sembast/src/record_snapshot_impl.dart';
 
+// ignore_for_file: deprecated_member_use_from_same_package
+
 // We can match if record is a map or if we are accessing the key or value
 bool canMatch(String field, dynamic recordValue) =>
     (recordValue is Map) || (field == Field.value) || (field == Field.key);
@@ -140,6 +142,7 @@ class SembastMatchesFilter extends SembastFilterBase
 }
 
 /// @deprecated v2
+@deprecated
 class SembastCompositeFilter extends SembastFilterBase {
   bool isAnd; // if false it is OR
   bool get isOr => !isAnd;

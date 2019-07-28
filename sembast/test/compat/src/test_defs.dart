@@ -1,5 +1,6 @@
 library sembast.test.compat.src.test_defs;
 
+// ignore_for_file: deprecated_member_use_from_same_package
 // basically same as the io runner but with extra output
 import 'dart:async';
 

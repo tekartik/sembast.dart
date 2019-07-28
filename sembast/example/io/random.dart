@@ -9,14 +9,16 @@ import 'package:sembast/src/database_impl.dart';
 Future main() async {
   Database db = await databaseFactoryIo
       .openDatabase(join("example", "io", "test_out", "random.db"));
-
+  var store = StoreRef.main();
   // randomly write
 
   int keyCount = 50;
   Random random = Random();
   while (true) {
     // Put on random key
-    var future = db.put(DateTime.now().toString(), random.nextInt(keyCount));
+    var future = store
+        .record(random.nextInt(keyCount))
+        .put(db, DateTime.now().toString());
     // randomly wait
     if (random.nextInt(100) == 0) {
       await future;

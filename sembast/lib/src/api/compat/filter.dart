@@ -132,6 +132,7 @@ class FilterPredicate extends Filter {
 }
 
 /// @deprecated v2
+@deprecated
 class FilterOperation {
   final int value;
 
@@ -187,6 +188,7 @@ class FilterOperation {
 }
 
 /// @deprecated v2
+@deprecated
 class ByKeyFilter extends Filter {
   var key;
 

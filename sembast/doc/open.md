@@ -15,6 +15,28 @@ Database db = await dbFactory.openDatabase(dbPath);
 
 The db object is ready for use.
 
+### Flutter
+
+On flutter you need to find a proper location for the database. One solution is to use the `path_provider` package get
+ a directory in which you want to create the database.
+
+```dart
+import 'package:path/path.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:sembast/sembast_io.dart';
+
+...
+
+// get the application documents directory
+var dir = await getApplicationDocumentsDirectory();
+// make sure it exists
+await dir.create(recursive: true);
+// build the database path
+var dbPath = join(dir.path, 'my_database.db');
+// open the database
+var db = await databaseFactoryIo.openDatabase(dbPath);
+```
+
 ## Database migration
 
 Like in some other databases (sqflite, indexed_db), the database has a version that the app can use to perform migrations

@@ -6,6 +6,8 @@ import 'package:sembast/src/api/v2/sembast.dart' as v2;
 
 export 'package:sembast/src/api/field.dart';
 
+// ignore_for_file: deprecated_member_use_from_same_package
+
 /// Database.
 ///
 /// The database object and client for the store and record operations

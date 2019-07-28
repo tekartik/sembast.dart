@@ -1,5 +1,6 @@
 library sembast.compat.store_test;
 
+// ignore_for_file: deprecated_member_use_from_same_package
 // basically same as the io runner but with extra output
 import 'package:sembast/sembast.dart';
 
