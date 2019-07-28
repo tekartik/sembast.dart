@@ -5,11 +5,11 @@
 ## 1.19.0-dev.3
 
 * Deprecated old APIs
-* **BREAKING CHANGE** `RecordRef.put` returns the value, not the key
 
-## 1.17.2
+## 1.17.2+2
 
 * Add `QueryRef.getSnapshot`
+* **BREAKING CHANGE** `RecordRef.put` returns the value not the key
 
 ## 1.17.1
 
