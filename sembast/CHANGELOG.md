@@ -1,3 +1,7 @@
+## 2.0.1+1
+
+* **BREAKING CHANGE** `RecordsRef.put` returns the list of values not the list of keys
+
 ## 2.0.1
 
 * Add `RecordRef.add` to insert a record if it does not exist.

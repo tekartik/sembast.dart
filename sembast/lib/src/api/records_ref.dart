@@ -29,5 +29,5 @@ abstract class RecordsRef<K, V> {
   Future<List<RecordSnapshot<K, V>>> getSnapshots(DatabaseClient client);
 
   /// Put multiple record value. The list of values must match the list of keys.
-  Future<List<K>> put(DatabaseClient client, List<V> values, {bool merge});
+  Future<List<V>> put(DatabaseClient client, List<V> values, {bool merge});
 }

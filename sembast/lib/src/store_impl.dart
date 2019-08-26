@@ -104,6 +104,7 @@ class SembastStore implements Store {
     return key;
   }
 
+  /// Returns the value
   Future<dynamic> txnPutSync(SembastTransaction txn, var value, var key,
       {bool merge}) async {
     Record record;
@@ -122,6 +123,7 @@ class SembastStore implements Store {
     return record.value;
   }
 
+  /// Returns the list of values
   Future<List> txnPutAll(SembastTransaction txn, List values, List keys,
       {bool merge}) async {
     List resultKeys = [];
@@ -679,6 +681,8 @@ class SembastStore implements Store {
 
         updates.add(clone);
         deletedKeys.add(key);
+      } else {
+        deletedKeys.add(null);
       }
     }
 
