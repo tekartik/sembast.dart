@@ -20,6 +20,13 @@ void defineTests(DatabaseTestContext ctx) {
       return db.close();
     });
 
+    test('null', () async {
+      var records = store.records([null]);
+      expect(await records.get(db), [null]);
+      expect(await records.getSnapshots(db), [null]);
+      expect(await records.delete(db), [null]);
+    });
+
     test('none', () async {
       var records = store.records([]);
       expect(await records.get(db), isEmpty);

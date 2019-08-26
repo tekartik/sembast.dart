@@ -577,7 +577,11 @@ class SembastStore implements Store {
       if (record != null) {
         if (!record.deleted) {
           records.add(record);
+        } else {
+          records.add(null);
         }
+      } else {
+        records.add(null);
       }
       if (needCooperate) {
         await cooperate();
