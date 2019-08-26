@@ -166,13 +166,14 @@ void defineTests(DatabaseTestContext ctx) {
         expect(inserted[0].key, 1);
 
         return store.getRecords([1, 4, 3]).then((List<Record> got) {
-          expect(got.length, 2);
+          expect(got.length, 3);
           expect(got[0].key, 1);
-          expect(got[1].key, 3);
+          expect(got[1], null);
+          expect(got[2].key, 3);
         });
       }).then((_) {
         return store.deleteAll([1, 4, 2]).then((keys) {
-          expect(keys, [1, 2]);
+          expect(keys, [1, null, 2]);
           return store.count().then((count) {
             expect(count, 1);
           });
