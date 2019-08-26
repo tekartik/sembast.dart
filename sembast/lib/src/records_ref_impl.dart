@@ -36,7 +36,7 @@ mixin RecordsRefMixin<K, V> implements RecordsRef<K, V> {
   }
 
   @override
-  Future<List<K>> put(DatabaseClient databaseClient, List<V> values,
+  Future<List<V>> put(DatabaseClient databaseClient, List<V> values,
       {bool merge}) {
     if (values.length != keys.length) {
       throw ArgumentError('the list of values must match the list of keys');
@@ -46,7 +46,7 @@ mixin RecordsRefMixin<K, V> implements RecordsRef<K, V> {
       return (await client
               .getSembastStore(store)
               .txnPutAll(txn, values, keys, merge: merge))
-          ?.cast<K>();
+          ?.cast<V>();
     });
   }
 
