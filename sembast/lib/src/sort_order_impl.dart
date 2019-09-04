@@ -9,7 +9,7 @@ class SembastSortOrder implements SortOrder {
   final bool nullLast; // default false
 
   ///
-  /// default is [ascending] = true
+  /// default is [ascending] = true, [nullLast] = false
   ///
   /// user withParam
   SembastSortOrder(this.field, [bool ascending, bool nullLast])
