@@ -1,6 +1,7 @@
 library sembast.database_test;
 
 // basically same as the io runner but with extra output
+import 'package:path/path.dart';
 import 'package:pedantic/pedantic.dart';
 
 import 'test_common.dart';
@@ -15,7 +16,7 @@ void defineTests(DatabaseTestContext ctx) {
   var store = StoreRef.main();
 
   group('database', () {
-    dbPath = dbPathFromName('compat/database.db');
+    dbPath = dbPathFromName(join('compat', 'database.db'));
 
     group('open', () {
       Database db;
