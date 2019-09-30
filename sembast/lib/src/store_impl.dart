@@ -118,7 +118,7 @@ class SembastStore implements Store {
 
     record = txnPutRecordSync(txn, record);
     if (database.logV) {
-      SembastDatabase.logger.fine("${txn} put ${record}");
+      print("${txn} put ${record}");
     }
     return record.value;
   }
@@ -147,7 +147,7 @@ class SembastStore implements Store {
 
     txnPutRecordSync(txn, record);
     if (database.logV) {
-      SembastDatabase.logger.fine("${txn} update ${record}");
+      print("${txn} update ${record}");
     }
     return record.value;
   }
@@ -496,8 +496,7 @@ class SembastStore implements Store {
       record = recordMap[key];
     }
     if (database.logV) {
-      SembastDatabase.logger
-          .fine("${database.currentTransaction} get ${record} key ${key}");
+      print("${database.currentTransaction} get ${record} key ${key}");
     }
     return record;
   }

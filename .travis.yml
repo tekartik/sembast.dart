@@ -2,8 +2,7 @@ language: dart
 sudo: required
 dist: trusty
 dart:
-  - '2.1.1'
-  - '2.2.0'
+  - '2.4.0'
   - stable
   - dev
 before_script:

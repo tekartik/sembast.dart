@@ -11,7 +11,6 @@ import 'test_common.dart';
 
 // default use memory
 void main() {
-  //debugQuickLogging(Level.FINEST);
   group('memory', () {
     defineMemoryDatabaseTests(memoryDatabaseContext);
     defineTests(memoryDatabaseContext);
