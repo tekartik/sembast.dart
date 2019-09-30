@@ -1,3 +1,7 @@
+## 2.1.0
+
+* Remove `logging` dependency
+
 ## 2.0.1+2
 
 * Add `RecordRef.add` to insert a record if it does not exist.

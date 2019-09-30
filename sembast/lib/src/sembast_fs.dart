@@ -3,9 +3,9 @@ library sembast.fs;
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:logging/logging.dart';
 import 'package:path/path.dart';
 import 'package:sembast/sembast.dart';
+import 'package:sembast/src/api/log_level.dart';
 import 'package:sembast/src/database_factory_mixin.dart';
 import 'package:sembast/src/database_impl.dart';
 import 'package:sembast/src/storage.dart';
@@ -16,8 +16,7 @@ class _FsDatabaseStorage extends DatabaseStorage {
   final FileSystem fs;
   final File file;
   bool isTmp;
-
-  Logger log = Logger("FsDatabaseStorage");
+  final bool logV = databaseStorageLogLevel == SembastLogLevel.verbose;
 
   _FsDatabaseStorage(this.fs, String path) : file = fs.file(path);
 
@@ -76,13 +75,17 @@ class _FsDatabaseStorage extends DatabaseStorage {
   @override
   Future<bool> tmpRecover() async {
     bool isFile = await fs.isFile(tmpPath);
-    log.info("Recovering from ${tmpPath}");
+    if (logV) {
+      print("Recovering from ${tmpPath}");
+    }
 
     if (isFile) {
       try {
         await file.delete();
       } catch (e) {
-        log.warning('fail to delete $e');
+        if (logV) {
+          print('fail to delete $e');
+        }
         //return true;
       }
       // devPrint('renaming $tmpPath to ${file.path}');

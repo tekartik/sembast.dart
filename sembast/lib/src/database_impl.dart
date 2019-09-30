@@ -1,8 +1,9 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:logging/logging.dart';
 import 'package:sembast/sembast.dart';
+import 'package:sembast/src/api/log_level.dart';
+import 'package:sembast/src/api/v2/sembast.dart' as v2;
 import 'package:sembast/src/common_import.dart';
 import 'package:sembast/src/cooperator.dart';
 import 'package:sembast/src/database_client_impl.dart';
@@ -18,7 +19,6 @@ import 'package:sembast/src/storage.dart';
 import 'package:sembast/src/store_impl.dart';
 import 'package:sembast/src/transaction_impl.dart';
 import 'package:synchronized/synchronized.dart';
-import 'package:sembast/src/api/v2/sembast.dart' as v2;
 
 // ignore_for_file: deprecated_member_use_from_same_package
 
@@ -38,8 +38,7 @@ class SembastDatabase extends Object
     implements Database, SembastDatabaseClient {
   // Can be modified by openHelper for test purpose
   DatabaseOpenHelper openHelper;
-  static Logger logger = Logger("Sembast");
-  final bool logV = logger.isLoggable(Level.FINEST);
+  final bool logV = sembastLogLevel == SembastLogLevel.verbose;
 
   final DatabaseStorage _storage;
 
