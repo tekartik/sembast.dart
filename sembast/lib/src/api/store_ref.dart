@@ -104,6 +104,7 @@ abstract class StoreRef<K, V> {
 
 /// Store factory interface
 abstract class StoreFactory<K, V> {
+  /// Creates a reference to a store.
   StoreRef<K, V> store(String name);
 }
 

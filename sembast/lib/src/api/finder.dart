@@ -9,18 +9,25 @@ import 'package:sembast/src/api/sort_order.dart';
 /// Finder helper for searching a given store
 ///
 abstract class Finder {
+  /// Set the filter.
   set filter(Filter filter);
 
+  /// Set the offset.
   set offset(int offset);
 
+  /// Set the limit.
   set limit(int limit);
 
+  /// Set the sort orders.
   set sortOrders(List<SortOrder> sortOrders);
 
+  /// Set the sort order.
   set sortOrder(SortOrder sortOrder);
 
+  /// Set the start boundary.
   set start(Boundary start);
 
+  /// Set the end boundary.
   set end(Boundary end);
 
   /// Specify a [filter].
