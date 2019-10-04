@@ -13,5 +13,6 @@ DatabaseFactory get databaseFactoryIo => database_io.databaseFactoryIo;
 DatabaseFactory createDatabaseFactoryIo({String rootPath}) =>
     database_io.createDatabaseFactoryIo(rootPath: rootPath);
 
+/// deprecated.
 @Deprecated("Use dataFactoryIo instead")
 DatabaseFactory get ioDatabaseFactory => databaseFactoryIo;

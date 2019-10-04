@@ -1,5 +1,6 @@
-// Not exposed
-
+/// Sembast log level.
+///
+/// Not exposed
 enum SembastLogLevel {
   /// No logs
   none,
@@ -8,5 +9,8 @@ enum SembastLogLevel {
   verbose
 }
 
+/// Default log level.
 SembastLogLevel sembastLogLevel = SembastLogLevel.none;
+
+/// Default log level.
 SembastLogLevel databaseStorageLogLevel = SembastLogLevel.none;

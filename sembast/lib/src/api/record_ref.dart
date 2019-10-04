@@ -71,6 +71,7 @@ enum RecordChangeType {
   removed,
 }
 
+/// Record change information.
 abstract class RecordChange<K, V> {
   /// The type of change that occurred (added, modified, or removed).
   RecordChangeType get type;
