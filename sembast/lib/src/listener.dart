@@ -10,26 +10,34 @@ import 'package:sembast/src/record_impl.dart';
 
 // ignore_for_file: deprecated_member_use_from_same_package
 
+/// Query listener controller.
 class QueryListenerController<K, V> {
+  /// The query.
   final SembastQueryRef<K, V> queryRef;
   StreamController<List<RecordSnapshot<K, V>>> _streamController;
 
   /// True when the first data has arrived
   bool get hasInitialData => _allMatching != null;
 
+  /// true if closed.
   bool get isClosed => _streamController.isClosed;
-  // The current list
+
+  /// The current list
   List<RecordSnapshot<K, V>> list;
   List<ImmutableSembastRecord> _allMatching;
 
+  /// The finder.
   SembastFinder get finder => queryRef.finder;
 
+  /// The filter.
   SembastFilterBase get filter => finder?.filter as SembastFilterBase;
 
+  /// close controller.
   void close() {
     _streamController?.close();
   }
 
+  /// Query listener controller.
   QueryListenerController(DatabaseListener listener, this.queryRef) {
     // devPrint('query $queryRef');
     _streamController =
@@ -40,8 +48,10 @@ class QueryListenerController<K, V> {
     });
   }
 
+  /// stream.
   Stream<List<RecordSnapshot<K, V>>> get stream => _streamController.stream;
 
+  /// Add data to stream.
   Future add(
       List<ImmutableSembastRecord> allMatching, Cooperator cooperator) async {
     if (isClosed) {
@@ -59,6 +69,7 @@ class QueryListenerController<K, V> {
     _streamController?.add(immutableListToSnapshots<K, V>(list));
   }
 
+  /// Add error.
   void addError(dynamic error, StackTrace stackTrace) {
     if (isClosed) {
       return;
@@ -66,7 +77,9 @@ class QueryListenerController<K, V> {
     _streamController.addError(error, stackTrace);
   }
 
-  // We are async safe here
+  /// Update the records.
+  ///
+  /// We are async safe here
   Future update(List<TxnRecord> txnRecords, Cooperator cooperator) async {
     if (isClosed) {
       return;
@@ -114,16 +127,21 @@ class QueryListenerController<K, V> {
   }
 }
 
+/// Record listener controller.
 class RecordListenerController<K, V> {
+  /// has initial data.
   bool hasInitialData = false;
   StreamController<RecordSnapshot<K, V>> _streamController;
 
+  /// close.
   void close() {
     _streamController.close();
   }
 
+  /// True if controller closed.
   bool get isClosed => _streamController.isClosed;
 
+  /// Record listener controller.
   RecordListenerController(
       DatabaseListener listener, RecordRef<K, V> recordRef) {
     _streamController = StreamController<RecordSnapshot<K, V>>(onCancel: () {
@@ -134,8 +152,10 @@ class RecordListenerController<K, V> {
     });
   }
 
+  /// stream.
   Stream<RecordSnapshot<K, V>> get stream => _streamController.stream;
 
+  /// Add a snapshot.
   void add(RecordSnapshot snapshot) {
     if (isClosed) {
       return;
@@ -144,6 +164,7 @@ class RecordListenerController<K, V> {
     _streamController?.add(snapshot?.cast<K, V>());
   }
 
+  /// Add an error.
   void addError(dynamic error, StackTrace stackTrace) {
     if (isClosed) {
       return;
@@ -152,10 +173,12 @@ class RecordListenerController<K, V> {
   }
 }
 
+/// Store listener.
 class StoreListener {
   final _records = <dynamic, List<RecordListenerController>>{};
   final _queries = <QueryListenerController>[];
 
+  /// Add a record.
   RecordListenerController<K, V> addRecord<K, V>(
       RecordRef<K, V> recordRef, RecordListenerController<K, V> ctlr) {
     var key = recordRef.key;
@@ -168,17 +191,20 @@ class StoreListener {
     return ctlr;
   }
 
+  /// Add a query.
   QueryListenerController<K, V> addQuery<K, V>(
       QueryListenerController<K, V> ctlr) {
     _queries.add(ctlr);
     return ctlr;
   }
 
+  /// Remove a query.
   void removeQuery(QueryListenerController ctlr) {
     ctlr.close();
     _queries.remove(ctlr);
   }
 
+  /// Remove a record.
   void removeRecord(RecordRef recordRef, RecordListenerController ctlr) {
     ctlr.close();
     var key = recordRef.key;
@@ -191,6 +217,7 @@ class StoreListener {
     }
   }
 
+  /// Get the records.
   List<RecordListenerController<K, V>> getRecord<K, V>(
       RecordRef<K, V> recordRef) {
     return _records[recordRef.key]?.cast<RecordListenerController<K, V>>();
@@ -201,16 +228,21 @@ class StoreListener {
     return _queries.cast<QueryListenerController<K, V>>();
   }
 
+  /// true if empty.
   bool get isEmpty => _records.isEmpty && _queries.isEmpty;
 }
 
+/// Database listener.
 class DatabaseListener {
   final _stores = <StoreRef, StoreListener>{};
 
+  /// true if not empty.
   bool get isNotEmpty => _stores.isNotEmpty;
 
+  /// true if empty.
   bool get isEmpty => _stores.isEmpty;
 
+  /// Add a record.
   RecordListenerController<K, V> addRecord<K, V>(RecordRef<K, V> recordRef) {
     var ctlr = RecordListenerController<K, V>(this, recordRef);
     var storeRef = recordRef.store;
@@ -222,18 +254,21 @@ class DatabaseListener {
     return store.addRecord<K, V>(recordRef, ctlr);
   }
 
+  /// Add a query.
   QueryListenerController<K, V> addQuery<K, V>(QueryRef<K, V> queryRef) {
     var ctlr = newQuery(queryRef);
     addQueryController(ctlr);
     return ctlr;
   }
 
+  /// Create a query.
   QueryListenerController<K, V> newQuery<K, V>(QueryRef<K, V> queryRef) {
     var ref = queryRef as SembastQueryRef<K, V>;
     var ctlr = QueryListenerController<K, V>(this, ref);
     return ctlr;
   }
 
+  /// Add a query controller.
   void addQueryController<K, V>(QueryListenerController<K, V> ctlr) {
     var storeRef = ctlr.queryRef.store;
     var store = _stores[storeRef];
@@ -244,6 +279,7 @@ class DatabaseListener {
     store.addQuery<K, V>(ctlr);
   }
 
+  /// Remove a record controller.
   void removeRecord(RecordRef recordRef, RecordListenerController ctlr) {
     ctlr.close();
     var storeRef = recordRef.store;
@@ -256,6 +292,7 @@ class DatabaseListener {
     }
   }
 
+  /// remove a query controller.
   void removeQuery(QueryListenerController ctlr) {
     ctlr.close();
     var storeRef = ctlr.queryRef.store;
@@ -268,6 +305,7 @@ class DatabaseListener {
     }
   }
 
+  /// Get a record controller.
   List<RecordListenerController<K, V>> getRecord<K, V>(
       RecordRef<K, V> recordRef) {
     return _stores[recordRef]
@@ -275,8 +313,10 @@ class DatabaseListener {
         ?.cast<RecordListenerController<K, V>>();
   }
 
+  /// Get a store listener.
   StoreListener getStore(StoreRef ref) => _stores[ref];
 
+  /// Closed.
   void close() {
     _stores.values.forEach((storeListener) {
       storeListener._queries.forEach((queryListener) {
@@ -289,9 +329,14 @@ class DatabaseListener {
   }
 }
 
+/// Store listener operation.
 class StoreListenerOperation {
+  /// Store listener.
   final StoreListener listener;
+
+  /// records changes.
   final List<TxnRecord> txnRecords;
 
+  /// Store listener operation.
   StoreListenerOperation(this.listener, this.txnRecords);
 }

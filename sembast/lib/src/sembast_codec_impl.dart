@@ -3,18 +3,21 @@ import 'dart:convert';
 import 'package:meta/meta.dart';
 import 'package:sembast/sembast.dart';
 
+/// Sembast codec implementation.
 class SembastCodecImpl implements SembastCodec {
   @override
   final String signature;
   @override
   final Codec<Map<String, dynamic>, String> codec;
 
+  /// Sembast codec implementation.
   SembastCodecImpl({@required this.signature, @required this.codec});
 
   @override
   String toString() => 'SembastCodex($signature)';
 }
 
+/// Extra the raw signaure as a map.
 Map<String, dynamic> getRawSignatureMap(SembastCodec codec) {
   if (codec != null) {
     return <String, dynamic>{'signature': codec.signature};
@@ -30,6 +33,7 @@ String getCodecEncodedSignature(SembastCodec codec) {
   return null;
 }
 
+/// Get codec signature
 Map<String, dynamic> getCodecDecodedSignature(
     SembastCodec codec, String encodedSignature) {
   if (codec != null && encodedSignature != null) {

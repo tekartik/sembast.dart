@@ -2,8 +2,12 @@ import 'package:sembast/sembast.dart';
 import 'package:sembast/src/api/boundary.dart';
 import 'package:sembast/src/record_impl.dart';
 
+/// Boundary implementation.
 class SembastBoundary implements Boundary {
+  /// The snapshot if any.
   final RecordSnapshot snapshot;
+
+  /// The values if any.
   List<dynamic> values;
 
   ///

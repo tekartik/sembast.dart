@@ -62,11 +62,14 @@ Future<Database> openMemoryDatabase() {
   return databaseFactoryMemory.openDatabase(null);
 }
 
+/// In memory storage.
 class DatabaseStorageMemory extends DatabaseStorage {
+  /// The factory.
   final DatabaseFactoryMemory factory;
   @override
   final String path;
 
+  /// In memory storage.
   DatabaseStorageMemory(this.factory, this.path);
 
   @override
@@ -101,5 +104,6 @@ class DatabaseStorageMemory extends DatabaseStorage {
 
 /// The simulated fs factory class
 class DatabaseFactoryMemoryFs extends DatabaseFactoryFs {
+  /// In memory fs.
   DatabaseFactoryMemoryFs() : super(memoryFileSystem);
 }

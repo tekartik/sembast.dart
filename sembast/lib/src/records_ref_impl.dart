@@ -69,7 +69,9 @@ mixin RecordsRefMixin<K, V> implements RecordsRef<K, V> {
   }
 }
 
+/// Records ref implementation.
 class SembastRecordsRef<K, V> with RecordsRefMixin<K, V> {
+  /// Records ref implementation.
   SembastRecordsRef(StoreRef<K, V> store, Iterable<K> keys) {
     if (keys == null) {
       throw ArgumentError('record keys cannot be null');

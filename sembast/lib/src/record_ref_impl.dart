@@ -144,7 +144,9 @@ mixin RecordRefMixin<K, V> implements RecordRef<K, V> {
   }
 }
 
+/// Record ref implementation.
 class SembastRecordRef<K, V> with RecordRefMixin<K, V> {
+  /// Record ref implementation.
   SembastRecordRef(StoreRef<K, V> store, K key) {
     this.store = store;
     this.key = key;

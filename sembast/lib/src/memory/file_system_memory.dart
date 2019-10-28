@@ -10,11 +10,14 @@ import 'file_system_memory_impl.dart';
 
 final FileSystemMemory _fs = FileSystemMemory();
 
+/// In memory file system.
 FileSystemMemory get memoryFileSystem => _fs;
 
+/// In memory file system.
 class FileSystemMemory implements fs.FileSystem {
   FileSystemMemoryImpl _impl = FileSystemMemoryImpl();
 
+  /// In memory file system.
   FileSystemMemory();
 
   @override
@@ -60,10 +63,12 @@ class FileSystemMemory implements fs.FileSystem {
   String toString() => "memory";
 }
 
+/// In memory file entity.
 abstract class FileSystemEntityMemory implements fs.FileSystemEntity {
   @override
   final String path;
 
+  /// In memory file entity.
   FileSystemEntityMemory(this.path) {
     if (path == null) {
       throw ArgumentError.notNull("path");
@@ -87,7 +92,9 @@ abstract class FileSystemEntityMemory implements fs.FileSystemEntity {
   FileSystemMemory get fileSystem => _fs;
 }
 
+/// In memory directory entity.
 class DirectoryMemory extends FileSystemEntityMemory implements fs.Directory {
+  /// In memory directory entity.
   DirectoryMemory(String path) : super(path);
 
   @override
@@ -103,9 +110,10 @@ class DirectoryMemory extends FileSystemEntityMemory implements fs.Directory {
   }
 }
 
+/// In memory file entity.
 class FileMemory extends FileSystemEntityMemory implements fs.File {
   //_MemoryFileImpl get fileImpl => impl;
-
+  /// In memory file entity.
   FileMemory(String path) : super(path);
 
   // don't care about recursive

@@ -5,12 +5,21 @@ import 'package:sembast/src/api/factory.dart';
 import 'package:sembast/src/database_impl.dart';
 import 'package:synchronized/synchronized.dart';
 
+/// Open options.
 class DatabaseOpenOptions {
+  /// version.
   final int version;
+
+  /// open callback.
   final OnVersionChangedFunction onVersionChanged;
+
+  /// open mode.
   final DatabaseMode mode;
+
+  /// codec.
   final SembastCodec codec;
 
+  /// Open options.
   DatabaseOpenOptions({
     this.version,
     this.onVersionChanged,
@@ -34,17 +43,30 @@ class DatabaseOpenOptions {
   }
 }
 
+/// Open helper.
 class DatabaseOpenHelper {
+  /// The factory.
   final SembastDatabaseFactory factory;
+
+  /// The path.
   final String path;
+
+  /// The open options.
   final DatabaseOpenOptions options;
+
+  /// The locker.
   final lock = Lock();
+
+  /// The database.
   SembastDatabase database;
 
+  /// Open helper.
   DatabaseOpenHelper(this.factory, this.path, this.options);
 
+  /// Create a new database object.
   SembastDatabase newDatabase(String path) => factory.newDatabase(this);
 
+  /// Open the database.
   Future<Database> openDatabase() {
     return lock.synchronized(() async {
       if (this.database == null) {
@@ -63,6 +85,7 @@ class DatabaseOpenHelper {
     });
   }
 
+  /// Closed the database.
   Future lockedCloseDatabase() async {
     if (database != null) {
       factory.removeDatabaseOpenHelper(path);
@@ -75,14 +98,18 @@ class DatabaseOpenHelper {
   String toString() => 'DatabaseOpenHelper($path, $options)';
 }
 
+/// The factory implementation.
 abstract class SembastDatabaseFactory implements DatabaseFactory {
   /// The actual implementation
   SembastDatabase newDatabase(DatabaseOpenHelper openHelper);
 
+  /// Delete a database.
   Future doDeleteDatabase(String path);
 
+  /// Set the helper for a given path.
   void setDatabaseOpenHelper(String path, DatabaseOpenHelper helper);
 
+  /// Remove the helper for a given path.
   void removeDatabaseOpenHelper(String path);
 }
 

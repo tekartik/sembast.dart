@@ -6,6 +6,7 @@ import 'package:sembast/sembast.dart';
 import 'package:sembast/src/common_import.dart';
 import 'package:sembast/src/record_impl.dart';
 
+/// Backtick char code.
 final backtickChrCode = '`'.codeUnitAt(0);
 
 /// Sanitized an input value for the store
@@ -34,6 +35,7 @@ V sanitizeInputValue<V>(dynamic value) {
       value, null, "type ${value.runtimeType} not supported");
 }
 
+/// Sanitize a value.
 dynamic sanitizeValue(value) {
   if (value == null) {
     return null;
@@ -49,6 +51,7 @@ dynamic sanitizeValue(value) {
       value, null, "type ${value.runtimeType} not supported");
 }
 
+/// Check keys.
 bool checkMapKey(key) {
   if (!(key is String)) {
     return false;
@@ -60,6 +63,7 @@ bool checkMapKey(key) {
   return true;
 }
 
+/// Check a value.
 bool checkValue(value) {
   if (value == null) {
     return true;
@@ -87,15 +91,18 @@ bool checkValue(value) {
   }
 }
 
-// default sort order
+/// default sort order
 int compareKey(dynamic key1, dynamic key2) => compareValue(key1, key2);
 
+/// compare record keys.
 int compareRecordKey(
         ImmutableSembastRecord record1, ImmutableSembastRecord record2) =>
     compareKey(record1.key, record2.key);
 
-// return <0 if value1 < value2 or >0 if greater
-// returns null if cannot be compared
+/// Compare 2 values.
+///
+/// return <0 if value1 < value2 or >0 if greater
+/// returns null if cannot be compared
 int compareValue(dynamic value1, dynamic value2) {
   try {
     if (value1 is Comparable && value2 is Comparable) {
@@ -135,6 +142,7 @@ dynamic _fixValue(dynamic value) {
   return value;
 }
 
+/// Clone a key.
 K cloneKey<K>(K key) {
   if (key is String) {
     return key;
@@ -149,10 +157,12 @@ K cloneKey<K>(K key) {
       "key ${key} not supported${key != null ? ' type:${key.runtimeType}' : ''}");
 }
 
+/// True if the value is an array or map.
 bool isValueMutable(dynamic value) {
   return value is Map || value is Iterable;
 }
 
+/// Clone a value.
 dynamic cloneValue(dynamic value) {
   if (value is Map) {
     return value.map<String, dynamic>(
@@ -177,6 +187,7 @@ dynamic cloneValue(dynamic value) {
       "value ${value} unsupported${value != null ? ' type ${value.runtimeType}' : ''}");
 }
 
+/// Make a value immutable.
 dynamic immutableValue(dynamic value) {
   if (value is Map) {
     return ImmutableMap<String, dynamic>(value);
@@ -186,12 +197,14 @@ dynamic immutableValue(dynamic value) {
   return value;
 }
 
+/// Immutable list.
 class ImmutableList<E> extends ListBase<E> {
   final List<E> _list;
 
   @override
   int get length => _list.length;
 
+  /// Immutable list.
   ImmutableList(Iterable<E> list) : _list = list.toList(growable: false);
 
   @override
@@ -204,11 +217,14 @@ class ImmutableList<E> extends ListBase<E> {
   set length(int newLength) => throw StateError('read only');
 }
 
+/// Immutable map.
 class ImmutableMap<K, V> extends MapBase<K, V> {
   final Map<K, V> _map;
 
+  /// raw map.
   Map<K, V> get rawMap => _map;
 
+  /// Immutable map.
   ImmutableMap(Map map) : _map = map.cast<K, V>();
 
   @override
@@ -227,6 +243,7 @@ class ImmutableMap<K, V> extends MapBase<K, V> {
   V remove(Object key) => throw StateError('read only');
 }
 
+/// Get value at a given field path.
 T getPartsMapValue<T>(Map map, Iterable<String> parts) {
   dynamic value = map;
   for (String part in parts) {
@@ -239,6 +256,7 @@ T getPartsMapValue<T>(Map map, Iterable<String> parts) {
   return value as T;
 }
 
+/// Get a raw value at a given field path.
 T getPartsMapRawValue<T>(Map map, Iterable<String> parts) {
   // Allow getting raw value
   if (map is ImmutableMap) {
@@ -255,6 +273,7 @@ T getPartsMapRawValue<T>(Map map, Iterable<String> parts) {
   return value as T;
 }
 
+/// Set value at a given field path.
 void setPartsMapValue<T>(Map map, List<String> parts, T value) {
   for (int i = 0; i < parts.length - 1; i++) {
     String part = parts[i];
@@ -268,6 +287,7 @@ void setPartsMapValue<T>(Map map, List<String> parts, T value) {
   map[parts.last] = value;
 }
 
+/// Check if a trick is enclosed by backticks
 bool isBacktickEnclosed(String field) {
   final length = field?.length ?? 0;
   if (length < 2) {
@@ -279,6 +299,7 @@ bool isBacktickEnclosed(String field) {
 
 String _escapeKey(String field) => '`$field`';
 
+/// Escape a key.
 String escapeKey(String field) {
   if (field == null) {
     return null;
@@ -301,8 +322,10 @@ List<String> getFieldParts(String field) {
   return getRawFieldParts(field);
 }
 
+/// Get field segments.
 List<String> getRawFieldParts(String field) => field.split('.');
 
+/// Get field value.
 T getMapFieldValue<T>(Map map, String field) {
   return getPartsMapValue(map, getFieldParts(field));
 }
@@ -312,11 +335,12 @@ T getMapFieldRawValue<T>(Map map, String field) {
   return getPartsMapRawValue(map, getFieldParts(field));
 }
 
+/// Set a field value.
 void setMapFieldValue<T>(Map map, String field, T value) {
   setPartsMapValue(map, getFieldParts(field), value);
 }
 
-// Merge an existing value with a new value, Map only!
+/// Merge an existing value with a new value, Map only!
 dynamic mergeValue(dynamic existingValue, dynamic newValue,
     {bool allowDotsInKeys}) {
   allowDotsInKeys ??= false;
@@ -399,6 +423,7 @@ dynamic mergeValue(dynamic existingValue, dynamic newValue,
 // 2.5 compatibility change
 //
 // TODO 2019/07/08 This could be removed once the stable API returns Uint8List everywhere
+/// Tmp 2.5 compatibility change
 Stream<Uint8List> intListStreamToUint8ListStream(Stream stream) {
   if (stream is Stream<Uint8List>) {
     return stream;

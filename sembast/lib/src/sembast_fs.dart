@@ -129,8 +129,10 @@ class _FsDatabaseStorage extends DatabaseStorage {
 class DatabaseFactoryFs extends SembastDatabaseFactory
     with DatabaseFactoryMixin
     implements DatabaseFactory {
+  /// File system used.
   final FileSystem fs;
 
+  /// Constructor.
   DatabaseFactoryFs(this.fs);
 
   @override

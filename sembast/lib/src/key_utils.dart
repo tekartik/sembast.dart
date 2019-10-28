@@ -17,7 +17,8 @@ import 'dart:math';
 /// This code is based on a Firebase blog post and ported to Dart.
 /// https://firebase.googleblog.com/2015/02/the-2120-ways-to-ensure-unique_68.html
 class PushIdGenerator {
-  static const String PUSH_CHARS =
+  /// The char set.
+  static const String pushChars =
       '-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz';
 
   static final Random _random = Random();
@@ -26,6 +27,7 @@ class PushIdGenerator {
 
   static final List<int> _lastRandChars = List<int>(12);
 
+  /// Generate a child name.
   static String generatePushChildName() {
     int now = DateTime.now().millisecondsSinceEpoch;
     final bool duplicateTime = (now == _lastPushTime);
@@ -33,7 +35,7 @@ class PushIdGenerator {
 
     final List<String> timeStampChars = List<String>(8);
     for (int i = 7; i >= 0; i--) {
-      timeStampChars[i] = PUSH_CHARS[now % 64];
+      timeStampChars[i] = pushChars[now % 64];
       now = (now / 64).floor();
     }
     assert(now == 0);
@@ -48,7 +50,7 @@ class PushIdGenerator {
       _incrementArray();
     }
     for (int i = 0; i < 12; i++) {
-      result.write(PUSH_CHARS[_lastRandChars[i]]);
+      result.write(pushChars[_lastRandChars[i]]);
     }
     assert(result.length == 20);
     return result.toString();
@@ -65,4 +67,5 @@ class PushIdGenerator {
   }
 }
 
+/// Generate a key.
 String generateStringKey() => PushIdGenerator.generatePushChildName();
