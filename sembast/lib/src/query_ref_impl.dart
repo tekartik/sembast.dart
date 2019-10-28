@@ -12,9 +12,13 @@ import 'package:sembast/src/api/v2/sembast.dart' as v2;
 
 /// A query is unique
 class SembastQueryRef<K, V> implements QueryRef<K, V> {
+  /// The store.
   final StoreRef<K, V> store;
+
+  /// The finder.
   final SembastFinder finder;
 
+  /// Query ref implementation.
   SembastQueryRef(this.store, SembastFinder finder)
       : this.finder = finder?.clone() as SembastFinder;
 

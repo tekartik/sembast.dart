@@ -75,6 +75,7 @@ mixin SembastRecordHelperMixin implements Record {
 
 /// Used as an interface
 abstract class SembastRecordValue<V> {
+  /// Raw value/
   V rawValue;
 }
 
@@ -96,9 +97,10 @@ class LazyMutableSembastRecord with SembastRecordHelperMixin implements Record {
   @override
   Store store;
 
-  // Can change overtime if modified
+  /// Can change overtime if modified
   Record record;
 
+  /// Build a record lazily.
   LazyMutableSembastRecord(this.store, this.record) {
     assert(record != null);
     assert(!(record is LazyMutableSembastRecord));
@@ -166,6 +168,7 @@ class ImmutableSembastRecord
   @override
   dynamic get value => immutableValue(super.value);
 
+  /// Record from row map.
   ImmutableSembastRecord.fromDatabaseRowMap(Database db, Map map) {
     String storeName = map[dbStoreNameKey] as String;
     StoreRef<dynamic, dynamic> storeRef = storeName == null
@@ -194,10 +197,12 @@ class ImmutableSembastRecord
       'Deprecated for immutable record. use ref.store instead');
 }
 
+/// Transaction record.
 class TxnRecord with SembastRecordHelperMixin implements Record {
-  // Can change overtime if modified
+  /// Can change overtime if modified
   ImmutableSembastRecord record;
 
+  /// Transaction record.
   TxnRecord(this.store, this.record);
 
   @override
@@ -225,6 +230,7 @@ class TxnRecord with SembastRecordHelperMixin implements Record {
   @override
   RecordSnapshot<RK, RV> cast<RK, RV>() => record.cast<RK, RV>();
 
+  /// non deleted record list.
   ImmutableSembastRecord get nonDeletedRecord => deleted ? null : record;
 }
 
@@ -253,6 +259,7 @@ mixin MutableSembastRecordMixin implements Record {
   void operator []=(String field, value) => setField(field, value);
 }
 
+/// Mutable sembast record.
 class MutableSembastRecord
     with
         SembastRecordMixin,
@@ -274,6 +281,7 @@ class MutableSembastRecord
       throw UnsupportedError('Deprecated. use ref.store instead');
 }
 
+/// Sembast record.
 class SembastRecord
     with
         SembastRecordMixin,
@@ -316,6 +324,7 @@ ImmutableSembastRecord makeImmutableRecord(Record record) {
       deleted: record.deleted);
 }
 
+/// Make immutable snapshot.
 RecordSnapshot makeImmutableRecordSnapshot(RecordSnapshot record) {
   if (record is ImmutableSembastRecord) {
     return record;
@@ -328,6 +337,7 @@ RecordSnapshot makeImmutableRecordSnapshot(RecordSnapshot record) {
   return SembastRecordSnapshot(record.ref, cloneValue(record.value));
 }
 
+/// Make lazy mutable snapshot.
 LazyMutableSembastRecord makeLazyMutableRecord(
     Store store, ImmutableSembastRecord record) {
   if (record == null) {
@@ -336,6 +346,7 @@ LazyMutableSembastRecord makeLazyMutableRecord(
   return LazyMutableSembastRecord(store, record);
 }
 
+/// create snapshot list.
 List<SembastRecordSnapshot<K, V>> immutableListToSnapshots<K, V>(
     List<ImmutableSembastRecord> records) {
   return records

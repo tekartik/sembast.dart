@@ -21,11 +21,13 @@ class FileMode {
 
   final int _mode;
 
+  /// internal mode.
   int get mode => _mode;
 
   const FileMode._internal(this._mode);
 }
 
+/// OS Error.
 abstract class OSError {
   /// Constant used to indicate that no OS error code is available.
   static const int noErrorCode = -1;
@@ -39,6 +41,7 @@ abstract class OSError {
   String get message;
 }
 
+/// File system exception.
 abstract class FileSystemException {
   /// Message describing the error. This does not include any detailed
   /// information form the underlying OS error. Check [osError] for
@@ -56,6 +59,7 @@ abstract class FileSystemException {
   OSError get osError;
 }
 
+/// File system.
 abstract class FileSystem {
   /// Creates a [Directory] object.
   ///
@@ -104,6 +108,7 @@ abstract class FileSystem {
   File get scriptFile;
 }
 
+/// IO sink.
 abstract class IOSink {
   /// Converts [obj] to a String by invoking [Object.toString] and
   /// writes the result to `this`, followed by a newline.
@@ -121,11 +126,17 @@ abstract class IOSink {
 /// These constants are used by the [FileSystemEntity] class
 /// to indicate the object's type.
 ///
-
 class FileSystemEntityType {
+  /// File type.
   static const file = FileSystemEntityType._internal(0);
+
+  /// Directory type.
   static const directory = FileSystemEntityType._internal(1);
+
+  /// Link type.
   static const link = FileSystemEntityType._internal(2);
+
+  /// Not found.
   static const notFound = FileSystemEntityType._internal(3);
 
   final int _type;
@@ -137,6 +148,7 @@ class FileSystemEntityType {
   String toString() => const ['FILE', 'DIRECTORY', 'LINK', 'NOT_FOUND'][_type];
 }
 
+/// File system entity.
 abstract class FileSystemEntity {
   /// Checks whether the file system entity with this path exists. Returns
   /// a [:Future<bool>:] that completes with the result.
@@ -186,6 +198,7 @@ abstract class FileSystemEntity {
   FileSystem get fileSystem;
 }
 
+/// Directory.
 abstract class Directory extends FileSystemEntity {
   /// Creates the directory with this name.
   ///
@@ -199,6 +212,7 @@ abstract class Directory extends FileSystemEntity {
   Future<Directory> create({bool recursive = false});
 }
 
+/// File.
 abstract class File extends FileSystemEntity {
   /// Create the file. Returns a [:Future<File>:] that completes with
   /// the file when it has been created.

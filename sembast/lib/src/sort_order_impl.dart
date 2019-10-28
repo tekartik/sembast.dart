@@ -3,9 +3,14 @@ import 'package:sembast/src/api/boundary.dart';
 import 'package:sembast/src/api/sort_order.dart';
 import 'package:sembast/src/boundary_impl.dart';
 
+/// Sort order implementation.
 class SembastSortOrder implements SortOrder {
+  /// ascending.
   final bool ascending; // default true
+  /// field (key) name.
   final String field;
+
+  /// null last.
   final bool nullLast; // default false
 
   ///
@@ -16,16 +21,19 @@ class SembastSortOrder implements SortOrder {
       : ascending = ascending != false,
         nullLast = nullLast == true;
 
+  /// Compare 2 record.
   int compare(RecordSnapshot record1, RecordSnapshot record2) {
     int result = compareAscending(record1, record2);
     return ascending ? result : -result;
   }
 
+  /// Compare a record to a boundary.
   int compareToBoundary(RecordSnapshot record, Boundary boundary, int index) {
     int result = compareToBoundaryAscending(record, boundary, index);
     return ascending ? result : -result;
   }
 
+  /// Compare a record to a snapshot.
   int compareToSnapshotAscending(
       RecordSnapshot record, RecordSnapshot snapshot) {
     var value1 = record[field];
@@ -33,6 +41,7 @@ class SembastSortOrder implements SortOrder {
     return compareValueAscending(value1, value2);
   }
 
+  /// Compare a record to a boundary in ascending order.
   int compareToBoundaryAscending(
       RecordSnapshot record, Boundary boundary, int index) {
     final sembastBoundary = boundary as SembastBoundary;
@@ -45,12 +54,14 @@ class SembastSortOrder implements SortOrder {
     throw ArgumentError('either record or values must be provided');
   }
 
+  /// Compare 2 records in ascending order.
   int compareAscending(RecordSnapshot record1, RecordSnapshot record2) {
     var value1 = record1[field];
     var value2 = record2[field];
     return compareValueAscending(value1, value2);
   }
 
+  /// Compare 2 values in ascending order.
   int compareValueAscending(dynamic value1, dynamic value2) {
     if (value1 == null) {
       if (value2 == null) {

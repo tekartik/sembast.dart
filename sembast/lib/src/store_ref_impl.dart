@@ -13,7 +13,9 @@ import 'package:sembast/src/utils.dart';
 
 // ignore_for_file: deprecated_member_use_from_same_package
 
+/// Store implementation.
 class SembastStoreRef<K, V> with StoreRefMixin<K, V> {
+  /// Store implementation.
   SembastStoreRef(String name) {
     if (name == null) {
       throw ArgumentError(
@@ -216,6 +218,7 @@ mixin StoreFactoryMixin<K, V> implements StoreFactory<K, V> {
   }
 }
 
+/// Store factory base.
 class StoreFactoryBase<K, V> with StoreFactoryMixin<K, V> {}
 
 /// common `<int, Map<String, dynamic>>` factory
@@ -224,4 +227,7 @@ final intMapStoreFactory = StoreFactoryBase<int, Map<String, dynamic>>();
 /// common `<String, Map<String, dynamic>>` factory
 final stringMapStoreFactory = StoreFactoryBase<String, Map<String, dynamic>>();
 
+// Deprecated since 2019-10-28, never used before.
+/// Deprecated.
+@deprecated
 abstract class StoreClient {}

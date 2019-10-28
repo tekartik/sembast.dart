@@ -24,27 +24,42 @@ import 'package:synchronized/synchronized.dart';
 
 final bool _debugStorage = false; // devWarning(true);
 
+/// Get implementation.
 SembastDatabase getDatabase(v2.Database database) =>
     database as SembastDatabase;
 
+/// Commit database information.
 class CommitData {
   // Only when we have listeners
+  /// listeners.
   List<StoreListenerOperation> listenerOperations;
+
+  /// records changed.
   List<TxnRecord> txnRecords;
 }
 
+/// Database implementation.
 class SembastDatabase extends Object
     with DatabaseExecutorMixin
     implements Database, SembastDatabaseClient {
   // Can be modified by openHelper for test purpose
+  /// its open helper.
   DatabaseOpenHelper openHelper;
+
+  /// log helper.
   final bool logV = sembastLogLevel == SembastLogLevel.verbose;
 
   final DatabaseStorage _storage;
 
   // Lock used for opening/writing/compacting
+
+  /// General lock.
   final Lock databaseLock = Lock();
+
+  /// Transactinon lock.
   final Lock transactionLock = Lock();
+
+  /// Notification lock.
   final Lock notificationLock = Lock();
 
   /// Created after opening the database
@@ -68,6 +83,7 @@ class SembastDatabase extends Object
   bool _opened = false;
   bool _closed = false;
 
+  /// The open options.
   DatabaseOpenOptions get openOptions => openHelper.options;
 
   // DatabaseMode _openMode;
@@ -90,6 +106,7 @@ class SembastDatabase extends Object
   @override
   Iterable<String> get storeNames => _stores.values.map((store) => store.name);
 
+  /// Database implementation.
   SembastDatabase(this.openHelper, [this._storage]);
 
   ///
@@ -112,6 +129,7 @@ class SembastDatabase extends Object
     }
   }
 
+  /// Rollback changed in a transaction.
   void txnRollback(SembastTransaction txn) {
     // only valid in a transaction
     if (txn == null) {
@@ -132,14 +150,17 @@ class SembastDatabase extends Object
 
 //      (record.store ?? mainStore) as SembastStore;
 
+  /// Set in memory.
   bool setRecordInMemory(TxnRecord record) {
     return _recordStore(record).setRecordInMemory(record?.record);
   }
 
+  /// Load a record.
   void loadRecord(ImmutableSembastRecord record) {
     _recordStore(record).loadRecord(record);
   }
 
+  /// Compact the database.
   Future compact() async {
     await databaseOperation(() {
       return txnCompact();
@@ -155,6 +176,7 @@ class SembastDatabase extends Object
     }
   }
 
+  /// Decode a text.
   Map<String, dynamic> decodeString(String text) {
     if (openOptions.codec != null) {
       return openOptions.codec.codec.decode(text);
@@ -278,7 +300,7 @@ class SembastDatabase extends Object
     return commitData;
   }
 
-  // future or not
+  /// Commit changes to storage.
   Future storageCommitRecords(List<TxnRecord> txnRecords) async {
     if (txnRecords.isNotEmpty) {
       List<String> lines = [];
@@ -352,7 +374,7 @@ class SembastDatabase extends Object
     return null;
   }
 
-  // in transaction
+  /// Put records in a transaction
   Future<List<ImmutableSembastRecord>> txnPutRecords(
       SembastTransaction txn, List<Record> records) async {
     // clone for safe loop
@@ -377,6 +399,7 @@ class SembastDatabase extends Object
     return mainStore.findRecord(finder);
   }
 
+  /// Put a record in a transaction.
   Future<ImmutableSembastRecord> txnPutRecord(
       SembastTransaction txn, Record record) {
     return _recordStore(record).txnPutRecord(txn, record);
@@ -465,6 +488,7 @@ class SembastDatabase extends Object
     return store;
   }
 
+  /// Find a store in a transaction.
   SembastTransactionStore txnFindStore(
       SembastTransaction txn, String storeName) {
     var store = findStore(storeName);
@@ -505,6 +529,7 @@ class SembastDatabase extends Object
     return store as SembastStore;
   }
 
+  /// Get a store in a transaction.
   SembastTransactionStore txnGetStore(
       SembastTransaction txn, String storeName) {
     var store = getStore(storeName);
@@ -521,6 +546,7 @@ class SembastDatabase extends Object
     });
   }
 
+  /// Delete a store in a transaction.
   Future txnDeleteStore(SembastTransaction txn, String storeName) async {
     var store = txnFindStore(txn, storeName);
     if (store != null) {
@@ -532,6 +558,7 @@ class SembastDatabase extends Object
     }
   }
 
+  /// Flush changes.
   Future flush() async {
     // Wait for pending transaction
     await transactionLock.synchronized(null);
@@ -795,7 +822,7 @@ class SembastDatabase extends Object
     return this;
   }
 
-  // To call when in a databaseLock
+  /// To call when in a databaseLock
   Future lockedClose() async {
     _opened = false;
     _closed = true;
@@ -814,6 +841,7 @@ class SembastDatabase extends Object
     });
   }
 
+  /// info as json
   Map<String, dynamic> toJson() {
     var map = <String, dynamic>{};
     if (path != null) {
@@ -835,7 +863,10 @@ class SembastDatabase extends Object
     return map;
   }
 
+  /// Lazy store operations.
   final lazyStorageOperations = <Future Function()>[];
+
+  /// Lazy listener operations.
   final lazyListenerOperations = <Future Function()>[];
 
   DatabaseExportStat _exportStat;
@@ -1039,15 +1070,16 @@ class SembastDatabase extends Object
   @override
   Future clear() => mainStore.clear();
 
-  //
-  // Cooperate mode
-  //
+  /// Our cooperator.
   final cooperator = Cooperator();
 
+  /// True if activated.
   bool get cooperateOn => cooperator.cooperateOn;
 
+  /// True if cooperate needed.
   bool get needCooperate => cooperator.needCooperate;
 
+  /// Cooperate if needed.
   FutureOr cooperate() => cooperator.cooperate();
 
   /// Ensure the transaction is still current
@@ -1066,7 +1098,7 @@ class SembastDatabase extends Object
           FutureOr<T> Function(SembastTransaction transaction) action) =>
       transaction((txn) => action(txn as SembastTransaction));
 
-  // records must not changed
+  /// records must not changed
   Future forEachRecords(List<ImmutableSembastRecord> records,
       void action(ImmutableSembastRecord record)) async {
     // handle record in transaction first
@@ -1085,6 +1117,7 @@ class SembastDatabase extends Object
       _openTransaction as SembastTransaction;
 }
 
+/// Export stat.
 class DatabaseExportStat {
   /// number of line in the export
   int lineCount = 0;
@@ -1094,8 +1127,10 @@ class DatabaseExportStat {
   /// Number of time it has been compacted since being opened
   int compactCount = 0;
 
+  /// Export stat.
   DatabaseExportStat();
 
+  /// From a map.
   DatabaseExportStat.fromJson(Map map) {
     if (map["lineCount"] != null) {
       lineCount = map["lineCount"] as int;
@@ -1108,6 +1143,7 @@ class DatabaseExportStat {
     }
   }
 
+  /// To a map.
   Map<String, dynamic> toJson() {
     var map = <String, dynamic>{};
     if (lineCount != null) {

@@ -3,16 +3,23 @@ import 'package:sembast/src/api/field.dart';
 import 'package:sembast/src/api/filter.dart';
 import 'package:sembast/src/filter_impl.dart';
 import 'package:sembast/src/record_snapshot_impl.dart';
+// ignore_for_file: public_member_api_docs
 
 /// @deprecated v2
 @deprecated
 class CompositeFilter extends Filter {
+  /// Deprecated.
   bool isAnd; // if false it is OR
+  /// Deprecated.
   bool get isOr => !isAnd;
+
+  /// Deprecated.
   List<Filter> filters;
 
+  /// Deprecated.
   CompositeFilter.or(this.filters) : isAnd = false;
 
+  /// Deprecated.
   CompositeFilter.and(this.filters) : isAnd = true;
 
   @override

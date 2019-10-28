@@ -10,6 +10,7 @@ import 'api/compat/record.dart';
 
 // ignore_for_file: deprecated_member_use_from_same_package
 
+/// Sort and limit a list.
 Future<List<ImmutableSembastRecord>> sortAndLimit(
     List<ImmutableSembastRecord> results,
     SembastFinder finder,

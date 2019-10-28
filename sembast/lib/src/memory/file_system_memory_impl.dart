@@ -9,7 +9,9 @@ import 'package:sembast/src/file_system.dart' as fs;
 OSErrorMemory get _noSuchPathError =>
     OSErrorMemory(2, "No such file or directory");
 
+/// OS memory error.
 class OSErrorMemory implements fs.OSError {
+  /// OS memory error.
   OSErrorMemory(this.errorCode, this.message);
 
   @override
@@ -23,7 +25,9 @@ class OSErrorMemory implements fs.OSError {
   }
 }
 
+/// Memory exception.
 class FileSystemExceptionMemory implements fs.FileSystemException {
+  /// Memory exception.
   FileSystemExceptionMemory(this.path, [this._message, this.osError]);
 
   String _message;
@@ -43,12 +47,16 @@ class FileSystemExceptionMemory implements fs.FileSystemException {
   }
 }
 
+/// Memory implementation.
 class DirectoryMemoryImpl extends FileSystemEntityMemoryImpl {
+  /// children.
   Map<String, FileSystemEntityMemoryImpl> children = {};
 
+  /// Memory implementation.
   DirectoryMemoryImpl(DirectoryMemoryImpl parent, String segment)
       : super(parent, fs.FileSystemEntityType.directory, segment);
 
+  /// get a file system entity.
   FileSystemEntityMemoryImpl getEntity(List<String> segments) {
     if (segments.isEmpty) {
       return this;
@@ -69,12 +77,16 @@ class DirectoryMemoryImpl extends FileSystemEntityMemoryImpl {
   }
 }
 
+/// In memory file.
 class FileMemoryImpl extends FileSystemEntityMemoryImpl {
+  /// Content.
   List<String> content;
 
+  /// In memory file.
   FileMemoryImpl(DirectoryMemoryImpl parent, String segment)
       : super(parent, fs.FileSystemEntityType.file, segment);
 
+  /// Open for read.
   Stream<Uint8List> openRead() {
     StreamController<Uint8List> ctlr = StreamController(sync: true);
     Future.sync(() async {
@@ -96,6 +108,7 @@ class FileMemoryImpl extends FileSystemEntityMemoryImpl {
     return ctlr.stream;
   }
 
+  /// Open for write.
   IOSinkMemory openWrite(fs.FileMode mode) {
     // delay the error
 
@@ -124,6 +137,7 @@ class FileMemoryImpl extends FileSystemEntityMemoryImpl {
   //
   // IOSink implementation
   //
+  /// Append a line.
   void append(String line) {
     if (closed) {
       throw "${this} already closed";
@@ -137,26 +151,35 @@ class FileMemoryImpl extends FileSystemEntityMemoryImpl {
   }
 }
 
+/// File system entity.
 abstract class FileSystemEntityMemoryImpl {
   // don't access it
   DirectoryMemoryImpl _parent;
 
+  /// Parent.
   DirectoryMemoryImpl get parent => _parent;
 
+  /// Type.
   fs.FileSystemEntityType type;
 
+  /// File system entity.
   FileSystemEntityMemoryImpl(this._parent, this.type, this.segment);
 
+  /// Last segment
   String segment;
 
-  // Build path
+  /// Build path
   String get path => join(parent.path, segment);
 
+  /// open count.
   int openCount = 0;
 
+  /// True if closed.
   bool get closed => (openCount == 0);
 
-  // Set in the parent
+  /// Creates.
+  ///
+  /// Set in the parent
   void create() {
     parent.children[segment] = this;
   }
@@ -164,10 +187,12 @@ abstract class FileSystemEntityMemoryImpl {
   //
   // File implementation
   //
+  /// Delete a file.
   void delete() {
     parent.children.remove(segment);
   }
 
+  /// Close a file.
   Future close() async {
     openCount--;
   }
@@ -178,9 +203,12 @@ abstract class FileSystemEntityMemoryImpl {
   }
 }
 
+/// In memory io sink.
 class IOSinkMemory implements fs.IOSink {
+  /// The file.
   FileMemoryImpl impl;
 
+  /// In memory io sink.
   IOSinkMemory(this.impl);
 
   @override
@@ -190,7 +218,9 @@ class IOSinkMemory implements fs.IOSink {
   Future close() async => impl.close();
 }
 
+/// Root directory.
 class RootDirectoryMemoryImpl extends DirectoryMemoryImpl {
+  /// Root directory.
   RootDirectoryMemoryImpl() : super(null, separator);
 
   @override
@@ -217,16 +247,20 @@ class _TmpSink implements fs.IOSink {
   }
 }
 
+/// In memory file system.
 class FileSystemMemoryImpl {
   // Must be absolute
   // /current by default which might not exists!
+  /// current path.
   String currentPath;
 
+  /// In memory file system.
   FileSystemMemoryImpl() {
     //rootDir._exists = true;
     currentPath = join(rootDir.path, "current");
   }
 
+  /// Get the segements from a path.
   List<String> getSegments(String path) {
     List<String> segments = split(path);
     if (!isAbsolute(path)) {
@@ -235,16 +269,19 @@ class FileSystemMemoryImpl {
     return segments;
   }
 
+  /// Get an entity at a given path.
   FileSystemEntityMemoryImpl getEntity(String path) {
     // Get the segments list
 
     return getEntityBySegment(getSegments(path));
   }
 
+  /// Get parent segments.
   List<String> getParentSegments(List<String> segments) {
     return segments.sublist(0, segments.length - 1);
   }
 
+  /// Get by segments.
   FileSystemEntityMemoryImpl getEntityBySegment(List<String> segments) {
     if (segments.first == rootDir.path) {
       return rootDir.getEntity(segments.sublist(1));
@@ -252,6 +289,7 @@ class FileSystemMemoryImpl {
     return null;
   }
 
+  /// Create a file.
   FileMemoryImpl createFileBySegments(List<String> segments,
       {bool recursive = false}) {
     FileSystemEntityMemoryImpl fileImpl = getEntityBySegment(segments);
@@ -278,6 +316,7 @@ class FileSystemMemoryImpl {
     return null;
   }
 
+  /// Create a directory.
   DirectoryMemoryImpl createDirectoryBySegments(List<String> segments,
       {bool recursive = false}) {
     FileSystemEntityMemoryImpl directoryImpl = getEntityBySegment(segments);
@@ -304,6 +343,7 @@ class FileSystemMemoryImpl {
     return null;
   }
 
+  /// open for read.
   Stream<Uint8List> openRead(String path) {
     var ctlr = StreamController<Uint8List>(sync: true);
     FileSystemEntityMemoryImpl fileImpl = getEntity(path);
@@ -319,6 +359,7 @@ class FileSystemMemoryImpl {
     return ctlr.stream;
   }
 
+  /// Open for write.
   fs.IOSink openWrite(String path, {fs.FileMode mode = fs.FileMode.write}) {
     _TmpSink sink;
     //StreamController ctlr = new StreamController(sync: true);
@@ -339,12 +380,14 @@ class FileSystemMemoryImpl {
     return sink;
   }
 
+  /// Create a directory.
   DirectoryMemoryImpl createDirectory(String path, {bool recursive = false}) {
     // Go up one by one
     List<String> segments = getSegments(path);
     return createDirectoryBySegments(segments, recursive: recursive);
   }
 
+  /// Create a file.
   FileMemoryImpl createFile(String path, {bool recursive = false}) {
     // Go up one by one
     List<String> segments = getSegments(path);
@@ -352,6 +395,7 @@ class FileSystemMemoryImpl {
     return createFileBySegments(segments, recursive: recursive);
   }
 
+  /// true if it exists.
   bool exists(String path) {
     FileSystemEntityMemoryImpl entityImpl = getEntity(path);
     if (entityImpl != null) {
@@ -360,6 +404,7 @@ class FileSystemMemoryImpl {
     return false;
   }
 
+  /// Delete.
   void delete(String path, {bool recursive = false}) {
     FileSystemEntityMemoryImpl entityImpl = getEntity(path);
     if (entityImpl == null) {
@@ -377,7 +422,7 @@ class FileSystemMemoryImpl {
     }
   }
 
-  // base implementation
+  /// rename base implementation
   FileSystemEntityMemoryImpl rename(String path, String newPath) {
     FileSystemEntityMemoryImpl entityImpl = getEntity(path);
     if (entityImpl == null) {
@@ -420,8 +465,10 @@ class FileSystemMemoryImpl {
     }
   }
 
+  /// Root directory.
   RootDirectoryMemoryImpl rootDir = RootDirectoryMemoryImpl();
 
+  /// File type.
   Future<fs.FileSystemEntityType> type(String path, {bool followLinks = true}) {
     return Future.sync(() {
       FileSystemEntityMemoryImpl impl = getEntity(path);

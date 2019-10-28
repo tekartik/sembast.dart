@@ -59,12 +59,15 @@ mixin RecordSnapshotMixin<K, V>
   }
 }
 
+/// Snapshot implementation.
 class SembastRecordSnapshot<K, V> with RecordSnapshotMixin<K, V> {
+  /// Snapshot from an immutable record.
   SembastRecordSnapshot.fromRecord(ImmutableSembastRecord record) {
     this.ref = record.ref?.cast<K, V>();
     this.rawValue = record.value as V;
   }
 
+  /// Snapshot from a value.
   SembastRecordSnapshot(RecordRef<K, V> ref, V value) {
     this.ref = ref;
     this.rawValue = value;
@@ -75,8 +78,10 @@ class SembastRecordSnapshot<K, V> with RecordSnapshotMixin<K, V> {
 ///
 /// Used in filter
 class SembastRecordRawSnapshot<K, V> implements RecordSnapshot<K, V> {
+  /// Internal snapshot.
   final RecordSnapshotMixin<K, V> snapshot;
 
+  /// Constructor.
   SembastRecordRawSnapshot(RecordSnapshot<K, V> snapshot)
       : snapshot = snapshot as RecordSnapshotMixin<K, V>;
 

@@ -59,24 +59,30 @@ mixin DatabaseExecutorMixin implements DatabaseExecutor, StoreExecutor {
   Stream<Record> get records => mainStore.records;
 }
 
+/// Transaction implementation.
 class SembastTransaction extends Object
     with DatabaseExecutorMixin
     implements Transaction, SembastDatabaseClient {
+  /// The database.
   @override
   final SembastDatabase sembastDatabase;
 
+  /// The transaction id.
   int get id => _id;
 
   final int _id;
 
-  // make the completer async as the Transaction following
-  // action is not a priority
+  /// make the completer async as the Transaction following
+  /// action is not a priority
   Completer completer = Completer();
 
+  /// Constructor.
   SembastTransaction(this.sembastDatabase, this._id);
 
+  /// True if completed.
   bool get isCompleted => completer.isCompleted;
 
+  /// Completed future.
   Future get completed => completer.future;
 
   @override
@@ -87,6 +93,7 @@ class SembastTransaction extends Object
   @override
   StoreExecutor get mainStore => toExecutor(database.mainStore);
 
+  /// Make it an executor.
   SembastTransactionStore toExecutor(Store store) => store != null
       ? SembastTransactionStore(this, store as SembastStore)
       : null;
@@ -122,6 +129,7 @@ class SembastTransaction extends Object
   Future<List<Record>> putRecords(List<Record> records) async =>
       database.makeOutRecords(await database.txnPutRecords(this, records));
 
+  /// Store implementation.
   SembastTransactionStore recordStore(Record record) =>
       (record.store ?? mainStore) as SembastTransactionStore;
 
@@ -141,11 +149,14 @@ class SembastTransaction extends Object
       database.txnGetStore(this, ref.name).store;
 }
 
+/// Store implementation.
 class SembastTransactionStore implements StoreTransaction {
+  /// Transaction.
   final SembastTransaction sembastTransaction;
   @override
   final SembastStore store;
 
+  /// Constructor.
   SembastTransactionStore(this.sembastTransaction, this.store);
 
   @override

@@ -1,5 +1,9 @@
 # sembast
 
+[![pub package](https://img.shields.io/pub/v/sembast.svg)](https://pub.dartlang.org/packages/sembast)
+[![Build Status](https://travis-ci.org/tekartik/sembast.dart.svg?branch=master)](https://travis-ci.org/tekartik/sembast.dart)
+[![codecov](https://codecov.io/gh/tekartik/sembast.dart/branch/master/graph/badge.svg)](https://codecov.io/gh/tekartik/sembast.dart)
+
 NoSQL persistent embedded file system document-based database for Dart VM and Flutter with encryption support.
 
 ## General

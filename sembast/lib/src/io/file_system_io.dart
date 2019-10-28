@@ -33,6 +33,7 @@ io.FileMode _fileMode(fs.FileMode fsFileMode) {
   }
 }
 
+/// io to fs type.
 fs.FileSystemEntityType fsFileType(io.FileSystemEntityType type) {
   switch (type) {
     case fileSystemEntityTypeFileIo:
@@ -105,9 +106,12 @@ Future<T> _wrap<T>(Future<T> future) {
   });
 }
 
+/// File system io implementation.
 class FileSystemIo implements fs.FileSystem {
+  /// Root path.
   final String rootPath;
 
+  /// get a path in absolute format.
   String absolute(String path) {
     if (rootPath != null) {
       return normalize(path);
@@ -127,6 +131,7 @@ class FileSystemIo implements fs.FileSystem {
     }
   }
 
+  /// File system io implementation.
   FileSystemIo({this.rootPath});
 
   @override
@@ -169,13 +174,17 @@ class FileSystemIo implements fs.FileSystem {
   String toString() => "io";
 }
 
+/// File system entity io implementation.
 abstract class FileSystemEntityIo implements fs.FileSystemEntity {
   final FileSystemIo _fs;
 
   @override
   final String path;
+
+  /// The native entity.
   io.FileSystemEntity ioFileSystemEntity;
 
+  /// File system entity io implementation.
   FileSystemEntityIo(this._fs, this.path);
 
   @override
@@ -193,10 +202,13 @@ abstract class FileSystemEntityIo implements fs.FileSystemEntity {
   @override
   fs.FileSystem get fileSystem => _fs;
 
+  /// io file system.
   FileSystemIo get fileSystemIo => fileSystem as FileSystemIo;
 }
 
+/// Directory io implementation.
 class DirectoryIo extends FileSystemEntityIo implements fs.Directory {
+  /// native directory.
   io.Directory get ioDir => ioFileSystemEntity as io.Directory;
 
   /// Creates a [DirectoryIo] object.
@@ -227,7 +239,9 @@ class DirectoryIo extends FileSystemEntityIo implements fs.Directory {
   String toString() => "DirectoryIo: '$path'";
 }
 
+/// File io implementation.
 class FileIo extends FileSystemEntityIo implements fs.File {
+  /// native io file.
   io.File get ioFile => ioFileSystemEntity as io.File;
 
   /// Creates a [FileIo] object.

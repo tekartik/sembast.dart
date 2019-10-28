@@ -8,7 +8,7 @@ import 'package:sembast/src/record_snapshot_impl.dart';
 
 // ignore_for_file: deprecated_member_use_from_same_package
 
-// We can match if record is a map or if we are accessing the key or value
+/// We can match if record is a map or if we are accessing the key or value
 bool canMatch(String field, dynamic recordValue) =>
     (recordValue is Map) || (field == Field.value) || (field == Field.key);
 
@@ -19,9 +19,12 @@ bool filterMatchesRecord(Filter filter, RecordSnapshot record) {
       .matchesRecord(SembastRecordRawSnapshot(record));
 }
 
+/// Filter base.
 abstract class SembastFilterBase implements Filter {
+  /// True if the record matches.
   bool matchesRecord(RecordSnapshot record);
 
+  /// True if the record matches.
   @override
   bool match(Record record) {
     if (record.deleted) {
@@ -33,8 +36,10 @@ abstract class SembastFilterBase implements Filter {
 
 /// Custom filter
 class SembastCustomFilter extends SembastFilterBase {
+  /// matches custom filter.
   final bool Function(RecordSnapshot record) matches;
 
+  /// Custom filter.
   SembastCustomFilter(this.matches);
 
   @override
@@ -50,20 +55,24 @@ class SembastCustomFilter extends SembastFilterBase {
 }
 
 mixin AnyInListMixin implements SembastFilterBase {
+  /// True if it should match any in a list.
   bool anyInList;
 }
 
 mixin FilterValueMixin implements SembastFilterBase {
+  /// The value.
   dynamic value;
 }
 
 mixin FieldFieldMixin implements SembastFilterBase {
+  /// The field.
   String field;
 }
 
-/// Equals filter
+/// Equals filter.
 class SembastEqualsFilter extends SembastFilterBase
     with AnyInListMixin, FilterValueMixin, FieldFieldMixin {
+  /// Equals filter.
   SembastEqualsFilter(String field, dynamic value, bool anyInList) {
     this.field = field;
     this.value = value;
@@ -96,11 +105,13 @@ class SembastEqualsFilter extends SembastFilterBase
   }
 }
 
-/// Equals filter
+/// Matches filter.
 class SembastMatchesFilter extends SembastFilterBase
     with AnyInListMixin, FieldFieldMixin {
+  /// The regular expression.
   final RegExp regExp;
 
+  /// Matches filter.
   SembastMatchesFilter(String field, this.regExp, bool anyInList) {
     this.field = field;
     this.anyInList = anyInList;
@@ -144,12 +155,17 @@ class SembastMatchesFilter extends SembastFilterBase
 /// @deprecated v2
 @deprecated
 class SembastCompositeFilter extends SembastFilterBase {
+  // ignore: public_member_api_docs
   bool isAnd; // if false it is OR
+  // ignore: public_member_api_docs
   bool get isOr => !isAnd;
+  // ignore: public_member_api_docs
   List<Filter> filters;
 
+  // ignore: public_member_api_docs
   SembastCompositeFilter.or(this.filters) : isAnd = false;
 
+  // ignore: public_member_api_docs
   SembastCompositeFilter.and(this.filters) : isAnd = true;
 
   @override
@@ -175,10 +191,13 @@ class SembastCompositeFilter extends SembastFilterBase {
   }
 }
 
+/// Filter predicate implementation.
 class SembastFilterPredicate extends SembastFilterBase
     with FilterValueMixin, FieldFieldMixin {
+  /// The operation.
   FilterOperation operation;
 
+  /// Filter predicate implementation.
   SembastFilterPredicate(String field, this.operation, dynamic value) {
     this.field = field;
     this.value = value;
