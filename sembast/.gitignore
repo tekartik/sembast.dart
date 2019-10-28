@@ -31,3 +31,6 @@ test_out
 
 # Generated API doc default location
 /doc/api/
+
+# Conventional directory for build outputs
+coverage/
