@@ -1,3 +1,7 @@
+## 2.1.0+1
+
+* Add code documentation, code coverage and build badges
+
 ## 2.1.0
 
 * Remove `logging` dependency
