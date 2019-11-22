@@ -1,3 +1,7 @@
+## 2.1.1
+
+* Add `RecordsRef.add` to `RecordsRef.update` to insert/update multiple records. 
+
 ## 2.1.0+1
 
 * Add code documentation, code coverage and build badges
