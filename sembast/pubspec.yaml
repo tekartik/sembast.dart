@@ -23,3 +23,6 @@ dev_dependencies:
   # Dependencies for encryption example
   encrypt: '>=3.1.0'
   crypto: '>=2.0.6'
+  io:
+  yaml:
+  pub_semver:
