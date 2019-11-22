@@ -79,6 +79,8 @@ class SembastStore implements Store {
   }
 
   /// put a record in a transaction.
+  ///
+  /// Return the value added
   Future<dynamic> txnPut(SembastTransaction txn, var value, var key,
       {bool merge}) async {
     await cooperate();
@@ -86,6 +88,8 @@ class SembastStore implements Store {
   }
 
   /// add a record in a transaction.
+  ///
+  /// Return the added key.
   Future<K> txnAdd<K, V>(SembastTransaction txn, var value, [K key]) async {
     await cooperate();
     // We allow generating a string key
@@ -134,14 +138,25 @@ class SembastStore implements Store {
   /// Returns the list of values
   Future<List> txnPutAll(SembastTransaction txn, List values, List keys,
       {bool merge}) async {
+    List resultValues = [];
+    for (int i = 0; i < values.length; i++) {
+      resultValues.add(await txnPut(txn, values[i], keys[i], merge: merge));
+    }
+    return resultValues;
+  }
+
+  /// Returns the list of keys
+  Future<List> txnAddAll(SembastTransaction txn, List values, List keys) async {
     List resultKeys = [];
     for (int i = 0; i < values.length; i++) {
-      resultKeys.add(await txnPut(txn, values[i], keys[i], merge: merge));
+      resultKeys.add(await txnAdd(txn, values[i], keys[i]));
     }
     return resultKeys;
   }
 
   /// Update a record in a transaction.
+  ///
+  /// Return the value updated
   Future<dynamic> txnUpdate(
       SembastTransaction txn, dynamic value, dynamic key) async {
     await cooperate();
@@ -722,28 +737,12 @@ class SembastStore implements Store {
 
   /// Update records in a transaction.
   Future<List> txnUpdateAll(
-      SembastTransaction txn, dynamic value, Iterable keys) async {
-    List<Record> updates = [];
-    List deletedKeys = [];
-
-    // make it safe in a async way
-    keys = List.from(keys, growable: false);
-    for (var key in keys) {
-      await cooperate();
-      var record = _getRecord(txn, key);
-      if (record != null && !record.deleted) {
-        // Clone and mark deleted
-        Record clone = record.sembastClone(deleted: true);
-
-        updates.add(clone);
-        deletedKeys.add(key);
-      }
+      SembastTransaction txn, List values, List keys) async {
+    List resultValues = [];
+    for (int i = 0; i < values.length; i++) {
+      resultValues.add(await txnUpdate(txn, values[i], keys[i]));
     }
-
-    if (updates.isNotEmpty) {
-      await database.txnPutRecords(txn, updates);
-    }
-    return deletedKeys;
+    return resultValues;
   }
 
   @override

@@ -61,5 +61,61 @@ void defineTests(DatabaseTestContext ctx) {
       expect(await records.delete(db), [1, null]);
       expect(await records.get(db), [null, null]);
     });
+
+    test('add_string', () async {
+      var record1 = store.record(1);
+      // Create one
+      await record1.add(db, 'test1');
+
+      // Add with one already existing
+      var records = store.records([1, 2]);
+      expect(await records.add(db, ['test1bis', 'test2']), [null, 2]);
+    });
+
+    test('update_string', () async {
+      var record1 = store.record(1);
+      // Create one
+      await record1.add(db, 'test1');
+
+      // Update with one already existing
+      var records = store.records([1, 2]);
+      expect(
+          await records.update(db, ['test1bis', 'test2']), ['test1bis', null]);
+    });
+
+    test('add_map', () async {
+      var store = intMapStoreFactory.store();
+      var record1 = store.record(1);
+      // Create one
+      await record1.add(db, {'value': 'test1'});
+
+      // Add with one already existing
+      var records = store.records([1, 2]);
+      expect(
+          await records.add(db, [
+            {'more_value': 'test1'},
+            {'value': 'test1'}
+          ]),
+          [null, 2]);
+    });
+
+    test('update_map', () async {
+      var store = intMapStoreFactory.store();
+      var record1 = store.record(1);
+      // Create one
+      await record1.add(db, {'value': 'test1'});
+
+      // Update with one already existing
+      var records = store.records([1, 2]);
+      expect(
+          await records.update(db, [
+            {'more_value': 'test1'},
+            {'value': 'test1'}
+          ]),
+          [
+            {'value': 'test1', 'more_value': 'test1'},
+            null
+          ]);
+    });
   });
 }

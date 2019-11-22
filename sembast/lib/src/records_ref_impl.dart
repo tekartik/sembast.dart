@@ -36,6 +36,18 @@ mixin RecordsRefMixin<K, V> implements RecordsRef<K, V> {
   }
 
   @override
+  Future<List<K>> add(DatabaseClient databaseClient, List<V> values) {
+    if (values.length != keys.length) {
+      throw ArgumentError('the list of values must match the list of keys');
+    }
+    var client = getClient(databaseClient);
+    return client.inTransaction((txn) async {
+      return (await client.getSembastStore(store).txnAddAll(txn, values, keys))
+          ?.cast<K>();
+    });
+  }
+
+  @override
   Future<List<V>> put(DatabaseClient databaseClient, List<V> values,
       {bool merge}) {
     if (values.length != keys.length) {
@@ -46,6 +58,20 @@ mixin RecordsRefMixin<K, V> implements RecordsRef<K, V> {
       return (await client
               .getSembastStore(store)
               .txnPutAll(txn, values, keys, merge: merge))
+          ?.cast<V>();
+    });
+  }
+
+  @override
+  Future<List<V>> update(DatabaseClient databaseClient, List<V> values) {
+    if (values.length != keys.length) {
+      throw ArgumentError('the list of values must match the list of keys');
+    }
+    var client = getClient(databaseClient);
+    return client.inTransaction((txn) async {
+      return (await client
+              .getSembastStore(store)
+              .txnUpdateAll(txn, values, keys))
           ?.cast<V>();
     });
   }

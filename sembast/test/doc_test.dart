@@ -291,6 +291,21 @@ void defineTests(DatabaseTestContext ctx) {
           expect(record['name'], 'dog');
         }
         {
+          // Upsert multiple records
+          var records = store.records([key1, key2]);
+          var result = await records.put(
+              db,
+              [
+                {'value': 'new value for key1'},
+                {'value_other': 'new value for key2'}
+              ],
+              merge: true);
+          expect(result, [
+            {'name': 'fish', 'value': 'new value for key1'},
+            {'name': 'cat', 'value_other': 'new value for key2'}
+          ]);
+        }
+        {
           // Our shop store
           var store = intMapStoreFactory.store('shop');
 
