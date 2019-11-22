@@ -20,9 +20,10 @@ dev_dependencies:
   build_runner: '>=0.9.0'
   build_web_compilers: '>=0.4.0+4'
   build_test: '>=0.10.2+5'
-  # Dependencies for encryption example
-  encrypt: '>=3.1.0'
-  crypto: '>=2.0.6'
+  # Tool
   io:
   yaml:
   pub_semver:
+  # Dependencies for encryption example
+  encrypt: '>=3.1.0'
+  crypto: '>=2.0.6'
