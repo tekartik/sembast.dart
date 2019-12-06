@@ -47,9 +47,9 @@ class SembastFinder implements Finder {
 //    return true;
 //  }
   int compare(Record record1, Record record2) {
-    int result = 0;
+    var result = 0;
     if (sortOrders != null) {
-      for (SortOrder order in sortOrders) {
+      for (var order in sortOrders) {
         result = (order as SembastSortOrder).compare(record1, record2);
         // stop as soon as they differ
         if (result != 0) {
@@ -61,7 +61,7 @@ class SembastFinder implements Finder {
   }
 
   int compareThenKey(Record record1, Record record2) {
-    int result = compare(record1, record2);
+    final result = compare(record1, record2);
     if (result == 0) {
       return compareKey(record1.key, record2.key);
     }
@@ -70,10 +70,10 @@ class SembastFinder implements Finder {
 
   // used in search, record is the record checked from the db
   int compareToBoundary(Record record, Boundary boundary) {
-    int result = 0;
+    var result = 0;
     if (sortOrders != null) {
-      for (int i = 0; i < sortOrders.length; i++) {
-        SortOrder order = sortOrders[i];
+      for (var i = 0; i < sortOrders.length; i++) {
+        final order = sortOrders[i];
         result =
             (order as SembastSortOrder).compareToBoundary(record, boundary, i);
         // stop as soon as they differ
@@ -95,7 +95,7 @@ class SembastFinder implements Finder {
   }
 
   bool starts(Record record, Boundary boundary) {
-    int result = compareToBoundary(record, boundary);
+    final result = compareToBoundary(record, boundary);
     if (result == 0 && boundary.include) {
       return true;
     }
@@ -103,7 +103,7 @@ class SembastFinder implements Finder {
   }
 
   bool ends(Record record, Boundary boundary) {
-    int result = compareToBoundary(record, boundary);
+    final result = compareToBoundary(record, boundary);
     if (result == 0 && boundary.include) {
       return false;
     }
@@ -115,7 +115,7 @@ class SembastFinder implements Finder {
         filter: filter,
         sortOrders: sortOrders,
         //
-        limit: limit == null ? this.limit : limit,
+        limit: limit ?? this.limit,
         //
         offset: offset,
         start: start,
@@ -124,6 +124,6 @@ class SembastFinder implements Finder {
 
   @override
   String toString() {
-    return "filter: ${filter}, sort: ${sortOrders}";
+    return 'filter: ${filter}, sort: ${sortOrders}';
   }
 }

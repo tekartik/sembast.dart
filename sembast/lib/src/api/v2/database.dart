@@ -19,7 +19,8 @@ abstract class Database implements DatabaseClient {
   /// execute the action in a transaction
   /// use the current if any
   ///
-  Future<T> transaction<T>(FutureOr<T> action(Transaction transaction));
+  Future<T> transaction<T>(
+      FutureOr<T> Function(Transaction transaction) action);
 
   ///
   /// Close the database

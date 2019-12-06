@@ -101,7 +101,7 @@ class SembastEqualsFilter extends SembastFilterBase
 
   @override
   String toString() {
-    return "${field} == ${value}";
+    return '${field} == ${value}';
   }
 }
 
@@ -148,7 +148,7 @@ class SembastMatchesFilter extends SembastFilterBase
 
   @override
   String toString() {
-    return "${field} MATCHES ${regExp}";
+    return '${field} MATCHES ${regExp}';
   }
 }
 
@@ -187,7 +187,7 @@ class SembastCompositeFilter extends SembastFilterBase {
 
   @override
   String toString() {
-    return filters.join(' ${isAnd ? "AND" : "OR"} ');
+    return filters.join(' ${isAnd ? 'AND' : 'OR'} ');
   }
 }
 
@@ -247,12 +247,12 @@ class SembastFilterPredicate extends SembastFilterBase
       case FilterOperation.inList:
         return (value as List).contains(record[field]);
       default:
-        throw "${this} not supported";
+        throw '${this} not supported';
     }
   }
 
   @override
   String toString() {
-    return "${field} ${operation} ${value}";
+    return '${field} ${operation} ${value}';
   }
 }

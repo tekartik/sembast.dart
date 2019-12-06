@@ -117,6 +117,6 @@ abstract class Filter {
 
   /// Custom filter, use with caution and do not modify record data as it
   /// provides a raw access to the record internal value for efficiency.
-  factory Filter.custom(bool matches(RecordSnapshot record)) =>
+  factory Filter.custom(bool Function(RecordSnapshot record) matches) =>
       SembastCustomFilter(matches);
 }

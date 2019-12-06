@@ -28,7 +28,7 @@ class CompositeFilter extends Filter {
       return false;
     }
 
-    for (Filter filter in filters) {
+    for (var filter in filters) {
       if (filter.match(record)) {
         if (isOr) {
           return true;
@@ -45,7 +45,7 @@ class CompositeFilter extends Filter {
 
   @override
   String toString() {
-    return filters.join(' ${isAnd ? "AND" : "OR"} ');
+    return filters.join(' ${isAnd ? 'AND' : 'OR'} ');
   }
 }
 
@@ -128,13 +128,13 @@ class FilterPredicate extends Filter {
         return _matches(fieldValue, value);
 
       default:
-        throw "${this} not supported";
+        throw '${this} not supported';
     }
   }
 
   @override
   String toString() {
-    return "${field} ${operation} ${value}";
+    return '${field} ${operation} ${value}';
   }
 }
 
@@ -154,42 +154,42 @@ class FilterOperation {
   static const FilterOperation inList = FilterOperation._(7);
   static const FilterOperation matches = FilterOperation._(8);
 
-  @Deprecated("Use equals instead")
+  @Deprecated('Use equals instead')
   static const FilterOperation EQUAL = equals;
-  @Deprecated("Use notEquals instead")
+  @Deprecated('Use notEquals instead')
   static const FilterOperation NOT_EQUAL = notEquals;
-  @Deprecated("Use lessThan instead")
+  @Deprecated('Use lessThan instead')
   static const FilterOperation LESS_THAN = lessThan;
-  @Deprecated("Use lessThanOrEquals instead")
+  @Deprecated('Use lessThanOrEquals instead')
   static const FilterOperation LESS_THAN_OR_EQUAL = lessThanOrEquals;
-  @Deprecated("Use greaterThan instead")
+  @Deprecated('Use greaterThan instead')
   static const FilterOperation GREATER_THAN = greaterThan;
-  @Deprecated("Use greaterThanOrEquals instead")
+  @Deprecated('Use greaterThanOrEquals instead')
   static const FilterOperation GREATER_THAN_OR_EQUAL = greaterThanOrEquals;
-  @Deprecated("Use inList instead")
+  @Deprecated('Use inList instead')
   static const FilterOperation IN = inList;
 
   @override
   String toString() {
     switch (this) {
       case FilterOperation.equals:
-        return "=";
+        return '=';
       case FilterOperation.notEquals:
-        return "!=";
+        return '!=';
       case FilterOperation.lessThan:
-        return "<";
+        return '<';
       case FilterOperation.lessThanOrEquals:
-        return "<=";
+        return '<=';
       case FilterOperation.greaterThan:
-        return ">";
+        return '>';
       case FilterOperation.greaterThanOrEquals:
-        return ">=";
+        return '>=';
       case FilterOperation.inList:
-        return "IN";
+        return 'IN';
       case FilterOperation.matches:
-        return "MATCHES";
+        return 'MATCHES';
       default:
-        throw "${this} not supported";
+        throw '${this} not supported';
     }
   }
 }
@@ -211,6 +211,6 @@ class ByKeyFilter extends Filter {
 
   @override
   String toString() {
-    return "${Field.key} = ${key}";
+    return '${Field.key} = ${key}';
   }
 }

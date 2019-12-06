@@ -50,7 +50,7 @@ Map<String, dynamic> getCodecDecodedSignature(
 void checkCodecEncodedSignature(SembastCodec codec, String encodedSignature) {
   var rawSignatureMap = getRawSignatureMap(codec);
   var decodedSignature = getCodecDecodedSignature(codec, encodedSignature);
-  bool matches = true;
+  var matches = true;
   if (rawSignatureMap == null) {
     if (encodedSignature != null) {
       matches = false;

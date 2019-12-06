@@ -31,7 +31,7 @@ class DatabaseFactoryMemory extends SembastDatabaseFactory
   //Database _defaultDatabase;
   // True when the database exists
   final _exists = <String, bool>{};
-  Map<String, SembastDatabase> _databases = {};
+  final _databases = <String, SembastDatabase>{};
 
   @override
   bool get hasStorage => false;

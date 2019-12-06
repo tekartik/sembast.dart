@@ -18,7 +18,7 @@ void defineTests(DatabaseTestContext ctx) {
       db = await setupForTest(ctx, 'exception/put_date_time.db');
       try {
         await StoreRef.main().add(db, DateTime.now());
-        fail("should fail");
+        fail('should fail');
       } on ArgumentError catch (_) {}
     });
   });

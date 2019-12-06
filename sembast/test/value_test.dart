@@ -81,11 +81,11 @@ void defineTests(DatabaseTestContext ctx) {
 
     test('String', () async {
       expect(await record.exists(db), isFalse);
-      await record.put(db, "hello");
+      await record.put(db, 'hello');
       Future _check() async {
         final value = await record.get(db) as String;
         expect(await record.exists(db), isTrue);
-        expect(value, "hello");
+        expect(value, 'hello');
       }
 
       await _check();
@@ -94,7 +94,7 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     test('Map', () async {
-      Map<String, dynamic> map = {
+      final map = <String, dynamic>{
         'int': 1234,
         'null': null,
         'double': 1234.5678,

@@ -8,12 +8,12 @@ import 'package:sembast/src/api/v2/sembast.dart' as v2;
 import 'package:sembast/src/store_impl.dart';
 import 'package:sembast/src/transaction_impl.dart';
 
-const String _dbVersion = "version";
-const String _exportSignatureKey = "sembast_export";
-const String _stores = "stores";
-const String _name = "name"; // for store
-const String _keys = "keys"; // list
-const String _values = "values"; // list
+const String _dbVersion = 'version';
+const String _exportSignatureKey = 'sembast_export';
+const String _stores = 'stores';
+const String _name = 'name'; // for store
+const String _keys = 'keys'; // list
+const String _values = 'values'; // list
 
 const int _exportSignatureVersion = 1;
 
@@ -29,7 +29,7 @@ Future<Map<String, dynamic>> exportDatabase(v2.Database db) {
       _dbVersion: db.version
     };
 
-    List<Map> storesExport = [];
+    final storesExport = <Map<String, dynamic>>[];
 
     // export all records from each store
 
@@ -37,10 +37,14 @@ Future<Map<String, dynamic>> exportDatabase(v2.Database db) {
     var sembastDatabase = (txn as SembastTransaction).database;
     var stores = List<SembastStore>.from(sembastDatabase.getCurrentStores());
     for (var store in stores) {
-      List keys = [];
-      List values = [];
+      final keys = [];
+      final values = [];
 
-      Map storeExport = {_name: store.store.name, _keys: keys, _values: values};
+      final storeExport = <String, dynamic>{
+        _name: store.store.name,
+        _keys: keys,
+        _values: values
+      };
 
       for (var record in store.currentRecords) {
         keys.add(record.key);
@@ -73,24 +77,24 @@ Future<Database> importDatabase(
     throw const FormatException('invalid export format');
   }
 
-  int version = srcData[_dbVersion] as int;
+  final version = srcData[_dbVersion] as int;
 
-  Database db = await dstFactory.openDatabase(dstPath,
+  final db = await dstFactory.openDatabase(dstPath,
       version: version, mode: DatabaseMode.empty);
 
   await db.transaction((txn) async {
-    List<Map> storesExport =
+    final storesExport =
         (srcData[_stores] as Iterable)?.toList(growable: false)?.cast<Map>();
     if (storesExport != null) {
-      for (Map storeExport in storesExport) {
-        String storeName = storeExport[_name] as String;
+      for (var storeExport in storesExport) {
+        final storeName = storeExport[_name] as String;
 
-        List keys = (storeExport[_keys] as Iterable)?.toList(growable: false);
-        List values =
+        final keys = (storeExport[_keys] as Iterable)?.toList(growable: false);
+        final values =
             (storeExport[_values] as Iterable)?.toList(growable: false);
 
         var store = txn.getStore(storeName);
-        for (int i = 0; i < keys.length; i++) {
+        for (var i = 0; i < keys.length; i++) {
           await store.put(values[i], keys[i]);
         }
       }

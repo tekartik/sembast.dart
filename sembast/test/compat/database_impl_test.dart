@@ -30,7 +30,7 @@ void defineTests(DatabaseTestContext ctx) {
       });
 
       test('open_then_open_no_version', () async {
-        SembastDatabase db =
+        final db =
             await factory.openDatabase(dbPath, version: 1) as SembastDatabase;
         return db.reOpen().then((Database db) {
           expect(db.path, dbPath);
@@ -52,10 +52,10 @@ void defineTests(DatabaseTestContext ctx) {
       });
 
       test('open_then_open_no_version_or_same_version', () async {
-        SembastDatabase db =
+        final db =
             await factory.openDatabase(dbPath, version: 1) as SembastDatabase;
         void _onVersionChanged(Database db, int oldVersion, int newVersion) {
-          fail("not changed");
+          fail('not changed');
         }
 
         return db
@@ -77,7 +77,7 @@ void defineTests(DatabaseTestContext ctx) {
       });
 
       test('open_then_open_new_version', () async {
-        SembastDatabase db =
+        final db =
             await factory.openDatabase(dbPath, version: 1) as SembastDatabase;
 // save to make sure we've been through
         int _oldVersion;
@@ -113,11 +113,10 @@ void defineTests(DatabaseTestContext ctx) {
       });
 
       test('export', () async {
-        SembastDatabase db =
-            await factory.openDatabase(dbPath) as SembastDatabase;
+        final db = await factory.openDatabase(dbPath) as SembastDatabase;
         expect(
             // ignore: deprecated_member_use
-            db.toJson()["exportStat"],
+            db.toJson()['exportStat'],
             // ignore: deprecated_member_use
             factory.hasStorage ? isNotNull : isNull);
       });

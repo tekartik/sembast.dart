@@ -28,8 +28,7 @@ void defineTests(DatabaseTestContext ctx) {
     group('no_db', () {
       test('immutable', () {
         //var store = StoreRef<dynamic, dynamic> store = db.mainStore;
-        ImmutableSembastRecord record =
-            ImmutableSembastRecord(mainStoreRef.record(1), 'hi');
+        final record = ImmutableSembastRecord(mainStoreRef.record(1), 'hi');
         expect(record.ref.store.name, '_main');
         expect(record.key, 1);
         expect(record.value, 'hi');
@@ -56,7 +55,7 @@ void defineTests(DatabaseTestContext ctx) {
       });
 
       test('immutable_value', () {
-        ImmutableSembastRecord record =
+        final record =
             ImmutableSembastRecord(mainStoreRef.record(1), {'foo': 'bar'});
         var map = record.value as Map;
         try {
@@ -67,7 +66,7 @@ void defineTests(DatabaseTestContext ctx) {
       });
 
       test('lazy muttable', () {
-        ImmutableSembastRecord record =
+        final record =
             ImmutableSembastRecord(mainStoreRef.record(1), {'foo': 'bar'});
         var lazy = makeLazyMutableRecord(null, record);
         expect(lazy.value, {'foo': 'bar'});

@@ -5,7 +5,6 @@ library sembast.compat.doc_test;
 import 'dart:async';
 
 import 'package:sembast/sembast.dart';
-import 'package:sembast/src/file_system.dart';
 import 'package:sembast/src/sembast_fs.dart';
 
 import '../encrypt_codec.dart';
@@ -35,7 +34,7 @@ void defineTests(DatabaseTestContext ctx) {
       {
         // Cast necessary to manipulate the key
         var key = await db.put({'offline': true}) as int;
-        Record record = await db.getRecord(key);
+        final record = await db.getRecord(key);
         // Cast necessary to manipulate the data
         var value = record.value as Map<String, dynamic>;
 
@@ -46,7 +45,7 @@ void defineTests(DatabaseTestContext ctx) {
 }
 
 void defineFileSystemTests(FileSystemTestContext ctx) {
-  FileSystem fs = ctx.fs;
+  final fs = ctx.fs;
   DatabaseFactory factory = DatabaseFactoryFs(fs);
   String dbPath;
 
@@ -66,7 +65,7 @@ void defineFileSystemTests(FileSystemTestContext ctx) {
         var codec = getEncryptSembastCodec(password: '[your_user_password]');
 
         // Open the database with the codec
-        Database db = await factory.openDatabase(dbPath, codec: codec);
+        final db = await factory.openDatabase(dbPath, codec: codec);
 
         // ...your database is ready to use as encrypted
 

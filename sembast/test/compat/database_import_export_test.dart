@@ -18,14 +18,13 @@ void defineTests(DatabaseTestContext ctx) {
     tearDown(() {});
 
     Future _checkExportImport(Database db, Map expectedExport) async {
-      Map<String, dynamic> export = await exportDatabase(db);
+      var export = await exportDatabase(db);
       expect(export, expectedExport);
       await db.close();
 
       // import and reexport to test content
-      String importDbPath = dbPathFromName('compat/import_export.db');
-      Database importedDb =
-          await importDatabase(export, ctx.factory, importDbPath);
+      final importDbPath = dbPathFromName('compat/import_export.db');
+      var importedDb = await importDatabase(export, ctx.factory, importDbPath);
       expect(await exportDatabase(importedDb), expectedExport);
 
       await importedDb.close();
@@ -44,16 +43,16 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     test('version_2', () async {
-      Database db = await ctx.open(
+      final db = await ctx.open(
           dbPathFromName('compat/import_export/version_2.db'),
           version: 2);
       await _checkExportImport(db, {'sembast_export': 1, 'version': 2});
     });
 
     test('1_string_record', () async {
-      Database db =
+      final db =
           await setupForTest(ctx, 'compat/import_export/1_string_record.db');
-      await db.put("hi", 1);
+      await db.put('hi', 1);
       await _checkExportImport(db, {
         'sembast_export': 1,
         'version': 1,
@@ -68,19 +67,19 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     test('1_deleted_record', () async {
-      Database db =
+      final db =
           await setupForTest(ctx, 'compat/import_export/1_deleted_record.db');
-      await db.delete(await db.put("hi", 1));
+      await db.delete(await db.put('hi', 1));
       // deleted record not exported
       await _checkExportImport(db, {'sembast_export': 1, 'version': 1});
     });
 
     test('1_record_in_2_stores', () async {
-      Database db = await setupForTest(
+      final db = await setupForTest(
           ctx, 'compat/import_export/1_record_in_2_stores.db');
       db.getStore('store1');
-      Store store2 = db.getStore('store2');
-      await store2.put("hi", 1);
+      final store2 = db.getStore('store2');
+      await store2.put('hi', 1);
       await _checkExportImport(db, {
         'sembast_export': 1,
         'version': 1,
@@ -95,10 +94,10 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     test('twice_same_record', () async {
-      Database db =
+      final db =
           await setupForTest(ctx, 'compat/import_export/twice_same_record.db');
-      await db.put("hi", 1);
-      await db.put("hi", 1);
+      await db.put('hi', 1);
+      await db.put('hi', 1);
       await _checkExportImport(db, {
         'sembast_export': 1,
         'version': 1,
@@ -113,7 +112,7 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     test('1_map_record', () async {
-      Database db =
+      final db =
           await setupForTest(ctx, 'compat/import_export/1_map_record.db');
 
       await db.put({'test': 2}, 1);

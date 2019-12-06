@@ -22,5 +22,6 @@ abstract class SembastDatabaseClient {
   SembastStore getSembastStore(StoreRef ref);
 
   /// Will create a transaction if needed
-  Future<T> inTransaction<T>(FutureOr<T> action(SembastTransaction txn));
+  Future<T> inTransaction<T>(
+      FutureOr<T> Function(SembastTransaction txn) action);
 }

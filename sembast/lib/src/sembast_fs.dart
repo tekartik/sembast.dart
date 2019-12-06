@@ -65,7 +65,7 @@ class _FsDatabaseStorage extends DatabaseStorage {
     }
   }
 
-  String get tmpPath => join(dirname(path), "~${basename(path)}");
+  String get tmpPath => join(dirname(path), '~${basename(path)}');
 
   @override
   DatabaseStorage get tmpStorage {
@@ -74,9 +74,9 @@ class _FsDatabaseStorage extends DatabaseStorage {
 
   @override
   Future<bool> tmpRecover() async {
-    bool isFile = await fs.isFile(tmpPath);
+    final isFile = await fs.isFile(tmpPath);
     if (logV) {
-      print("Recovering from ${tmpPath}");
+      print('Recovering from ${tmpPath}');
     }
 
     if (isFile) {
@@ -106,7 +106,7 @@ class _FsDatabaseStorage extends DatabaseStorage {
   @override
   Future appendLines(List<String> lines) {
     // devPrint('${file.path} lines $lines');
-    IOSink sink = file.openWrite(mode: FileMode.append);
+    final sink = file.openWrite(mode: FileMode.append);
 
     lines.forEach((String line) {
       sink.writeln(line);
@@ -117,7 +117,7 @@ class _FsDatabaseStorage extends DatabaseStorage {
 
   @override
   String toString() {
-    Map map = {"file": file.toString(), "fs": fs.toString()};
+    final map = <String, dynamic>{'file': file.toString(), 'fs': fs.toString()};
     if (isTmp == true) {
       map['tmp'] = true;
     }

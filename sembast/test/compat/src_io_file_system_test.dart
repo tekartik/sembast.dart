@@ -1,4 +1,4 @@
-@TestOn("vm")
+@TestOn('vm')
 library sembast.io_file_system_test;
 
 // basically same as the io runner but with extra output
@@ -21,20 +21,20 @@ void defineTests() {
     tearDown(() {});
 
     test('newFile', () {
-      final file = fileSystem.file("test") as FileIo;
-      expect(file.path, "test");
+      final file = fileSystem.file('test') as FileIo;
+      expect(file.path, 'test');
     });
 
     test('new Directory', () {
-      final dir = fileSystem.directory("test") as DirectoryIo;
-      expect(dir.path, "test");
+      final dir = fileSystem.directory('test') as DirectoryIo;
+      expect(dir.path, 'test');
     });
 
     test('file location', () async {
       var path = join('.dart_tool', 'sembast', 'test', 'file_system_io');
       final file = fileSystem.file(path);
       expect(file.path, path);
-      io.File ioFile = io.File(path);
+      final ioFile = io.File(path);
       if (await file.exists()) {
         await file.delete();
       }
@@ -50,8 +50,8 @@ void defineTests() {
     });
 
     test('isFile', () async {
-      expect(await fileSystem.isFile("test"), isFalse);
-      expect(await fileSystem.isDirectory("test"), isTrue);
+      expect(await fileSystem.isFile('test'), isFalse);
+      expect(await fileSystem.isDirectory('test'), isTrue);
     });
 
     // fs.defineTests(fileSystemContextIo);

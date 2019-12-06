@@ -26,9 +26,9 @@ void defineTests(DatabaseTestContext ctx, int putCount,
     });
 
     test('put/read $putCount', () async {
-      List<Future> futures = [];
-      for (int i = 0; i < putCount; i++) {
-        futures.add(db.put("value $i", i));
+      final futures = <Future>[];
+      for (var i = 0; i < putCount; i++) {
+        futures.add(db.put('value $i', i));
         // let it breathe
         //print(i);
         await Future.delayed(const Duration());
@@ -42,9 +42,9 @@ void defineTests(DatabaseTestContext ctx, int putCount,
 
     test('put/read in transaction $putCount', () {
       return db.transaction((txn) {
-        List<Future> futures = [];
-        for (int i = 0; i < putCount; i++) {
-          futures.add(txn.put("value $i", i));
+        final futures = <Future>[];
+        for (var i = 0; i < putCount; i++) {
+          futures.add(txn.put('value $i', i));
         }
         return Future.wait(futures);
       }).then((_) {
@@ -67,22 +67,22 @@ void defineTests(DatabaseTestContext ctx, int putCount,
     });
 
     test('random $randomCount', () async {
-      Random random = Random();
+      final random = Random();
 
-      for (int i = 0; i < randomCount; i++) {
-        int actionChoice = random.nextInt(5);
-        String store = "store ${random.nextInt(randomChoices)}";
-        int key = random.nextInt(randomChoices);
+      for (var i = 0; i < randomCount; i++) {
+        final actionChoice = random.nextInt(5);
+        final store = 'store ${random.nextInt(randomChoices)}';
+        final key = random.nextInt(randomChoices);
         switch (actionChoice) {
           // put
           case 0:
             // delete
-            //print("delete");
+            //print('delete');
             await db.getStore(store).delete(key);
             break;
           default:
-            //print("put");
-            await db.getStore(store).put("test", key);
+            //print('put');
+            await db.getStore(store).put('test', key);
             break;
         }
         // let it breathe

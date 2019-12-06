@@ -23,13 +23,13 @@ class SembastSortOrder implements SortOrder {
 
   /// Compare 2 record.
   int compare(RecordSnapshot record1, RecordSnapshot record2) {
-    int result = compareAscending(record1, record2);
+    final result = compareAscending(record1, record2);
     return ascending ? result : -result;
   }
 
   /// Compare a record to a boundary.
   int compareToBoundary(RecordSnapshot record, Boundary boundary, int index) {
-    int result = compareToBoundaryAscending(record, boundary, index);
+    final result = compareToBoundaryAscending(record, boundary, index);
     return ascending ? result : -result;
   }
 
@@ -85,8 +85,8 @@ class SembastSortOrder implements SortOrder {
     return 0;
   }
 
-  Map _toDebugMap() {
-    Map map = {field: ascending ? "asc" : "desc"};
+  Map<String, dynamic> _toDebugMap() {
+    final map = <String, dynamic>{field: ascending ? 'asc' : 'desc'};
     if (nullLast == true) {
       map['nullLast'] = true;
     }

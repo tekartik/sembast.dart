@@ -55,7 +55,8 @@ class SembastStore implements Store {
   SembastTransaction get currentTransaction => database.currentTransaction;
 
   /// Execute in a transaction.
-  Future<T> transaction<T>(FutureOr<T> action(Transaction transaction)) =>
+  Future<T> transaction<T>(
+          FutureOr<T> Function(Transaction transaction) action) =>
       database.transaction(action);
 
   // return the key
@@ -130,7 +131,7 @@ class SembastStore implements Store {
 
     record = txnPutRecordSync(txn, record);
     if (database.logV) {
-      print("${txn} put ${record}");
+      print('${txn} put ${record}');
     }
     return record.value;
   }
@@ -138,8 +139,8 @@ class SembastStore implements Store {
   /// Returns the list of values
   Future<List> txnPutAll(SembastTransaction txn, List values, List keys,
       {bool merge}) async {
-    List resultValues = [];
-    for (int i = 0; i < values.length; i++) {
+    final resultValues = [];
+    for (var i = 0; i < values.length; i++) {
       resultValues.add(await txnPut(txn, values[i], keys[i], merge: merge));
     }
     return resultValues;
@@ -147,8 +148,8 @@ class SembastStore implements Store {
 
   /// Returns the list of keys
   Future<List> txnAddAll(SembastTransaction txn, List values, List keys) async {
-    List resultKeys = [];
-    for (int i = 0; i < values.length; i++) {
+    final resultKeys = [];
+    for (var i = 0; i < values.length; i++) {
       resultKeys.add(await txnAdd(txn, values[i], keys[i]));
     }
     return resultKeys;
@@ -171,7 +172,7 @@ class SembastStore implements Store {
 
     txnPutRecordSync(txn, record);
     if (database.logV) {
-      print("${txn} update ${record}");
+      print('${txn} update ${record}');
     }
     return record.value;
   }
@@ -181,7 +182,7 @@ class SembastStore implements Store {
   ///
   @override
   Stream<Record> get records {
-    StreamController<Record> ctlr = StreamController();
+    final ctlr = StreamController<Record>();
     // asynchronous feeding
     _feedController(null, ctlr).then((_) {
       ctlr.close();
@@ -201,7 +202,7 @@ class SembastStore implements Store {
   /// stream all the records
   ///
   Stream<Record> txnGetRecordsStream(SembastTransaction transaction) {
-    StreamController<Record> ctlr = StreamController();
+    final ctlr = StreamController<Record>();
     _feedController(transaction, ctlr).then((_) {
       ctlr.close();
     });
@@ -246,7 +247,7 @@ class SembastStore implements Store {
 
   /// Cancel if false is returned
   Future forEachRecords(SembastTransaction txn, Filter filter,
-      bool action(ImmutableSembastRecord record)) async {
+      bool Function(ImmutableSembastRecord record) action) async {
     bool _filterMatchRecord(Filter filter, Record record) {
       if (filter is SembastFilterBase) {
         if (record.deleted) {
@@ -332,8 +333,8 @@ class SembastStore implements Store {
   /// Filter start boundary.
   Future<List<ImmutableSembastRecord>> filterStart(
       SembastFinder finder, List<ImmutableSembastRecord> results) async {
-    int startIndex = 0;
-    for (int i = 0; i < results.length; i++) {
+    var startIndex = 0;
+    for (var i = 0; i < results.length; i++) {
       if (needCooperate) {
         await cooperate();
       }
@@ -351,8 +352,8 @@ class SembastStore implements Store {
   /// Filter end boundary.
   Future<List<ImmutableSembastRecord>> filterEnd(
       SembastFinder finder, List<ImmutableSembastRecord> results) async {
-    int endIndex = 0;
-    for (int i = results.length - 1; i >= 0; i--) {
+    var endIndex = 0;
+    for (var i = results.length - 1; i >= 0; i--) {
       if (needCooperate) {
         await cooperate();
       }
@@ -380,8 +381,7 @@ class SembastStore implements Store {
   /// Find records in a transaction.
   Future<List<ImmutableSembastRecord>> txnFindRecords(
       SembastTransaction txn, Finder finder) async {
-    List<ImmutableSembastRecord> results = [];
-
+    var results = <ImmutableSembastRecord>[];
     var sembastFinder = finder as SembastFinder;
 
     await forEachRecords(txn, sembastFinder?.filter, (record) {
@@ -451,7 +451,7 @@ class SembastStore implements Store {
   ///
   bool setRecordInMemory(ImmutableSembastRecord record) {
     //SembastStore store = record.store as SembastStore;
-    bool exists = recordMap[record.key] != null;
+    final exists = recordMap[record.key] != null;
     if (record.deleted) {
       recordMap.remove(record.key);
     } else {
@@ -501,7 +501,7 @@ class SembastStore implements Store {
       // update last int key in case auto gen is needed again
       var recordKey = sembastRecord.key;
       if (recordKey is int) {
-        int intKey = recordKey;
+        final intKey = recordKey;
         if (intKey > lastIntKey) {
           lastIntKey = intKey;
         }
@@ -509,9 +509,8 @@ class SembastStore implements Store {
     }
     // add to store transaction
     checkTransaction(txn);
-    if (txnRecords == null) {
-      txnRecords = <dynamic, TxnRecord>{};
-    }
+    txnRecords ??= <dynamic, TxnRecord>{};
+
     txnRecords[sembastRecord.key] = TxnRecord(this, sembastRecord);
     return sembastRecord;
   }
@@ -525,11 +524,10 @@ class SembastStore implements Store {
       record = txnRecords[key]?.record;
     }
 
-    if (record == null) {
-      record = recordMap[key];
-    }
+    record ??= recordMap[key];
+
     if (database.logV) {
-      print("${database.currentTransaction} get ${record} key ${key}");
+      print('${database.currentTransaction} get ${record} key ${key}');
     }
     return record;
   }
@@ -605,7 +603,7 @@ class SembastStore implements Store {
   /// Return records ignoring non found ones and deleted
   Future<List<ImmutableSembastRecord>> txnGetRecordsCompat(
       SembastTransaction txn, Iterable keys) async {
-    List<ImmutableSembastRecord> records = [];
+    final records = <ImmutableSembastRecord>[];
 
     for (var key in keys) {
       var record = _getRecord(txn, key);
@@ -628,7 +626,7 @@ class SembastStore implements Store {
   /// Return records, not found and delete as null
   Future<List<RecordSnapshot<K, V>>> txnGetRecordSnapshots<K, V>(
       SembastTransaction txn, RecordsRef<K, V> refs) async {
-    List<RecordSnapshot<K, V>> snapshots = [];
+    final snapshots = <RecordSnapshot<K, V>>[];
 
     for (var key in refs.keys) {
       var immutable = _getRecord(txn, key);
@@ -668,7 +666,7 @@ class SembastStore implements Store {
 
   /// Count records in a transaction.
   Future<int> txnCount(SembastTransaction txn, Filter filter) async {
-    int count = 0;
+    var count = 0;
     await forEachRecords(txn, filter, (record) {
       count++;
       return true;
@@ -710,8 +708,8 @@ class SembastStore implements Store {
 
   /// Delete multiple records in a transaction.
   Future<List> txnDeleteAll(SembastTransaction txn, Iterable keys) async {
-    List<Record> updates = [];
-    List deletedKeys = [];
+    final updates = <Record>[];
+    final deletedKeys = [];
 
     // make it safe in a async way
     keys = List.from(keys, growable: false);
@@ -738,8 +736,8 @@ class SembastStore implements Store {
   /// Update records in a transaction.
   Future<List> txnUpdateAll(
       SembastTransaction txn, List values, List keys) async {
-    List resultValues = [];
-    for (int i = 0; i < values.length; i++) {
+    final resultValues = [];
+    for (var i = 0; i < values.length; i++) {
       resultValues.add(await txnUpdate(txn, values[i], keys[i]));
     }
     return resultValues;
@@ -774,20 +772,20 @@ class SembastStore implements Store {
   ///
   /// debug json
   ///
-  Map toJson() {
-    Map map = {};
+  Map<String, dynamic> toJson() {
+    var map = <String, dynamic>{};
     if (name != null) {
-      map["name"] = name;
+      map['name'] = name;
     }
     if (recordMap != null) {
-      map["count"] = recordMap.length;
+      map['count'] = recordMap.length;
     }
     return map;
   }
 
   @override
   String toString() {
-    return "${name}";
+    return '${name}';
   }
 
   ///
@@ -810,7 +808,7 @@ class SembastStore implements Store {
         deletedKeys.addAll(await txnDeleteAll(
             txn, List.from(txnRecords.keys, growable: false)));
       }
-      Iterable keys = recordMap.keys;
+      final keys = recordMap.keys;
       deletedKeys
           .addAll(await txnDeleteAll(txn, List.from(keys, growable: false)));
       return deletedKeys;

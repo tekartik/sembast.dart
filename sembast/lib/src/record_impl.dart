@@ -87,7 +87,7 @@ mixin SembastRecordMixin implements Record, SembastRecordValue {
 
   set deleted(bool deleted) => _deleted = deleted;
 
-  set value(value) => this.rawValue = sanitizeValue(value);
+  set value(value) => rawValue = sanitizeValue(value);
 }
 
 /// Record that can modified although not cloned right away
@@ -170,11 +170,11 @@ class ImmutableSembastRecord
 
   /// Record from row map.
   ImmutableSembastRecord.fromDatabaseRowMap(Database db, Map map) {
-    String storeName = map[dbStoreNameKey] as String;
-    StoreRef<dynamic, dynamic> storeRef = storeName == null
+    final storeName = map[dbStoreNameKey] as String;
+    final storeRef = storeName == null
         ? mainStoreRef
         : StoreRef<dynamic, dynamic>(storeName);
-    this.ref = storeRef.record(map[dbRecordKey]);
+    ref = storeRef.record(map[dbRecordKey]);
     super.value = sanitizeValue(map[dbRecordValueKey]);
     _deleted = map[dbRecordDeletedKey] == true;
   }
@@ -188,7 +188,7 @@ class ImmutableSembastRecord
       {bool deleted}) {
     this.ref = ref;
     super.value = value;
-    this._deleted = deleted;
+    _deleted = deleted;
   }
 
   @override
@@ -308,7 +308,7 @@ class SembastRecord
     this.value = value;
     // The key could be null in the compat layer so we don't use
     // store.record that will throw an exception
-    this.ref = SembastRecordRef(store?.ref ?? mainStoreRef, key);
+    ref = SembastRecordRef(store?.ref ?? mainStoreRef, key);
   }
 }
 

@@ -12,7 +12,7 @@ void main() {
 }
 
 void defineTests(DatabaseTestContext ctx) {
-  DatabaseFactory factory = ctx.factory;
+  final factory = ctx.factory;
   String dbPath;
 
   group('database', () {
@@ -39,7 +39,7 @@ void defineTests(DatabaseTestContext ctx) {
       test('open_existing_no_version', () async {
         try {
           await factory.openDatabase(dbPath, mode: DatabaseMode.existing);
-          fail("should fail");
+          fail('should fail');
         } on DatabaseException catch (e) {
           expect(e.code, DatabaseException.errDatabaseNotFound);
         }

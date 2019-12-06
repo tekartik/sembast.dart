@@ -95,14 +95,14 @@ void defineTests(DatabaseTestContext ctx) {
     test('onSnapshot', () async {
       var store = StoreRef<int, String>.main();
       var record = store.record(1);
-      int index = 0;
+      var index = 0;
       var completer = Completer();
 
       // When starting listening the record does not exists yet
       var sub = record.onSnapshot(db).listen((snapshot) {
         //return;
-        int key = snapshot?.key;
-        String value = snapshot?.value;
+        final key = snapshot?.key;
+        final value = snapshot?.value;
 
         if (index == 0) {
           expect(snapshot, isNull);

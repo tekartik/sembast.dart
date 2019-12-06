@@ -15,7 +15,7 @@ FileSystemMemory get memoryFileSystem => _fs;
 
 /// In memory file system.
 class FileSystemMemory implements fs.FileSystem {
-  FileSystemMemoryImpl _impl = FileSystemMemoryImpl();
+  final _impl = FileSystemMemoryImpl();
 
   /// In memory file system.
   FileSystemMemory();
@@ -45,7 +45,7 @@ class FileSystemMemory implements fs.FileSystem {
   @override
   Future<fs.FileSystemEntityType> type(String path,
       {bool followLinks = true}) async {
-    FileSystemEntityMemoryImpl entityImpl = _impl.getEntity(path);
+    final entityImpl = _impl.getEntity(path);
     if (entityImpl != null) {
       return entityImpl.type;
     }
@@ -60,7 +60,7 @@ class FileSystemMemory implements fs.FileSystem {
   FileMemory get scriptFile => null;
 
   @override
-  String toString() => "memory";
+  String toString() => 'memory';
 }
 
 /// In memory file entity.
@@ -71,7 +71,7 @@ abstract class FileSystemEntityMemory implements fs.FileSystemEntity {
   /// In memory file entity.
   FileSystemEntityMemory(this.path) {
     if (path == null) {
-      throw ArgumentError.notNull("path");
+      throw ArgumentError.notNull('path');
     }
   }
 
@@ -105,7 +105,7 @@ class DirectoryMemory extends FileSystemEntityMemory implements fs.Directory {
 
   @override
   Future<fs.FileSystemEntity> rename(String newPath) async {
-    FileSystemEntityMemoryImpl renamed = _fs._impl.rename(path, newPath);
+    final renamed = _fs._impl.rename(path, newPath);
     return DirectoryMemory(renamed.path);
   }
 }
@@ -136,7 +136,7 @@ class FileMemory extends FileSystemEntityMemory implements fs.File {
 
   @override
   Future<fs.File> rename(String newPath) async {
-    FileSystemEntityMemoryImpl renamed = _fs._impl.rename(path, newPath);
+    final renamed = _fs._impl.rename(path, newPath);
     return FileMemory(renamed.path);
   }
 }

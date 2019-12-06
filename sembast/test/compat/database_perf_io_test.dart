@@ -1,4 +1,4 @@
-@TestOn("vm")
+@TestOn('vm')
 library sembast.database_perf_io_test;
 
 // ignore_for_file: deprecated_member_use_from_same_package
@@ -19,9 +19,9 @@ void main() {
         bool inTransaction}) async {
       inTransaction ??= transactionCount != null && transactionCount > 0;
       transactionCount ??= inTransaction ? 1 : 0;
-      String _record = bigRecord == true
+      final _record = bigRecord == true
           ? List.generate(3000, (i) => '$i').join('')
-          : "'some value";
+          : 'some value';
       recordSize = _record.length;
 
       var dbPath = join('.dart_tool', 'sembast', 'test',
@@ -37,15 +37,15 @@ void main() {
         sw.start();
 
         Future _do(StoreExecutor executor, int recordCount, int times) async {
-          for (int j = 0; j < times; j++) {
-            for (int i = 0; i < recordCount; i++) {
+          for (var j = 0; j < times; j++) {
+            for (var i = 0; i < recordCount; i++) {
               await executor.put(_record, i);
             }
           }
         }
 
         if (inTransaction == true) {
-          for (int k = 0; k < transactionCount; k++) {
+          for (var k = 0; k < transactionCount; k++) {
             await db.transaction((Transaction txn) async {
               await _do(txn, recordCount, times);
             });
@@ -54,7 +54,7 @@ void main() {
           await _do(db, recordCount, times);
         }
         sw.stop();
-        List<String> rows = [
+        final rows = <String>[
           '$recordCount', '$times',
           inTransaction == true ? '$transactionCount' : ' ',
           // bigRecord == true ? 'BIG': ' ',

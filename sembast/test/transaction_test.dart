@@ -24,11 +24,11 @@ void defineTests(DatabaseTestContext ctx) {
     test('put/get', () async {
       var store = StoreRef<int, String>.main();
       var record = store.record(1);
-      var putFuture = record.put(db, "hi");
+      var putFuture = record.put(db, 'hi');
       // It is still null, put has not complete yet!
       expect(await record.get(db), isNull);
       await putFuture;
-      expect(await record.get(db), "hi");
+      expect(await record.get(db), 'hi');
     });
 
     test('put/clear/get in transaction', () async {
@@ -36,7 +36,7 @@ void defineTests(DatabaseTestContext ctx) {
       var record = store.record(1);
 
       await db.transaction((txn) async {
-        await record.put(txn, "hi");
+        await record.put(txn, 'hi');
         await store.delete(txn);
         expect(await record.get(db), isNull);
       });
@@ -45,16 +45,15 @@ void defineTests(DatabaseTestContext ctx) {
     test('put in transaction', () async {
       var store = StoreRef<int, String>.main();
       var record = store.record(1);
-
-      List<Future> futures = [];
+      final futures = <Future>[];
       futures.add(db.transaction((txn) async {
         await record.put(txn, 'hi');
-        expect(await record.get(txn), "hi");
+        expect(await record.get(txn), 'hi');
       }));
 
       // here we are in a transaction so it will wait for the other to finish
       futures.add(db.transaction((txn) async {
-        expect(await record.get(txn), "hi");
+        expect(await record.get(txn), 'hi');
       }));
 
       // here the value should not be loaded yet
@@ -66,7 +65,7 @@ void defineTests(DatabaseTestContext ctx) {
       var store = StoreRef<int, String>.main();
       var record = store.record(1);
 
-      List<Future> futures = [];
+      final futures = <Future>[];
       var completer1 = Completer();
       var completer2 = Completer();
       futures.add(db.transaction((txn) async {
@@ -75,7 +74,7 @@ void defineTests(DatabaseTestContext ctx) {
         await record.put(txn, 'hi');
         completer1.complete();
 
-        expect(await record.get(txn), "hi");
+        expect(await record.get(txn), 'hi');
 
         var records = await store.find(txn);
         expect(records.length, 1);
@@ -107,7 +106,7 @@ void defineTests(DatabaseTestContext ctx) {
 
       // here we are in a transaction so it will wait for the other to finish
       futures.add(db.transaction((txn) async {
-        expect(await record.get(txn), "hi");
+        expect(await record.get(txn), 'hi');
       }));
 
       completer2.complete();
@@ -120,12 +119,12 @@ void defineTests(DatabaseTestContext ctx) {
       var record = store.record(1);
 
       await db.transaction((Transaction txn) async {
-        await record.put(txn, "hi");
-        expect(await record.get(txn), "hi");
+        await record.put(txn, 'hi');
+        expect(await record.get(txn), 'hi');
 
-        throw "some failure";
+        throw 'some failure';
       }).catchError((err) {
-        expect(err, "some failure");
+        expect(err, 'some failure');
       });
       expect(await record.get(db), isNull);
 

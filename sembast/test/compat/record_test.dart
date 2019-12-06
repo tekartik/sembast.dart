@@ -22,36 +22,36 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     test('field', () {
-      expect(Field.key, "_key");
-      expect(Field.value, "_value");
+      expect(Field.key, '_key');
+      expect(Field.value, '_value');
     });
 
     test('properties', () {
-      Store store = db.mainStore;
-      Record record = Record(store, "hi", 1);
+      final store = db.mainStore;
+      var record = Record(store, 'hi', 1);
       expect(record.store, store);
       expect(record.key, 1);
-      expect(record.value, "hi");
-      expect(record[Field.value], "hi");
+      expect(record.value, 'hi');
+      expect(record[Field.value], 'hi');
       expect(record[Field.key], 1);
 
-      record = Record(store, {"text": "hi", "int": 1, "bool": true}, "mykey");
+      record = Record(store, {'text': 'hi', 'int': 1, 'bool': true}, 'mykey');
 
       expect(record.store, store);
-      expect(record.key, "mykey");
-      expect(record.value, {"text": "hi", "int": 1, "bool": true});
+      expect(record.key, 'mykey');
+      expect(record.value, {'text': 'hi', 'int': 1, 'bool': true});
       expect(record[Field.value], record.value);
       expect(record[Field.key], record.key);
-      expect(record["text"], "hi");
-      expect(record["int"], 1);
-      expect(record["bool"], true);
+      expect(record['text'], 'hi');
+      expect(record['int'], 1);
+      expect(record['bool'], true);
 
-      record["bool"] = false;
-      expect(record["bool"], isFalse);
-      record[Field.key] = "newkey";
-      record[Field.value] = "newvalue";
-      expect(record.key, "newkey");
-      expect(record.value, "newvalue");
+      record['bool'] = false;
+      expect(record['bool'], isFalse);
+      record[Field.key] = 'newkey';
+      record[Field.value] = 'newvalue';
+      expect(record.key, 'newkey');
+      expect(record.value, 'newvalue');
       record['test'] = 1;
       expect(record.value, {'test': 1});
       expect(record['path.sub'], isNull);
@@ -64,26 +64,26 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     test('update', () async {
-      var record = Record(null, {"name": 'name1', 'test': 'test1'});
+      var record = Record(null, {'name': 'name1', 'test': 'test1'});
       record = await db.putRecord(record);
       var key = record.key;
       record = await db.getRecord(key);
       record['test'] = 'test2';
       await db.putRecord(record);
       expect((await db.getRecord(record.key)).value,
-          {"name": 'name1', 'test': 'test2'});
+          {'name': 'name1', 'test': 'test2'});
 
       await db.transaction((txn) async {
         record = await txn.getRecord(key);
         record['test'] = 'test2';
         await txn.putRecord(record);
         expect((await txn.getRecord(record.key)).value,
-            {"name": 'name1', 'test': 'test2'});
+            {'name': 'name1', 'test': 'test2'});
       });
     });
     test('put database', () async {
-      Record record = Record(null, "hi");
-      Record inserted = await db.putRecord(record);
+      final record = Record(null, 'hi');
+      final inserted = await db.putRecord(record);
       expect(record.store, isNull);
       expect(record.key, isNull);
       expect(inserted.key, 1);
@@ -92,7 +92,7 @@ void defineTests(DatabaseTestContext ctx) {
 
     test('put store', () async {
       var store = db.getStore('store');
-      var record = Record(store, "hi");
+      var record = Record(store, 'hi');
       record = await db.putRecord(record);
       expect(record.store, store);
       expect(record.key, 1);
@@ -123,8 +123,8 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     test('put multi database', () async {
-      Record record = Record(null, "hi");
-      Record inserted = (await db.putRecords([record])).first;
+      final record = Record(null, 'hi');
+      final inserted = (await db.putRecords([record])).first;
       expect(record.store, isNull);
       expect(record.key, isNull);
       expect(inserted.key, 1);
@@ -133,8 +133,8 @@ void defineTests(DatabaseTestContext ctx) {
 
     test('put transaction', () async {
       await db.transaction((txn) async {
-        Record record = Record(null, "hi");
-        Record inserted = await txn.putRecord(record);
+        final record = Record(null, 'hi');
+        final inserted = await txn.putRecord(record);
         expect(record.store, isNull);
         expect(record.key, isNull);
         expect(inserted.key, 1);
@@ -145,8 +145,8 @@ void defineTests(DatabaseTestContext ctx) {
 
     test('put multi transaction', () async {
       await db.transaction((txn) async {
-        Record record = Record(null, "hi");
-        Record inserted = (await txn.putRecords([record])).first;
+        final record = Record(null, 'hi');
+        final inserted = (await txn.putRecords([record])).first;
         expect(record.store, isNull);
         expect(record.key, isNull);
         expect(inserted.key, 1);
@@ -156,10 +156,10 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     test('put/delete multiple', () {
-      Store store = db.mainStore;
-      Record record1 = Record(store, "hi", 1);
-      Record record2 = Record(store, "ho", 2);
-      Record record3 = Record(store, "ha", 3);
+      final store = db.mainStore;
+      final record1 = Record(store, 'hi', 1);
+      final record2 = Record(store, 'ho', 2);
+      final record3 = Record(store, 'ha', 3);
       return db.putRecords([record1, record2, record3]).then(
           (List<Record> inserted) {
         expect(inserted.length, 3);
@@ -182,24 +182,24 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     test('put/get/delete', () {
-      Store store = db.mainStore;
-      Record record = Record(store, "hi");
+      final store = db.mainStore;
+      final record = Record(store, 'hi');
       return db.putRecord(record).then((Record insertedRecord) {
         expect(record.key, null);
         expect(insertedRecord.key, 1);
-        expect(insertedRecord.value, "hi");
+        expect(insertedRecord.value, 'hi');
         expect(insertedRecord.deleted, false);
         expect(insertedRecord.store, store);
         return store.getRecord(insertedRecord.key).then((Record record) {
           expect(record.key, 1);
-          expect(record.value, "hi");
+          expect(record.value, 'hi');
           expect(record.deleted, false);
           expect(record.store, store);
 
           return store.delete(record.key).then((_) {
             // must not have changed
             expect(record.key, 1);
-            expect(record.value, "hi");
+            expect(record.value, 'hi');
             expect(record.deleted, false);
             expect(record.store, store);
           });

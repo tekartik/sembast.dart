@@ -1,4 +1,4 @@
-@TestOn("vm")
+@TestOn('vm')
 library sembast.test.io_factory_test_;
 
 import 'all_test.dart';

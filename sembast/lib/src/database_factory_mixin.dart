@@ -69,7 +69,7 @@ class DatabaseOpenHelper {
   /// Open the database.
   Future<Database> openDatabase() {
     return lock.synchronized(() async {
-      if (this.database == null) {
+      if (database == null) {
         final database = newDatabase(path);
         // Affect before open to properly clean
         this.database = database;
@@ -81,7 +81,7 @@ class DatabaseOpenHelper {
 
       // Force helper again in case it was removed by lockedClose
       factory.setDatabaseOpenHelper(path, this);
-      return this.database;
+      return database;
     });
   }
 
@@ -115,8 +115,7 @@ abstract class SembastDatabaseFactory implements DatabaseFactory {
 
 mixin DatabaseFactoryMixin implements SembastDatabaseFactory {
   // for single instances only
-  Map<String, DatabaseOpenHelper> _databaseOpenHelpers =
-      <String, DatabaseOpenHelper>{};
+  final _databaseOpenHelpers = <String, DatabaseOpenHelper>{};
 
   Future<Database> openDatabaseWithOptions(
       String path, DatabaseOpenOptions options) {

@@ -34,13 +34,13 @@ class Sort {
   ///
   /// The function's behavior must be consistent. It must not return different
   /// results for the same values.
-  Future sort<E>(List<E> a, int compare(E a, E b)) {
+  Future sort<E>(List<E> a, int Function(E a, E b) compare) {
     return _doSort(a, 0, a.length - 1, compare);
   }
 
   /// Sorts the list in the interval [:left:] to [:right:] (both inclusive).
   Future _doSort<E>(
-      List<E> a, int left, int right, int compare(E a, E b)) async {
+      List<E> a, int left, int right, int Function(E a, E b) compare) async {
     if ((right - left) <= _INSERTION_SORT_THRESHOLD) {
       return _insertionSort(a, left, right, compare);
     } else {
@@ -49,10 +49,10 @@ class Sort {
   }
 
   Future _insertionSort<E>(
-      List<E> a, int left, int right, int compare(E a, E b)) async {
-    for (int i = left + 1; i <= right; i++) {
+      List<E> a, int left, int right, int Function(E a, E b) compare) async {
+    for (var i = left + 1; i <= right; i++) {
       var el = a[i];
-      int j = i;
+      var j = i;
       while ((j > left) && (compare(a[j - 1], el) > 0)) {
         if (cooperator.needCooperate) {
           await cooperator.cooperate();
@@ -65,16 +65,16 @@ class Sort {
   }
 
   Future _dualPivotQuicksort<E>(
-      List<E> a, int left, int right, int compare(E a, E b)) async {
+      List<E> a, int left, int right, int Function(E a, E b) compare) async {
     assert(right - left > _INSERTION_SORT_THRESHOLD);
 
     // Compute the two pivots by looking at 5 elements.
-    int sixth = (right - left + 1) ~/ 6;
-    int index1 = left + sixth;
-    int index5 = right - sixth;
-    int index3 = (left + right) ~/ 2; // The midpoint.
-    int index2 = index3 - sixth;
-    int index4 = index3 + sixth;
+    final sixth = (right - left + 1) ~/ 6;
+    final index1 = left + sixth;
+    final index5 = right - sixth;
+    final index3 = (left + right) ~/ 2; // The midpoint.
+    final index2 = index3 - sixth;
+    final index4 = index3 + sixth;
 
     var el1 = a[index1];
     var el2 = a[index2];
@@ -141,10 +141,10 @@ class Sort {
     a[index2] = a[left];
     a[index4] = a[right];
 
-    int less = left + 1; // First element in the middle partition.
-    int great = right - 1; // Last element in the middle partition.
+    var less = left + 1; // First element in the middle partition.
+    var great = right - 1; // Last element in the middle partition.
 
-    bool pivots_are_equal = (compare(pivot1, pivot2) == 0);
+    var pivots_are_equal = (compare(pivot1, pivot2) == 0);
     if (pivots_are_equal) {
       var pivot = pivot1;
       // Degenerated case where the partitioning becomes a Dutch national flag
@@ -161,9 +161,9 @@ class Sort {
       //   1) for x in ]left, less[ : x < pivot.
       //   2) for x in [less, k[ : x == pivot.
       //   3) for x in ]great, right[ : x > pivot.
-      for (int k = less; k <= great; k++) {
+      for (var k = less; k <= great; k++) {
         var ak = a[k];
-        int comp = compare(ak, pivot);
+        var comp = compare(ak, pivot);
         if (cooperator.needCooperate) {
           await cooperator.cooperate();
         }
@@ -231,9 +231,9 @@ class Sort {
       //   1. for x in ]left, less[ : x < pivot1
       //   2. for x in [less, k[ : pivot1 <= x && x <= pivot2
       //   3. for x in ]great, right[ : x > pivot2
-      for (int k = less; k <= great; k++) {
+      for (var k = less; k <= great; k++) {
         var ak = a[k];
-        int comp_pivot1 = compare(ak, pivot1);
+        var comp_pivot1 = compare(ak, pivot1);
         if (cooperator.needCooperate) {
           await cooperator.cooperate();
         }
@@ -245,13 +245,13 @@ class Sort {
           }
           less++;
         } else {
-          int comp_pivot2 = compare(ak, pivot2);
+          var comp_pivot2 = compare(ak, pivot2);
           if (cooperator.needCooperate) {
             await cooperator.cooperate();
           }
           if (comp_pivot2 > 0) {
             while (true) {
-              int comp = compare(a[great], pivot2);
+              var comp = compare(a[great], pivot2);
               if (cooperator.needCooperate) {
                 await cooperator.cooperate();
               }
@@ -346,9 +346,9 @@ class Sort {
       //   1. for x in [ *, less[ : x == pivot1
       //   2. for x in [less, k[ : pivot1 < x && x < pivot2
       //   3. for x in ]great, * ] : x == pivot2
-      for (int k = less; k <= great; k++) {
+      for (var k = less; k <= great; k++) {
         var ak = a[k];
-        int comp_pivot1 = compare(ak, pivot1);
+        var comp_pivot1 = compare(ak, pivot1);
         if (cooperator.needCooperate) {
           await cooperator.cooperate();
         }
@@ -360,10 +360,10 @@ class Sort {
           }
           less++;
         } else {
-          int comp_pivot2 = compare(ak, pivot2);
+          var comp_pivot2 = compare(ak, pivot2);
           if (comp_pivot2 == 0) {
             while (true) {
-              int comp = compare(a[great], pivot2);
+              var comp = compare(a[great], pivot2);
               if (cooperator.needCooperate) {
                 await cooperator.cooperate();
               }

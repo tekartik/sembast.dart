@@ -7,15 +7,14 @@ import 'test_common.dart';
 void main() {
   group('utils', () {
     test('sanitize_map', () {
-      var map = <dynamic, dynamic>{"test": 1};
+      var map = <dynamic, dynamic>{'test': 1};
       final sanitizedMap = sanitizeValue(map);
       expect(sanitizedMap, map);
     });
 
     test('sanitize_input_map', () {
-      var map = <dynamic, dynamic>{"test": 1};
-      Map<String, dynamic> sanitizedMap =
-          sanitizeInputValue<Map<String, dynamic>>(map);
+      var map = <dynamic, dynamic>{'test': 1};
+      final sanitizedMap = sanitizeInputValue<Map<String, dynamic>>(map);
       sanitizeInputValue<Map<String, Object>>(map);
       expect(sanitizedMap, map);
       try {
@@ -30,7 +29,7 @@ void main() {
 
     test('sanitize_input_list', () {
       var list = <dynamic>[1];
-      List sanitizedList = sanitizeInputValue<List<dynamic>>(list);
+      final sanitizedList = sanitizeInputValue<List<dynamic>>(list);
       sanitizeInputValue<List<Object>>(list);
       expect(sanitizedList, list);
       try {
@@ -94,7 +93,7 @@ void main() {
           isTrue);
       expect(checkValue(DateTime.now()), isFalse);
       expect(checkValue([DateTime.now()]), isFalse);
-      expect(checkValue({"test": DateTime.now()}), isFalse);
+      expect(checkValue({'test': DateTime.now()}), isFalse);
       expect(checkValue({1: 2}), isFalse);
       expect(checkValue({'test.with.dot': 1}), isFalse);
     });
@@ -153,8 +152,8 @@ void main() {
       expect(mergeValue(null, 1), 1);
       expect(mergeValue(1, null), 1);
       expect(mergeValue({'t': 1}, null), {'t': 1});
-      expect(mergeValue({'t': 1}, "2"), "2");
-      expect(mergeValue("2", {'t': 1}), {'t': 1});
+      expect(mergeValue({'t': 1}, '2'), '2');
+      expect(mergeValue('2', {'t': 1}), {'t': 1});
 
       expect(mergeValue({'t': 1}, {'t': 2}), {'t': 2});
       expect(mergeValue({'t': 1}, {'u': 2}), {'t': 1, 'u': 2});

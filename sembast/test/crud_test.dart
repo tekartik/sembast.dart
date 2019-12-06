@@ -25,7 +25,7 @@ void defineTests(DatabaseTestContext ctx) {
 
     test('put', () async {
       final store = StoreRef<int, String>.main();
-      expect(await store.record(1).put(db, "hi"), 'hi');
+      expect(await store.record(1).put(db, 'hi'), 'hi');
     });
 
     test('update', () async {
@@ -38,7 +38,7 @@ void defineTests(DatabaseTestContext ctx) {
 
     test('update_map', () async {
       final store = intMapStoreFactory.store();
-      var key = await store.add(db, {"test": 1});
+      var key = await store.add(db, {'test': 1});
       expect(key, 1);
       var record = store.record(key);
       expect(await record.update(db, {'new': 2}), {'test': 1, 'new': 2});
@@ -62,7 +62,7 @@ void defineTests(DatabaseTestContext ctx) {
     test('add_with_dot', () async {
       final store = intMapStoreFactory.store();
       // var record = store.record(1);
-      int key = await store.add(db, {'foo.bar': 1});
+      final key = await store.add(db, {'foo.bar': 1});
       var record = store.record(key);
       expect(await record.get(db), {'foo.bar': 1});
     });
@@ -79,9 +79,9 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     test('put_nokey', () async {
-      var key = await mainStore.add(db, "hi");
+      var key = await mainStore.add(db, 'hi');
       expect(key, 1);
-      var key2 = await mainStore.add(db, "hi");
+      var key2 = await mainStore.add(db, 'hi');
       expect(key2, 2);
     });
 
@@ -90,11 +90,11 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     test('put_get', () async {
-      String value = "hi";
+      final value = 'hi';
       var record = mainStore.record(1);
       await record.put(db, value);
       var readValue = await record.get(db);
-      expect(readValue, "hi");
+      expect(readValue, 'hi');
       // immutable value are not clones
       expect(identical(value, readValue), isTrue);
       expect(await mainStore.count(db), 1);
@@ -113,22 +113,22 @@ void defineTests(DatabaseTestContext ctx) {
 
     test('put_update', () async {
       var record = mainStore.record(1);
-      await record.put(db, "hi");
-      await record.put(db, "ho");
-      expect((await record.get(db)), "ho");
+      await record.put(db, 'hi');
+      await record.put(db, 'ho');
+      expect((await record.get(db)), 'ho');
       expect(await mainStore.count(db), 1);
     });
 
     test('put_delete', () async {
       var record = mainStore.record(1);
-      await record.put(db, "hi");
+      await record.put(db, 'hi');
       expect(await record.delete(db), 1);
       expect(await record.get(db), isNull);
       expect(await mainStore.count(db), 0);
     });
 
     test('auto_increment put_get_map', () async {
-      Map info = {"info": 12};
+      final info = {'info': 12};
       var key = await mainStore.add(db, info);
       var record = mainStore.record(key);
       var infoRead = await record.get(db);

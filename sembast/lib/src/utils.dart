@@ -32,7 +32,7 @@ V sanitizeInputValue<V>(dynamic value) {
     }
   }
   throw ArgumentError.value(
-      value, null, "type ${value.runtimeType} not supported");
+      value, null, 'type ${value.runtimeType} not supported');
 }
 
 /// Sanitize a value.
@@ -48,7 +48,7 @@ dynamic sanitizeValue(value) {
     return value.cast<String, dynamic>();
   }
   throw ArgumentError.value(
-      value, null, "type ${value.runtimeType} not supported");
+      value, null, 'type ${value.runtimeType} not supported');
 }
 
 /// Check keys.
@@ -108,11 +108,11 @@ int compareValue(dynamic value1, dynamic value2) {
     if (value1 is Comparable && value2 is Comparable) {
       return Comparable.compare(value1, value2);
     } else if (value1 is List && value2 is List) {
-      List list1 = value1;
-      List list2 = value2;
+      final list1 = value1;
+      final list2 = value2;
 
-      for (int i = 0; i < min(value1.length, value2.length); i++) {
-        int cmp = compareValue(list1[i], list2[i]);
+      for (var i = 0; i < min(value1.length, value2.length); i++) {
+        final cmp = compareValue(list1[i], list2[i]);
         if (cmp == 0) {
           continue;
         }
@@ -154,7 +154,7 @@ K cloneKey<K>(K key) {
     return key;
   }
   throw DatabaseException.badParam(
-      "key ${key} not supported${key != null ? ' type:${key.runtimeType}' : ''}");
+      'key ${key} not supported${key != null ? ' type:${key.runtimeType}' : ''}');
 }
 
 /// True if the value is an array or map.
@@ -184,7 +184,7 @@ dynamic cloneValue(dynamic value) {
     return value;
   }
   throw ArgumentError(
-      "value ${value} unsupported${value != null ? ' type ${value.runtimeType}' : ''}");
+      'value ${value} unsupported${value != null ? ' type ${value.runtimeType}' : ''}');
 }
 
 /// Make a value immutable.
@@ -246,7 +246,7 @@ class ImmutableMap<K, V> extends MapBase<K, V> {
 /// Get value at a given field path.
 T getPartsMapValue<T>(Map map, Iterable<String> parts) {
   dynamic value = map;
-  for (String part in parts) {
+  for (final part in parts) {
     if (value is Map) {
       value = value[part];
     } else {
@@ -263,7 +263,7 @@ T getPartsMapRawValue<T>(Map map, Iterable<String> parts) {
     map = (map as ImmutableMap).rawMap;
   }
   dynamic value = map;
-  for (String part in parts) {
+  for (var part in parts) {
     if (value is Map) {
       value = value[part];
     } else {
@@ -275,8 +275,8 @@ T getPartsMapRawValue<T>(Map map, Iterable<String> parts) {
 
 /// Set value at a given field path.
 void setPartsMapValue<T>(Map map, List<String> parts, T value) {
-  for (int i = 0; i < parts.length - 1; i++) {
-    String part = parts[i];
+  for (var i = 0; i < parts.length - 1; i++) {
+    final part = parts[i];
     dynamic sub = map[part];
     if (!(sub is Map)) {
       sub = <String, dynamic>{};
@@ -356,13 +356,12 @@ dynamic mergeValue(dynamic existingValue, dynamic newValue,
     return newValue;
   }
 
-  Map<String, dynamic> mergedMap =
-      cloneValue(existingValue) as Map<String, dynamic>;
+  final mergedMap = cloneValue(existingValue) as Map<String, dynamic>;
   Map currentMap = mergedMap;
 
   // Here we have the new key and values to merge
   void merge(key, value) {
-    String stringKey = key as String;
+    var stringKey = key as String;
     // Handle a.b.c or `` `a.b.c` ``
     List<String> keyParts;
     if (allowDotsInKeys) {
@@ -382,8 +381,8 @@ dynamic mergeValue(dynamic existingValue, dynamic newValue,
       }
     } else {
       if (value == FieldValue.delete) {
-        Map map = currentMap;
-        for (String part in keyParts.sublist(0, keyParts.length - 1)) {
+        var map = currentMap;
+        for (var part in keyParts.sublist(0, keyParts.length - 1)) {
           dynamic sub = map[part];
           if (sub is Map) {
             map = sub;
@@ -396,8 +395,8 @@ dynamic mergeValue(dynamic existingValue, dynamic newValue,
           map.remove(keyParts.last);
         }
       } else {
-        Map map = currentMap;
-        for (String part in keyParts.sublist(0, keyParts.length - 1)) {
+        var map = currentMap;
+        for (final part in keyParts.sublist(0, keyParts.length - 1)) {
           dynamic sub = map[part];
           if (sub is Map) {
             map = sub;

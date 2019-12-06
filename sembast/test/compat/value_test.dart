@@ -81,11 +81,11 @@ void defineTests(DatabaseTestContext ctx) {
 
     test('String', () async {
       expect(await db.containsKey(1), isFalse);
-      await db.put("hello");
+      await db.put('hello');
       Future _check() async {
         final value = await db.get(1) as String;
         expect(await db.containsKey(1), isTrue);
-        expect(value, "hello");
+        expect(value, 'hello');
       }
 
       await _check();
@@ -94,7 +94,7 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     test('Map', () async {
-      Map<String, dynamic> map = {
+      final map = <String, dynamic>{
         'int': 1234,
         'null': null,
         'double': 1234.5678,
@@ -120,7 +120,7 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     test('immutable', () async {
-      Map<String, dynamic> map = {'int': 1234};
+      var map = <String, dynamic>{'int': 1234};
       var key = await db.put(map);
       map['int'] = 5678;
       map = (await db.get(key)) as Map<String, dynamic>;
