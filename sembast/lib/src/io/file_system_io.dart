@@ -53,7 +53,7 @@ class _IoIOSink implements fs.IOSink {
   _IoIOSink(this.ioSink);
 
   @override
-  void writeln([Object obj = ""]) => ioSink.writeln(obj);
+  void writeln([Object obj = '']) => ioSink.writeln(obj);
 
   @override
   Future close() async {
@@ -171,7 +171,7 @@ class FileSystemIo implements fs.FileSystem {
       : file(io.Platform.script.toFilePath()) as FileIo;
 
   @override
-  String toString() => "io";
+  String toString() => 'io';
 }
 
 /// File system entity io implementation.

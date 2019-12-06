@@ -22,7 +22,7 @@ void defineTests(DatabaseTestContext ctx) {
 
     test('delete', () async {
       expect(db.storeNames, ['_main']);
-      await StoreRef("test").drop(db);
+      await StoreRef('test').drop(db);
       expect(db.storeNames, ['_main']);
     });
 

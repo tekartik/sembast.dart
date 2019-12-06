@@ -80,7 +80,7 @@ void defineTests(DatabaseTestContext ctx) {
     test('onSnapshots', () async {
       var store = StoreRef<int, String>.main();
       var record = store.record(1);
-      int index = 0;
+      var index = 0;
       var completer = Completer();
 
       // When starting listening the record does not exists yet
@@ -88,8 +88,8 @@ void defineTests(DatabaseTestContext ctx) {
       var sub = query.onSnapshots(db).listen((snapshots) {
         // devPrint('$index $snapshots');
         var first = snapshots.isNotEmpty ? snapshots.first : null;
-        int key = first?.key;
-        String value = first?.value;
+        final key = first?.key;
+        final value = first?.value;
 
         if (index == 0) {
           expect(snapshots, isEmpty);
@@ -136,7 +136,7 @@ void defineTests(DatabaseTestContext ctx) {
     test('onSnapshotsWithFinder', () async {
       var store = StoreRef<int, String>.main();
       var record = store.record(1);
-      int index = 0;
+      var index = 0;
       var completer = Completer();
 
       // When starting listening the record does not exists yet
@@ -149,8 +149,8 @@ void defineTests(DatabaseTestContext ctx) {
 
       var sub = query.onSnapshots(db).listen((snapshots) {
         var first = snapshots.isNotEmpty ? snapshots.first : null;
-        int key = first?.key;
-        String value = first?.value;
+        final key = first?.key;
+        final value = first?.value;
 
         if (index == 0) {
           expect(snapshots, isEmpty);

@@ -79,7 +79,7 @@ mixin RecordRefMixin<K, V> implements RecordRef<K, V> {
 
     var record = await client
         .getSembastStore(store)
-        .txnGetRecord(client.sembastTransaction, this.key);
+        .txnGetRecord(client.sembastTransaction, key);
     return record?.cast<K, V>();
   }
 
@@ -117,7 +117,7 @@ mixin RecordRefMixin<K, V> implements RecordRef<K, V> {
     var client = getClient(databaseClient);
     return client
         .getSembastStore(store)
-        .txnRecordExists(client.sembastTransaction, this.key);
+        .txnRecordExists(client.sembastTransaction, key);
   }
 
   @override

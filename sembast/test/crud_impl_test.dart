@@ -22,10 +22,10 @@ void defineTests(DatabaseTestContext ctx) {
 
     test('put_close_get', () async {
       var record = store.record(1);
-      await record.put(db, "hi");
+      await record.put(db, 'hi');
       await reOpen(db);
 
-      expect(await record.get(db), "hi");
+      expect(await record.get(db), 'hi');
     });
 
     test('put_nokey_close_put', () async {
@@ -36,16 +36,16 @@ void defineTests(DatabaseTestContext ctx) {
 
     test('put_update_close_get', () async {
       var record = store.record(1);
-      await record.put(db, "hi");
-      await record.put(db, "ho");
+      await record.put(db, 'hi');
+      await record.put(db, 'ho');
       await reOpen(db);
-      expect(await record.get(db), "ho");
+      expect(await record.get(db), 'ho');
       expect(await store.count(db), 1);
     });
 
     test('put_delete_close_get', () async {
       var record = store.record(1);
-      await record.put(db, "hi");
+      await record.put(db, 'hi');
       await record.delete(db);
       await reOpen(db);
       expect(await record.get(db), isNull);
@@ -53,15 +53,15 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     test('put_close_get_key_string', () async {
-      var record = store.record("1");
-      await record.put(db, "hi");
+      var record = store.record('1');
+      await record.put(db, 'hi');
       await reOpen(db);
-      expect(await record.get(db), "hi");
+      expect(await record.get(db), 'hi');
     });
 
     test('put_close_get_map', () async {
       var record = store.record(1);
-      Map info = {"info": 12};
+      final info = <String, dynamic>{'info': 12};
       await record.put(db, info);
       await reOpen(db);
       var infoRead = await record.get(db);

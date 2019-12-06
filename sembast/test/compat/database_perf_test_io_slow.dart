@@ -1,4 +1,4 @@
-@TestOn("vm")
+@TestOn('vm')
 @Timeout(Duration(seconds: 120))
 library sembast.database_perf_test_slow;
 
@@ -6,7 +6,7 @@ library sembast.database_perf_test_slow;
 import 'package:test/test.dart';
 
 import 'database_perf_test.dart' as database_perf_test;
-import "io_test_common.dart";
+import 'io_test_common.dart';
 
 void main() {
   database_perf_test.defineTests(databaseContextIo, 1000,

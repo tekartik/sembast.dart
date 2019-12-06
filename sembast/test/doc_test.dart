@@ -183,7 +183,7 @@ void defineTests(DatabaseTestContext ctx) {
           await store.add(txn, {'name': 'dog'});
         });
 
-        // Look for any animal "greater than" (alphabetically) 'cat'
+        // Look for any animal 'greater than' (alphabetically) 'cat'
         // ordered by name
         var finder = Finder(
             filter: Filter.greaterThan('name', 'cat'),
@@ -253,7 +253,7 @@ void defineTests(DatabaseTestContext ctx) {
         expect(records[1], {'name': 'dog'});
 
         {
-          // Look for any animal "greater than" (alphabetically) 'cat'
+          // Look for any animal 'greater than' (alphabetically) 'cat'
           // ordered by name
           var finder = Finder(
               filter: Filter.greaterThan('name', 'cat'),
@@ -338,7 +338,7 @@ void defineTests(DatabaseTestContext ctx) {
             // Delete all record with a price greater then 10
             var filter = Filter.greaterThan('price', 10);
             var finder = Finder(filter: filter);
-            int deleted = await store.delete(db, finder: finder);
+            final deleted = await store.delete(db, finder: finder);
             expect(deleted, 1);
 
             // Clear all records from the store
@@ -382,15 +382,15 @@ void defineTests(DatabaseTestContext ctx) {
         expect(
             content,
             {
-              "sembast_export": 1,
-              "version": 1,
-              "stores": [
+              'sembast_export': 1,
+              'version': 1,
+              'stores': [
                 {
-                  "name": "shop",
-                  "keys": [1, 2],
-                  "values": [
-                    {"name": "Lamp", "price": 12},
-                    {"name": "Chair", "price": 15}
+                  'name': 'shop',
+                  'keys': [1, 2],
+                  'values': [
+                    {'name': 'Lamp', 'price': 12},
+                    {'name': 'Chair', 'price': 15}
                   ]
                 }
               ]

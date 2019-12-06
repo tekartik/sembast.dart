@@ -1,3 +1,7 @@
+## 2.1.2
+
+* Pedantic 1.9 support
+
 ## 2.1.1
 
 * Add `RecordsRef.add` to `RecordsRef.update` to insert/update multiple records. 

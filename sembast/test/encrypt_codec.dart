@@ -33,12 +33,12 @@ class _EncryptEncoder extends Converter<Map<String, dynamic>, String> {
   @override
   String convert(Map<String, dynamic> input) {
     // Generate random initial value
-    Uint8List iv = _randBytes(8);
-    String ivEncoded = base64.encode(iv);
+    final iv = _randBytes(8);
+    final ivEncoded = base64.encode(iv);
     assert(ivEncoded.length == 12);
 
     // Encode the input value
-    String encoded =
+    final encoded =
         Encrypter(salsa20).encrypt(json.encode(input), iv: IV(iv)).base64;
 
     // Prepend the initial value
@@ -56,7 +56,7 @@ class _EncryptDecoder extends Converter<String, Map<String, dynamic>> {
   Map<String, dynamic> convert(String input) {
     // Read the initial value that was prepended
     assert(input.length >= 12);
-    Uint8List iv = base64.decode(input.substring(0, 12));
+    final iv = base64.decode(input.substring(0, 12));
 
     // Extract the real input
     input = input.substring(12);

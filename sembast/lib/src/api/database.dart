@@ -22,7 +22,8 @@ abstract class Database extends DatabaseCompat implements v2.Database {
 
   /// Executes the action in a transaction.
   @override
-  Future<T> transaction<T>(FutureOr<T> action(Transaction transaction));
+  Future<T> transaction<T>(
+      FutureOr<T> Function(Transaction transaction) action);
 
   /// Closes the database.
   @override

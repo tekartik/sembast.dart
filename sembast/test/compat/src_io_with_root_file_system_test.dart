@@ -1,4 +1,4 @@
-@TestOn("vm")
+@TestOn('vm')
 library sembast.io_file_system_test;
 
 // basically same as the io runner but with extra output
@@ -14,7 +14,7 @@ void main() {
 }
 
 void defineTests() {
-  String rootPath = join('.dart_tool', 'sembast', 'test', 'with_root');
+  final rootPath = join('.dart_tool', 'sembast', 'test', 'with_root');
   var fileSystem = FileSystemIo(rootPath: rootPath);
   group('io', () {
     setUp(() {});
@@ -22,9 +22,9 @@ void defineTests() {
     tearDown(() {});
 
     test('file location', () async {
-      final file = fileSystem.file("file.txt");
-      expect(file.path, "file.txt");
-      io.File ioFile = io.File(join(rootPath, "file.txt"));
+      final file = fileSystem.file('file.txt');
+      expect(file.path, 'file.txt');
+      final ioFile = io.File(join(rootPath, 'file.txt'));
       if (await file.exists()) {
         await file.delete();
       }

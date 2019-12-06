@@ -20,7 +20,7 @@ class SembastQueryRef<K, V> implements QueryRef<K, V> {
 
   /// Query ref implementation.
   SembastQueryRef(this.store, SembastFinder finder)
-      : this.finder = finder?.clone() as SembastFinder;
+      : finder = finder?.clone() as SembastFinder;
 
   @override
   String toString() => '$store $finder)';

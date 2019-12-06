@@ -15,7 +15,7 @@ Future<List<ImmutableSembastRecord>> sortAndLimit(
     List<ImmutableSembastRecord> results,
     SembastFinder finder,
     Cooperator cooperator) async {
-  bool cooperateOn = cooperator?.cooperateOn == true;
+  final cooperateOn = cooperator?.cooperateOn == true;
   if (finder != null) {
     // sort
     if (cooperateOn) {
@@ -31,8 +31,8 @@ Future<List<ImmutableSembastRecord>> sortAndLimit(
 
     Future<List<ImmutableSembastRecord>> filterStart(
         List<ImmutableSembastRecord> results) async {
-      int startIndex = 0;
-      for (int i = 0; i < results.length; i++) {
+      var startIndex = 0;
+      for (var i = 0; i < results.length; i++) {
         if (cooperator?.needCooperate == true) {
           await cooperator.cooperate();
         }
@@ -49,8 +49,8 @@ Future<List<ImmutableSembastRecord>> sortAndLimit(
 
     Future<List<ImmutableSembastRecord>> filterEnd(
         List<ImmutableSembastRecord> results) async {
-      int endIndex = 0;
-      for (int i = results.length - 1; i >= 0; i--) {
+      var endIndex = 0;
+      for (var i = results.length - 1; i >= 0; i--) {
         if (cooperator?.needCooperate == true) {
           await cooperator.cooperate();
         }

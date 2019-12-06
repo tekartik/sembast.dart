@@ -30,23 +30,23 @@ void defineTests(DatabaseTestContext ctx) {
     test('clear', () async {
       final store = StoreRef('test');
       var record = store.record(1);
-      await record.put(db, "hi");
+      await record.put(db, 'hi');
       await store.delete(db);
       expect(await record.get(db), isNull);
     });
 
     test('put/get', () async {
       var store1 = StoreRef<int, dynamic>('test1');
-      var store2 = StoreRef<int, dynamic>("test2");
-      expect(await store1.record(1).put(db, "hi"), 'hi');
-      expect(await store2.record(1).put(db, "ho"), 'ho');
-      expect(await store1.record(1).get(db), "hi");
-      expect(await store2.record(1).get(db), "ho");
+      var store2 = StoreRef<int, dynamic>('test2');
+      expect(await store1.record(1).put(db, 'hi'), 'hi');
+      expect(await store2.record(1).put(db, 'ho'), 'ho');
+      expect(await store1.record(1).get(db), 'hi');
+      expect(await store2.record(1).get(db), 'ho');
       expect(await store1.record(2).put(db, true), true);
       db = await reOpen(db);
-      expect(await store1.record(1).get(db), "hi");
+      expect(await store1.record(1).get(db), 'hi');
       expect(await store1.record(2).get(db), true);
-      expect(await store2.record(1).get(db), "ho");
+      expect(await store2.record(1).get(db), 'ho');
     });
 
     test('bool', () async {
@@ -62,12 +62,12 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     test('records', () async {
-      var store = StoreRef("test");
-      RecordsRef records = store.records([1, 2]);
+      var store = StoreRef('test');
+      final records = store.records([1, 2]);
       expect((await records.getSnapshots(db)), [null, null]);
       expect((await records.get(db)), [null, null]);
-      await store.record(2).put(db, "hi");
-      expect((await records.get(db)), [null, "hi"]);
+      await store.record(2).put(db, 'hi');
+      expect((await records.get(db)), [null, 'hi']);
       expect((await records.getSnapshots(db)).last.value, 'hi');
     });
 
@@ -105,7 +105,7 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     test('read_only', () async {
-      var store = intMapStoreFactory.store("test");
+      var store = intMapStoreFactory.store('test');
       var record = store.record(1);
       await record.put(db, {
         'test': {'sub': 1}
@@ -241,7 +241,7 @@ void defineTests(DatabaseTestContext ctx) {
         var record = store.record(key);
         expect(await record.get(db), 1);
 
-        double value = (await store.findFirst(db)).value;
+        var value = (await store.findFirst(db)).value;
         expect(value, 1);
         if (!isJavascriptVm) {
           expect(value.runtimeType, double);
@@ -314,7 +314,7 @@ void defineTests(DatabaseTestContext ctx) {
         final store = StoreRef<int, List>.main();
         var key = await store.add(db, [1]);
         var record = store.record(key);
-        List list = await record.get(db);
+        final list = await record.get(db);
         expect(list, [1]);
       });
     });

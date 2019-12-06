@@ -1,4 +1,4 @@
-@TestOn("vm")
+@TestOn('vm')
 library sembast.test.io_test;
 
 // ignore_for_file: deprecated_member_use_from_same_package
@@ -10,7 +10,6 @@ import 'dart:io' as io;
 import 'package:path/path.dart';
 import 'package:sembast/sembast.dart';
 import 'package:sembast/sembast_io.dart';
-import 'package:sembast/src/file_system.dart';
 import 'package:sembast/src/io/database_factory_io.dart' as impl;
 import 'package:sembast/src/io/file_system_io.dart';
 
@@ -18,7 +17,7 @@ import 'io_test_common.dart';
 import 'test_common.dart';
 
 void main() {
-  group("io", () {
+  group('io', () {
     test('fs', () {
       expect((databaseFactoryIo as impl.DatabaseFactoryIo).fs,
           const TypeMatcher<FileSystemIo>());
@@ -27,8 +26,8 @@ void main() {
       expect(fs.rootPath, isNull);
     });
 
-    FileSystemTestContextIo ctx = fileSystemContextIo;
-    FileSystem fs = ctx.fs;
+    final ctx = fileSystemContextIo;
+    final fs = ctx.fs;
 
     group('format', () {
       String dbPath;
@@ -47,17 +46,17 @@ void main() {
         await prepareForDb();
 
         await io.File(dbPath)
-            .writeAsString(json.encode({"version": 2, "sembast": 1}));
-        Database db = await databaseFactoryIo.openDatabase(dbPath);
+            .writeAsString(json.encode({'version': 2, 'sembast': 1}));
+        final db = await databaseFactoryIo.openDatabase(dbPath);
         expect(db.version, 2);
 
-        await db.put("value", "key");
+        await db.put('value', 'key');
 
         //print(await new io.File(dbPath).readAsString());
 
         try {
           await reOpen(db, mode: DatabaseMode.create);
-          fail("should fail");
+          fail('should fail');
         } on FormatException catch (_) {
           await reOpen(db, mode: DatabaseMode.neverFails);
           // version cannot be read anymore...
@@ -70,24 +69,24 @@ void main() {
         await prepareForDb();
 
         await io.File(dbPath).writeAsString(
-            json.encode({"version": 2, "sembast": 1}) +
-                "\n" +
+            json.encode({'version': 2, 'sembast': 1}) +
+                '\n' +
                 json.encode({'key': 1, 'value': 'test1'}) +
-                "\n" +
+                '\n' +
                 json.encode({'key': 2, 'value': 'test2'}));
-        Database db = await databaseFactoryIo.openDatabase(dbPath);
+        final db = await databaseFactoryIo.openDatabase(dbPath);
         expect(db.version, 2);
 
-        await db.put("value3");
+        await db.put('value3');
 
         //print(await new io.File(dbPath).readAsString());
 
         try {
           await reOpen(db, mode: DatabaseMode.create);
-          fail("should fail");
+          fail('should fail');
         } on FormatException catch (_) {
           await reOpen(db, mode: DatabaseMode.neverFails);
-          List<String> lines = await readContent(fs, dbPath);
+          final lines = await readContent(fs, dbPath);
           // Only the first line remains
           expect(lines.length, 2);
           expect(json.decode(lines[1]), {'key': 1, 'value': 'test1'});

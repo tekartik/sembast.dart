@@ -14,7 +14,7 @@ import 'test_common.dart';
 void main() {
   group('exp_io', () {
     test('openHelper', () async {
-      String dbPath = join('.dart_tool', 'sembast', 'test', 'open_helper.db');
+      final dbPath = join('.dart_tool', 'sembast', 'test', 'open_helper.db');
 
       // Make openHelper a singleton
       var openHelper = OpenHelper(dbPath);

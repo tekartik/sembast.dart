@@ -5,10 +5,10 @@ import 'package:sembast/src/utils.dart';
 ///
 class Field {
   /// Our value field
-  static String value = "_value";
+  static String value = '_value';
 
   /// Our key field
-  static String key = "_key";
+  static String key = '_key';
 }
 
 ///

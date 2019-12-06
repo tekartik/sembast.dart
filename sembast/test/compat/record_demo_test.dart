@@ -23,8 +23,8 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     test('demo', () async {
-      Store store = db.getStore("my_store");
-      Record record = Record(store, {"name": "ugly"});
+      final store = db.getStore('my_store');
+      var record = Record(store, {'name': 'ugly'});
       record = await db.putRecord(record);
       expect(record, isNotNull);
       record = await store.getRecord(record.key);

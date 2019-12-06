@@ -19,7 +19,7 @@ class SembastBoundary implements Boundary {
         snapshot = makeImmutableRecordSnapshot(record);
 
   Map<String, dynamic> get _toDebugMap {
-    Map<String, dynamic> debugMap = <String, dynamic>{};
+    final debugMap = <String, dynamic>{};
     if (values != null) {
       debugMap['values'] = values.toString();
     } else if (snapshot != null) {

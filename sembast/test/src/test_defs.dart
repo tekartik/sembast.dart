@@ -43,7 +43,7 @@ Future<Database> setupForTest(DatabaseTestContext ctx, String name) {
 /// helper to read a list of string (lines)
 ///
 Future<List<String>> readContent(FileSystem fs, String filePath) {
-  List<String> content = [];
+  final content = <String>[];
   return utf8.decoder
       .bind(fs.file(filePath).openRead())
       .transform(const LineSplitter())
@@ -53,17 +53,17 @@ Future<List<String>> readContent(FileSystem fs, String filePath) {
 }
 
 Future writeContent(FileSystem fs, String filePath, List<String> lines) async {
-  File file = fs.file(filePath);
+  final file = fs.file(filePath);
   await file.create(recursive: true);
-  IOSink sink = file.openWrite(mode: FileMode.write);
-  for (String line in lines) {
+  final sink = file.openWrite(mode: FileMode.write);
+  for (var line in lines) {
     sink.writeln(line);
   }
   await sink.close();
 }
 
 void devPrintJson(Map json) {
-  print(const JsonEncoder.withIndent("  ").convert(json));
+  print(const JsonEncoder.withIndent('  ').convert(json));
 }
 
 Future<Database> reOpen(Database db, {DatabaseMode mode}) {
@@ -78,7 +78,7 @@ bool hasStorage(DatabaseFactory factory) =>
 Future<int> getExistingDatabaseVersion(
     DatabaseFactory factory, String path) async {
   var db = await factory.openDatabase(path, mode: DatabaseMode.existing);
-  int version = db.version;
+  final version = db.version;
   await db.close();
   return version;
 }

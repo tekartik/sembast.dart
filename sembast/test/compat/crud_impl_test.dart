@@ -22,19 +22,19 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     test('put_close_get', () {
-      return db.put("hi", 1).then((_) {
+      return db.put('hi', 1).then((_) {
         return db.reOpen().then((_) {
           return db.get(1).then((value) {
-            expect(value, "hi");
+            expect(value, 'hi');
           });
         });
       });
     });
 
     test('put_nokey_close_put', () {
-      return db.put("hi").then((key) {
+      return db.put('hi').then((key) {
         return db.reOpen().then((_) {
-          return db.put("hi").then((key) {
+          return db.put('hi').then((key) {
             expect(key, 2);
           });
         });
@@ -42,11 +42,11 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     test('put_update_close_get', () {
-      return db.put("hi", 1).then((_) {
-        return db.put("ho", 1).then((_) {
+      return db.put('hi', 1).then((_) {
+        return db.put('ho', 1).then((_) {
           return db.reOpen().then((_) {
             return db.get(1).then((value) {
-              expect(value, "ho");
+              expect(value, 'ho');
               return db.count().then((int count) {
                 expect(count, 1);
               });
@@ -57,7 +57,7 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     test('put_delete_close_get', () {
-      return db.put("hi", 1).then((_) {
+      return db.put('hi', 1).then((_) {
         return db.delete(1).then((key) {
           return db.reOpen().then((_) {
             return db.get(1).then((value) {
@@ -72,17 +72,17 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     test('put_close_get_key_string', () {
-      return db.put("hi", "1").then((_) {
+      return db.put('hi', '1').then((_) {
         return db.reOpen().then((_) {
-          return db.get("1").then((value) {
-            expect(value, "hi");
+          return db.get('1').then((value) {
+            expect(value, 'hi');
           });
         });
       });
     });
 
     test('put_close_get_map', () {
-      Map info = {"info": 12};
+      final info = {'info': 12};
       return db.put(info, 1).then((_) {
         return db.reOpen().then((_) {
           return db.get(1).then((infoRead) {

@@ -86,7 +86,7 @@ class QueryListenerController<K, V> {
     }
     // Restart from the base we have for efficiency
     var allMatching = List<ImmutableSembastRecord>.from(_allMatching);
-    bool hasChanges = false;
+    var hasChanges = false;
     for (var txnRecord in txnRecords) {
       if (isClosed) {
         return;
@@ -105,7 +105,7 @@ class QueryListenerController<K, V> {
       allMatching.removeWhere(_where);
 
       // By default matches if non-deleted
-      bool matches = !txnRecord.deleted;
+      var matches = !txnRecord.deleted;
       if (matches && filter != null) {
         matches = filterMatchesRecord(filter, txnRecord.record);
       }

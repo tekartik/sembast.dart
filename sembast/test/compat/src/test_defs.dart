@@ -15,7 +15,7 @@ DatabaseTestContext get memoryDatabaseContext =>
     DatabaseTestContext()..factory = databaseFactoryMemory;
 
 Future<List<Record>> recordStreamToList(Stream<Record> stream) {
-  List<Record> records = [];
+  final records = <Record>[];
   return stream
       .listen((Record record) {
         records.add(record);

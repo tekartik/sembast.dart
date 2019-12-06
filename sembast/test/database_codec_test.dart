@@ -4,7 +4,6 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:sembast/src/database_impl.dart';
-import 'package:sembast/src/file_system.dart';
 import 'package:sembast/src/sembast_fs.dart';
 
 import 'database_format_test.dart' as database_format_test;
@@ -17,9 +16,9 @@ void main() {
 }
 
 void defineTests(FileSystemTestContext ctx) {
-  FileSystem fs = ctx.fs;
+  final fs = ctx.fs;
   DatabaseFactory factory = DatabaseFactoryFs(fs);
-  // String getDbPath() => ctx.outPath + ".db";
+  // String getDbPath() => ctx.outPath + '.db';
   String dbPath;
   var store = StoreRef.main();
 
@@ -76,11 +75,11 @@ void defineTests(FileSystemTestContext ctx) {
       test('one_record', () async {
         var db = await _prepareOneRecordDatabase(codec: codec);
         await db.close();
-        List<String> lines = await readContent(fs, dbPath);
+        final lines = await readContent(fs, dbPath);
         expect(lines.length, 2);
         var metaMap = json.decode(lines.first) as Map;
         expect(metaMap,
-            {"version": 1, "sembast": 1, 'codec': '{"signature":"json"}'});
+            {'version': 1, 'sembast': 1, 'codec': '{"signature":"json"}'});
         expect(json.decode(lines[1]), {'key': 1, 'value': 'test'});
       });
 
@@ -111,12 +110,12 @@ void defineTests(FileSystemTestContext ctx) {
       test('one_record', () async {
         var db = await _prepareOneRecordDatabase(codec: codec);
         await db.close();
-        List<String> lines = await readContent(fs, dbPath);
+        final lines = await readContent(fs, dbPath);
         expect(lines.length, 2);
         expect(json.decode(lines.first), {
-          "version": 1,
-          "sembast": 1,
-          "codec": 'eyJzaWduYXR1cmUiOiJiYXNlNjQifQ=='
+          'version': 1,
+          'sembast': 1,
+          'codec': 'eyJzaWduYXR1cmUiOiJiYXNlNjQifQ=='
         });
         expect(json.decode(utf8.decode(base64.decode(lines[1]))),
             {'key': 1, 'value': 'test'});
@@ -132,12 +131,11 @@ void defineTests(FileSystemTestContext ctx) {
         expect(await store.record(1).get(db), 'test');
 
         await (db as SembastDatabase).compact();
-
-        List<String> lines = await readContent(fs, dbPath);
+        final lines = await readContent(fs, dbPath);
         expect(lines.length, 2);
         expect(json.decode(lines.first), {
-          "version": 1,
-          "sembast": 1,
+          'version': 1,
+          'sembast': 1,
           'codec': 'eyJzaWduYXR1cmUiOiJiYXNlNjQifQ=='
         });
         expect(json.decode(utf8.decode(base64.decode(lines[1]))),
@@ -166,7 +164,7 @@ void defineTests(FileSystemTestContext ctx) {
       test('one_record', () async {
         var db = await _prepareOneRecordDatabase(codec: codec);
         await db.close();
-        List<String> lines = await readContent(fs, dbPath);
+        final lines = await readContent(fs, dbPath);
         // print(lines);
         expect(lines.length, 2);
         expect(codec.codec.decode(json.decode(lines.first)['codec'] as String),
@@ -183,11 +181,11 @@ void defineTests(FileSystemTestContext ctx) {
 
         await (db as SembastDatabase).compact();
 
-        List<String> lines = await readContent(fs, dbPath);
+        final lines = await readContent(fs, dbPath);
         expect(lines.length, 2);
         expect((json.decode(lines.first) as Map)..remove('codec'), {
-          "version": 1,
-          "sembast": 1,
+          'version': 1,
+          'sembast': 1,
         });
         expect(codec.codec.decode(json.decode(lines.first)['codec'] as String),
             {'signature': 'encrypt'});
@@ -203,7 +201,7 @@ void defineTests(FileSystemTestContext ctx) {
 
         try {
           var codecWithABadPassword =
-              getEncryptSembastCodec(password: "bad_password");
+              getEncryptSembastCodec(password: 'bad_password');
           // Open again with a bad password
           db = await factory.openDatabase(dbPath, codec: codecWithABadPassword);
 

@@ -26,31 +26,31 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     test('put/get', () async {
-      var putFuture = db.put("hi", 1);
+      var putFuture = db.put('hi', 1);
       // It is still null, put has not complete yet!
       expect(await db.get(1), isNull);
       await putFuture;
-      expect(await db.get(1), "hi");
+      expect(await db.get(1), 'hi');
     });
 
     test('put/clear/get in transaction', () async {
       await db.transaction((txn) async {
-        await txn.put("hi", 1);
+        await txn.put('hi', 1);
         await txn.mainStore.clear();
         expect(await txn.get(1), isNull);
       });
     });
 
     test('put in transaction', () async {
-      List<Future> futures = [];
+      final futures = <Future>[];
       futures.add(db.transaction((txn) async {
-        await txn.put("hi", 1);
-        expect(await txn.get(1), "hi");
+        await txn.put('hi', 1);
+        expect(await txn.get(1), 'hi');
       }));
 
       // here we are in a transaction so it will wait for the other to finish
       futures.add(db.transaction((txn) async {
-        expect(await txn.get(1), "hi");
+        expect(await txn.get(1), 'hi');
       }));
 
       // here the value should not be loaded yet
@@ -59,16 +59,16 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     test('transaction and read', () async {
-      List<Future> futures = [];
+      final futures = <Future>[];
       var completer1 = Completer();
       var completer2 = Completer();
       futures.add(db.transaction((txn) async {
         expect(await txn.containsKey(1), isFalse);
 
-        await txn.put("hi", 1);
+        await txn.put('hi', 1);
         completer1.complete();
 
-        expect(await txn.get(1), "hi");
+        expect(await txn.get(1), 'hi');
 
         var records = await txn.findRecords(null);
         expect(records.length, 1);
@@ -101,7 +101,7 @@ void defineTests(DatabaseTestContext ctx) {
 
       // here we are in a transaction so it will wait for the other to finish
       futures.add(db.transaction((txn) async {
-        expect(await txn.get(1), "hi");
+        expect(await txn.get(1), 'hi');
       }));
 
       completer2.complete();
@@ -111,19 +111,19 @@ void defineTests(DatabaseTestContext ctx) {
 
     test('put and throw', () {
       return db.transaction((Transaction txn) {
-        return txn.put("hi", 1).then((_) {
+        return txn.put('hi', 1).then((_) {
           // still here
           return txn.get(1).then((value) {
-            expect(value, "hi");
+            expect(value, 'hi');
           }).then((_) {
-            throw "some failure";
+            throw 'some failure';
           });
         });
       }).catchError((err) {
-        expect(err, "some failure");
+        expect(err, 'some failure');
       }).then((_) {
         // put something else to make sure the txn has been cleaned
-        return db.put("ho", 2).then((_) {
+        return db.put('ho', 2).then((_) {
           return db.get(1).then((value) {
             expect(value, null);
           });

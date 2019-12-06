@@ -17,21 +17,21 @@ void main() {
 }
 
 void defineTests(FileSystemTestContext ctx) {
-  FileSystem fs = ctx.fs;
+  final fs = ctx.fs;
   /*
   TODO
 
   String outDataPath = testOutPath(fs);
 */
 
-  String rootPath = dbPathFromName('compat/src_file_system');
+  final rootPath = dbPathFromName('compat/src_file_system');
   String namePath(String name) => join(rootPath, name);
 
   File nameFile(String name) => fs.file(namePath(name));
   Directory nameDir(String name) => fs.directory(namePath(name));
 
   Future<File> createFile(File file) async {
-    File createdFile = await file.create(recursive: true);
+    final createdFile = await file.create(recursive: true);
     expect(file, createdFile); // identical
     return createdFile;
   }
@@ -39,12 +39,12 @@ void defineTests(FileSystemTestContext ctx) {
   Future<File> createFileName(String name) => createFile(nameFile(name));
 
   Future expectDirExists(Directory dir, [bool exists = true]) async {
-    bool dirExists = await dir.exists();
+    final dirExists = await dir.exists();
     expect(dirExists, exists);
   }
 
   Future expectFileExists(File file, [bool exists = true]) async {
-    bool fileExists = await file.exists();
+    final fileExists = await file.exists();
     expect(fileExists, exists);
   }
 
@@ -86,14 +86,14 @@ void defineTests(FileSystemTestContext ctx) {
   }
 
   Future<List<String>> readContent(File file) {
-    List<String> content = [];
+    final content = <String>[];
     return openReadLines(file).listen((String line) {
       content.add(line);
     }).asFuture(content);
   }
 
   Future writeContent(File file, List<String> content) {
-    IOSink sink = openWrite(file);
+    final sink = openWrite(file);
     content.forEach((String line) {
       sink.writeln(line);
     });
@@ -101,7 +101,7 @@ void defineTests(FileSystemTestContext ctx) {
   }
 
   Future appendContent(File file, List<String> content) {
-    IOSink sink = openAppend(file);
+    final sink = openAppend(file);
     content.forEach((String line) {
       sink.writeln(line);
     });
@@ -126,14 +126,14 @@ void defineTests(FileSystemTestContext ctx) {
 
       test('type', () async {
         await clearOutFolder();
-        return fs.type(namePath("test")).then((FileSystemEntityType type) {
+        return fs.type(namePath('test')).then((FileSystemEntityType type) {
           expect(type, FileSystemEntityType.notFound);
         }).then((_) {
-          return fs.isFile(namePath("test")).then((bool isFile) {
+          return fs.isFile(namePath('test')).then((bool isFile) {
             expect(isFile, false);
           });
         }).then((_) {
-          return fs.isDirectory(namePath("test")).then((bool isFile) {
+          return fs.isDirectory(namePath('test')).then((bool isFile) {
             expect(isFile, false);
           });
         });
@@ -142,30 +142,30 @@ void defineTests(FileSystemTestContext ctx) {
 
     group('dir', () {
       test('new', () {
-        Directory dir = fs.directory("dummy");
-        expect(dir.path, "dummy");
-        dir = fs.directory(r"\root/dummy");
-        expect(dir.path, r"\root/dummy");
-        dir = fs.directory(r"\");
-        expect(dir.path, r"\");
-        dir = fs.directory(r"");
-        expect(dir.path, r"");
+        var dir = fs.directory('dummy');
+        expect(dir.path, 'dummy');
+        dir = fs.directory(r'\root/dummy');
+        expect(dir.path, r'\root/dummy');
+        dir = fs.directory(r'\');
+        expect(dir.path, r'\');
+        dir = fs.directory(r'');
+        expect(dir.path, r'');
         try {
           dir = fs.directory(null);
-          fail("should fail");
+          fail('should fail');
         } on ArgumentError catch (_) {
           // Invalid argument(s): null is not a String
         }
       });
       test('dir exists', () async {
         await clearOutFolder();
-        await expectDirExists(nameDir("test"), false);
+        await expectDirExists(nameDir('test'), false);
       });
 
       test('dir create', () async {
         await clearOutFolder();
-        Directory dir = nameDir("test");
-        Directory dir2 = nameDir("test");
+        var dir = nameDir('test');
+        final dir2 = nameDir('test');
         expect(await fs.isDirectory(dir.path), isFalse);
         await dir.create(recursive: true);
         await expectDirExists(dir, true);
@@ -173,7 +173,7 @@ void defineTests(FileSystemTestContext ctx) {
         expect(await fs.isDirectory(dir.path), isTrue);
 
         // create another object
-        dir = nameDir("test");
+        dir = nameDir('test');
         await expectDirExists(dir, true);
 
         // second time fine too
@@ -181,14 +181,14 @@ void defineTests(FileSystemTestContext ctx) {
       });
 
       test('fileSystem', () {
-        Directory dir = nameDir("test");
+        final dir = nameDir('test');
         expect(dir.fileSystem, fs);
       });
 
       test('sub dir create', () async {
         await clearOutFolder();
-        Directory mainDir = nameDir("test");
-        Directory subDir = fs.directory(join(mainDir.path, "test"));
+        final mainDir = nameDir('test');
+        final subDir = fs.directory(join(mainDir.path, 'test'));
 
         return subDir.create(recursive: true).then((_) {
           return expectDirExists(mainDir, true).then((_) {});
@@ -197,11 +197,11 @@ void defineTests(FileSystemTestContext ctx) {
 
       test('dir delete', () async {
         await clearOutFolder();
-        Directory dir = nameDir("test");
+        final dir = nameDir('test');
 
         try {
           await dir.delete(recursive: true);
-          fail("shoud fail");
+          fail('shoud fail');
         } on FileSystemException catch (_) {
           // FileSystemException: Deletion failed, path = '/media/ssd/devx/git/sembast.dart/test/out/io/fs/dir/dir delete/test' (OS Error: No such file or directory, errno = 2)
           // FileSystemException: Deletion failed, path = 'current/test' (OS Error: No such file or directory, errno = 2)
@@ -217,15 +217,15 @@ void defineTests(FileSystemTestContext ctx) {
 
       test('sub dir delete', () async {
         await clearOutFolder();
-        Directory mainDir = nameDir("test");
-        Directory subDir = fs.directory(join(mainDir.path, "test"));
+        final mainDir = nameDir('test');
+        final subDir = fs.directory(join(mainDir.path, 'test'));
 
         // not recursive
         await subDir.create(recursive: true);
 
         try {
           await mainDir.delete();
-          fail("shoud fail");
+          fail('shoud fail');
         } on FileSystemException catch (_) {
           // FileSystemException: Deletion failed, path = '/media/ssd/devx/git/sembast.dart/test/out/io/fs/dir/sub dir delete/test' (OS Error: Directory not empty, errno = 39)
           // FileSystemException: Deletion failed, path = 'current/test' (OS Error: Directory is not empty, errno = 39)
@@ -237,44 +237,44 @@ void defineTests(FileSystemTestContext ctx) {
     });
     group('file', () {
       test('new', () {
-        File file = fs.file("dummy");
-        expect(file.path, "dummy");
-        file = fs.file(r"\root/dummy");
-        expect(file.path, r"\root/dummy");
-        file = fs.file(r"\");
-        expect(file.path, r"\");
-        file = fs.file(r"");
-        expect(file.path, r"");
+        var file = fs.file('dummy');
+        expect(file.path, 'dummy');
+        file = fs.file(r'\root/dummy');
+        expect(file.path, r'\root/dummy');
+        file = fs.file(r'\');
+        expect(file.path, r'\');
+        file = fs.file(r'');
+        expect(file.path, r'');
         try {
           file = fs.file(null);
-          fail("should fail");
+          fail('should fail');
         } on ArgumentError catch (_) {
           // Invalid argument(s): null is not a String
         }
       });
       test('file exists', () async {
         await clearOutFolder();
-        return expectFileNameExists("test", false);
+        return expectFileNameExists('test', false);
       });
 
       test('file create', () async {
         await clearOutFolder();
-        File file = nameFile("test");
+        final file = nameFile('test');
         expect(await file.exists(), isFalse);
         expect(await fs.isFile(file.path), isFalse);
-        File createdFile = await createFile(file);
+        final createdFile = await createFile(file);
         expect(await fs.isFile(file.path), isTrue);
         expect(await createdFile.exists(), isTrue);
         expect(await file.exists(), isTrue);
 
         // create twice ok
-        File createdFile2 = await createFile(file);
+        final createdFile2 = await createFile(file);
         expect(await createdFile2.exists(), isTrue);
       });
 
       test('file delete', () async {
         await clearOutFolder();
-        File file = nameFile("test");
+        final file = nameFile('test');
 
         try {
           await deleteFile(file);
@@ -292,7 +292,7 @@ void defineTests(FileSystemTestContext ctx) {
 
       test('file delete 2', () async {
         await clearOutFolder();
-        File file = nameFile(join("sub", "test"));
+        final file = nameFile(join('sub', 'test'));
 
         try {
           await deleteFile(file);
@@ -310,7 +310,7 @@ void defineTests(FileSystemTestContext ctx) {
 
       test('open read 1', () async {
         await clearOutFolder();
-        File file = nameFile("test");
+        final file = nameFile('test');
         var e;
         await openRead(file)
             .listen((_) {}, onError: (_) {
@@ -327,9 +327,9 @@ void defineTests(FileSystemTestContext ctx) {
 
       test('open write 1', () async {
         await clearOutFolder();
-        File file = nameFile("test");
-        IOSink sink = openWrite(file);
-        //sink.writeln("test");
+        final file = nameFile('test');
+        final sink = openWrite(file);
+        //sink.writeln('test');
         try {
           await sink.close();
           fail('should fail');
@@ -341,12 +341,12 @@ void defineTests(FileSystemTestContext ctx) {
 
       test('open write 2', () async {
         await clearOutFolder();
-        return createFileName("test").then((File file) {
-          IOSink sink = openWrite(file);
-          sink.writeln("test");
+        return createFileName('test').then((File file) {
+          final sink = openWrite(file);
+          sink.writeln('test');
           return sink.close().then((_) {
             return readContent(file).then((List<String> content) {
-              expect(content, ["test"]);
+              expect(content, ['test']);
             });
           });
         });
@@ -354,12 +354,12 @@ void defineTests(FileSystemTestContext ctx) {
 
       test('open write 3', () async {
         await clearOutFolder();
-        return createFileName("test").then((File file) {
-          return writeContent(file, ["test1"]).then((_) {
+        return createFileName('test').then((File file) {
+          return writeContent(file, ['test1']).then((_) {
             // override existing
-            return writeContent(file, ["test2"]).then((_) {
+            return writeContent(file, ['test2']).then((_) {
               return readContent(file).then((List<String> content) {
-                expect(content, ["test2"]);
+                expect(content, ['test2']);
               });
             });
           });
@@ -368,9 +368,9 @@ void defineTests(FileSystemTestContext ctx) {
 
       test('open append 1', () async {
         await clearOutFolder();
-        File file = nameFile("test");
-        IOSink sink = openAppend(file);
-        //sink.writeln("test");
+        final file = nameFile('test');
+        final sink = openAppend(file);
+        //sink.writeln('test');
         try {
           await sink.close();
           fail('should fail');
@@ -382,12 +382,12 @@ void defineTests(FileSystemTestContext ctx) {
 
       test('open append 2', () async {
         await clearOutFolder();
-        return createFileName("test").then((File file) {
-          IOSink sink = openAppend(file);
-          sink.writeln("test");
+        return createFileName('test').then((File file) {
+          final sink = openAppend(file);
+          sink.writeln('test');
           return sink.close().then((_) {
             return readContent(file).then((List<String> content) {
-              expect(content, ["test"]);
+              expect(content, ['test']);
             });
           });
         });
@@ -395,11 +395,11 @@ void defineTests(FileSystemTestContext ctx) {
 
       test('open append 3', () async {
         await clearOutFolder();
-        return createFileName("test").then((File file) {
-          return writeContent(file, ["test1"]).then((_) {
-            return appendContent(file, ["test2"]).then((_) {
+        return createFileName('test').then((File file) {
+          return writeContent(file, ['test1']).then((_) {
+            return appendContent(file, ['test2']).then((_) {
               return readContent(file).then((List<String> content) {
-                expect(content, ["test1", "test2"]);
+                expect(content, ['test1', 'test2']);
               });
             });
           });
@@ -408,16 +408,16 @@ void defineTests(FileSystemTestContext ctx) {
 
       test('rename', () async {
         await clearOutFolder();
-        var file = await createFileName("test");
-        var renamed = await file.rename(namePath("test2"));
+        var file = await createFileName('test');
+        var renamed = await file.rename(namePath('test2'));
         await expectFileExists(renamed);
         await expectFileExists(file, false);
       });
 
       test('rename to existing', () async {
         await clearOutFolder();
-        return createFileName("test").then((File file) {
-          String path2 = namePath("test2");
+        return createFileName('test').then((File file) {
+          final path2 = namePath('test2');
           return createFile(fs.file(path2)).then((_) {
             return file.rename(path2).then((File renamed) {
               //devPrint(renamed);
@@ -430,25 +430,25 @@ void defineTests(FileSystemTestContext ctx) {
 
       test('rename and read', () async {
         await clearOutFolder();
-        File file = await createFileName("test");
-        await writeContent(file, ["test1"]);
-        String path2 = namePath("test2");
-        File file2 = await file.rename(path2);
-        List<String> content = await readContent(file2);
-        expect(content, ["test1"]);
+        final file = await createFileName('test');
+        await writeContent(file, ['test1']);
+        final path2 = namePath('test2');
+        final file2 = await file.rename(path2);
+        final content = await readContent(file2);
+        expect(content, ['test1']);
       });
 
       test('create_write_then_create', () async {
         await clearOutFolder();
-        File file = nameFile("test");
+        var file = nameFile('test');
         file = await createFile(file);
-        IOSink sink = openWrite(file);
-        sink.writeln("test");
+        final sink = openWrite(file);
+        sink.writeln('test');
         await sink.close();
 
         // create again
         file = await createFile(file);
-        List<String> lines = [];
+        final lines = <String>[];
         await openReadLines(file).listen((String line) {
           lines.add(line);
         }).asFuture();
@@ -457,17 +457,17 @@ void defineTests(FileSystemTestContext ctx) {
 
       test('depp_create_write_then_create', () async {
         await clearOutFolder();
-        File file = nameFile(join("test", "sub", "yet another"));
+        var file = nameFile(join('test', 'sub', 'yet another'));
         file = await createFile(file);
-        IOSink sink = openWrite(file);
-        sink.writeln("test");
+        final sink = openWrite(file);
+        sink.writeln('test');
         await sink.close();
 
         // create again
         file = await createFile(file);
-        List<String> lines = [];
+        final lines = <String>[];
 
-        file = nameFile(join("test", "sub", "yet another"));
+        file = nameFile(join('test', 'sub', 'yet another'));
         await openReadLines(file).listen((String line) {
           lines.add(line);
         }).asFuture();

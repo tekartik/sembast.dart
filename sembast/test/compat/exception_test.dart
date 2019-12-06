@@ -22,7 +22,7 @@ void defineTests(DatabaseTestContext ctx) {
       db = await setupForTest(ctx, 'compat/exception/put_date_time.db');
       try {
         await db.put(DateTime.now());
-        fail("should fail");
+        fail('should fail');
       } on ArgumentError catch (_) {}
     });
   });

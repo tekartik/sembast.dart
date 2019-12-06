@@ -23,27 +23,27 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     test('clear', () async {
-      Store store = db.getStore("test");
-      await store.put("hi", 1);
+      final store = db.getStore('test');
+      await store.put('hi', 1);
       await store.clear();
       expect(await store.get(1), isNull);
     });
 
     test('delete', () {
-      var store = db.findStore("test");
+      var store = db.findStore('test');
       expect(store, isNull);
-      store = db.getStore("test");
+      store = db.getStore('test');
       expect(store, isNotNull);
-      store = db.findStore("test");
+      store = db.findStore('test');
       expect(store, isNotNull);
-      return db.deleteStore("test").then((_) {
-        expect(db.findStore("test"), isNull);
+      return db.deleteStore('test').then((_) {
+        expect(db.findStore('test'), isNull);
       });
     });
 
     test('delete_main', () async {
       var mainStoreName = db.mainStore.name;
-      Store store = db.findStore(mainStoreName);
+      final store = db.findStore(mainStoreName);
       expect(store, isNotNull);
       expect(db.stores, [db.mainStore]);
       await db.deleteStore(mainStoreName);
@@ -52,7 +52,7 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     test('delete_null', () {
-      Store store = db.getStore(null);
+      final store = db.getStore(null);
       return db.deleteStore(null).then((_) {
         expect(db.findStore(null), store);
         expect(db.findStore(null), db.mainStore);
@@ -65,29 +65,29 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     test('put/delete_store', () async {
-      Store store = db.getStore("test_store");
+      var store = db.getStore('test_store');
       await store.put('test', 1);
       await db.deleteStore('test_store');
-      store = db.getStore("test_store");
+      store = db.getStore('test_store');
       expect(await store.get(1), isNull);
     });
 
     test('put/get', () {
-      Store store1 = db.getStore("test1");
-      Store store2 = db.getStore("test2");
-      return store1.put("hi", 1).then((key) {
+      final store1 = db.getStore('test1');
+      final store2 = db.getStore('test2');
+      return store1.put('hi', 1).then((key) {
         expect(key, 1);
       }).then((_) {
-        return store2.put("ho", 1).then((key) {
+        return store2.put('ho', 1).then((key) {
           expect(key, 1);
         });
       }).then((_) {
         return store1.get(1).then((value) {
-          expect(value, "hi");
+          expect(value, 'hi');
         });
       }).then((_) {
         return store2.get(1).then((value) {
-          expect(value, "ho");
+          expect(value, 'ho');
         });
       }).then((_) {
         return store1.put(true, 2).then((key) {
@@ -108,18 +108,18 @@ void defineTests(DatabaseTestContext ctx) {
       }).then((_) {
         return reOpen(db).then((_) {
           return store1.get(1).then((value) {
-            expect(value, "hi");
+            expect(value, 'hi');
           });
         }).then((_) {
           return store2.get(1).then((value) {
-            expect(value, "ho");
+            expect(value, 'ho');
           });
         });
       });
     });
 
     test('bool', () async {
-      Store store = db.getStore("test");
+      final store = db.getStore('test');
       await store.put(true, 1);
       expect(await store.get(1), isTrue);
       await store.put(false, 1);
@@ -129,12 +129,12 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     test('records', () {
-      Store store = db.getStore("test");
-      return store.put("hi").then((key) {
-        int count = 0;
+      final store = db.getStore('test');
+      return store.put('hi').then((key) {
+        var count = 0;
         return store.records
             .listen((Record record) {
-              expect(record.value, "hi");
+              expect(record.value, 'hi');
               count++;
             })
             .asFuture()

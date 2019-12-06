@@ -28,9 +28,9 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     test('put/get', () {
-      List<Future> futures = [];
+      final futures = <Future>[];
       expect(db.currentTransaction, isNull);
-      futures.add(db.put("hi", 1));
+      futures.add(db.put('hi', 1));
       // expect(db.currentTransaction, isNull);
       // here the value should not be loaded yet
       futures.add(db.get(1).then((value) {
@@ -41,7 +41,7 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     test('put then get', () {
-      return db.put("hi", 1).then((_) {
+      return db.put('hi', 1).then((_) {
         // expect(db.currentTransaction, isNull);
         // here the value should not be loaded yet
         return db.get(1).then((value) {
@@ -55,7 +55,7 @@ void defineTests(DatabaseTestContext ctx) {
       await db.transaction((txn) {
         sembastTransaction = txn as SembastTransaction;
         expect(sembastTransaction.isCompleted, isFalse);
-        return txn.put("hi", 1).then((_) {
+        return txn.put('hi', 1).then((_) {
           return txn.mainStore.clear().then((_) {
             return txn.get(1).then((value) {
               expect(value, null);
@@ -70,10 +70,10 @@ void defineTests(DatabaseTestContext ctx) {
 
     test('put and rollback', () async {
       await db.transaction((txn) {
-        return txn.put("hi", 1).then((_) {
+        return txn.put('hi', 1).then((_) {
           // still here
           return txn.get(1).then((value) {
-            expect(value, "hi");
+            expect(value, 'hi');
           }).then((_) {
             db.txnRollback(txn as SembastTransaction);
             return txn.get(1).then((value) {
@@ -84,7 +84,7 @@ void defineTests(DatabaseTestContext ctx) {
       });
       expect(await db.get(1), isNull);
       // put something else to make sure the txn has been cleaned
-      return db.put("ho", 2).then((_) {
+      return db.put('ho', 2).then((_) {
         return db.get(1).then((value) {
           expect(value, null);
         });
@@ -92,7 +92,7 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     test('delete and rollback', () {
-      return db.put("hi", 1).then((_) {
+      return db.put('hi', 1).then((_) {
         return db.transaction((txn) {
           return txn.delete(1).then((_) {
             // still here
@@ -101,22 +101,22 @@ void defineTests(DatabaseTestContext ctx) {
             }).then((_) {
               db.txnRollback(txn as SembastTransaction);
               return txn.get(1).then((value) {
-                expect(value, "hi");
+                expect(value, 'hi');
               });
             });
           });
         }).then((_) {
           // put something else to make sure the txn has been cleaned
-          return db.put("ho", 2).then((_) {
+          return db.put('ho', 2).then((_) {
             return db.get(1).then((value) {
-              expect(value, "hi");
+              expect(value, 'hi');
             });
           });
         });
       });
     });
 
-    int transactionIdAfterOpen = 1;
+    var transactionIdAfterOpen = 1;
     test('one currentTransaction', () {
       db.transaction((txn) {
         expect(db.currentTransaction.id, transactionIdAfterOpen + 1);
