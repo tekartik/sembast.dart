@@ -328,5 +328,16 @@ void defineTests(DatabaseTestContext ctx) {
         } on ArgumentError catch (_) {}
       });
     });
+
+    test('drop', () async {
+      final store = StoreRef<int, String>('store');
+      var key = await store.add(db, 'test');
+      var record = store.record(key);
+      expect(await record.get(db), 'test');
+      await store.drop(db);
+      await db.close();
+      db = await ctx.factory.openDatabase(db.path);
+      expect(await record.get(db), isNull);
+    });
   });
 }

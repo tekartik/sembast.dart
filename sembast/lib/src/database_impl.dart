@@ -98,6 +98,7 @@ class SembastDatabase extends Object
 
   Store _mainStore;
   final Map<String, Store> _stores = {};
+  final List<String> _txnDroppedStores = [];
 
   @override
   Iterable<Store> get stores => _stores.values;
@@ -295,6 +296,13 @@ class SembastDatabase extends Object
       }
 
       _saveInMemory();
+    }
+
+    // Remove dropped store
+    if (_txnDroppedStores.isNotEmpty) {
+      for (var store in _txnDroppedStores) {
+        _stores.remove(store);
+      }
     }
 
     return commitData;
@@ -551,7 +559,7 @@ class SembastDatabase extends Object
       await store.store.txnClear(txn);
       // do not delete main
       if (store.store != mainStore) {
-        _stores.remove(storeName);
+        _txnDroppedStores.add(storeName);
       }
     }
   }
@@ -920,6 +928,8 @@ class SembastDatabase extends Object
     final upgrading = _upgrading;
     return transactionLock.synchronized(() async {
       _transaction = SembastTransaction(this, ++_txnId);
+      // To handle dropped stores
+      _txnDroppedStores.clear();
 
       void _transactionCleanUp() {
         // Mark transaction complete, ignore error
