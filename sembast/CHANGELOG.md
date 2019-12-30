@@ -1,4 +1,4 @@
-## 2.1.2+1
+## 2.1.2+2
 
 * Pedantic 1.9 support
 * Fix `Store.drop` behavior
