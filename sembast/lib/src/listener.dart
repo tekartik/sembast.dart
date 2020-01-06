@@ -51,10 +51,12 @@ class QueryListenerController<K, V> {
   /// stream.
   Stream<List<RecordSnapshot<K, V>>> get stream => _streamController.stream;
 
+  bool get _shouldAdd => !isClosed && _streamController.hasListener;
+
   /// Add data to stream.
   Future add(
       List<ImmutableSembastRecord> allMatching, Cooperator cooperator) async {
-    if (isClosed) {
+    if (!_shouldAdd) {
       return;
     }
 
@@ -62,16 +64,17 @@ class QueryListenerController<K, V> {
     _allMatching = allMatching;
     var list = await sortAndLimit(_allMatching, finder, cooperator);
 
-    if (isClosed) {
+    if (!_shouldAdd) {
       return;
     }
+
     // devPrint('adding $allMatching / limit $list / $finder');
     _streamController?.add(immutableListToSnapshots<K, V>(list));
   }
 
   /// Add error.
   void addError(dynamic error, StackTrace stackTrace) {
-    if (isClosed) {
+    if (!_shouldAdd) {
       return;
     }
     _streamController.addError(error, stackTrace);
@@ -155,21 +158,23 @@ class RecordListenerController<K, V> {
   /// stream.
   Stream<RecordSnapshot<K, V>> get stream => _streamController.stream;
 
+  bool get _shouldAdd => !isClosed && _streamController.hasListener;
+
   /// Add a snapshot.
   void add(RecordSnapshot snapshot) {
-    if (isClosed || !_streamController.hasListener) {
+    if (!_shouldAdd) {
       return;
     }
     hasInitialData = true;
-    _streamController?.add(snapshot?.cast<K, V>());
+    _streamController.add(snapshot?.cast<K, V>());
   }
 
   /// Add an error.
   void addError(dynamic error, StackTrace stackTrace) {
-    if (isClosed || !_streamController.hasListener) {
+    if (!_shouldAdd) {
       return;
     }
-    _streamController?.addError(error, stackTrace);
+    _streamController.addError(error, stackTrace);
   }
 }
 
