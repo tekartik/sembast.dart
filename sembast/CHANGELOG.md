@@ -1,7 +1,8 @@
-## 2.1.2+2
+## 2.1.2+3
 
 * Pedantic 1.9 support
 * Fix `Store.drop` behavior
+* Fix listener behavior when no listener is attached 
 
 ## 2.1.1
 
