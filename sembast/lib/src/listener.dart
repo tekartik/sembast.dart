@@ -157,7 +157,7 @@ class RecordListenerController<K, V> {
 
   /// Add a snapshot.
   void add(RecordSnapshot snapshot) {
-    if (isClosed) {
+    if (isClosed || !_streamController.hasListener) {
       return;
     }
     hasInitialData = true;
@@ -166,7 +166,7 @@ class RecordListenerController<K, V> {
 
   /// Add an error.
   void addError(dynamic error, StackTrace stackTrace) {
-    if (isClosed) {
+    if (isClosed || !_streamController.hasListener) {
       return;
     }
     _streamController?.addError(error, stackTrace);
