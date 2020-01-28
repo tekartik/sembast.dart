@@ -18,4 +18,5 @@ Future main() async {
 git tag v$version
 git push origin --tags
 ''');
+  await sharedStdIn.terminate();
 }
