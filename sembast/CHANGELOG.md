@@ -1,3 +1,7 @@
+## 2.1.3
+
+* Export `cloneValue` and `cloneList` from `utils/value_utils.dart`
+
 ## 2.1.2+3
 
 * Pedantic 1.9 support
