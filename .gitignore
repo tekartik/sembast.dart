@@ -27,3 +27,7 @@ test_out
 
 # Local files
 .local/
+
+# temp
+sembast_idb/
+sembast_test/

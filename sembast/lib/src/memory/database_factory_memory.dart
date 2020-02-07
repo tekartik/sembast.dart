@@ -3,8 +3,10 @@ import 'dart:async';
 import 'package:sembast/sembast.dart';
 import 'package:sembast/src/database_factory_mixin.dart';
 import 'package:sembast/src/database_impl.dart';
+import 'package:sembast/src/jdb/jdb_factory_memory.dart';
 import 'package:sembast/src/memory/file_system_memory.dart';
 import 'package:sembast/src/sembast_fs.dart';
+import 'package:sembast/src/sembast_jdb.dart';
 import 'package:sembast/src/storage.dart';
 
 /// The pure memory factory
@@ -13,6 +15,10 @@ final DatabaseFactoryMemory databaseFactoryMemory = DatabaseFactoryMemory._();
 /// The memory with a simulated file system factory
 final DatabaseFactoryMemoryFs databaseFactoryMemoryFs =
     DatabaseFactoryMemoryFs();
+
+/// The memory with a simulated jdb factory
+final DatabaseFactoryMemoryJdb databaseFactoryMemoryJdb =
+    DatabaseFactoryMemoryJdb();
 
 /// In memory implementation
 class DatabaseFactoryMemory extends SembastDatabaseFactory
@@ -106,4 +112,10 @@ class DatabaseStorageMemory extends DatabaseStorage {
 class DatabaseFactoryMemoryFs extends DatabaseFactoryFs {
   /// In memory fs.
   DatabaseFactoryMemoryFs() : super(memoryFileSystem);
+}
+
+/// The simulated jdb factory class
+class DatabaseFactoryMemoryJdb extends DatabaseFactoryJdb {
+  /// In memory fs.
+  DatabaseFactoryMemoryJdb() : super(jdbFactoryMemory);
 }

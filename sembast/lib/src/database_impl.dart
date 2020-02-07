@@ -9,6 +9,7 @@ import 'package:sembast/src/cooperator.dart';
 import 'package:sembast/src/database_client_impl.dart';
 import 'package:sembast/src/database_factory_mixin.dart';
 import 'package:sembast/src/env_utils.dart';
+import 'package:sembast/src/jdb.dart';
 import 'package:sembast/src/listener.dart';
 import 'package:sembast/src/meta.dart';
 import 'package:sembast/src/record_impl.dart';
@@ -49,7 +50,10 @@ class SembastDatabase extends Object
   /// log helper.
   final bool logV = sembastLogLevel == SembastLogLevel.verbose;
 
-  final DatabaseStorage _storage;
+  final StorageBase _storageBase;
+
+  DatabaseStorage _storage;
+  StorageJdb _storageJdb;
 
   // Lock used for opening/writing/compacting
 
@@ -66,7 +70,7 @@ class SembastDatabase extends Object
   DatabaseListener listener;
 
   @override
-  String get path => _storage.path;
+  String get path => _storageBase.path;
 
   //int _rev = 0;
   // incremental for each transaction
@@ -108,7 +112,13 @@ class SembastDatabase extends Object
   Iterable<String> get storeNames => _stores.values.map((store) => store.name);
 
   /// Database implementation.
-  SembastDatabase(this.openHelper, [this._storage]);
+  SembastDatabase(this.openHelper, [this._storageBase]) {
+    if (_storageBase is DatabaseStorage) {
+      _storage = _storageBase as DatabaseStorage;
+    } else if (_storageBase is StorageJdb) {
+      _storageJdb = _storageBase as StorageJdb;
+    }
+  }
 
   ///
   /// put a value in the main store
@@ -200,7 +210,7 @@ class SembastDatabase extends Object
   ///
   Future txnCompact() async {
     assert(databaseLock.inLock);
-    if (_storage.supported) {
+    if (_storage?.supported ?? false) {
       final tmpStorage = _storage.tmpStorage;
       // new stat with compact + 1
       final exportStat = DatabaseExportStat()
@@ -286,7 +296,7 @@ class SembastDatabase extends Object
         for (var record in txnRecords) {
           final exists = setRecordInMemory(record);
           // Try to estimated if compact will be needed
-          if (_storage.supported) {
+          if (_storage?.supported ?? false) {
             if (exists) {
               _exportStat.obsoleteLineCount++;
             }
@@ -313,24 +323,33 @@ class SembastDatabase extends Object
     if (txnRecords.isNotEmpty) {
       final lines = <String>[];
 
-      // writable record
-      for (var record in txnRecords) {
-        var map = record.record.toDatabaseRowMap();
-        String encoded;
-        try {
-          encoded = encodeMap(map);
-          if (_debugStorage) {
-            print('add: $encoded');
+      if (_storage != null) {
+        // writable record
+        for (var record in txnRecords) {
+          var map = record.record.toDatabaseRowMap();
+          String encoded;
+          try {
+            encoded = encodeMap(map);
+            if (_debugStorage) {
+              print('add: $encoded');
+            }
+            lines.add(encoded);
+          } catch (e, st) {
+            print(map);
+            print(e);
+            print(st);
+            rethrow;
           }
-          lines.add(encoded);
-        } catch (e, st) {
-          print(map);
-          print(e);
-          print(st);
-          rethrow;
         }
+        await _storage.appendLines(lines);
+      } else if (_storageJdb != null) {
+        var entries = <JdbWriteEntry>[];
+        for (var record in txnRecords) {
+          var entry = JdbWriteEntry()..txnRecord = record;
+          entries.add(entry);
+        }
+        await _storageJdb.addEntries(entries);
       }
-      await _storage.appendLines(lines);
     }
   }
 
@@ -680,58 +699,103 @@ class SembastDatabase extends Object
         //_path = path;
         Future _findOrCreate() async {
           if (mode == DatabaseMode.existing) {
-            final found = await _storage.find();
+            final found = await _storageBase.find();
             if (!found) {
               throw DatabaseException.databaseNotFound(
                   'Database (open existing only) ${path} not found');
             }
           } else {
             if (mode == DatabaseMode.empty) {
-              await _storage.delete();
+              await _storageBase.delete();
             }
-            await _storage.findOrCreate();
+            await _storageBase.findOrCreate();
           }
         }
 
         // create _exportStat
-        if (_storage.supported) {
+        if (_storage?.supported ?? false) {
           _exportStat = DatabaseExportStat();
         }
         await _findOrCreate();
-        if (_storage.supported) {
+        if (_storageBase.supported) {
           // empty stores and meta
           _meta = null;
           _mainStore = null;
           _stores.clear();
           _checkMainStore();
 
-          _exportStat = DatabaseExportStat();
+          if (_storage?.supported ?? false) {
+            _exportStat = DatabaseExportStat();
 
-          //bool needCompact = false;
-          var corrupted = false;
+            //bool needCompact = false;
+            var corrupted = false;
 
-          var firstLineRead = false;
+            var firstLineRead = false;
 
-          await for (var line in _storage.readLines()) {
-            _exportStat.lineCount++;
+            await for (var line in _storage.readLines()) {
+              _exportStat.lineCount++;
 
-            Map<String, dynamic> map;
+              Map<String, dynamic> map;
 
-            // Until meta is read, we assume it is json
-            if (!firstLineRead) {
-              // Read the meta first
-              // The first line is always json
+              // Until meta is read, we assume it is json
+              if (!firstLineRead) {
+                // Read the meta first
+                // The first line is always json
+                try {
+                  map = (json.decode(line) as Map)?.cast<String, dynamic>();
+                } on Exception catch (_) {}
+                if (Meta.isMapMeta(map)) {
+                  // meta?
+                  meta = Meta.fromMap(map);
+
+                  // Check codec signature if any
+                  checkCodecEncodedSignature(
+                      options.codec, meta.codecSignature);
+                  firstLineRead = true;
+                  continue;
+                } else {
+                  // If a codec is used, we fail
+                  if (_openMode == DatabaseMode.neverFails &&
+                      options.codec == null) {
+                    corrupted = true;
+                    break;
+                  } else {
+                    throw const FormatException('Invalid database format');
+                  }
+                }
+              }
+
               try {
-                map = (json.decode(line) as Map)?.cast<String, dynamic>();
-              } on Exception catch (_) {}
-              if (Meta.isMapMeta(map)) {
+                // decode record
+                map = decodeString(line);
+              } on Exception catch (_) {
+                // We can have meta here
+                try {
+                  map = (json.decode(line) as Map)?.cast<String, dynamic>();
+                } on Exception catch (_) {
+                  if (_openMode == DatabaseMode.neverFails) {
+                    corrupted = true;
+                    break;
+                  } else {
+                    rethrow;
+                  }
+                }
+              }
+
+              if (SembastRecord.isMapRecord(map)) {
+                // record?
+                final record =
+                    ImmutableSembastRecord.fromDatabaseRowMap(this, map);
+                if (_noTxnHasRecord(record)) {
+                  _exportStat.obsoleteLineCount++;
+                }
+                loadRecord(record);
+              } else if (Meta.isMapMeta(map)) {
                 // meta?
                 meta = Meta.fromMap(map);
 
                 // Check codec signature if any
                 checkCodecEncodedSignature(options.codec, meta.codecSignature);
-                firstLineRead = true;
-                continue;
               } else {
                 // If a codec is used, we fail
                 if (_openMode == DatabaseMode.neverFails &&
@@ -743,63 +807,43 @@ class SembastDatabase extends Object
                 }
               }
             }
+            // if corrupted and not even meta
+            // delete it
+            if (corrupted && meta == null) {
+              await _storage.delete();
+              await _storage.findOrCreate();
+            } else {
+              // auto compaction
+              // allow for 20% of lost lines
+              // make sure _meta is known before compacting
+              _meta = meta;
+              // devPrint('open needCompact $_needCompact corrupted $corrupted $_exportStat');
+              if (_needCompact || corrupted) {
+                await txnCompact();
+              }
+            }
+          } else if (_storageJdb?.supported ?? false) {
+            var map = await _storageJdb.readMeta();
 
-            try {
-              // decode record
-              map = decodeString(line);
-            } on Exception catch (_) {
-              // We can have meta here
-              try {
-                map = (json.decode(line) as Map)?.cast<String, dynamic>();
-              } on Exception catch (_) {
-                if (_openMode == DatabaseMode.neverFails) {
-                  corrupted = true;
-                  break;
+            if (Meta.isMapMeta(map)) {
+              // meta?
+              meta = Meta.fromMap(map);
+            }
+
+            await for (var entry in _storageJdb.entries) {
+              var value = entry.value;
+              if (value is Map) {
+                if (SembastRecord.isMapRecord(value)) {
+                  // record?
+                  final record =
+                      ImmutableSembastRecord.fromDatabaseRowMap(this, value);
+                  loadRecord(record);
                 } else {
-                  rethrow;
+                  // ignore
                 }
               }
             }
-
-            if (SembastRecord.isMapRecord(map)) {
-              // record?
-              final record =
-                  ImmutableSembastRecord.fromDatabaseRowMap(this, map);
-              if (_noTxnHasRecord(record)) {
-                _exportStat.obsoleteLineCount++;
-              }
-              loadRecord(record);
-            } else if (Meta.isMapMeta(map)) {
-              // meta?
-              meta = Meta.fromMap(map);
-
-              // Check codec signature if any
-              checkCodecEncodedSignature(options.codec, meta.codecSignature);
-            } else {
-              // If a codec is used, we fail
-              if (_openMode == DatabaseMode.neverFails &&
-                  options.codec == null) {
-                corrupted = true;
-                break;
-              } else {
-                throw const FormatException('Invalid database format');
-              }
-            }
-          }
-          // if corrupted and not even meta
-          // delete it
-          if (corrupted && meta == null) {
-            await _storage.delete();
-            await _storage.findOrCreate();
-          } else {
-            // auto compaction
-            // allow for 20% of lost lines
-            // make sure _meta is known before compacting
             _meta = meta;
-            // devPrint('open needCompact $_needCompact corrupted $corrupted $_exportStat');
-            if (_needCompact || corrupted) {
-              await txnCompact();
-            }
           }
 
           return _openDone();
@@ -879,8 +923,9 @@ class SembastDatabase extends Object
   /// * There are at least 6 records
   /// * There are 20% of obsolete lines to delete
   bool get _needCompact {
-    return (_exportStat.obsoleteLineCount > 5 &&
-        (_exportStat.obsoleteLineCount / _exportStat.lineCount > 0.20));
+    return (_storage != null) &&
+        (_exportStat.obsoleteLineCount > 5 &&
+            (_exportStat.obsoleteLineCount / _exportStat.lineCount > 0.20));
   }
 
   @override
@@ -949,18 +994,25 @@ class SembastDatabase extends Object
         _transactionCleanUp();
         rethrow;
       } finally {
-        if (_storage.supported) {
+        if (_storageBase.supported) {
           final hasRecords = commitData?.txnRecords?.isNotEmpty == true;
 
-          if (hasRecords || _upgrading) {
+          if (hasRecords || upgrading) {
             Future postTransaction() async {
               // spawn commit if needed
               // storagage commit and compacting is done lazily
 
+              //
               // Write meta when upgrading, write before the records!
+              //
               if (upgrading) {
-                await _storage.appendLine(json.encode(_upgradingMeta.toMap()));
-                _exportStat.lineCount++;
+                if (_storage != null) {
+                  await _storage
+                      .appendLine(json.encode(_upgradingMeta.toMap()));
+                  _exportStat.lineCount++;
+                } else if (_storageJdb != null) {
+                  await _storageJdb.writeMeta(_upgradingMeta.toMap());
+                }
               }
               if (commitData?.txnRecords?.isNotEmpty == true) {
                 await storageCommitRecords(commitData.txnRecords);
