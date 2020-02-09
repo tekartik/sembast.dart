@@ -7,8 +7,8 @@ Let's consider the following data
 int key1, key2, key3;
 await db.transaction((txn) async {
   key1 = await store.add(txn, {'name': 'fish'});
-  key2 = await store.add({'name': 'cat'});
-  key3 = await store.add({'name': 'dog'});
+  key2 = await store.add(txn, {'name': 'cat'});
+  key3 = await store.add(txn, {'name': 'dog'});
 });
 ```
 
