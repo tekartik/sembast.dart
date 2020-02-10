@@ -1,3 +1,6 @@
+@TestOn('vm')
+library sembast_test.test.idb_io_test;
+
 import 'package:idb_shim/idb_io.dart';
 import 'package:sembast/src/sembast_jdb.dart';
 import 'package:sembast_web/src/jdb_factory_idb.dart';
