@@ -5,6 +5,7 @@ import 'dart:async';
 import 'package:sembast/src/api/record_ref.dart';
 import 'package:sembast/src/jdb.dart' as jdb;
 import 'package:sembast/src/key_utils.dart';
+import 'package:sembast/src/record_impl.dart';
 
 /// In memory jdb.
 class JdbFactoryMemory implements jdb.JdbFactory {
@@ -36,7 +37,7 @@ class JdbFactoryMemory implements jdb.JdbFactory {
 }
 
 /// In memory entry.
-class JdbEntryMemory implements jdb.JdbEntry {
+class JdbEntryMemory implements jdb.JdbReadEntry {
   @override
   int id;
 
@@ -78,6 +79,7 @@ class JdbDatabaseMemory implements jdb.JdbDatabase {
   final String _path;
   final _entries = <JdbEntryMemory>[];
   final _infoEntries = <String, jdb.JdbInfoEntry>{};
+  final _revisionUpdatesCtrl = StreamController<int>.broadcast();
 
   /// Debug map.
   Map<String, dynamic> toDebugMap() {
@@ -91,9 +93,11 @@ class JdbDatabaseMemory implements jdb.JdbDatabase {
     return map;
   }
 
+  int _revision;
   @override
-  Stream<jdb.JdbEntry> get entries async* {
+  Stream<jdb.JdbReadEntry> get entries async* {
     for (var entry in _entries) {
+      _revision = entry.id;
       yield entry;
     }
   }
@@ -117,7 +121,12 @@ class JdbDatabaseMemory implements jdb.JdbDatabase {
   }
 
   @override
-  Future addEntries(List<jdb.JdbWriteEntry> entries) {
+  Future<int> addEntries(List<jdb.JdbWriteEntry> entries) async {
+    // Should import?
+    var revision = await getRevision() ?? 0;
+    if ((_revision ?? 0) < revision) {
+      _revisionUpdatesCtrl.add(revision);
+    }
     for (var jdbWriteEntry in entries) {
       // remove existing
       var record = jdbWriteEntry.record;
@@ -128,6 +137,8 @@ class JdbDatabaseMemory implements jdb.JdbDatabase {
         ..id = _nextId
         ..deleted = jdbWriteEntry.deleted;
       _entries.add(entry);
+      (jdbWriteEntry.txnRecord.record as ImmutableSembastRecordJdb).revision =
+          entry.id;
     }
     return null;
   }
@@ -155,6 +166,29 @@ class JdbDatabaseMemory implements jdb.JdbDatabase {
   Future<List<String>> generateUniqueStringKeys(
           String store, int count) async =>
       List.generate(count, (_) => generateStringKey());
+
+  @override
+  Stream<jdb.JdbEntry> entriesAfterRevision(int revision) async* {
+    revision ??= 0;
+    // Copy the list
+    for (var entry in _entries.toList(growable: false)) {
+      if ((entry.id ?? 0) > revision) {
+        yield entry;
+      }
+    }
+  }
+
+  @override
+  Future<int> getRevision() async {
+    try {
+      return _entries.last.id;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  @override
+  Stream<int> get revisionUpdate => _revisionUpdatesCtrl.stream;
 }
 
 JdbFactoryMemory _jdbFactoryMemory = JdbFactoryMemory();

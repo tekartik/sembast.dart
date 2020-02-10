@@ -93,6 +93,9 @@ class JdbWriteEntry extends JdbEntry {
 
 /// Jdb.
 abstract class JdbDatabase {
+  /// Get revision update from the database
+  Stream<int> get revisionUpdate;
+
   /// Get info.
   Future<JdbInfoEntry> getInfoEntry(String id);
 
@@ -104,6 +107,12 @@ abstract class JdbDatabase {
 
   /// Read all entries.
   Stream<JdbEntry> get entries;
+
+  /// Read delta entries since current revision
+  Stream<JdbEntry> entriesAfterRevision(int revision);
+
+  /// Read revision stored
+  Future<int> getRevision();
 
   /// Generate unique int keys.
   Future<List<int>> generateUniqueIntKeys(String store, int count);

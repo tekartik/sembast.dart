@@ -118,6 +118,21 @@ class SembastStorageJdb extends StorageBase implements StorageJdb {
   Future<String> generateUniqueStringKey(String store) async {
     return (await jdbDatabase.generateUniqueStringKeys(store, 1)).first;
   }
+
+  @override
+  Future<List<JdbEntry>> getEntriesAfter(int revision) async {
+    return await jdbDatabase.entriesAfterRevision(revision).toList();
+  }
+
+  @override
+  // TODO: implement updates
+  Stream<StorageJdbStateUpdate> get updates => null;
+
+  @override
+  Stream<int> get revisionUpdate => jdbDatabase.revisionUpdate;
+
+  @override
+  Future<int> getRevision() => jdbDatabase.getRevision();
 }
 
 /// Jdb implementation

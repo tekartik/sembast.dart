@@ -96,6 +96,17 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
   final idb.Database _idbDatabase;
   final int _id;
   final String _path;
+  final _revisionUpdateController = StreamController<int>();
+
+  jdb.JdbReadEntry _entryFromCursor(CursorWithValue cwv) {
+    var map = cwv.value as Map;
+    var entry = jdb.JdbReadEntry()
+      ..id = cwv.key as int
+      ..record = StoreRef(map[_storePath] as String).record(map[_keyPath])
+      ..value = map[_valuePath]
+      ..deleted = map[_deletedPath] as bool;
+    return entry;
+  }
 
   // ignore: unused_field
   final JdbFactoryIdb _factory;
@@ -103,28 +114,23 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
   //final _entries = <JdbEntryIdb>[];
   String get _debugPrefix => '[idb-$_id]';
   @override
-  Stream<jdb.JdbEntry> get entries {
-    var ctlr = StreamController<jdb.JdbEntry>();
-    _idbDatabase
-        .transaction(_entryStore, idbModeReadOnly)
-        .objectStore(_entryStore)
-        .openCursor(autoAdvance: true)
-        .listen((cwv) {
-          var map = cwv.value as Map;
-          var entry = jdb.JdbReadEntry()
-            ..id = cwv.key as int
-            ..record = StoreRef(map[_storePath] as String).record(map[_keyPath])
-            ..value = map[_valuePath]
-            ..deleted = map[_deletedPath] as bool;
-          if (_debug) {
-            print('$_debugPrefix reading entry $entry');
-          }
-          ctlr.add(entry);
-        })
-        .asFuture()
-        .then((_) {
-          ctlr.close();
-        });
+  Stream<jdb.JdbReadEntry> get entries {
+    StreamController<jdb.JdbReadEntry> ctlr;
+    ctlr = StreamController<jdb.JdbReadEntry>(onListen: () async {
+      await _idbDatabase
+          .transaction(_entryStore, idbModeReadOnly)
+          .objectStore(_entryStore)
+          .openCursor(autoAdvance: true)
+          .listen((cwv) {
+        var entry = _entryFromCursor(cwv);
+        if (_debug) {
+          print('$_debugPrefix reading entry $entry');
+        }
+        ctlr.add(entry);
+      }).asFuture();
+
+      await ctlr.close();
+    });
     return ctlr.stream;
   }
 
@@ -149,12 +155,10 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
         .transaction(_infoStore, idbModeReadOnly)
         .objectStore(_infoStore)
         .getObject(id);
-    if (info is Map) {
-      return jdb.JdbInfoEntry()
-        ..id = id
-        ..value = info?.cast<String, dynamic>();
-    }
-    return null;
+
+    return jdb.JdbInfoEntry()
+      ..id = id
+      ..value = info;
   }
 
   @override
@@ -245,6 +249,36 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
     }
     return keys;
   }
+
+  @override
+  Stream<jdb.JdbEntry> entriesAfterRevision(int revision) {
+    revision ??= 0;
+    StreamController<jdb.JdbEntry> ctlr;
+    ctlr = StreamController<jdb.JdbEntry>(onListen: () async {
+      await _idbDatabase
+          .transaction(_entryStore, idbModeReadOnly)
+          .objectStore(_entryStore)
+          .openCursor(key: KeyRange.lowerBound(revision), autoAdvance: true)
+          .listen((cwv) {
+        var entry = _entryFromCursor(cwv);
+        if (_debug) {
+          print('$_debugPrefix reading entry $entry');
+        }
+        ctlr.add(entry);
+      }).asFuture();
+
+      await ctlr.close();
+    });
+    return ctlr.stream;
+  }
+
+  @override
+  Future<int> getRevision() async {
+    return (await getInfoEntry(_revisionKey))?.value as int;
+  }
+
+  @override
+  Stream<int> get revisionUpdate => _revisionUpdateController.stream;
 }
 
 JdbFactoryIdb _jdbFactoryIdbMemory = JdbFactoryIdb(idbFactoryMemory);

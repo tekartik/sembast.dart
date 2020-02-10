@@ -514,7 +514,12 @@ class SembastStore implements Store {
   /// Put a record in a transaction.
   ImmutableSembastRecord txnPutRecordSync(
       SembastTransaction txn, Record record) {
-    var sembastRecord = makeImmutableRecord(record);
+    ImmutableSembastRecord sembastRecord;
+    if (database.storageJdb != null) {
+      sembastRecord = makeImmutableRecordJdb(record);
+    } else {
+      sembastRecord = makeImmutableRecord(record);
+    }
 
     // auto-gen key if needed
     if (sembastRecord.key == null) {
@@ -539,7 +544,12 @@ class SembastStore implements Store {
     return sembastRecord;
   }
 
-  ImmutableSembastRecord _getRecord(SembastTransaction txn, var key) {
+  ///
+  /// Return the current immutable value
+  ///
+  /// null if not present. could be a deleted item
+  ImmutableSembastRecord txnGetImmutableRecordSync(
+      SembastTransaction txn, var key) {
     ImmutableSembastRecord record;
 
     // look in current transaction
@@ -599,7 +609,7 @@ class SembastStore implements Store {
 
   /// Check if a record exists in a transaction.
   Future<bool> txnRecordExists(SembastTransaction txn, key) async {
-    var record = _getRecord(txn, key);
+    var record = txnGetImmutableRecordSync(txn, key);
     // Cooperate after!
     if (needCooperate) {
       await cooperate();
@@ -609,7 +619,7 @@ class SembastStore implements Store {
 
   /// Get a record by key in a transaction.
   ImmutableSembastRecord txnGetRecordSync(SembastTransaction txn, key) {
-    var record = _getRecord(txn, key);
+    var record = txnGetImmutableRecordSync(txn, key);
     if (record == null || record.deleted) {
       return null;
     }
@@ -630,7 +640,7 @@ class SembastStore implements Store {
     final records = <ImmutableSembastRecord>[];
 
     for (var key in keys) {
-      var record = _getRecord(txn, key);
+      var record = txnGetImmutableRecordSync(txn, key);
       if (record != null) {
         if (!record.deleted) {
           records.add(record);
@@ -653,7 +663,7 @@ class SembastStore implements Store {
     final snapshots = <RecordSnapshot<K, V>>[];
 
     for (var key in refs.keys) {
-      var immutable = _getRecord(txn, key);
+      var immutable = txnGetImmutableRecordSync(txn, key);
       if (immutable != null && (!immutable.deleted)) {
         snapshots.add(SembastRecordSnapshot<K, V>.fromRecord(immutable));
       } else {
@@ -707,7 +717,7 @@ class SembastStore implements Store {
 
   /// Delete a record in a transaction.
   Future<dynamic> txnDelete(SembastTransaction txn, var key) async {
-    var record = _getRecord(txn, key);
+    var record = txnGetImmutableRecordSync(txn, key);
     await cooperate();
     if (record == null) {
       return null;
@@ -739,7 +749,7 @@ class SembastStore implements Store {
     keys = List.from(keys, growable: false);
     for (var key in keys) {
       await cooperate();
-      var record = _getRecord(txn, key);
+      var record = txnGetImmutableRecordSync(txn, key);
       if (record != null && !record.deleted) {
         // Clone and mark deleted
         Record clone = record.sembastClone(deleted: true);

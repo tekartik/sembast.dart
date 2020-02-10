@@ -42,10 +42,31 @@ abstract class DatabaseStorage extends StorageBase {
   Future appendLine(String line) => appendLines([line]);
 }
 
+/// State update
+class StorageJdbStateUpdate {
+  /// Current revision
+  final int revision;
+
+  /// Minimum version for delta import
+  final int minDeltaImportRevision;
+
+  /// State update
+  StorageJdbStateUpdate(this.revision, this.minDeltaImportRevision);
+}
+
 /// Jdb implementation
 abstract class StorageJdb extends StorageBase {
   /// All entries.
   Stream<JdbEntry> get entries;
+
+  /// Revision update to force reading
+  Stream<StorageJdbStateUpdate> get updates;
+
+  /// Revision update to register on open (unregistre on close)
+  Stream<int> get revisionUpdate;
+
+  /// Get the entries after
+  Future<List<JdbEntry>> getEntriesAfter(int revision);
 
   /// Read meta map
   Future<Map<String, dynamic>> readMeta();
@@ -64,4 +85,7 @@ abstract class StorageJdb extends StorageBase {
 
   /// Generate a unique String key
   Future<String> generateUniqueStringKey(String store);
+
+  /// Read the revision
+  Future<int> getRevision();
 }

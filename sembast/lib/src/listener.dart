@@ -83,14 +83,15 @@ class QueryListenerController<K, V> {
   /// Update the records.
   ///
   /// We are async safe here
-  Future update(List<TxnRecord> txnRecords, Cooperator cooperator) async {
+  Future update(
+      List<ImmutableSembastRecord> records, Cooperator cooperator) async {
     if (isClosed) {
       return;
     }
     // Restart from the base we have for efficiency
     var allMatching = List<ImmutableSembastRecord>.from(_allMatching);
     var hasChanges = false;
-    for (var txnRecord in txnRecords) {
+    for (var txnRecord in records) {
       if (isClosed) {
         return;
       }
@@ -110,13 +111,13 @@ class QueryListenerController<K, V> {
       // By default matches if non-deleted
       var matches = !txnRecord.deleted;
       if (matches && filter != null) {
-        matches = filterMatchesRecord(filter, txnRecord.record);
+        matches = filterMatchesRecord(filter, txnRecord);
       }
 
       if (matches) {
         hasChanges = true;
         // re-add
-        allMatching.add(txnRecord.record);
+        allMatching.add(txnRecord);
       }
 
       await cooperator.cooperate();
@@ -340,7 +341,7 @@ class StoreListenerOperation {
   final StoreListener listener;
 
   /// records changes.
-  final List<TxnRecord> txnRecords;
+  final List<ImmutableSembastRecord> txnRecords;
 
   /// Store listener operation.
   StoreListenerOperation(this.listener, this.txnRecords);

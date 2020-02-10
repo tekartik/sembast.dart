@@ -42,6 +42,7 @@ void main() {
   group('jdb', () {
     test('open', () async {
       var db = await ctx.open('test');
+
       var jdb = getJdbDatabase(db);
       expect(jdb.toDebugMap(), {
         'entries': [],
@@ -115,11 +116,18 @@ void main() {
         ]
       });
       var store = StoreRef<int, String>.main();
-      expect(await store.record(1).get(db), isNull);
+      var record1 = store.record(1);
+      expect(await record1.get(db), isNull);
 
       var key = await store.add(db, 'test');
       expect(key, 2);
-      //expect(await store.record(1).get(db), isNotNull);
+      expect(await record1.get(db), isNull);
+
+      await record1.onSnapshot(db).where((snapshot) => snapshot != null).first;
+
+      expect(await store.record(1).get(db), isNotNull);
+
+      await db.close();
     });
   });
 }

@@ -54,6 +54,8 @@ class SembastDatabase extends Object
 
   DatabaseStorage _storage;
   StorageJdb _storageJdb;
+  StreamSubscription<int> _storageJdbRevisionUpdateSubscription;
+  int _jdbRevision;
 
   /// Get internal jdb storage if any
   StorageJdb get storageJdb => _storageJdb;
@@ -167,6 +169,25 @@ class SembastDatabase extends Object
   /// Set in memory.
   bool setRecordInMemory(TxnRecord record) {
     return _recordStore(record).setRecordInMemory(record?.record);
+  }
+
+  /// Load a record if needed
+  bool loadRecordJdb(ImmutableSembastRecordJdb record) {
+    var store = _recordStore(record);
+    dynamic existing = store.txnGetImmutableRecordSync(null, record.key);
+    if (existing is ImmutableSembastRecordJdb) {
+      if (existing != null) {
+        if (existing.revision != null) {
+          if ((record.revision ?? 0) > existing.revision) {
+            loadRecord(record);
+            return true;
+          }
+        }
+        return false;
+      }
+    }
+    loadRecord(record);
+    return true;
   }
 
   /// Load a record.
@@ -298,7 +319,11 @@ class SembastDatabase extends Object
         if (listener.isNotEmpty) {
           var listener = this.listener.getStore(store.ref);
           if (listener != null) {
-            listenerOperations.add(StoreListenerOperation(listener, records));
+            listenerOperations.add(StoreListenerOperation(
+                listener,
+                records
+                    .map((record) => record.nonDeletedRecord)
+                    .toList(growable: false)));
           }
         }
 
@@ -857,11 +882,13 @@ class SembastDatabase extends Object
               meta = Meta.fromMap(map);
             }
 
-            await for (var entry in _storageJdb.entries) {
-              var record = ImmutableSembastRecord(entry.record, entry.value,
-                  deleted: entry.deleted);
-              loadRecord(record);
-            }
+            await jdbFullImport();
+
+            /// Revision update to force reading
+            _storageJdbRevisionUpdateSubscription =
+                _storageJdb.revisionUpdate.listen((revision) {
+              jdbDeltaImport(revision);
+            });
             _meta = meta;
           }
 
@@ -883,6 +910,61 @@ class SembastDatabase extends Object
     return this;
   }
 
+  /// Full import - must be in transaction
+  Future jdbFullImport() async {
+    _jdbRevision = await _storageJdb.getRevision();
+    await for (var entry in _storageJdb.entries) {
+      var record = ImmutableSembastRecordJdb(entry.record, entry.value,
+          deleted: entry.deleted, revision: entry.id);
+      loadRecord(record);
+    }
+  }
+
+  /// Delta import
+  Future jdbDeltaImport(int revision) async {
+    var allStores = <StoreRef, Map<dynamic, ImmutableSembastRecordJdb>>{};
+    await transaction((txn) async {
+      //TODO lock
+      var minRevision = _jdbRevision ?? 0;
+
+      var entries = await _storageJdb.getEntriesAfter(minRevision ?? 0);
+      if (!_closed) {
+        for (var entry in entries) {
+          var record = ImmutableSembastRecordJdb(entry.record, entry.value,
+              deleted: entry.deleted, revision: entry.id);
+          var store = entry.record.store;
+          Map<dynamic, ImmutableSembastRecordJdb> map;
+          map = allStores[store];
+          if (map == null) {
+            allStores[store] = map = <dynamic, ImmutableSembastRecordJdb>{};
+          }
+          if (loadRecordJdb(record)) {
+            map[record.key] = record;
+          }
+        }
+        _jdbRevision = revision;
+      }
+    });
+
+    if (allStores.isNotEmpty) {
+      /// Prepare listener
+      var listenerOperations = <StoreListenerOperation>[];
+
+      allStores.forEach((store, list) {
+        // Prepare listener operations
+        if (listener.isNotEmpty) {
+          var listener = this.listener.getStore(store);
+          if (listener != null) {
+            listenerOperations.add(StoreListenerOperation(
+                listener, list.values.toList(growable: false)));
+          }
+        }
+
+        //txnRecords.addAll(records);
+      });
+    }
+  }
+
   /// To call when in a databaseLock
   Future lockedClose() async {
     _opened = false;
@@ -896,6 +978,11 @@ class SembastDatabase extends Object
 
   @override
   Future close() async {
+    // jdb updates
+    // ignore: unawaited_futures
+    _storageJdbRevisionUpdateSubscription?.cancel();
+    _storageJdbRevisionUpdateSubscription = null;
+
     return openHelper.lock.synchronized(() async {
       // Cancel listener
       listener.close();
@@ -1059,51 +1146,9 @@ class SembastDatabase extends Object
         }
       }
 
-      // Notify if needed
+      // Notify if needed, done lazily
       if (commitData?.listenerOperations?.isNotEmpty == true) {
-        lazyListenerOperations.add(() async {
-          for (var operation in commitData.listenerOperations) {
-            // records
-            for (var record in operation.txnRecords) {
-              var ctlrs = operation.listener.getRecord(record.ref);
-              if (ctlrs != null) {
-                for (var ctlr in ctlrs) {
-                  void _updateRecord() {
-                    ctlr.add(record.nonDeletedRecord);
-                  }
-
-                  if (ctlr.hasInitialData) {
-                    // devPrint('adding $record');
-                    _updateRecord();
-                  } else {
-                    // postpone
-                    // ignore: unawaited_futures
-                    notificationLock.synchronized(() async {
-                      _updateRecord();
-                    });
-                  }
-                }
-              }
-            }
-            // Fix existing queries
-            for (var query in List<QueryListenerController>.from(
-                operation.listener.getQuery())) {
-              Future _updateQuery() async {
-                await query.update(operation.txnRecords, cooperator);
-              }
-
-              if (query.hasInitialData) {
-                await _updateQuery();
-              } else {
-                // postpone
-                // ignore: unawaited_futures
-                notificationLock.synchronized(() async {
-                  await _updateQuery();
-                });
-              }
-            }
-          }
-        });
+        notifyQueryListeners(commitData.listenerOperations);
       }
 
       _clearTxnData();
@@ -1190,6 +1235,53 @@ class SembastDatabase extends Object
   @override
   SembastTransaction get sembastTransaction =>
       _openTransaction as SembastTransaction;
+
+  /// Notifify queryListeners
+  void notifyQueryListeners(List<StoreListenerOperation> listenerOperations) {
+    lazyListenerOperations.add(() async {
+      for (var operation in listenerOperations) {
+        // records
+        for (var record in operation.txnRecords) {
+          var ctlrs = operation.listener.getRecord(record.ref);
+          if (ctlrs != null) {
+            for (var ctlr in ctlrs) {
+              void _updateRecord() {
+                ctlr.add(record);
+              }
+
+              if (ctlr.hasInitialData) {
+                // devPrint('adding $record');
+                _updateRecord();
+              } else {
+                // postpone
+                // ignore: unawaited_futures
+                notificationLock.synchronized(() async {
+                  _updateRecord();
+                });
+              }
+            }
+          }
+        }
+        // Fix existing queries
+        for (var query in List<QueryListenerController>.from(
+            operation.listener.getQuery())) {
+          Future _updateQuery() async {
+            await query.update(operation.txnRecords, cooperator);
+          }
+
+          if (query.hasInitialData) {
+            await _updateQuery();
+          } else {
+            // postpone
+            // ignore: unawaited_futures
+            notificationLock.synchronized(() async {
+              await _updateQuery();
+            });
+          }
+        }
+      }
+    });
+  }
 }
 
 /// Export stat.

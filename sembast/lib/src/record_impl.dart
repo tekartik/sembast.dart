@@ -152,6 +152,17 @@ class LazyMutableSembastRecord with SembastRecordHelperMixin implements Record {
   RecordSnapshot<RK, RV> cast<RK, RV>() => record.cast<RK, RV>();
 }
 
+/// Immutable record in jdb.
+class ImmutableSembastRecordJdb extends ImmutableSembastRecord {
+  /// Record revision.
+  int revision;
+
+  /// Immutable record in jdb.
+  ImmutableSembastRecordJdb(RecordRef ref, dynamic value,
+      {bool deleted, this.revision})
+      : super(ref, value, deleted: deleted);
+}
+
 /// Immutable record, used in storage
 class ImmutableSembastRecord
     with SembastRecordMixin, SembastRecordHelperMixin, RecordSnapshotMixin {
@@ -230,7 +241,7 @@ class TxnRecord with SembastRecordHelperMixin implements Record {
   @override
   RecordSnapshot<RK, RV> cast<RK, RV>() => record.cast<RK, RV>();
 
-  /// non deleted record list.
+  /// non deleted record.
   ImmutableSembastRecord get nonDeletedRecord => deleted ? null : record;
 }
 
@@ -321,6 +332,19 @@ ImmutableSembastRecord makeImmutableRecord(Record record) {
     return null;
   }
   return ImmutableSembastRecord(record.ref, cloneValue(record.value),
+      deleted: record.deleted);
+}
+
+/// Convert to immutable if needed
+ImmutableSembastRecordJdb makeImmutableRecordJdb(Record record) {
+  if (record is ImmutableSembastRecordJdb) {
+    return record;
+  } else if (record == null) {
+    // This can happen when settings boundary
+    return null;
+  }
+  // no revision
+  return ImmutableSembastRecordJdb(record.ref, cloneValue(record.value),
       deleted: record.deleted);
 }
 
