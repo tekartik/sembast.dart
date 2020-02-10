@@ -125,7 +125,8 @@ class JdbDatabaseMemory implements jdb.JdbDatabase {
       var entry = JdbEntryMemory()
         ..record = record
         ..value = jdbWriteEntry.value
-        ..id = _nextId;
+        ..id = _nextId
+        ..deleted = jdbWriteEntry.deleted;
       _entries.add(entry);
     }
     return null;

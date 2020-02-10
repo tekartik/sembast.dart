@@ -858,17 +858,9 @@ class SembastDatabase extends Object
             }
 
             await for (var entry in _storageJdb.entries) {
-              var value = entry.value;
-              if (value is Map) {
-                if (SembastRecord.isMapRecord(value)) {
-                  // record?
-                  final record =
-                      ImmutableSembastRecord.fromDatabaseRowMap(this, value);
-                  loadRecord(record);
-                } else {
-                  // ignore
-                }
-              }
+              var record = ImmutableSembastRecord(entry.record, entry.value,
+                  deleted: entry.deleted);
+              loadRecord(record);
             }
             _meta = meta;
           }

@@ -9,7 +9,7 @@ import 'package:sembast_web/src/jdb_import.dart' as jdb;
 import 'package:sembast_web/src/constant_import.dart';
 import 'package:sembast_web/src/sembast_import.dart';
 
-const _debug = false;
+var _debug = false; // devWarning(true);
 const _infoStore = 'info';
 const _entryStore = 'entry';
 const _storePath = dbStoreNameKey;
@@ -112,6 +112,7 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
         .listen((cwv) {
           var map = cwv.value as Map;
           var entry = jdb.JdbReadEntry()
+            ..id = cwv.key as int
             ..record = StoreRef(map[_storePath] as String).record(map[_keyPath])
             ..value = map[_valuePath]
             ..deleted = map[_deletedPath] as bool;
