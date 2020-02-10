@@ -13,18 +13,21 @@ import 'package:sembast/src/storage.dart';
 /// meta info key
 const String metaKey = '_meta';
 
-class _StorageJdb extends StorageBase implements StorageJdb {
+/// Jdb Storage implementation.
+class SembastStorageJdb extends StorageBase implements StorageJdb {
+  /// The underlying jdb factory.
   final JdbFactory jdbFactory;
+
+  /// The underlying jdb database.
   JdbDatabase jdbDatabase;
 
-  // Map<String, dynamic> meta;
   @override
   final String path;
 
-  bool isTmp;
-  final bool logV = databaseStorageLogLevel == SembastLogLevel.verbose;
+  final bool _logV = databaseStorageLogLevel == SembastLogLevel.verbose;
 
-  _StorageJdb(this.jdbFactory, this.path);
+  /// New storage instance.
+  SembastStorageJdb(this.jdbFactory, this.path);
 
   @override
   bool get supported => true;
@@ -35,7 +38,7 @@ class _StorageJdb extends StorageBase implements StorageJdb {
       // meta = null;
       await jdbFactory.delete(path);
     } catch (e) {
-      if (logV) {
+      if (_logV) {
         print('delete failed $path $e');
       }
     }
@@ -58,7 +61,7 @@ class _StorageJdb extends StorageBase implements StorageJdb {
       }
       return true;
     } catch (e) {
-      if (logV) {
+      if (_logV) {
         print('find failed $path $e');
       }
       return false;
@@ -91,7 +94,7 @@ class _StorageJdb extends StorageBase implements StorageJdb {
     try {
       jdbDatabase?.close();
     } catch (e) {
-      if (logV) {
+      if (_logV) {
         print('close failed $path $e');
       }
     }
@@ -128,12 +131,12 @@ class DatabaseFactoryJdb extends SembastDatabaseFactory
   DatabaseFactoryJdb(this.jdbFactory);
 
   @override
-  SembastDatabase newDatabase(DatabaseOpenHelper openHelper) =>
-      SembastDatabase(openHelper, _StorageJdb(jdbFactory, openHelper.path));
+  SembastDatabase newDatabase(DatabaseOpenHelper openHelper) => SembastDatabase(
+      openHelper, SembastStorageJdb(jdbFactory, openHelper.path));
 
   @override
   Future doDeleteDatabase(String path) async {
-    return _StorageJdb(jdbFactory, path).delete();
+    return SembastStorageJdb(jdbFactory, path).delete();
   }
 
   @override

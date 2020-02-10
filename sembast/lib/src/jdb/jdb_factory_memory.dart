@@ -41,28 +41,55 @@ class JdbEntryMemory implements jdb.JdbEntry {
   int id;
 
   @override
-  Map<String, dynamic> value;
+  dynamic value;
 
   @override
   RecordRef record;
 
   @override
   bool deleted;
+
+  /// Debug map.
+  Map<String, dynamic> toDebugMap() {
+    var map = <String, dynamic>{
+      if (id != null) 'id': id,
+      'store': record?.store?.name,
+      'key': record?.key,
+      'value': value,
+      if (deleted ?? false) 'deleted': true
+    };
+    return map;
+  }
 }
 
 /// In memory database.
 class JdbDatabaseMemory implements jdb.JdbDatabase {
   int _lastId = 0;
+
   // ignore: unused_field
   bool _closed = false;
 
   int get _nextId => ++_lastId;
+
   // ignore: unused_field
   final JdbFactoryMemory _factory;
+
   // ignore: unused_field
   final String _path;
   final _entries = <JdbEntryMemory>[];
   final _infoEntries = <String, jdb.JdbInfoEntry>{};
+
+  /// Debug map.
+  Map<String, dynamic> toDebugMap() {
+    var map = <String, dynamic>{
+      'entries':
+          _entries.map((entry) => entry.toDebugMap()).toList(growable: false),
+      'infos': _infoEntries.values
+          .map((info) => info.toDebugMap())
+          .toList(growable: false),
+    };
+    return map;
+  }
 
   @override
   Stream<jdb.JdbEntry> get entries async* {

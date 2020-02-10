@@ -22,6 +22,15 @@ class JdbInfoEntry {
 
   @override
   String toString() => '[$id] $value';
+
+  /// Debug map.
+  Map<String, dynamic> toDebugMap() {
+    var map = <String, dynamic>{
+      'id': id,
+      'value': value,
+    };
+    return map;
+  }
 }
 
 /// Journal entry database.
@@ -70,12 +79,11 @@ class JdbWriteEntry extends JdbEntry {
   @override
   RecordRef get record => txnRecord.ref;
 
-  Map<String, dynamic> _value;
+  dynamic _value;
 
   /// value.
   @override
-  Map<String, dynamic> get value =>
-      _value ??= txnRecord.record.toDatabaseRowMap();
+  dynamic get value => _value ??= txnRecord.record.value;
   @override
   String toString() => '[$id] $record $value';
 

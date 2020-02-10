@@ -55,6 +55,9 @@ class SembastDatabase extends Object
   DatabaseStorage _storage;
   StorageJdb _storageJdb;
 
+  /// Get internal jdb storage if any
+  StorageJdb get storageJdb => _storageJdb;
+
   // Lock used for opening/writing/compacting
 
   /// General lock.
