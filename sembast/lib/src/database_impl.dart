@@ -480,9 +480,17 @@ class SembastDatabase extends Object
   /// reload
   //
   Future<Database> reOpen([DatabaseOpenOptions options]) async {
+    options ??= openOptions;
     await close();
+    if (_storageJdb != null) {
+      return openHelper.factory.openDatabase(path,
+          version: options.version,
+          onVersionChanged: options.onVersionChanged,
+          codec: options.codec,
+          mode: options.mode);
+    }
     // Reuse same open mode unless specified
-    return open(options ?? openOptions);
+    return open(options);
   }
 
   void _checkMainStore() {
@@ -868,6 +876,10 @@ class SembastDatabase extends Object
   Future lockedClose() async {
     _opened = false;
     _closed = true;
+    // Close the jdb database
+    if (_storageJdb != null) {
+      _storageJdb.close();
+    }
     await openHelper.lockedCloseDatabase();
   }
 

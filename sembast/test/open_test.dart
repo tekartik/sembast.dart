@@ -17,6 +17,7 @@ void defineTests(DatabaseTestContext ctx) {
       var db = await factory.openDatabase(path,
           onVersionChanged: (db, oldVersion, newVersion) async {
         expect(oldVersion, 0);
+        expect(newVersion, 1);
         expect(db.version, 0);
       });
       expect(db.version, 1);
@@ -31,6 +32,7 @@ void defineTests(DatabaseTestContext ctx) {
           onVersionChanged: (db, oldVersion, newVersion) async {
         expect(oldVersion, 0);
         expect(db.version, 0);
+        expect(newVersion, 1);
       });
       expect(db.version, 1);
       await db.close();
@@ -38,9 +40,23 @@ void defineTests(DatabaseTestContext ctx) {
       db = await factory.openDatabase(path, version: 2,
           onVersionChanged: (db, oldVersion, newVersion) async {
         expect(oldVersion, 1);
+        expect(newVersion, 2);
         expect(db.version, 1);
       });
       expect(db.version, 2);
+    });
+
+    test('re_open', () async {
+      var path = dbPathFromName('open/re_open.db');
+
+      await factory.deleteDatabase(path);
+
+      var db = await factory.openDatabase(path);
+      expect(db.version, 1);
+      await db.close();
+      db = await factory.openDatabase(path);
+      expect(db.version, 1);
+      await db.close();
     });
 
     test('compacting during open', () async {

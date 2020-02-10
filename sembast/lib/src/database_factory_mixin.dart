@@ -89,7 +89,6 @@ class DatabaseOpenHelper {
   Future lockedCloseDatabase() async {
     if (database != null) {
       factory.removeDatabaseOpenHelper(path);
-      // database = null;
     }
     return database;
   }

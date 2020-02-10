@@ -10,7 +10,8 @@ import 'package:sembast/src/database_impl.dart';
 import 'package:sembast/src/jdb.dart';
 import 'package:sembast/src/storage.dart';
 
-const String _metaKey = '_meta';
+/// meta info key
+const String metaKey = '_meta';
 
 class _StorageJdb extends StorageBase implements StorageJdb {
   final JdbFactory jdbFactory;
@@ -71,17 +72,18 @@ class _StorageJdb extends StorageBase implements StorageJdb {
 
   @override
   Future<Map<String, dynamic>> readMeta() async {
-    return (await jdbDatabase.getInfoEntry(_metaKey))?.value;
+    return (await jdbDatabase.getInfoEntry(metaKey))?.value;
   }
 
   @override
   Future writeMeta(Map<String, dynamic> map) async {
     await jdbDatabase.setInfoEntry(JdbInfoEntry()
-      ..id = _metaKey
+      ..id = metaKey
       ..value = map);
   }
 
-  void close() async {
+  @override
+  void close() {
     try {
       jdbDatabase?.close();
     } catch (e) {

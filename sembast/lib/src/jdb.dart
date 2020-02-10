@@ -19,6 +19,9 @@ class JdbInfoEntry {
 
   /// Jdb value
   Map<String, dynamic> value;
+
+  @override
+  String toString() => '[$id] $value';
 }
 
 /// Journal entry database.
@@ -29,8 +32,30 @@ abstract class JdbEntry {
   /// Jdb record
   RecordRef get record;
 
+  /// True if deleted
+  bool get deleted;
+
+  @override
+  String toString() =>
+      '[$id] $record $value${(deleted ?? false) ? ' (deleted)' : ''}';
+
   /// Jdb value
-  Map<String, dynamic> get value;
+  dynamic get value;
+}
+
+/// Read entry
+class JdbReadEntry extends JdbEntry {
+  @override
+  int id;
+
+  @override
+  RecordRef record;
+
+  @override
+  dynamic value;
+
+  @override
+  bool deleted;
 }
 
 /// Write entry.
@@ -52,7 +77,10 @@ class JdbWriteEntry extends JdbEntry {
   Map<String, dynamic> get value =>
       _value ??= txnRecord.record.toDatabaseRowMap();
   @override
-  String toString() => '[$id] $value';
+  String toString() => '[$id] $record $value';
+
+  @override
+  bool get deleted => txnRecord.record.deleted;
 }
 
 /// Jdb.

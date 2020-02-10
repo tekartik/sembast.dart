@@ -165,7 +165,7 @@ void defineTests(DatabaseTestContext ctx) {
         try {
           expect(await db.get(1), 'test');
           expect(db.version, 1);
-          await reOpen(db);
+          db = await reOpen(db);
           expect(await db.get(1), 'test');
           expect(await db.get(2), 'other');
           expect(db.version, 1);
@@ -186,7 +186,7 @@ void defineTests(DatabaseTestContext ctx) {
         try {
           expect(await db.get(1), 'test');
           expect(db.version, 1);
-          await reOpen(db);
+          db = await reOpen(db);
           expect(await db.get(1), 'test');
           expect(await db.get(2), 'other');
           expect(db.version, 1);
@@ -209,7 +209,7 @@ void defineTests(DatabaseTestContext ctx) {
           expect(await db.get(1), 'test2');
           expect(await db.get(2), 'other2');
           expect(db.version, 2);
-          await reOpen(db);
+          db = await reOpen(db);
           expect(await db.get(1), 'test2');
           expect(await db.get(2), 'other2');
           expect(db.version, 2);

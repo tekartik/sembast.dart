@@ -29,5 +29,4 @@ test_out
 .local/
 
 # temp
-sembast_idb/
-sembast_test/
+sembast_test_old/

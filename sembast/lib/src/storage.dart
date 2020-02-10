@@ -55,4 +55,7 @@ abstract class StorageJdb extends StorageBase {
 
   /// Add multiple entries
   Future addEntries(List<JdbWriteEntry> entries);
+
+  /// Close the db
+  void close();
 }

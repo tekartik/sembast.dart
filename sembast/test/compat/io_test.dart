@@ -47,7 +47,7 @@ void main() {
 
         await io.File(dbPath)
             .writeAsString(json.encode({'version': 2, 'sembast': 1}));
-        final db = await databaseFactoryIo.openDatabase(dbPath);
+        var db = await databaseFactoryIo.openDatabase(dbPath);
         expect(db.version, 2);
 
         await db.put('value', 'key');
@@ -55,10 +55,10 @@ void main() {
         //print(await new io.File(dbPath).readAsString());
 
         try {
-          await reOpen(db, mode: DatabaseMode.create);
+          db = await reOpen(db, mode: DatabaseMode.create);
           fail('should fail');
         } on FormatException catch (_) {
-          await reOpen(db, mode: DatabaseMode.neverFails);
+          db = await reOpen(db, mode: DatabaseMode.neverFails);
           // version cannot be read anymore...
           expect(db.version, 1);
         }
@@ -74,7 +74,7 @@ void main() {
                 json.encode({'key': 1, 'value': 'test1'}) +
                 '\n' +
                 json.encode({'key': 2, 'value': 'test2'}));
-        final db = await databaseFactoryIo.openDatabase(dbPath);
+        var db = await databaseFactoryIo.openDatabase(dbPath);
         expect(db.version, 2);
 
         await db.put('value3');
@@ -82,10 +82,10 @@ void main() {
         //print(await new io.File(dbPath).readAsString());
 
         try {
-          await reOpen(db, mode: DatabaseMode.create);
+          db = await reOpen(db, mode: DatabaseMode.create);
           fail('should fail');
         } on FormatException catch (_) {
-          await reOpen(db, mode: DatabaseMode.neverFails);
+          db = await reOpen(db, mode: DatabaseMode.neverFails);
           final lines = await readContent(fs, dbPath);
           // Only the first line remains
           expect(lines.length, 2);

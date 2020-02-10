@@ -4,6 +4,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:path/path.dart';
+import 'package:sembast/src/api/protected/jdb.dart';
 import 'package:sembast/src/api/v2/sembast.dart';
 import 'package:sembast/src/api/v2/sembast_memory.dart';
 
@@ -73,6 +74,8 @@ Future<Database> reOpen(Database db, {DatabaseMode mode}) {
 bool hasStorage(DatabaseFactory factory) =>
     // ignore: deprecated_member_use_from_same_package
     (factory as SembastDatabaseFactory).hasStorage;
+
+bool hasStorageJdb(DatabaseFactory factory) => factory is DatabaseFactoryJdb;
 
 /// Get an existing database version
 Future<int> getExistingDatabaseVersion(
