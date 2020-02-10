@@ -72,7 +72,11 @@ class _StorageJdb extends StorageBase implements StorageJdb {
 
   @override
   Future<Map<String, dynamic>> readMeta() async {
-    return (await jdbDatabase.getInfoEntry(metaKey))?.value;
+    var value = (await jdbDatabase.getInfoEntry(metaKey))?.value;
+    if (value is Map) {
+      return value?.cast<String, dynamic>();
+    }
+    return null;
   }
 
   @override
@@ -100,6 +104,16 @@ class _StorageJdb extends StorageBase implements StorageJdb {
   Future addEntries(List<JdbWriteEntry> entries) async {
     // devPrint(entries);
     await jdbDatabase.addEntries(entries);
+  }
+
+  @override
+  Future<int> generateUniqueIntKey(String store) async {
+    return (await jdbDatabase.generateUniqueIntKeys(store, 1)).first;
+  }
+
+  @override
+  Future<String> generateUniqueStringKey(String store) async {
+    return (await jdbDatabase.generateUniqueStringKeys(store, 1)).first;
   }
 }
 

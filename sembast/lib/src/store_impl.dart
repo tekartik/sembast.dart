@@ -88,6 +88,28 @@ class SembastStore implements Store {
     return txnPutSync(txn, value, key, merge: merge);
   }
 
+  /// Generate a new int key
+  Future<int> generateUniqueIntKey(SembastTransaction txn) async {
+    int key;
+    do {
+      // Use a generator if any
+      key = await database.generateUniqueIntKey(name);
+      key ??= ++lastIntKey;
+    } while (await txnRecordExists(txn, key));
+    return key;
+  }
+
+  /// Generate a new String key
+  Future<String> generateUniqueStringKey(SembastTransaction txn) async {
+    String key;
+    do {
+      // Use a generator if any
+      key = await database.generateUniqueStringKey(name);
+      key ??= generateStringKey();
+    } while (await txnRecordExists(txn, key));
+    return key;
+  }
+
   /// add a record in a transaction.
   ///
   /// Return the added key.
@@ -97,18 +119,18 @@ class SembastStore implements Store {
 
     if (key == null) {
       // We make sure the key is unique
-      do {
-        if (K == String) {
-          key = generateStringKey() as K;
-        } else {
-          try {
-            key = ++lastIntKey as K;
-          } catch (e) {
-            throw ArgumentError(
-                'Invalid key type $K for generating a key. You should either use String or int or generate the key yourself');
-          }
+
+      if (K == String) {
+        key = await generateUniqueStringKey(txn) as K;
+      } else {
+        var intKey = await generateUniqueIntKey(txn);
+        try {
+          key = intKey as K;
+        } catch (e) {
+          throw ArgumentError(
+              'Invalid key type $K for generating a key. You should either use String or int or generate the key yourself.');
         }
-      } while (await txnRecordExists(txn, key));
+      }
     } else if (await txnRecordExists(txn, key)) {
       return null;
     }
@@ -496,6 +518,8 @@ class SembastStore implements Store {
 
     // auto-gen key if needed
     if (sembastRecord.key == null) {
+      // Compat only
+      // throw StateError('key should not be null');
       sembastRecord.ref = ref.record(++lastIntKey);
     } else {
       // update last int key in case auto gen is needed again

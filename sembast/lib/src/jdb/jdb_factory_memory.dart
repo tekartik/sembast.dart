@@ -4,6 +4,7 @@ import 'dart:async';
 
 import 'package:sembast/src/api/record_ref.dart';
 import 'package:sembast/src/jdb.dart' as jdb;
+import 'package:sembast/src/key_utils.dart';
 
 /// In memory jdb.
 class JdbFactoryMemory implements jdb.JdbFactory {
@@ -74,15 +75,6 @@ class JdbDatabaseMemory implements jdb.JdbDatabase {
   JdbDatabaseMemory(this._factory, this._path);
 
   @override
-  Future<int> addEntry(jdb.JdbEntry jdbEntry) async {
-    var jdbEntryMemory = (jdbEntry as JdbEntryMemory);
-    var id = _nextId;
-    jdbEntryMemory.id = id;
-    _entries.add(jdbEntryMemory);
-    return id;
-  }
-
-  @override
   void close() {
     _closed = false;
   }
@@ -111,6 +103,30 @@ class JdbDatabaseMemory implements jdb.JdbDatabase {
     }
     return null;
   }
+
+  String _storeLastIdKey(String store) {
+    return '${store}_store_last_id';
+  }
+
+  @override
+  Future<List<int>> generateUniqueIntKeys(String store, int count) async {
+    var keys = <int>[];
+    var infoKey = _storeLastIdKey(store);
+    var lastId = ((await getInfoEntry(infoKey))?.value as int) ?? 0;
+    for (var i = 0; i < count; i++) {
+      keys.add(++lastId);
+    }
+    await setInfoEntry(jdb.JdbInfoEntry()
+      ..id = infoKey
+      ..value = lastId);
+
+    return keys;
+  }
+
+  @override
+  Future<List<String>> generateUniqueStringKeys(
+          String store, int count) async =>
+      List.generate(count, (_) => generateStringKey());
 }
 
 JdbFactoryMemory _jdbFactoryMemory = JdbFactoryMemory();

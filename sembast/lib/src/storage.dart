@@ -58,4 +58,10 @@ abstract class StorageJdb extends StorageBase {
 
   /// Close the db
   void close();
+
+  /// Generate a unique int key
+  Future<int> generateUniqueIntKey(String store);
+
+  /// Generate a unique String key
+  Future<String> generateUniqueStringKey(String store);
 }

@@ -7,6 +7,7 @@ import 'package:idb_shim/idb_shim.dart' as idb;
 
 import 'package:sembast_web/src/jdb_import.dart' as jdb;
 import 'package:sembast_web/src/constant_import.dart';
+import 'package:sembast_web/src/sembast_import.dart';
 
 const _debug = false;
 const _infoStore = 'info';
@@ -129,11 +130,6 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
   /// New in memory database.
   JdbDatabaseIdb(this._factory, this._idbDatabase, this._id, this._path);
 
-  @override
-  Future<int> addEntry(jdb.JdbEntry jdbEntry) async {
-    throw 'to remove';
-  }
-
   var _closed = false;
   @override
   void close() {
@@ -173,7 +169,7 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
         _idbDatabase.transaction([_entryStore, _infoStore], idbModeReadWrite);
     var objectStore = txn.objectStore(_entryStore);
     var index = objectStore.index(_recordIndex);
-    int lastId;
+    int lastEntryId;
     for (var jdbWriteEntry in entries) {
       var store = jdbWriteEntry.record.store.name;
       var key = jdbWriteEntry.record.key;
@@ -186,22 +182,68 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
         await objectStore.delete(idbKey);
       }
 
-      lastId = (await objectStore.add(<String, dynamic>{
+      lastEntryId = (await objectStore.add(<String, dynamic>{
         _storePath: store,
         _keyPath: key,
         _valuePath: jdbWriteEntry.value,
         if (jdbWriteEntry.deleted ?? false) _deletedPath: true
       })) as int;
       if (_debug) {
-        print('$_debugPrefix added entry $lastId $jdbWriteEntry');
+        print('$_debugPrefix added entry $lastEntryId $jdbWriteEntry');
       }
     }
-    await txn.objectStore(_infoStore).put(lastId, _revisionKey);
+    await txn.objectStore(_infoStore).put(lastEntryId, _revisionKey);
     await txn.completed;
   }
 
   @override
   String toString() => 'JdbDatabaseIdb($_id, $_path)';
+
+  String _storeLastIdKey(String store) {
+    return '${store}_store_last_id';
+  }
+
+  @override
+  Future<List<int>> generateUniqueIntKeys(String store, int count) async {
+    var keys = <int>[];
+    var txn =
+        _idbDatabase.transaction([_entryStore, _infoStore], idbModeReadWrite);
+    var infoStore = txn.objectStore(_infoStore);
+    var entryStore = txn.objectStore(_entryStore);
+    var recordIndex = entryStore.index(_recordIndex);
+    var infoKey = _storeLastIdKey(store);
+    var lastId = (await infoStore.getObject(infoKey) as int) ?? 0;
+    for (var i = 0; i < count; i++) {
+      while (true) {
+        lastId++;
+        if (await recordIndex.getKey([store, lastId]) == null) {
+          break;
+        }
+      }
+      keys.add(lastId);
+    }
+    await infoStore.put(lastId, infoKey);
+    return keys;
+  }
+
+  @override
+  Future<List<String>> generateUniqueStringKeys(String store, int count) async {
+    var keys = <String>[];
+    var txn = _idbDatabase.transaction([_entryStore], idbModeReadWrite);
+    var entryStore = txn.objectStore(_entryStore);
+    var recordIndex = entryStore.index(_recordIndex);
+    for (var i = 0; i < count; i++) {
+      String key;
+      while (true) {
+        key = generateStringKey();
+        if (await recordIndex.getKey([store, key]) == null) {
+          break;
+        }
+      }
+      keys.add(key);
+    }
+    return keys;
+  }
 }
 
 JdbFactoryIdb _jdbFactoryIdbMemory = JdbFactoryIdb(idbFactoryMemory);

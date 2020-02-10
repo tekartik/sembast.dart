@@ -18,7 +18,7 @@ class JdbInfoEntry {
   String id;
 
   /// Jdb value
-  Map<String, dynamic> value;
+  dynamic value;
 
   @override
   String toString() => '[$id] $value';
@@ -80,7 +80,7 @@ class JdbWriteEntry extends JdbEntry {
   String toString() => '[$id] $record $value';
 
   @override
-  bool get deleted => txnRecord.record.deleted;
+  bool get deleted => txnRecord.deleted;
 }
 
 /// Jdb.
@@ -91,14 +91,17 @@ abstract class JdbDatabase {
   /// Set info.
   Future setInfoEntry(JdbInfoEntry entry);
 
-  /// Add en entry in the database.
-  Future<int> addEntry(JdbEntry jdbEntry);
-
   /// Add entries in the database.
   Future addEntries(List<JdbWriteEntry> entries);
 
   /// Read all entries.
   Stream<JdbEntry> get entries;
+
+  /// Generate unique int keys.
+  Future<List<int>> generateUniqueIntKeys(String store, int count);
+
+  /// Generate unique String keys.
+  Future<List<String>> generateUniqueStringKeys(String store, int count);
 
   /// Close the database
   void close();

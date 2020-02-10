@@ -28,5 +28,7 @@ test_out
 # Local files
 .local/
 
-# temp
-sembast_test_old/
+# IDE
+.idea/
+*.iml
+.vscode/

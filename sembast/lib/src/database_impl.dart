@@ -205,6 +205,22 @@ class SembastDatabase extends Object
   List<ImmutableSembastRecord> getCurrentRecords(Store store) =>
       (store as SembastStore).currentRecords;
 
+  /// For jdb only
+  Future<int> generateUniqueIntKey(String store) {
+    if (_storageJdb != null) {
+      return _storageJdb.generateUniqueIntKey(store);
+    }
+    return null;
+  }
+
+  /// For jdb only
+  Future<String> generateUniqueStringKey(String store) {
+    if (_storageJdb != null) {
+      return _storageJdb.generateUniqueStringKey(store);
+    }
+    return null;
+  }
+
   ///
   /// Compact the database (work in progress)
   ///

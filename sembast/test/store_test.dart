@@ -139,6 +139,7 @@ void defineTests(DatabaseTestContext ctx) {
         expect(await record.get(db), 1);
         expect((await store.findFirst(db)).value, 1);
       });
+
       test('addAll', () async {
         // this is ok too
         final store = StoreRef<String, int>.main();
