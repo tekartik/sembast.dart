@@ -137,7 +137,7 @@ class JdbDatabaseMemory implements jdb.JdbDatabase {
         ..id = _nextId
         ..deleted = jdbWriteEntry.deleted;
       _entries.add(entry);
-      (jdbWriteEntry.txnRecord.record as ImmutableSembastRecordJdb).revision =
+      (jdbWriteEntry.txnRecord?.record as ImmutableSembastRecordJdb)?.revision =
           entry.id;
     }
     return null;
