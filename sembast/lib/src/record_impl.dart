@@ -57,11 +57,6 @@ mixin SembastRecordHelperMixin implements Record {
   }
 
   @override
-  String toString() {
-    return toDatabaseRowMap().toString();
-  }
-
-  @override
   int get hashCode => key == null ? 0 : key.hashCode;
 
   @override
@@ -154,13 +149,12 @@ class LazyMutableSembastRecord with SembastRecordHelperMixin implements Record {
 
 /// Immutable record in jdb.
 class ImmutableSembastRecordJdb extends ImmutableSembastRecord {
-  /// Record revision.
-  int revision;
-
   /// Immutable record in jdb.
   ImmutableSembastRecordJdb(RecordRef ref, dynamic value,
-      {bool deleted, this.revision})
-      : super(ref, value, deleted: deleted);
+      {bool deleted, int revision})
+      : super(ref, value, deleted: deleted) {
+    this.revision = revision;
+  }
 }
 
 /// Immutable record, used in storage
@@ -179,6 +173,11 @@ class ImmutableSembastRecord
   @override
   dynamic get value => immutableValue(super.value);
 
+  static var _lastRevision = 0;
+  int _makeRevision() {
+    return ++_lastRevision;
+  }
+
   /// Record from row map.
   ImmutableSembastRecord.fromDatabaseRowMap(Database db, Map map) {
     final storeName = map[dbStoreNameKey] as String;
@@ -188,6 +187,7 @@ class ImmutableSembastRecord
     ref = storeRef.record(map[dbRecordKey]);
     super.value = sanitizeValue(map[dbRecordValueKey]);
     _deleted = map[dbRecordDeletedKey] == true;
+    revision = _makeRevision();
   }
 
   ///
@@ -200,12 +200,22 @@ class ImmutableSembastRecord
     this.ref = ref;
     super.value = value;
     _deleted = deleted;
+    revision = _makeRevision();
   }
 
   @override
   @deprecated
   Store get store => throw UnsupportedError(
       'Deprecated for immutable record. use ref.store instead');
+
+  @override
+  String toString() {
+    var map = toDatabaseRowMap();
+    if (revision != null) {
+      map['revision'] = revision;
+    }
+    return map.toString();
+  }
 }
 
 /// Transaction record.

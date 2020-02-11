@@ -87,23 +87,26 @@ class FileMemoryImpl extends FileSystemEntityMemoryImpl {
 
   /// Open for read.
   Stream<Uint8List> openRead() {
-    final ctlr = StreamController<Uint8List>(sync: true);
-    Future.sync(() async {
-      openCount++;
-      if (content != null) {
-        content.forEach((String line) {
-          ctlr.add(Uint8List.fromList(line.codeUnits));
-          ctlr.add(Uint8List.fromList('\n'.codeUnits));
-        });
-      }
-      try {
-        await close();
-      } catch (e) {
-        ctlr.addError(e);
-      }
+    StreamController<Uint8List> ctlr;
+    ctlr = StreamController<Uint8List>(
+        sync: true,
+        onListen: () async {
+          openCount++;
+          if (content != null) {
+            content.forEach((String line) {
+              ctlr.add(Uint8List.fromList(line.codeUnits));
+              ctlr.add(Uint8List.fromList('\n'.codeUnits));
+            });
+          }
+          try {
+            await close();
+          } catch (e) {
+            ctlr.addError(e);
+          }
 
-      await ctlr.close();
-    });
+          await ctlr.close();
+        });
+
     return ctlr.stream;
   }
 
@@ -343,17 +346,22 @@ class FileSystemMemoryImpl {
 
   /// open for read.
   Stream<Uint8List> openRead(String path) {
-    var ctlr = StreamController<Uint8List>(sync: true);
-    final fileImpl = getEntity(path);
-    // if it exists we're fine
-    if (fileImpl is FileMemoryImpl) {
-      ctlr.addStream(fileImpl.openRead()).then((_) {
-        ctlr.close();
-      });
-    } else {
-      ctlr.addError(FileSystemExceptionMemory(
-          path, 'Cannot open file', _noSuchPathError));
-    }
+    StreamController<Uint8List> ctlr;
+    ctlr = StreamController<Uint8List>(
+        sync: true,
+        onListen: () {
+          final fileImpl = getEntity(path);
+          // if it exists we're fine
+          if (fileImpl is FileMemoryImpl) {
+            ctlr.addStream(fileImpl.openRead()).then((_) {
+              ctlr.close();
+            });
+          } else {
+            ctlr.addError(FileSystemExceptionMemory(
+                path, 'Cannot open file', _noSuchPathError));
+          }
+        });
+
     return ctlr.stream;
   }
 

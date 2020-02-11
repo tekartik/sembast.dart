@@ -177,6 +177,7 @@ class SembastDatabase extends Object
     dynamic existing = store.txnGetImmutableRecordSync(null, record.key);
     if (existing is ImmutableSembastRecordJdb) {
       if (existing != null) {
+        // devPrint('existing ${existing?.revision} vs new ${record.revision}');
         if (existing.revision != null) {
           if ((record.revision ?? 0) > existing.revision) {
             loadRecord(record);
@@ -916,18 +917,19 @@ class SembastDatabase extends Object
     await for (var entry in _storageJdb.entries) {
       var record = ImmutableSembastRecordJdb(entry.record, entry.value,
           deleted: entry.deleted, revision: entry.id);
+      // Make it fast
       loadRecord(record);
     }
   }
 
-  /// Delta import
+  /// Delta import. Must not be in a transaction
   Future jdbDeltaImport(int revision) async {
     var allStores = <StoreRef, Map<dynamic, ImmutableSembastRecordJdb>>{};
     await transaction((txn) async {
-      //TODO lock
       var minRevision = _jdbRevision ?? 0;
 
       var entries = await _storageJdb.getEntriesAfter(minRevision ?? 0);
+      // devPrint('delta import $entries');
       if (!_closed) {
         for (var entry in entries) {
           var record = ImmutableSembastRecordJdb(entry.record, entry.value,
@@ -938,8 +940,11 @@ class SembastDatabase extends Object
           if (map == null) {
             allStores[store] = map = <dynamic, ImmutableSembastRecordJdb>{};
           }
+          // devPrint('Loading $record');
           if (loadRecordJdb(record)) {
             map[record.key] = record;
+          } else {
+            // devPrint('not loaded $record');
           }
         }
         _jdbRevision = revision;
@@ -962,6 +967,13 @@ class SembastDatabase extends Object
 
         //txnRecords.addAll(records);
       });
+
+      // Notify if needed, done lazily
+      // devPrint(listenerOperations);
+      if (listenerOperations.isNotEmpty == true) {
+        notifyQueryListeners(listenerOperations);
+      }
+      notifyLazyListeners();
     }
   }
 
@@ -1157,34 +1169,39 @@ class SembastDatabase extends Object
 
       return actionResult;
     }).whenComplete(() async {
-      // Notify if needed
-      if (lazyListenerOperations.isNotEmpty) {
-        // Don't await on purpose here
-        // ignore: unawaited_futures
-        notificationLock.synchronized(() async {
-          if (lazyListenerOperations.isNotEmpty) {
-            var list = List.from(lazyListenerOperations);
-            // devPrint('listeners ${list.length}');
-            for (var operation in list) {
-              try {
-                await operation();
-              } catch (e, st) {
-                print('err lazy listeners $e');
-                if (isDebug) {
-                  print(st);
-                }
-              }
-              lazyListenerOperations.remove(operation);
-            }
-          }
-        });
-      }
+      notifyLazyListeners();
 
       if (!upgrading) {
         // trigger lazy operation
         await databaseOperation(null);
       }
     });
+  }
+
+  /// Lazily notify listeners
+  void notifyLazyListeners() {
+    // Notify if needed
+    if (lazyListenerOperations.isNotEmpty) {
+      // Don't await on purpose here
+      // ignore: unawaited_futures
+      notificationLock.synchronized(() async {
+        if (lazyListenerOperations.isNotEmpty) {
+          var list = List.from(lazyListenerOperations);
+          // devPrint('listeners ${list.length}');
+          for (var operation in list) {
+            try {
+              await operation();
+            } catch (e, st) {
+              print('err lazy listeners $e');
+              if (isDebug) {
+                print(st);
+              }
+            }
+            lazyListenerOperations.remove(operation);
+          }
+        }
+      });
+    }
   }
 
   @override
@@ -1246,6 +1263,9 @@ class SembastDatabase extends Object
           if (ctlrs != null) {
             for (var ctlr in ctlrs) {
               void _updateRecord() {
+                if (debugListener) {
+                  print('updating $ctlr: with ${record}');
+                }
                 if (!record.deleted) {
                   ctlr.add(record);
                 } else {
@@ -1270,6 +1290,9 @@ class SembastDatabase extends Object
         for (var query in List<QueryListenerController>.from(
             operation.listener.getQuery())) {
           Future _updateQuery() async {
+            if (debugListener) {
+              print('updating $query: with ${operation.txnRecords}');
+            }
             await query.update(operation.txnRecords, cooperator);
           }
 

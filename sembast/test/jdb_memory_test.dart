@@ -123,15 +123,10 @@ void main() {
       expect(key, 2);
       expect(await record1.get(db), isNull);
 
-      /*
-      TODO
-      devPrint('1');
+      //TODO
       ////devPrint('2 ${await record1.onSnapshot(db).first}');
       await record1.onSnapshot(db).where((snapshot) => snapshot != null).first;
-      devPrint('3');
       expect(await store.record(1).get(db), isNotNull);
-
-       */
 
       await db.close();
     });

@@ -3,6 +3,7 @@ import 'package:sembast/src/jdb.dart';
 import 'package:sembast/src/sembast_jdb.dart';
 
 import 'test_common.dart';
+export 'test_common.dart';
 
 class DatabaseTestContextJdb extends DatabaseTestContext {
   JdbFactory get jdbFactory => (factory as DatabaseFactoryJdb).jdbFactory;

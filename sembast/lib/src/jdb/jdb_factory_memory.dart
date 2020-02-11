@@ -61,6 +61,9 @@ class JdbEntryMemory implements jdb.JdbReadEntry {
     };
     return map;
   }
+
+  @override
+  String toString() => toDebugMap().toString();
 }
 
 /// In memory database.

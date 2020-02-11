@@ -204,11 +204,14 @@ class SembastStore implements Store {
   ///
   @override
   Stream<Record> get records {
-    final ctlr = StreamController<Record>();
-    // asynchronous feeding
-    _feedController(null, ctlr).then((_) {
-      ctlr.close();
+    StreamController<Record> ctlr;
+    ctlr = StreamController<Record>(onListen: () {
+      // asynchronous feeding
+      _feedController(null, ctlr).then((_) {
+        ctlr.close();
+      });
     });
+
     return ctlr.stream;
   }
 
@@ -224,9 +227,11 @@ class SembastStore implements Store {
   /// stream all the records
   ///
   Stream<Record> txnGetRecordsStream(SembastTransaction transaction) {
-    final ctlr = StreamController<Record>();
-    _feedController(transaction, ctlr).then((_) {
-      ctlr.close();
+    StreamController<Record> ctlr;
+    ctlr = StreamController<Record>(onListen: () {
+      _feedController(transaction, ctlr).then((_) {
+        ctlr.close();
+      });
     });
     return ctlr.stream;
   }
@@ -236,17 +241,19 @@ class SembastStore implements Store {
   ///
   Stream<RecordSnapshot<K, V>> txnGetStream<K, V>(
       SembastTransaction transaction, Filter filter) {
-    var ctlr = StreamController<RecordSnapshot<K, V>>();
-
-    forEachRecords(transaction, filter, (record) {
-      if (ctlr.isClosed) {
-        return false;
-      }
-      ctlr.add(record.cast<K, V>());
-      return true;
-    }).whenComplete(() {
-      ctlr.close();
+    StreamController<RecordSnapshot<K, V>> ctlr;
+    ctlr = StreamController<RecordSnapshot<K, V>>(onListen: () {
+      forEachRecords(transaction, filter, (record) {
+        if (ctlr.isClosed) {
+          return false;
+        }
+        ctlr.add(record.cast<K, V>());
+        return true;
+      }).whenComplete(() {
+        ctlr.close();
+      });
     });
+
     return ctlr.stream;
   }
 

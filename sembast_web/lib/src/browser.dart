@@ -4,6 +4,7 @@ import 'dart:html';
 import 'package:idb_shim/idb_client_native.dart';
 import 'package:sembast_web/src/jdb_factory_idb.dart';
 import 'package:sembast_web/src/jdb_import.dart';
+import 'package:sembast_web/src/web_defs.dart';
 
 /// The native jdb factory
 var jdbFactoryIdbNative = JdbFactoryWeb();
@@ -34,6 +35,12 @@ class JdbFactoryWeb extends JdbFactoryIdb {
     _revisionSubscription?.cancel();
     _revisionSubscription = null;
   }
+
+  /// Notify other app (web only))
+  @override
+  void notifyRevision(StorageRevision storageRevision) {
+    addStorageRevision(storageRevision);
+  }
 }
 
 /// Web factory.
@@ -42,19 +49,16 @@ class DatabaseFactoryWeb extends DatabaseFactoryJdb {
   DatabaseFactoryWeb() : super(jdbFactoryIdbNative);
 }
 
-/// The storage revision.
-class StorageRevision {
-  /// Name of the database.
-  final String name;
-
-  /// Revision.
-  final int revision;
-
-  /// Revision for one storage
-  StorageRevision(this.name, this.revision);
-}
-
 String _sembastStorageKeyPrefix = 'sembast_web/revision:';
+
+/// add a storage revision
+void addStorageRevision(StorageRevision storageRevision) {
+  if (debugStorageNotification) {
+    print('adding $storageRevision');
+  }
+  window.localStorage['$_sembastStorageKeyPrefix${storageRevision.name}'] =
+      storageRevision.revision.toString();
+}
 
 /// Storage revision notification from all tabs
 Stream<StorageRevision> get storageRevisionStream {
@@ -62,6 +66,9 @@ Stream<StorageRevision> get storageRevisionStream {
   StreamController<StorageRevision> ctlr;
   ctlr = StreamController<StorageRevision>(onListen: () {
     storageEventSubscription = window.onStorage.listen((event) {
+      if (debugStorageNotification) {
+        print('getting ${event?.key}: ${event?.newValue}');
+      }
       if (event.key.startsWith(_sembastStorageKeyPrefix)) {
         var name = event.key.substring(_sembastStorageKeyPrefix.length);
         var revision =

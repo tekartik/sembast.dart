@@ -6,6 +6,9 @@ import 'package:sembast/src/utils.dart';
 
 mixin RecordSnapshotMixin<K, V>
     implements RecordSnapshot<K, V>, SembastRecordValue<V> {
+  /// Record revision.
+  int revision;
+
   @override
   RecordRef<K, V> ref;
 

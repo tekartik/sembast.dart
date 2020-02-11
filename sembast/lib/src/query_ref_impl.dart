@@ -2,13 +2,13 @@ import 'package:sembast/sembast.dart';
 import 'package:sembast/src/api/finder.dart';
 import 'package:sembast/src/api/query_ref.dart';
 import 'package:sembast/src/api/store_ref.dart';
+import 'package:sembast/src/api/v2/sembast.dart' as v2;
 import 'package:sembast/src/common_import.dart';
 import 'package:sembast/src/database_impl.dart';
-import 'package:sembast/src/record_impl.dart';
+import 'package:sembast/src/listener.dart';
 import 'package:sembast/src/store_ref_impl.dart';
-import 'package:sembast/src/api/v2/sembast.dart' as v2;
 
-// ignore_for_file: deprecated_member_use_from_same_package
+// _ignore_for_file: deprecated_member_use_from_same_package
 
 /// A query is unique
 class SembastQueryRef<K, V> implements QueryRef<K, V> {
@@ -16,11 +16,18 @@ class SembastQueryRef<K, V> implements QueryRef<K, V> {
   final StoreRef<K, V> store;
 
   /// The finder.
+  // ignore: deprecated_member_use_from_same_package
   final SembastFinder finder;
 
   /// Query ref implementation.
-  SembastQueryRef(this.store, SembastFinder finder)
-      : finder = finder?.clone() as SembastFinder;
+
+  SembastQueryRef(
+      this.store,
+      // ignore: deprecated_member_use_from_same_package
+      SembastFinder finder)
+      : finder = finder?.clone() as
+            // ignore: deprecated_member_use_from_same_package
+            SembastFinder;
 
   @override
   String toString() => '$store $finder)';
@@ -29,29 +36,32 @@ class SembastQueryRef<K, V> implements QueryRef<K, V> {
   Stream<List<RecordSnapshot<K, V>>> onSnapshots(v2.Database database) {
     var db = getDatabase(database);
     // Create the query but don't add it until first result is set
-    var ctlr = db.listener.addQuery(this);
-    // Add the existing snapshot
-    var completer = Completer<List<ImmutableSembastRecord>>();
+    QueryListenerController<K, V> ctlr;
+    ctlr = db.listener.addQuery(this, onListen: () async {
+      // Add the existing snapshot
 
-    db.notificationLock.synchronized(() async {
-      // Get the result at query time first
-      var allMatching = await completer.future;
-      await ctlr.add(allMatching, db.cooperator);
-    });
+      // Read right away to get the content at call time
 
-    // Read right away to get the content at call time
-    () async {
       // Just filter
       try {
-        var allMatching = await (store as SembastStoreRef<K, V>)
-            .findImmutableRecords(database,
-                finder: finder == null ? null : Finder(filter: finder.filter));
-        completer.complete(allMatching);
+        await db.notificationLock.synchronized(() async {
+          var allMatching = await (store as SembastStoreRef<K, V>)
+              .findImmutableRecords(database,
+                  finder:
+                      finder == null ? null : Finder(filter: finder.filter));
+          // ignore: unawaited_futures
+
+          // Get the result at query time first
+          if (debugListener) {
+            print('matching $ctlr: $allMatching on $this');
+          }
+
+          await ctlr.add(allMatching, db.cooperator);
+        });
       } catch (error, stackTrace) {
-        completer.completeError(error, stackTrace);
         ctlr.addError(error, stackTrace);
       }
-    }();
+    });
     return ctlr.stream;
   }
 

@@ -60,7 +60,7 @@ void defineTests(DatabaseTestContext ctx) {
       expect((await query.getSnapshot(db)), isNull);
     });
 
-    test('put/on timing', () async {
+    test('put/onSnapshots timing', () async {
       var record = StoreRef<int, String>.main().record(1);
       var query = record.store.query();
       var future1 = query.onSnapshots(db).first;
@@ -71,10 +71,45 @@ void defineTests(DatabaseTestContext ctx) {
       await record.delete(db);
       var future4 = query.onSnapshots(db).first;
       expect(await future1, isEmpty);
-      expect((await future2), hasLength(1));
-      expect((await future2).first.value, 'test');
-      expect((await future3).first.value, 'test2');
+
+      try {
+        expect((await future2), hasLength(0));
+      } catch (_) {
+        expect((await future2).first.value, 'test');
+        expect((await future2), hasLength(1));
+      }
+      //
+      try {
+        expect((await future3), isEmpty);
+      } catch (_) {
+        expect((await future3).first.value, 'test2');
+        expect((await future3), hasLength(1));
+      }
       expect(await future4, isEmpty);
+    });
+
+    test('put/onSnapshot timing', () async {
+      var record = StoreRef<int, String>.main().record(1);
+      var future1 = record.onSnapshot(db).first;
+      await record.put(db, 'test');
+      var future2 = record.onSnapshot(db).first;
+      await record.put(db, 'test2');
+      var future3 = record.onSnapshot(db).first;
+      await future3;
+      await record.delete(db);
+      var future4 = record.onSnapshot(db).first;
+      expect(await future1, isNull);
+
+      try {
+        expect((await future2).value, 'test2');
+      } catch (e) {
+        expect((await future2).value, 'test');
+      }
+      /*
+      expect((await future2).first.value, 'test');
+      */
+      expect((await future3).value, 'test2');
+      expect(await future4, isNull);
     });
 
     test('onSnapshots', () async {
@@ -278,6 +313,7 @@ void defineTests(DatabaseTestContext ctx) {
       var future3 = query.onSnapshots(db).first;
       await record2.put(db, 'abd');
       var future4 = query.onSnapshots(db).first;
+      await future4;
       await record1.put(db, 'ab');
       var future5 = query.onSnapshots(db).first;
 
@@ -286,14 +322,19 @@ void defineTests(DatabaseTestContext ctx) {
       expect((await future2).length, 1);
       expect((await future2).first.value, 'abcd');
 
-      expect((await future3).length, 1);
-      expect((await future3).first.value, 'abcd');
+      try {
+        expect((await future3).length, 2);
+        expect((await future3).first.value, 'abcd');
+        expect((await future3)[1].value, 'abd');
+      } catch (_) {
+        expect((await future3).length, 1);
+      }
 
       expect((await future4).length, 2);
-      expect((await future4)[1].value, 'abd');
+      expect((await future4).first.value, 'abcd');
       expect((await future4)[1].value, 'abd');
 
-      expect((await future4).first.value, 'abcd');
+      //expect((await future4).first.value, 'abcd');
       expect((await future5).first.value, 'abd');
       expect((await future5).length, 1);
     });

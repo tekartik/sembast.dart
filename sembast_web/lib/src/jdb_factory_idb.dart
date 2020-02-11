@@ -7,8 +7,9 @@ import 'package:sembast/sembast.dart';
 import 'package:sembast_web/src/constant_import.dart';
 import 'package:sembast_web/src/jdb_import.dart' as jdb;
 import 'package:sembast_web/src/sembast_import.dart';
+import 'package:sembast_web/src/web_defs.dart';
 
-var _debug = false; // devWarning(true);
+var _debug = false; // devWarning(true); // false
 const _infoStore = 'info';
 const _entryStore = 'entry';
 const _storePath = dbStoreNameKey;
@@ -121,6 +122,13 @@ class JdbFactoryIdb implements jdb.JdbFactory {
 
   /// Stop (listeners), alls dbs closed.
   void stop() {}
+
+  /// Notify other app (web only))
+  void notifyRevision(StorageRevision storageRevision) {
+    if (debugStorageNotification) {
+      print('notifyRevision $storageRevision: not supported');
+    }
+  }
 }
 
 /// In memory database.
@@ -140,7 +148,6 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
     return entry;
   }
 
-  // ignore: unused_field
   final JdbFactoryIdb _factory;
 
   //final _entries = <JdbEntryIdb>[];
@@ -218,6 +225,7 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
     var txn =
         _idbDatabase.transaction([_entryStore, _infoStore], idbModeReadWrite);
     var objectStore = txn.objectStore(_entryStore);
+    var infoStore = txn.objectStore(_infoStore);
     var index = objectStore.index(_recordIndex);
     int lastEntryId;
     for (var jdbWriteEntry in entries) {
@@ -238,13 +246,25 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
         _valuePath: jdbWriteEntry.value,
         if (jdbWriteEntry.deleted ?? false) _deletedPath: true
       })) as int;
+      // Save the revision in memory!
+      jdbWriteEntry?.txnRecord?.record?.revision = lastEntryId;
       if (_debug) {
         print('$_debugPrefix added entry $lastEntryId $jdbWriteEntry');
       }
     }
-    await txn.objectStore(_infoStore).put(lastEntryId, _revisionKey);
+    if (lastEntryId != null) {
+      await infoStore.put(lastEntryId, _revisionKey);
+    }
     await txn.completed;
     // notify through storage
+    if (lastEntryId != null) {
+      notifyRevision(lastEntryId);
+    }
+  }
+
+  /// Notify other clients of the new revision
+  void notifyRevision(int revision) {
+    _factory.notifyRevision(StorageRevision(_path, revision));
   }
 
   @override
@@ -301,14 +321,15 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
     revision ??= 0;
     StreamController<jdb.JdbEntry> ctlr;
     ctlr = StreamController<jdb.JdbEntry>(onListen: () async {
+      var keyRange = KeyRange.lowerBound(revision);
       await _idbDatabase
           .transaction(_entryStore, idbModeReadOnly)
           .objectStore(_entryStore)
-          .openCursor(key: KeyRange.lowerBound(revision), autoAdvance: true)
+          .openCursor(range: keyRange, autoAdvance: true)
           .listen((cwv) {
         var entry = _entryFromCursor(cwv);
         if (_debug) {
-          print('$_debugPrefix reading entry $entry');
+          print('$_debugPrefix reading entry after revision $entry');
         }
         ctlr.add(entry);
       }).asFuture();

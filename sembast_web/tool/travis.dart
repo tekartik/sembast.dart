@@ -1,4 +1,5 @@
 import 'package:process_run/shell.dart';
+import 'package:process_run/which.dart';
 
 Future main() async {
   var shell = Shell();
@@ -12,5 +13,14 @@ pub run test -p vm -j 1
 pub run build_runner test -- -p vm -j 1
 pub run build_runner test -- -p chrome -j 1
 pub run test -p chrome,firefox -j 1
+
 ''');
+
+  if ((await which('webdev')) != null) {
+    await shell.run('''
+
+webdev build -o example:build
+
+''');
+  }
 }
