@@ -1,23 +1,3 @@
-# sembast_web
-
-Sembast for the Web
-
-## Setup
-
-In pubspec.yaml
-
-```yaml
-dependencies:
-  sembast_web:
-    git:
-      url: git://github.com/tekartik/sembast.dart
-      path: sembast_web
-      ref: develop
-```
-
-## Usage
-
-```dart
 import 'package:sembast_web/sembast_web.dart';
 
 Future main() async {
@@ -41,10 +21,3 @@ Future main() async {
   // Close the database
   await db.close();
 }
-```
-
-## Features and bugs
-
-* Experimental
-* Use int or key string only
-

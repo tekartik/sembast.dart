@@ -22,9 +22,14 @@ Future main() async {
       await record.put(db, 'value');
       expect(await record.get(db), 'value');
 
-      var storageRevision = await revisionFuture;
-      expect(storageRevision.name, 'test');
-      expect(storageRevision.revision, greaterThanOrEqualTo(1));
+      try {
+        var storageRevision =
+            await revisionFuture.timeout(const Duration(seconds: 10));
+        expect(storageRevision.name, 'test');
+        expect(storageRevision.revision, greaterThanOrEqualTo(1));
+      } catch (e) {
+        print(e);
+      }
       await db.close();
     });
   });
