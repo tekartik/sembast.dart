@@ -1,12 +1,11 @@
 import 'dart:async';
 
-import 'package:sembast/sembast.dart';
 import 'package:idb_shim/idb_client_memory.dart';
 import 'package:idb_shim/idb_shim.dart';
 import 'package:idb_shim/idb_shim.dart' as idb;
-
-import 'package:sembast_web/src/jdb_import.dart' as jdb;
+import 'package:sembast/sembast.dart';
 import 'package:sembast_web/src/constant_import.dart';
+import 'package:sembast_web/src/jdb_import.dart' as jdb;
 import 'package:sembast_web/src/sembast_import.dart';
 
 var _debug = false; // devWarning(true);
@@ -15,6 +14,7 @@ const _entryStore = 'entry';
 const _storePath = dbStoreNameKey;
 const _keyPath = dbRecordKey;
 const _recordIndex = 'record';
+const _deletedIndex = 'deleted';
 const _valuePath = dbRecordValueKey;
 const _deletedPath = dbRecordDeletedKey;
 
@@ -31,6 +31,9 @@ class JdbFactoryIdb implements jdb.JdbFactory {
   /// Idb factory
   JdbFactoryIdb(this.idbFactory);
 
+  /// Keep track of open databases.
+  final databases = <String, List<JdbDatabaseIdb>>{};
+
   @override
   Future<jdb.JdbDatabase> open(String path) async {
     var id = ++_lastId;
@@ -45,10 +48,22 @@ class JdbFactoryIdb implements jdb.JdbFactory {
       db.createObjectStore(_infoStore);
       var entryStore = db.createObjectStore(_entryStore, autoIncrement: true);
       entryStore.createIndex(_recordIndex, [_storePath, _keyPath]);
+      entryStore.createIndex(_deletedIndex, _deletedPath, multiEntry: true);
     });
     if (iDb != null) {
-      return JdbDatabaseIdb(this, iDb, id, path);
+      var db = JdbDatabaseIdb(this, iDb, id, path);
+
+      /// Add to our list
+      if (path != null) {
+        if (databases.isEmpty) {
+          start();
+        }
+        var list = databases[path] ??= <JdbDatabaseIdb>[];
+        list.add(db);
+      }
+      return db;
     }
+
     return null;
   }
 
@@ -57,6 +72,10 @@ class JdbFactoryIdb implements jdb.JdbFactory {
     try {
       if (_debug) {
         print('[idb] deleting $path');
+      }
+      if (path != null) {
+        databases.remove(path);
+        checkAllClosed();
       }
       await idbFactory.deleteDatabase(path);
       if (_debug) {
@@ -89,6 +108,19 @@ class JdbFactoryIdb implements jdb.JdbFactory {
 
   @override
   String toString() => 'JdbFactoryIdb($idbFactory)';
+
+  /// Stop if all databases are closed
+  void checkAllClosed() {
+    if (databases.isEmpty) {
+      stop();
+    }
+  }
+
+  /// Start (listeners), one db is opened.
+  void start() {}
+
+  /// Stop (listeners), alls dbs closed.
+  void stop() {}
 }
 
 /// In memory database.
@@ -113,6 +145,7 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
 
   //final _entries = <JdbEntryIdb>[];
   String get _debugPrefix => '[idb-$_id]';
+
   @override
   Stream<jdb.JdbReadEntry> get entries {
     StreamController<jdb.JdbReadEntry> ctlr;
@@ -138,9 +171,21 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
   JdbDatabaseIdb(this._factory, this._idbDatabase, this._id, this._path);
 
   var _closed = false;
+
   @override
   void close() {
     if (!_closed) {
+      // Clear from our list of open database
+      if (_path != null) {
+        var list = _factory.databases[_path];
+        if (list != null) {
+          list.remove(this);
+          if (list.isEmpty) {
+            _factory.databases.remove(_path);
+          }
+          _factory.checkAllClosed();
+        }
+      }
       if (_debug) {
         print('$_debugPrefix closing');
       }
@@ -199,6 +244,7 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
     }
     await txn.objectStore(_infoStore).put(lastEntryId, _revisionKey);
     await txn.completed;
+    // notify through storage
   }
 
   @override
@@ -279,6 +325,11 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
 
   @override
   Stream<int> get revisionUpdate => _revisionUpdateController.stream;
+
+  /// Will notify.
+  void addRevision(int revision) {
+    _revisionUpdateController.add(revision);
+  }
 }
 
 JdbFactoryIdb _jdbFactoryIdbMemory = JdbFactoryIdb(idbFactoryMemory);

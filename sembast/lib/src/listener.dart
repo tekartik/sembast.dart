@@ -161,7 +161,7 @@ class RecordListenerController<K, V> {
 
   bool get _shouldAdd => !isClosed && _streamController.hasListener;
 
-  /// Add a snapshot.
+  /// Add a snapshot if not deleted
   void add(RecordSnapshot snapshot) {
     if (!_shouldAdd) {
       return;

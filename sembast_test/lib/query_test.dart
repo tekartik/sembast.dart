@@ -1,4 +1,4 @@
-library sembast.store_test;
+library sembast_test.query_test;
 
 // basically same as the io runner but with extra output
 
@@ -131,6 +131,54 @@ void defineTests(DatabaseTestContext ctx) {
       await completer.future;
       await sub.cancel();
       expect(index, 5);
+    });
+
+    test('onSnapshotNonNull', () async {
+      var store = StoreRef<int, String>.main();
+      var record = store.record(1);
+      var future =
+          record.onSnapshot(db).where((snapshot) => snapshot != null).first;
+      // ignore: unawaited_futures
+      record.put(db, 'test1');
+      await future;
+    });
+
+    test('onSnapshotsNonNull', () async {
+      var store = StoreRef<int, String>.main();
+      var record = store.record(1);
+      var future = store
+          .query()
+          .onSnapshots(db)
+          .where((snapshots) => snapshots.isNotEmpty)
+          .first;
+      // ignore: unawaited_futures
+      record.put(db, 'test1');
+      await future;
+    });
+
+    test('onSnapshotNull', () async {
+      var store = StoreRef<int, String>.main();
+      var record = store.record(1);
+      await record.put(db, 'test1');
+      var future =
+          record.onSnapshot(db).where((snapshot) => snapshot == null).first;
+      // ignore: unawaited_futures
+      record.delete(db);
+      await future;
+    });
+
+    test('onSnapshotsNull', () async {
+      var store = StoreRef<int, String>.main();
+      var record = store.record(1);
+      await record.put(db, 'test1');
+      var future = store
+          .query()
+          .onSnapshots(db)
+          .where((snapshots) => snapshots.isEmpty)
+          .first;
+      // ignore: unawaited_futures
+      record.delete(db);
+      await future;
     });
 
     test('onSnapshotsWithFinder', () async {

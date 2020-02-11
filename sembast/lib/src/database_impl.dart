@@ -322,7 +322,7 @@ class SembastDatabase extends Object
             listenerOperations.add(StoreListenerOperation(
                 listener,
                 records
-                    .map((record) => record.nonDeletedRecord)
+                    .map((record) => record.record)
                     .toList(growable: false)));
           }
         }
@@ -1246,7 +1246,11 @@ class SembastDatabase extends Object
           if (ctlrs != null) {
             for (var ctlr in ctlrs) {
               void _updateRecord() {
-                ctlr.add(record);
+                if (!record.deleted) {
+                  ctlr.add(record);
+                } else {
+                  ctlr.add(null);
+                }
               }
 
               if (ctlr.hasInitialData) {

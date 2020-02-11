@@ -11,7 +11,7 @@ import 'package:sembast/src/jdb.dart';
 import 'package:sembast/src/storage.dart';
 
 /// meta info key
-const String metaKey = '_meta';
+const String metaKey = 'meta';
 
 /// Jdb Storage implementation.
 class SembastStorageJdb extends StorageBase implements StorageJdb {

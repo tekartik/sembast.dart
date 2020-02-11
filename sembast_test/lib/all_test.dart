@@ -4,6 +4,7 @@ import 'crud_impl_test.dart' as crud_impl_test;
 import 'crud_test.dart' as crud_test;
 import 'database_test.dart' as database_test;
 import 'doc_test.dart' as doc_test;
+import 'query_test.dart' as query_test;
 import 'exception_test.dart' as exception_test;
 import 'exp_test.dart' as exp_test;
 import 'find_test.dart' as find_test;
@@ -32,6 +33,7 @@ void defineTests(DatabaseTestContext ctx) {
   exception_test.defineTests(ctx);
   exp_test.defineTests(ctx);
   value_test.defineTests(ctx);
+  query_test.defineTests(ctx);
 
   doc_test.defineTests(ctx);
 }
