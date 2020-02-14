@@ -2,7 +2,6 @@
 library sembast_web.test.idb_io_simple_test;
 
 import 'package:sembast/sembast.dart';
-import 'package:sembast_web/sembast_web.dart' hide databaseFactoryWeb;
 import 'package:sembast_web/src/browser.dart';
 import 'package:test/test.dart';
 

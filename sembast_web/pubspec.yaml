@@ -1,6 +1,6 @@
 name: sembast_web
 description: Sembast for the Web
-version: 0.1.0+1
+version: 0.1.0+2
 homepage: https://github.com/tekartik/sembast.dart/tree/master/sembast
 
 environment:

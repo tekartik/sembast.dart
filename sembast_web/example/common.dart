@@ -1,4 +1,5 @@
 import 'dart:html';
+export 'package:sembast/sembast.dart';
 
 class OutBuffer {
   int _maxLineCount;
