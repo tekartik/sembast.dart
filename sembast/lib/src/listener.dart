@@ -9,7 +9,7 @@ import 'package:sembast/src/finder_impl.dart';
 import 'package:sembast/src/query_ref_impl.dart';
 import 'package:sembast/src/record_impl.dart';
 
-// _ignore_for_file: deprecated_member_use_from_same_package
+// ignore_for_file: deprecated_member_use_from_same_package
 
 /// Debug listeners boolean
 final debugListener = false; // devWarning(true); // false
