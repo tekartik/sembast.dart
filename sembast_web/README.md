@@ -1,6 +1,6 @@
 # sembast_web
 
-Sembast for the Web
+[sembast](https://pub.dev/packages/sembast) for the Web - **Preview**
 
 ## Setup
 
@@ -8,11 +8,7 @@ In pubspec.yaml
 
 ```yaml
 dependencies:
-  sembast_web:
-    git:
-      url: git://github.com/tekartik/sembast.dart
-      path: sembast_web
-      ref: develop
+  sembast_web: '>=0.1.0'
 ```
 
 ## Usage
@@ -47,4 +43,4 @@ Future main() async {
 
 * Experimental
 * Use int or key string only
-
+* Transactions are not cross-tab safe
