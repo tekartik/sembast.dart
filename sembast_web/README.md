@@ -1,6 +1,6 @@
-# sembast_web
+# Sembast for the web
 
-[sembast](https://pub.dev/packages/sembast) for the Web - **Preview**
+**Preview**: [sembast](https://pub.dev/packages/sembast) for the Web, NoSQL persistent embedded database for the Web on top of IndexedDB.
 
 ## Setup
 
