@@ -49,7 +49,7 @@ Future<Map<String, dynamic>> exportDatabase(v2.Database db) {
       for (var record in store.currentRecords) {
         keys.add(record.key);
         values.add(record.value);
-        await sembastDatabase.cooperator.cooperate();
+        await sembastDatabase.cooperator?.cooperate();
       }
 
       // Only add store if it has content

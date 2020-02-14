@@ -1,5 +1,7 @@
 import 'package:sembast/src/api/v2/sembast.dart';
 export 'package:sembast/src/api/v2/sembast.dart';
+import 'package:sembast/src/cooperator.dart';
+import 'package:sembast/src/database_impl.dart';
 export 'src/test/test.dart';
 export 'src/test_defs.dart';
 
@@ -20,3 +22,7 @@ class DatabaseTestContext {
 }
 
 void unused(dynamic value) {}
+
+void setDatabaseCooperator(Database db, Cooperator cooperator) {
+  (db as SembastDatabase).cooperator = cooperator;
+}
