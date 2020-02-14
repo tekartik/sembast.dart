@@ -1,3 +1,4 @@
+import 'dart:collection';
 import 'dart:math';
 
 import 'package:sembast/sembast.dart';
@@ -36,8 +37,10 @@ class SembastStore implements Store {
   int lastIntKey = 0;
 
   /// Record map.
+  ///
+  /// Use a splay tree to be correctly orderd
   Map<dynamic, ImmutableSembastRecord> recordMap =
-      <dynamic, ImmutableSembastRecord>{};
+      SplayTreeMap<dynamic, ImmutableSembastRecord>(compareKey);
 
   /// Records change during the transaction.
   Map<dynamic, TxnRecord> txnRecords;
@@ -410,25 +413,49 @@ class SembastStore implements Store {
   /// Find records in a transaction.
   Future<List<ImmutableSembastRecord>> txnFindRecords(
       SembastTransaction txn, Finder finder) async {
-    var results = <ImmutableSembastRecord>[];
-    var sembastFinder = finder as SembastFinder;
+    // Two ways of storing data
+    List<ImmutableSembastRecord> results;
+    SplayTreeMap<dynamic, ImmutableSembastRecord> preOrderedResults;
 
-    await forEachRecords(txn, sembastFinder?.filter, (record) {
-      results.add(record);
+    // Use pre-ordered or not
+    var sembastFinder = finder as SembastFinder;
+    var hasSortOrder = sembastFinder?.sortOrders?.isNotEmpty ?? false;
+    var usePreordered = !hasSortOrder;
+    if (usePreordered) {
+      // Preordered by key
+      preOrderedResults =
+          SplayTreeMap<dynamic, ImmutableSembastRecord>(compareKey);
+    } else {
+      results = <ImmutableSembastRecord>[];
+    }
+
+    bool addRecord(ImmutableSembastRecord record) {
+      if (usePreordered) {
+        preOrderedResults[record.key] = record;
+      } else {
+        results.add(record);
+      }
       return true;
-    });
+    }
+
+    await forEachRecords(txn, sembastFinder?.filter, addRecord);
+    if (usePreordered) {
+      results = preOrderedResults.values.toList(growable: false);
+    }
 
     if (finder != null) {
       // sort
-      if (cooperateOn) {
-        var sort = Sort(database.cooperator);
-        await sort.sort(
-            results,
-            (Record record1, Record record2) =>
-                sembastFinder.compareThenKey(record1, record2));
-      } else {
-        results.sort((record1, record2) =>
-            sembastFinder.compareThenKey(record1, record2));
+      if (hasSortOrder) {
+        if (cooperateOn) {
+          var sort = Sort(database.cooperator);
+          await sort.sort(
+              results,
+              (Record record1, Record record2) =>
+                  sembastFinder.compareThenKey(record1, record2));
+        } else {
+          results.sort((record1, record2) =>
+              sembastFinder.compareThenKey(record1, record2));
+        }
       }
 
       try {
@@ -454,12 +481,7 @@ class SembastStore implements Store {
         results = results.sublist(0, min(sembastFinder.limit, results.length));
       }
     } else {
-      if (cooperateOn) {
-        var sort = Sort(database.cooperator);
-        await sort.sort(results, compareRecordKey);
-      } else {
-        results.sort(compareRecordKey);
-      }
+      // Already sorted by SplayTreeMap
     }
     return results;
   }

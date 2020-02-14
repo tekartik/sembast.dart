@@ -1208,16 +1208,16 @@ class SembastDatabase extends Object
   Future clear() => mainStore.clear();
 
   /// Our cooperator.
-  final cooperator = Cooperator();
+  var cooperator = Cooperator();
 
   /// True if activated.
-  bool get cooperateOn => cooperator.cooperateOn;
+  bool get cooperateOn => cooperator?.cooperateOn ?? false;
 
   /// True if cooperate needed.
-  bool get needCooperate => cooperator.needCooperate;
+  bool get needCooperate => cooperator?.needCooperate ?? false;
 
   /// Cooperate if needed.
-  FutureOr cooperate() => cooperator.cooperate();
+  FutureOr cooperate() => cooperator?.cooperate();
 
   /// Ensure the transaction is still current
   void checkTransaction(SembastTransaction transaction) {

@@ -121,8 +121,13 @@ int compareValue(dynamic value1, dynamic value2) {
       // Same ? return the length diff if any
       return compareValue(list1.length, list2.length);
     }
-  } catch (_) {}
-  return null;
+  } catch (_) {
+    /// Convert to string in the worst case
+    if (!(value1 is String) || !(value2 is String)) {
+      return compareValue(value1?.toString(), value2?.toString());
+    }
+  }
+  return 0;
 }
 
 Map<String, dynamic> _fixMap(Map map) {
