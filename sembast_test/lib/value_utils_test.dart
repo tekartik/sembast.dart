@@ -95,7 +95,7 @@ void main() {
     test('compare', () {
       expect(compareValue('1', '2'), Comparable.compare('1', '2'));
       expect(compareValue(1, 2), Comparable.compare(1, 2));
-      expect(compareValue(1, '2'), isNull);
+      expect(compareValue(1, '2'), -1); // converted to string
 
       // compareValue
       expect(compareValue([0], [0]), 0);
