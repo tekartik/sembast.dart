@@ -37,15 +37,6 @@ class SembastFinder implements Finder {
     sortOrders = [sortOrder];
   }
 
-//  bool match(Record record) {
-//    if (record.deleted) {
-//      return false;
-//    }
-//    if (filter != null) {
-//      return filter.match(record);
-//    }
-//    return true;
-//  }
   int compare(Record record1, Record record2) {
     var result = 0;
     if (sortOrders != null) {

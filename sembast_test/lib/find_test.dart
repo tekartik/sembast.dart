@@ -308,7 +308,7 @@ void defineTests(DatabaseTestContext ctx) {
       });
 
       test('null_first_last', () async {
-        db = await setupForTest(ctx, 'find/null_first_last.db');
+        final db = await setupForTest(ctx, 'find/null_first_last.db');
         var store = intMapStoreFactory.store();
 
         record1 = store.record(1);
@@ -336,6 +336,8 @@ void defineTests(DatabaseTestContext ctx) {
         finder = Finder(filter: Filter.notNull('text'));
         snapshots = await store.find(db, finder: finder);
         expect(snapshotsRefs(snapshots), [record2]);
+
+        await db.close();
       });
 
       group('sub_field', () {

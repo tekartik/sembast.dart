@@ -57,11 +57,6 @@ mixin SembastRecordHelperMixin implements Record {
   }
 
   @override
-  String toString() {
-    return toDatabaseRowMap().toString();
-  }
-
-  @override
   int get hashCode => key == null ? 0 : key.hashCode;
 
   @override
@@ -152,6 +147,16 @@ class LazyMutableSembastRecord with SembastRecordHelperMixin implements Record {
   RecordSnapshot<RK, RV> cast<RK, RV>() => record.cast<RK, RV>();
 }
 
+/// Immutable record in jdb.
+class ImmutableSembastRecordJdb extends ImmutableSembastRecord {
+  /// Immutable record in jdb.
+  ImmutableSembastRecordJdb(RecordRef ref, dynamic value,
+      {bool deleted, int revision})
+      : super(ref, value, deleted: deleted) {
+    this.revision = revision;
+  }
+}
+
 /// Immutable record, used in storage
 class ImmutableSembastRecord
     with SembastRecordMixin, SembastRecordHelperMixin, RecordSnapshotMixin {
@@ -168,6 +173,11 @@ class ImmutableSembastRecord
   @override
   dynamic get value => immutableValue(super.value);
 
+  static var _lastRevision = 0;
+  int _makeRevision() {
+    return ++_lastRevision;
+  }
+
   /// Record from row map.
   ImmutableSembastRecord.fromDatabaseRowMap(Database db, Map map) {
     final storeName = map[dbStoreNameKey] as String;
@@ -177,6 +187,7 @@ class ImmutableSembastRecord
     ref = storeRef.record(map[dbRecordKey]);
     super.value = sanitizeValue(map[dbRecordValueKey]);
     _deleted = map[dbRecordDeletedKey] == true;
+    revision = _makeRevision();
   }
 
   ///
@@ -189,12 +200,22 @@ class ImmutableSembastRecord
     this.ref = ref;
     super.value = value;
     _deleted = deleted;
+    revision = _makeRevision();
   }
 
   @override
   @deprecated
   Store get store => throw UnsupportedError(
       'Deprecated for immutable record. use ref.store instead');
+
+  @override
+  String toString() {
+    var map = toDatabaseRowMap();
+    if (revision != null) {
+      map['revision'] = revision;
+    }
+    return map.toString();
+  }
 }
 
 /// Transaction record.
@@ -230,7 +251,7 @@ class TxnRecord with SembastRecordHelperMixin implements Record {
   @override
   RecordSnapshot<RK, RV> cast<RK, RV>() => record.cast<RK, RV>();
 
-  /// non deleted record list.
+  /// non deleted record.
   ImmutableSembastRecord get nonDeletedRecord => deleted ? null : record;
 }
 
@@ -321,6 +342,19 @@ ImmutableSembastRecord makeImmutableRecord(Record record) {
     return null;
   }
   return ImmutableSembastRecord(record.ref, cloneValue(record.value),
+      deleted: record.deleted);
+}
+
+/// Convert to immutable if needed
+ImmutableSembastRecordJdb makeImmutableRecordJdb(Record record) {
+  if (record is ImmutableSembastRecordJdb) {
+    return record;
+  } else if (record == null) {
+    // This can happen when settings boundary
+    return null;
+  }
+  // no revision
+  return ImmutableSembastRecordJdb(record.ref, cloneValue(record.value),
       deleted: record.deleted);
 }
 

@@ -9,6 +9,7 @@ import 'package:sembast/src/cooperator.dart';
 import 'package:sembast/src/database_client_impl.dart';
 import 'package:sembast/src/database_factory_mixin.dart';
 import 'package:sembast/src/env_utils.dart';
+import 'package:sembast/src/jdb.dart';
 import 'package:sembast/src/listener.dart';
 import 'package:sembast/src/meta.dart';
 import 'package:sembast/src/record_impl.dart';
@@ -49,7 +50,15 @@ class SembastDatabase extends Object
   /// log helper.
   final bool logV = sembastLogLevel == SembastLogLevel.verbose;
 
-  final DatabaseStorage _storage;
+  final StorageBase _storageBase;
+
+  DatabaseStorage _storage;
+  StorageJdb _storageJdb;
+  StreamSubscription<int> _storageJdbRevisionUpdateSubscription;
+  int _jdbRevision;
+
+  /// Get internal jdb storage if any
+  StorageJdb get storageJdb => _storageJdb;
 
   // Lock used for opening/writing/compacting
 
@@ -66,7 +75,7 @@ class SembastDatabase extends Object
   DatabaseListener listener;
 
   @override
-  String get path => _storage.path;
+  String get path => _storageBase.path;
 
   //int _rev = 0;
   // incremental for each transaction
@@ -108,7 +117,13 @@ class SembastDatabase extends Object
   Iterable<String> get storeNames => _stores.values.map((store) => store.name);
 
   /// Database implementation.
-  SembastDatabase(this.openHelper, [this._storage]);
+  SembastDatabase(this.openHelper, [this._storageBase]) {
+    if (_storageBase is DatabaseStorage) {
+      _storage = _storageBase as DatabaseStorage;
+    } else if (_storageBase is StorageJdb) {
+      _storageJdb = _storageBase as StorageJdb;
+    }
+  }
 
   ///
   /// put a value in the main store
@@ -156,6 +171,26 @@ class SembastDatabase extends Object
     return _recordStore(record).setRecordInMemory(record?.record);
   }
 
+  /// Load a record if needed
+  bool loadRecordJdb(ImmutableSembastRecordJdb record) {
+    var store = _recordStore(record);
+    dynamic existing = store.txnGetImmutableRecordSync(null, record.key);
+    if (existing is ImmutableSembastRecordJdb) {
+      if (existing != null) {
+        // devPrint('existing ${existing?.revision} vs new ${record.revision}');
+        if (existing.revision != null) {
+          if ((record.revision ?? 0) > existing.revision) {
+            loadRecord(record);
+            return true;
+          }
+        }
+        return false;
+      }
+    }
+    loadRecord(record);
+    return true;
+  }
+
   /// Load a record.
   void loadRecord(ImmutableSembastRecord record) {
     _recordStore(record).loadRecord(record);
@@ -195,12 +230,28 @@ class SembastDatabase extends Object
   List<ImmutableSembastRecord> getCurrentRecords(Store store) =>
       (store as SembastStore).currentRecords;
 
+  /// For jdb only
+  Future<int> generateUniqueIntKey(String store) {
+    if (_storageJdb != null) {
+      return _storageJdb.generateUniqueIntKey(store);
+    }
+    return null;
+  }
+
+  /// For jdb only
+  Future<String> generateUniqueStringKey(String store) {
+    if (_storageJdb != null) {
+      return _storageJdb.generateUniqueStringKey(store);
+    }
+    return null;
+  }
+
   ///
   /// Compact the database (work in progress)
   ///
   Future txnCompact() async {
     assert(databaseLock.inLock);
-    if (_storage.supported) {
+    if (_storage?.supported ?? false) {
       final tmpStorage = _storage.tmpStorage;
       // new stat with compact + 1
       final exportStat = DatabaseExportStat()
@@ -269,7 +320,11 @@ class SembastDatabase extends Object
         if (listener.isNotEmpty) {
           var listener = this.listener.getStore(store.ref);
           if (listener != null) {
-            listenerOperations.add(StoreListenerOperation(listener, records));
+            listenerOperations.add(StoreListenerOperation(
+                listener,
+                records
+                    .map((record) => record.record)
+                    .toList(growable: false)));
           }
         }
 
@@ -286,7 +341,7 @@ class SembastDatabase extends Object
         for (var record in txnRecords) {
           final exists = setRecordInMemory(record);
           // Try to estimated if compact will be needed
-          if (_storage.supported) {
+          if (_storage?.supported ?? false) {
             if (exists) {
               _exportStat.obsoleteLineCount++;
             }
@@ -313,24 +368,33 @@ class SembastDatabase extends Object
     if (txnRecords.isNotEmpty) {
       final lines = <String>[];
 
-      // writable record
-      for (var record in txnRecords) {
-        var map = record.record.toDatabaseRowMap();
-        String encoded;
-        try {
-          encoded = encodeMap(map);
-          if (_debugStorage) {
-            print('add: $encoded');
+      if (_storage != null) {
+        // writable record
+        for (var record in txnRecords) {
+          var map = record.record.toDatabaseRowMap();
+          String encoded;
+          try {
+            encoded = encodeMap(map);
+            if (_debugStorage) {
+              print('add: $encoded');
+            }
+            lines.add(encoded);
+          } catch (e, st) {
+            print(map);
+            print(e);
+            print(st);
+            rethrow;
           }
-          lines.add(encoded);
-        } catch (e, st) {
-          print(map);
-          print(e);
-          print(st);
-          rethrow;
         }
+        await _storage.appendLines(lines);
+      } else if (_storageJdb != null) {
+        var entries = <JdbWriteEntry>[];
+        for (var record in txnRecords) {
+          var entry = JdbWriteEntry()..txnRecord = record;
+          entries.add(entry);
+        }
+        await _storageJdb.addEntries(entries);
       }
-      await _storage.appendLines(lines);
     }
   }
 
@@ -461,9 +525,17 @@ class SembastDatabase extends Object
   /// reload
   //
   Future<Database> reOpen([DatabaseOpenOptions options]) async {
+    options ??= openOptions;
     await close();
+    if (_storageJdb != null) {
+      return openHelper.factory.openDatabase(path,
+          version: options.version,
+          onVersionChanged: options.onVersionChanged,
+          codec: options.codec,
+          mode: options.mode);
+    }
     // Reuse same open mode unless specified
-    return open(options ?? openOptions);
+    return open(options);
   }
 
   void _checkMainStore() {
@@ -680,58 +752,103 @@ class SembastDatabase extends Object
         //_path = path;
         Future _findOrCreate() async {
           if (mode == DatabaseMode.existing) {
-            final found = await _storage.find();
+            final found = await _storageBase.find();
             if (!found) {
               throw DatabaseException.databaseNotFound(
                   'Database (open existing only) ${path} not found');
             }
           } else {
             if (mode == DatabaseMode.empty) {
-              await _storage.delete();
+              await _storageBase.delete();
             }
-            await _storage.findOrCreate();
+            await _storageBase.findOrCreate();
           }
         }
 
         // create _exportStat
-        if (_storage.supported) {
+        if (_storage?.supported ?? false) {
           _exportStat = DatabaseExportStat();
         }
         await _findOrCreate();
-        if (_storage.supported) {
+        if (_storageBase.supported) {
           // empty stores and meta
           _meta = null;
           _mainStore = null;
           _stores.clear();
           _checkMainStore();
 
-          _exportStat = DatabaseExportStat();
+          if (_storage?.supported ?? false) {
+            _exportStat = DatabaseExportStat();
 
-          //bool needCompact = false;
-          var corrupted = false;
+            //bool needCompact = false;
+            var corrupted = false;
 
-          var firstLineRead = false;
+            var firstLineRead = false;
 
-          await for (var line in _storage.readLines()) {
-            _exportStat.lineCount++;
+            await for (var line in _storage.readLines()) {
+              _exportStat.lineCount++;
 
-            Map<String, dynamic> map;
+              Map<String, dynamic> map;
 
-            // Until meta is read, we assume it is json
-            if (!firstLineRead) {
-              // Read the meta first
-              // The first line is always json
+              // Until meta is read, we assume it is json
+              if (!firstLineRead) {
+                // Read the meta first
+                // The first line is always json
+                try {
+                  map = (json.decode(line) as Map)?.cast<String, dynamic>();
+                } on Exception catch (_) {}
+                if (Meta.isMapMeta(map)) {
+                  // meta?
+                  meta = Meta.fromMap(map);
+
+                  // Check codec signature if any
+                  checkCodecEncodedSignature(
+                      options.codec, meta.codecSignature);
+                  firstLineRead = true;
+                  continue;
+                } else {
+                  // If a codec is used, we fail
+                  if (_openMode == DatabaseMode.neverFails &&
+                      options.codec == null) {
+                    corrupted = true;
+                    break;
+                  } else {
+                    throw const FormatException('Invalid database format');
+                  }
+                }
+              }
+
               try {
-                map = (json.decode(line) as Map)?.cast<String, dynamic>();
-              } on Exception catch (_) {}
-              if (Meta.isMapMeta(map)) {
+                // decode record
+                map = decodeString(line);
+              } on Exception catch (_) {
+                // We can have meta here
+                try {
+                  map = (json.decode(line) as Map)?.cast<String, dynamic>();
+                } on Exception catch (_) {
+                  if (_openMode == DatabaseMode.neverFails) {
+                    corrupted = true;
+                    break;
+                  } else {
+                    rethrow;
+                  }
+                }
+              }
+
+              if (SembastRecord.isMapRecord(map)) {
+                // record?
+                final record =
+                    ImmutableSembastRecord.fromDatabaseRowMap(this, map);
+                if (_noTxnHasRecord(record)) {
+                  _exportStat.obsoleteLineCount++;
+                }
+                loadRecord(record);
+              } else if (Meta.isMapMeta(map)) {
                 // meta?
                 meta = Meta.fromMap(map);
 
                 // Check codec signature if any
                 checkCodecEncodedSignature(options.codec, meta.codecSignature);
-                firstLineRead = true;
-                continue;
               } else {
                 // If a codec is used, we fail
                 if (_openMode == DatabaseMode.neverFails &&
@@ -743,63 +860,37 @@ class SembastDatabase extends Object
                 }
               }
             }
-
-            try {
-              // decode record
-              map = decodeString(line);
-            } on Exception catch (_) {
-              // We can have meta here
-              try {
-                map = (json.decode(line) as Map)?.cast<String, dynamic>();
-              } on Exception catch (_) {
-                if (_openMode == DatabaseMode.neverFails) {
-                  corrupted = true;
-                  break;
-                } else {
-                  rethrow;
-                }
+            // if corrupted and not even meta
+            // delete it
+            if (corrupted && meta == null) {
+              await _storage.delete();
+              await _storage.findOrCreate();
+            } else {
+              // auto compaction
+              // allow for 20% of lost lines
+              // make sure _meta is known before compacting
+              _meta = meta;
+              // devPrint('open needCompact $_needCompact corrupted $corrupted $_exportStat');
+              if (_needCompact || corrupted) {
+                await txnCompact();
               }
             }
+          } else if (_storageJdb?.supported ?? false) {
+            var map = await _storageJdb.readMeta();
 
-            if (SembastRecord.isMapRecord(map)) {
-              // record?
-              final record =
-                  ImmutableSembastRecord.fromDatabaseRowMap(this, map);
-              if (_noTxnHasRecord(record)) {
-                _exportStat.obsoleteLineCount++;
-              }
-              loadRecord(record);
-            } else if (Meta.isMapMeta(map)) {
+            if (Meta.isMapMeta(map)) {
               // meta?
               meta = Meta.fromMap(map);
+            }
 
-              // Check codec signature if any
-              checkCodecEncodedSignature(options.codec, meta.codecSignature);
-            } else {
-              // If a codec is used, we fail
-              if (_openMode == DatabaseMode.neverFails &&
-                  options.codec == null) {
-                corrupted = true;
-                break;
-              } else {
-                throw const FormatException('Invalid database format');
-              }
-            }
-          }
-          // if corrupted and not even meta
-          // delete it
-          if (corrupted && meta == null) {
-            await _storage.delete();
-            await _storage.findOrCreate();
-          } else {
-            // auto compaction
-            // allow for 20% of lost lines
-            // make sure _meta is known before compacting
+            await jdbFullImport();
+
+            /// Revision update to force reading
+            _storageJdbRevisionUpdateSubscription =
+                _storageJdb.revisionUpdate.listen((revision) {
+              jdbDeltaImport(revision);
+            });
             _meta = meta;
-            // devPrint('open needCompact $_needCompact corrupted $corrupted $_exportStat');
-            if (_needCompact || corrupted) {
-              await txnCompact();
-            }
           }
 
           return _openDone();
@@ -820,15 +911,90 @@ class SembastDatabase extends Object
     return this;
   }
 
+  /// Full import - must be in transaction
+  Future jdbFullImport() async {
+    _jdbRevision = await _storageJdb.getRevision();
+    await for (var entry in _storageJdb.entries) {
+      var record = ImmutableSembastRecordJdb(entry.record, entry.value,
+          deleted: entry.deleted, revision: entry.id);
+      // Make it fast
+      loadRecord(record);
+    }
+  }
+
+  /// Delta import. Must not be in a transaction
+  Future jdbDeltaImport(int revision) async {
+    var allStores = <StoreRef, Map<dynamic, ImmutableSembastRecordJdb>>{};
+    await transaction((txn) async {
+      var minRevision = _jdbRevision ?? 0;
+
+      var entries = await _storageJdb.getEntriesAfter(minRevision ?? 0);
+      // devPrint('delta import $entries');
+      if (!_closed) {
+        for (var entry in entries) {
+          var record = ImmutableSembastRecordJdb(entry.record, entry.value,
+              deleted: entry.deleted, revision: entry.id);
+          var store = entry.record.store;
+          Map<dynamic, ImmutableSembastRecordJdb> map;
+          map = allStores[store];
+          if (map == null) {
+            allStores[store] = map = <dynamic, ImmutableSembastRecordJdb>{};
+          }
+          // devPrint('Loading $record');
+          if (loadRecordJdb(record)) {
+            map[record.key] = record;
+          } else {
+            // devPrint('not loaded $record');
+          }
+        }
+        _jdbRevision = revision;
+      }
+    });
+
+    if (allStores.isNotEmpty) {
+      /// Prepare listener
+      var listenerOperations = <StoreListenerOperation>[];
+
+      allStores.forEach((store, list) {
+        // Prepare listener operations
+        if (listener.isNotEmpty) {
+          var listener = this.listener.getStore(store);
+          if (listener != null) {
+            listenerOperations.add(StoreListenerOperation(
+                listener, list.values.toList(growable: false)));
+          }
+        }
+
+        //txnRecords.addAll(records);
+      });
+
+      // Notify if needed, done lazily
+      // devPrint(listenerOperations);
+      if (listenerOperations.isNotEmpty == true) {
+        notifyQueryListeners(listenerOperations);
+      }
+      notifyLazyListeners();
+    }
+  }
+
   /// To call when in a databaseLock
   Future lockedClose() async {
     _opened = false;
     _closed = true;
+    // Close the jdb database
+    if (_storageJdb != null) {
+      _storageJdb.close();
+    }
     await openHelper.lockedCloseDatabase();
   }
 
   @override
   Future close() async {
+    // jdb updates
+    // ignore: unawaited_futures
+    _storageJdbRevisionUpdateSubscription?.cancel();
+    _storageJdbRevisionUpdateSubscription = null;
+
     return openHelper.lock.synchronized(() async {
       // Cancel listener
       listener.close();
@@ -879,8 +1045,9 @@ class SembastDatabase extends Object
   /// * There are at least 6 records
   /// * There are 20% of obsolete lines to delete
   bool get _needCompact {
-    return (_exportStat.obsoleteLineCount > 5 &&
-        (_exportStat.obsoleteLineCount / _exportStat.lineCount > 0.20));
+    return (_storage != null) &&
+        (_exportStat.obsoleteLineCount > 5 &&
+            (_exportStat.obsoleteLineCount / _exportStat.lineCount > 0.20));
   }
 
   @override
@@ -949,18 +1116,25 @@ class SembastDatabase extends Object
         _transactionCleanUp();
         rethrow;
       } finally {
-        if (_storage.supported) {
+        if (_storageBase.supported) {
           final hasRecords = commitData?.txnRecords?.isNotEmpty == true;
 
-          if (hasRecords || _upgrading) {
+          if (hasRecords || upgrading) {
             Future postTransaction() async {
               // spawn commit if needed
               // storagage commit and compacting is done lazily
 
+              //
               // Write meta when upgrading, write before the records!
+              //
               if (upgrading) {
-                await _storage.appendLine(json.encode(_upgradingMeta.toMap()));
-                _exportStat.lineCount++;
+                if (_storage != null) {
+                  await _storage
+                      .appendLine(json.encode(_upgradingMeta.toMap()));
+                  _exportStat.lineCount++;
+                } else if (_storageJdb != null) {
+                  await _storageJdb.writeMeta(_upgradingMeta.toMap());
+                }
               }
               if (commitData?.txnRecords?.isNotEmpty == true) {
                 await storageCommitRecords(commitData.txnRecords);
@@ -984,51 +1158,9 @@ class SembastDatabase extends Object
         }
       }
 
-      // Notify if needed
+      // Notify if needed, done lazily
       if (commitData?.listenerOperations?.isNotEmpty == true) {
-        lazyListenerOperations.add(() async {
-          for (var operation in commitData.listenerOperations) {
-            // records
-            for (var record in operation.txnRecords) {
-              var ctlrs = operation.listener.getRecord(record.ref);
-              if (ctlrs != null) {
-                for (var ctlr in ctlrs) {
-                  void _updateRecord() {
-                    ctlr.add(record.nonDeletedRecord);
-                  }
-
-                  if (ctlr.hasInitialData) {
-                    // devPrint('adding $record');
-                    _updateRecord();
-                  } else {
-                    // postpone
-                    // ignore: unawaited_futures
-                    notificationLock.synchronized(() async {
-                      _updateRecord();
-                    });
-                  }
-                }
-              }
-            }
-            // Fix existing queries
-            for (var query in List<QueryListenerController>.from(
-                operation.listener.getQuery())) {
-              Future _updateQuery() async {
-                await query.update(operation.txnRecords, cooperator);
-              }
-
-              if (query.hasInitialData) {
-                await _updateQuery();
-              } else {
-                // postpone
-                // ignore: unawaited_futures
-                notificationLock.synchronized(() async {
-                  await _updateQuery();
-                });
-              }
-            }
-          }
-        });
+        notifyQueryListeners(commitData.listenerOperations);
       }
 
       _clearTxnData();
@@ -1037,28 +1169,7 @@ class SembastDatabase extends Object
 
       return actionResult;
     }).whenComplete(() async {
-      // Notify if needed
-      if (lazyListenerOperations.isNotEmpty) {
-        // Don't await on purpose here
-        // ignore: unawaited_futures
-        notificationLock.synchronized(() async {
-          if (lazyListenerOperations.isNotEmpty) {
-            var list = List.from(lazyListenerOperations);
-            // devPrint('listeners ${list.length}');
-            for (var operation in list) {
-              try {
-                await operation();
-              } catch (e, st) {
-                print('err lazy listeners $e');
-                if (isDebug) {
-                  print(st);
-                }
-              }
-              lazyListenerOperations.remove(operation);
-            }
-          }
-        });
-      }
+      notifyLazyListeners();
 
       if (!upgrading) {
         // trigger lazy operation
@@ -1067,20 +1178,46 @@ class SembastDatabase extends Object
     });
   }
 
+  /// Lazily notify listeners
+  void notifyLazyListeners() {
+    // Notify if needed
+    if (lazyListenerOperations.isNotEmpty) {
+      // Don't await on purpose here
+      // ignore: unawaited_futures
+      notificationLock.synchronized(() async {
+        if (lazyListenerOperations.isNotEmpty) {
+          var list = List.from(lazyListenerOperations);
+          // devPrint('listeners ${list.length}');
+          for (var operation in list) {
+            try {
+              await operation();
+            } catch (e, st) {
+              print('err lazy listeners $e');
+              if (isDebug) {
+                print(st);
+              }
+            }
+            lazyListenerOperations.remove(operation);
+          }
+        }
+      });
+    }
+  }
+
   @override
   Future clear() => mainStore.clear();
 
   /// Our cooperator.
-  final cooperator = Cooperator();
+  var cooperator = Cooperator();
 
   /// True if activated.
-  bool get cooperateOn => cooperator.cooperateOn;
+  bool get cooperateOn => cooperator?.cooperateOn ?? false;
 
   /// True if cooperate needed.
-  bool get needCooperate => cooperator.needCooperate;
+  bool get needCooperate => cooperator?.needCooperate ?? false;
 
   /// Cooperate if needed.
-  FutureOr cooperate() => cooperator.cooperate();
+  FutureOr cooperate() => cooperator?.cooperate();
 
   /// Ensure the transaction is still current
   void checkTransaction(SembastTransaction transaction) {
@@ -1115,6 +1252,63 @@ class SembastDatabase extends Object
   @override
   SembastTransaction get sembastTransaction =>
       _openTransaction as SembastTransaction;
+
+  /// Notifify queryListeners
+  void notifyQueryListeners(List<StoreListenerOperation> listenerOperations) {
+    lazyListenerOperations.add(() async {
+      for (var operation in listenerOperations) {
+        // records
+        for (var record in operation.txnRecords) {
+          var ctlrs = operation.listener.getRecord(record.ref);
+          if (ctlrs != null) {
+            for (var ctlr in ctlrs) {
+              void _updateRecord() {
+                if (debugListener) {
+                  print('updating $ctlr: with ${record}');
+                }
+                if (!record.deleted) {
+                  ctlr.add(record);
+                } else {
+                  ctlr.add(null);
+                }
+              }
+
+              if (ctlr.hasInitialData) {
+                // devPrint('adding $record');
+                _updateRecord();
+              } else {
+                // postpone
+                // ignore: unawaited_futures
+                notificationLock.synchronized(() async {
+                  _updateRecord();
+                });
+              }
+            }
+          }
+        }
+        // Fix existing queries
+        for (var query in List<QueryListenerController>.from(
+            operation.listener.getQuery())) {
+          Future _updateQuery() async {
+            if (debugListener) {
+              print('updating $query: with ${operation.txnRecords}');
+            }
+            await query.update(operation.txnRecords, cooperator);
+          }
+
+          if (query.hasInitialData) {
+            await _updateQuery();
+          } else {
+            // postpone
+            // ignore: unawaited_futures
+            notificationLock.synchronized(() async {
+              await _updateQuery();
+            });
+          }
+        }
+      }
+    });
+  }
 }
 
 /// Export stat.

@@ -1,5 +1,8 @@
 import 'package:sembast/src/api/v2/sembast.dart';
+
 export 'package:sembast/src/api/v2/sembast.dart';
+export 'package:sembast/src/dev_utils.dart';
+
 export 'src/test/test.dart';
 export 'src/test_defs.dart';
 

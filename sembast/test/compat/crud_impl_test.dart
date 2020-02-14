@@ -23,7 +23,8 @@ void defineTests(DatabaseTestContext ctx) {
 
     test('put_close_get', () {
       return db.put('hi', 1).then((_) {
-        return db.reOpen().then((_) {
+        return db.reOpen().then((_db) {
+          db = _db as SembastDatabase;
           return db.get(1).then((value) {
             expect(value, 'hi');
           });
@@ -33,7 +34,8 @@ void defineTests(DatabaseTestContext ctx) {
 
     test('put_nokey_close_put', () {
       return db.put('hi').then((key) {
-        return db.reOpen().then((_) {
+        return db.reOpen().then((_db) {
+          db = _db as SembastDatabase;
           return db.put('hi').then((key) {
             expect(key, 2);
           });
@@ -44,7 +46,8 @@ void defineTests(DatabaseTestContext ctx) {
     test('put_update_close_get', () {
       return db.put('hi', 1).then((_) {
         return db.put('ho', 1).then((_) {
-          return db.reOpen().then((_) {
+          return db.reOpen().then((_db) {
+            db = _db as SembastDatabase;
             return db.get(1).then((value) {
               expect(value, 'ho');
               return db.count().then((int count) {
@@ -59,7 +62,8 @@ void defineTests(DatabaseTestContext ctx) {
     test('put_delete_close_get', () {
       return db.put('hi', 1).then((_) {
         return db.delete(1).then((key) {
-          return db.reOpen().then((_) {
+          return db.reOpen().then((_db) {
+            db = _db as SembastDatabase;
             return db.get(1).then((value) {
               expect(value, isNull);
               return db.count().then((int count) {
@@ -73,7 +77,8 @@ void defineTests(DatabaseTestContext ctx) {
 
     test('put_close_get_key_string', () {
       return db.put('hi', '1').then((_) {
-        return db.reOpen().then((_) {
+        return db.reOpen().then((_db) {
+          db = _db as SembastDatabase;
           return db.get('1').then((value) {
             expect(value, 'hi');
           });
@@ -84,7 +89,8 @@ void defineTests(DatabaseTestContext ctx) {
     test('put_close_get_map', () {
       final info = {'info': 12};
       return db.put(info, 1).then((_) {
-        return db.reOpen().then((_) {
+        return db.reOpen().then((_db) {
+          db = _db as SembastDatabase;
           return db.get(1).then((infoRead) {
             expect(infoRead, info);
             expect(identical(infoRead, info), isFalse);

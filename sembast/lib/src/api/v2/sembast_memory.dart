@@ -6,3 +6,6 @@ DatabaseFactory get databaseFactoryMemory => memory.databaseFactoryMemory;
 
 /// The memory with a simulated file system factory.
 DatabaseFactory get databaseFactoryMemoryFs => memory.databaseFactoryMemoryFs;
+
+/// The memory with a simulated file system factory.
+DatabaseFactory get databaseFactoryMemoryJdb => memory.databaseFactoryMemoryJdb;

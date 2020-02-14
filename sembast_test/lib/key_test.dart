@@ -11,6 +11,7 @@ void main() {
 }
 
 void defineTests(DatabaseTestContext ctx) {
+  var factory = ctx.factory;
   group('key', () {
     Database db;
 
@@ -39,7 +40,11 @@ void defineTests(DatabaseTestContext ctx) {
       // next will increment (or restart from 1 in js
       final intKey = await store.add(db, 'test') as int;
       if (isJavascriptVm) {
-        expect(intKey, 3);
+        if (hasStorageJdb(factory)) {
+          expect(intKey, 1);
+        } else {
+          expect(intKey, 3);
+        }
       } else {
         expect(intKey, 1);
       }
@@ -51,12 +56,19 @@ void defineTests(DatabaseTestContext ctx) {
       expect(value, 'test');
       // next will increment
       var key = await store.add(db, 'test');
-      expect(key, 3);
-
-      // Tweak to restart from 1 and make sure the existing keys are skipped
-      ((db as SembastDatabase).mainStore as SembastStore).lastIntKey = 0;
+      if (hasStorageJdb(factory)) {
+        expect(key, 1);
+      } else {
+        expect(key, 3);
+        // Tweak to restart from 1 and make sure the existing keys are skipped
+        ((db as SembastDatabase).mainStore as SembastStore).lastIntKey = 0;
+      }
       key = await store.add(db, 'test');
-      expect(key, 1);
+      if (hasStorageJdb(factory)) {
+        expect(key, 3);
+      } else {
+        expect(key, 1);
+      }
       key = await store.add(db, 'test');
       expect(key, 4);
     });

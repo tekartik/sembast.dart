@@ -23,14 +23,14 @@ void defineTests(DatabaseTestContext ctx) {
     test('put_close_get', () async {
       var record = store.record(1);
       await record.put(db, 'hi');
-      await reOpen(db);
+      db = await reOpen(db);
 
       expect(await record.get(db), 'hi');
     });
 
     test('put_nokey_close_put', () async {
       expect(await store.add(db, 'hi'), 1);
-      await reOpen(db);
+      db = await reOpen(db);
       expect(await store.add(db, 'hi'), 2);
     });
 
@@ -38,7 +38,7 @@ void defineTests(DatabaseTestContext ctx) {
       var record = store.record(1);
       await record.put(db, 'hi');
       await record.put(db, 'ho');
-      await reOpen(db);
+      db = await reOpen(db);
       expect(await record.get(db), 'ho');
       expect(await store.count(db), 1);
     });
@@ -47,7 +47,7 @@ void defineTests(DatabaseTestContext ctx) {
       var record = store.record(1);
       await record.put(db, 'hi');
       await record.delete(db);
-      await reOpen(db);
+      db = await reOpen(db);
       expect(await record.get(db), isNull);
       expect(await store.count(db), 0);
     });
@@ -55,7 +55,7 @@ void defineTests(DatabaseTestContext ctx) {
     test('put_close_get_key_string', () async {
       var record = store.record('1');
       await record.put(db, 'hi');
-      await reOpen(db);
+      db = await reOpen(db);
       expect(await record.get(db), 'hi');
     });
 
@@ -63,7 +63,7 @@ void defineTests(DatabaseTestContext ctx) {
       var record = store.record(1);
       final info = <String, dynamic>{'info': 12};
       await record.put(db, info);
-      await reOpen(db);
+      db = await reOpen(db);
       var infoRead = await record.get(db);
       expect(infoRead, info);
       expect(identical(infoRead, info), isFalse);

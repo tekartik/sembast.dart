@@ -14,7 +14,7 @@ pub global activate coverage
   }
 
   Future start = shell.run('''
-   dart --disable-service-auth-codes --enable-vm-service=$obsPort --pause-isolates-on-exit test/store_test.dart
+   dart --disable-service-auth-codes --enable-vm-service=$obsPort --pause-isolates-on-exit test/io_factory_test_.dart
 
   ''');
 

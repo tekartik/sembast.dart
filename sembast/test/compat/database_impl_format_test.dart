@@ -75,10 +75,10 @@ void defineTests(FileSystemTestContext ctx) {
 
     test('compact_and_reopen', () async {
       await prepareForDb();
-      final db = await factory.openDatabase(dbPath) as SembastDatabase;
+      var db = await factory.openDatabase(dbPath) as SembastDatabase;
       await db.put('test1', 1);
       await db.compact();
-      await db.reOpen();
+      db = await db.reOpen() as SembastDatabase;
       await db.put('test2', 2);
       await db.close();
       final lines = await readContent(fs, dbPath);
@@ -159,7 +159,7 @@ void defineTests(FileSystemTestContext ctx) {
 
     test('auto_by_count_reopon', () async {
       await prepareForDb();
-      final db = await factory.openDatabase(dbPath) as SembastDatabase;
+      var db = await factory.openDatabase(dbPath) as SembastDatabase;
       await db.putRecords(generate(6));
       // devPrint(await readContent(fs, db.path));
       await db.putRecords(generate(6));
@@ -173,7 +173,7 @@ void defineTests(FileSystemTestContext ctx) {
       expect(exportStat.obsoleteLineCount, 0);
 
       // devPrint(await readContent(fs, db.path));
-      await db.reOpen();
+      db = await db.reOpen() as SembastDatabase;
       await db.flush();
 
       /*

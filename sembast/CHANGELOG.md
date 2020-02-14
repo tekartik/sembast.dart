@@ -1,3 +1,7 @@
+## 2.2.0-dev.2
+
+* Support for `sembast_web`
+
 ## 2.1.3
 
 * Export `cloneValue` and `cloneList` from `utils/value_utils.dart`

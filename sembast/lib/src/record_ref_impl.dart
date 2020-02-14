@@ -7,6 +7,7 @@ import 'package:sembast/src/api/v2/sembast.dart' as v2;
 import 'package:sembast/src/common_import.dart';
 import 'package:sembast/src/database_client_impl.dart';
 import 'package:sembast/src/database_impl.dart';
+import 'package:sembast/src/listener.dart';
 import 'package:sembast/src/record_snapshot_impl.dart';
 import 'package:sembast/src/utils.dart';
 
@@ -89,26 +90,25 @@ mixin RecordRefMixin<K, V> implements RecordRef<K, V> {
   @override
   Stream<RecordSnapshot<K, V>> onSnapshot(v2.Database database) {
     var db = getDatabase(database);
-    var ctlr = db.listener.addRecord(this);
-
-    var completer = Completer<RecordSnapshot<K, V>>();
-    // Add the existing snapshot
-    db.notificationLock.synchronized(() async {
-      var snapshot = await completer.future;
-      ctlr.add(snapshot);
+    RecordListenerController<K, V> ctlr;
+    ctlr = db.listener.addRecord(this, onListen: () {
+      // Read right away
+      () async {
+        await db.notificationLock.synchronized(() async {
+          // Don't crash here, the database might have been closed
+          try {
+            // Add the existing snapshot
+            var snapshot = await getSnapshot(database);
+            if (debugListener) {
+              print('matching $ctlr: $snapshot on $this');
+            }
+            ctlr.add(snapshot);
+          } catch (error, stackTrace) {
+            ctlr.addError(error, stackTrace);
+          }
+        });
+      }();
     });
-
-    // Read right away
-    () async {
-      // Don't crash here, the database might have been closed
-      try {
-        var snapshot = await getSnapshot(database);
-        completer.complete(snapshot);
-      } catch (error, stackTrace) {
-        completer.completeError(error);
-        ctlr.addError(error, stackTrace);
-      }
-    }();
     return ctlr.stream;
   }
 

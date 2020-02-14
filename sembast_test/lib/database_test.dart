@@ -103,7 +103,7 @@ void defineTests(DatabaseTestContext ctx) {
         } finally {
           await db.close();
         }
-      });
+      }, skip: hasStorageJdb(factory));
     });
 
     group('onVersionChanged', () {
@@ -166,7 +166,7 @@ void defineTests(DatabaseTestContext ctx) {
         try {
           expect(await store.record(1).get(db), 'test');
           expect(db.version, 1);
-          await reOpen(db);
+          db = await reOpen(db);
           expect(await store.record(1).get(db), 'test');
           expect(await store.record(2).get(db), 'other');
           expect(db.version, 1);
@@ -187,7 +187,7 @@ void defineTests(DatabaseTestContext ctx) {
         try {
           expect(await store.record(1).get(db), 'test');
           expect(db.version, 1);
-          await reOpen(db);
+          db = await reOpen(db);
           expect(await store.record(1).get(db), 'test');
           expect(await store.record(2).get(db), 'other');
           expect(db.version, 1);
@@ -210,7 +210,7 @@ void defineTests(DatabaseTestContext ctx) {
           expect(await store.record(1).get(db), 'test2');
           expect(await store.record(2).get(db), 'other2');
           expect(db.version, 2);
-          await reOpen(db);
+          db = await reOpen(db);
           expect(await store.record(1).get(db), 'test2');
           expect(await store.record(2).get(db), 'other2');
           expect(db.version, 2);

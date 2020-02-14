@@ -1,0 +1,24 @@
+name: sembast_web
+description: NoSQL persistent embedded database for the Web on top of IndexedDB
+version: 0.1.0+3
+homepage: https://github.com/tekartik/sembast.dart/tree/master/sembast
+
+environment:
+  sdk: '>=2.7.0 <3.0.0'
+
+dependencies:
+  sembast: '2.2.0-dev.2'
+  idb_shim: '>=1.10.3-dev.1 <2.0.0'
+
+dev_dependencies:
+  pedantic: '>=1.8.0'
+  test: '>=1.6.0'
+  process_run:
+  build_runner: '>=1.5.0'
+  build_test: '>=0.10.2'
+  build_web_compilers: '>=0.4.0'
+  webdev:
+
+# dependency_overrides:
+#  sembast:
+#    path: ../sembast

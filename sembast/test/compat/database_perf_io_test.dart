@@ -8,6 +8,7 @@ import 'dart:io';
 import 'package:path/path.dart';
 import 'package:sembast/sembast.dart';
 import 'package:sembast/sembast_io.dart';
+import 'package:sembast/src/database_impl.dart' show SembastDatabase;
 import 'package:test/test.dart';
 
 void main() {
@@ -31,6 +32,8 @@ void main() {
       } catch (_) {}
       await Directory(dirname(dbPath)).create(recursive: true);
       var db = await databaseFactoryIo.openDatabase(dbPath);
+      // Remove cooperator to get raw result
+      (db as SembastDatabase).cooperator = null;
 
       try {
         var sw = Stopwatch();

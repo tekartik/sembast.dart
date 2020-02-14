@@ -27,3 +27,8 @@ test_out
 
 # Local files
 .local/
+
+# IDE
+.idea/
+*.iml
+.vscode/

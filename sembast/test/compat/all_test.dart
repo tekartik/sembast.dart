@@ -1,4 +1,4 @@
-library sembast.test_runner;
+library sembast.compat.test_runner;
 
 import 'crud_impl_test.dart' as crud_impl_test;
 import 'crud_test.dart' as crud_test;

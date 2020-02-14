@@ -130,6 +130,25 @@ void defineTests(DatabaseTestContext ctx) {
       });
     });
 
+    test('order', () async {
+      var store = StoreRef<int, String>.main();
+      var record1 = store.record(1);
+      var record2 = store.record(2);
+      var record3 = store.record(3);
+      var record4 = store.record(4);
+      var record5 = store.record(5);
+      await record3.put(db, null);
+      await record2.put(db, null);
+      expect(await store.findKeys(db), [2, 3]);
+      await record4.put(db, null);
+      expect(await store.findKeys(db), [2, 3, 4]);
+      await db.transaction((txn) async {
+        await record1.put(txn, null);
+        await record5.put(txn, null);
+        expect(await store.findKeys(txn), [1, 2, 3, 4, 5]);
+      });
+      expect(await store.findKeys(db), [1, 2, 3, 4, 5]);
+    });
     group('value_int', () {
       test('add', () async {
         // this is ok too
@@ -139,6 +158,7 @@ void defineTests(DatabaseTestContext ctx) {
         expect(await record.get(db), 1);
         expect((await store.findFirst(db)).value, 1);
       });
+
       test('addAll', () async {
         // this is ok too
         final store = StoreRef<String, int>.main();
