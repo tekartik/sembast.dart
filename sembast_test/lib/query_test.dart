@@ -286,6 +286,9 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     test('onSnapshotsBeforeCreationAndUpdate', () async {
+      // No random timing
+      setDatabaseCooperator(db, null);
+
       var store = StoreRef<int, String>.main();
       var record = store.record(1);
       var future1 = store.query().onSnapshots(db).first;
@@ -301,6 +304,8 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     test('onSnapshotsWithFinderBeforeCreationAndUpdate', () async {
+      // No random timing
+      setDatabaseCooperator(db, null);
       var store = StoreRef<int, String>.main();
       var record1 = store.record(1);
       var record2 = store.record(2);
@@ -322,13 +327,13 @@ void defineTests(DatabaseTestContext ctx) {
       expect((await future2).length, 1);
       expect((await future2).first.value, 'abcd');
 
-      try {
+      /*
         expect((await future3).length, 2);
         expect((await future3).first.value, 'abcd');
         expect((await future3)[1].value, 'abd');
-      } catch (_) {
-        expect((await future3).length, 1);
-      }
+       */
+      expect((await future3).length, 1);
+      expect((await future3).first.value, 'abcd');
 
       expect((await future4).length, 2);
       expect((await future4).first.value, 'abcd');

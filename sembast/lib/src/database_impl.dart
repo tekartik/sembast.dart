@@ -1214,7 +1214,7 @@ class SembastDatabase extends Object
   bool get cooperateOn => cooperator?.cooperateOn ?? false;
 
   /// True if cooperate needed.
-  bool get needCooperate => cooperator?.needCooperate ?? false;
+  bool get needCooperate => cooperateNeeded(cooperator);
 
   /// Cooperate if needed.
   FutureOr cooperate() => cooperator?.cooperate();

@@ -29,3 +29,7 @@ class Cooperator {
     //print('breath');
   }
 }
+
+/// Check if cooperate is needed
+bool cooperateNeeded(Cooperator cooperator) =>
+    cooperator?.needCooperate ?? false;
