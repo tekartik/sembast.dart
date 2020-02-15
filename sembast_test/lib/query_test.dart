@@ -286,6 +286,9 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     test('onSnapshotsBeforeCreationAndUpdate', () async {
+      // No random timing
+      setDatabaseCooperator(db, null);
+
       var store = StoreRef<int, String>.main();
       var record = store.record(1);
       var future1 = store.query().onSnapshots(db).first;
