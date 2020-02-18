@@ -19,6 +19,6 @@ dev_dependencies:
   build_web_compilers: '>=0.4.0'
   webdev:
 
-# dependency_overrides:
-#  sembast:
-#    path: ../sembast
+dependency_overrides:
+  sembast:
+    path: ../sembast

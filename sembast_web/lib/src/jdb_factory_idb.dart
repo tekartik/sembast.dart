@@ -4,8 +4,10 @@ import 'package:idb_shim/idb_client_memory.dart';
 import 'package:idb_shim/idb_shim.dart';
 import 'package:idb_shim/idb_shim.dart' as idb;
 import 'package:sembast/sembast.dart';
+//import 'package:sembast/src/storage.dart';
 import 'package:sembast_web/src/constant_import.dart';
 import 'package:sembast_web/src/jdb_import.dart' as jdb;
+import 'package:sembast_web/src/jdb_import.dart';
 import 'package:sembast_web/src/sembast_import.dart';
 import 'package:sembast_web/src/web_defs.dart';
 
@@ -203,11 +205,13 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
 
   @override
   Future<jdb.JdbInfoEntry> getInfoEntry(String id) async {
-    var info = await _idbDatabase
-        .transaction(_infoStore, idbModeReadOnly)
-        .objectStore(_infoStore)
-        .getObject(id);
+    var txn = _idbDatabase.transaction(_infoStore, idbModeReadOnly);
+    return _txnGetInfoEntry(txn, id);
+  }
 
+  Future<jdb.JdbInfoEntry> _txnGetInfoEntry(
+      idb.Transaction txn, String id) async {
+    var info = await txn.objectStore(_infoStore).getObject(id);
     return jdb.JdbInfoEntry()
       ..id = id
       ..value = info;
@@ -216,16 +220,41 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
   @override
   Future setInfoEntry(jdb.JdbInfoEntry entry) async {
     var txn = _idbDatabase.transaction(_infoStore, idbModeReadWrite);
-    await txn.objectStore(_infoStore).put(entry.value, entry.id);
+    await _txnSetInfoEntry(txn, entry);
     // await txn.completed;
+  }
+
+  Future _txnSetInfoEntry(idb.Transaction txn, jdb.JdbInfoEntry entry) async {
+    await txn.objectStore(_infoStore).put(entry.value, entry.id);
   }
 
   @override
   Future addEntries(List<jdb.JdbWriteEntry> entries) async {
     var txn =
         _idbDatabase.transaction([_entryStore, _infoStore], idbModeReadWrite);
-    var objectStore = txn.objectStore(_entryStore);
+    var lastEntryId = await _txnAddEntries(txn, entries);
+    await txn.completed;
+
+    // notify through storage
+    if (lastEntryId != null) {
+      notifyRevision(lastEntryId);
+    }
+  }
+
+  Future _txnPutRevision(idb.Transaction txn, int revision) async {
     var infoStore = txn.objectStore(_infoStore);
+    await infoStore.put(revision, _revisionKey);
+  }
+
+  Future<int> _txnGetRevision(idb.Transaction txn) async {
+    var infoStore = txn.objectStore(_infoStore);
+    return (await infoStore.getObject(_revisionKey)) as int;
+  }
+
+  // Return the last entryId
+  Future<int> _txnAddEntries(
+      idb.Transaction txn, List<jdb.JdbWriteEntry> entries) async {
+    var objectStore = txn.objectStore(_entryStore);
     var index = objectStore.index(_recordIndex);
     int lastEntryId;
     for (var jdbWriteEntry in entries) {
@@ -253,13 +282,9 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
       }
     }
     if (lastEntryId != null) {
-      await infoStore.put(lastEntryId, _revisionKey);
+      await _txnPutRevision(txn, lastEntryId);
     }
-    await txn.completed;
-    // notify through storage
-    if (lastEntryId != null) {
-      notifyRevision(lastEntryId);
-    }
+    return lastEntryId;
   }
 
   /// Notify other clients of the new revision
@@ -350,6 +375,32 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
   /// Will notify.
   void addRevision(int revision) {
     _revisionUpdateController.add(revision);
+  }
+
+  @override
+  Future<StorageJdbWriteResult> writeIfRevision(
+      StorageJdbWriteQuery query) async {
+    var txn =
+        _idbDatabase.transaction([_infoStore, _entryStore], idbModeReadWrite);
+
+    var expectedRevision = query.revision ?? 0;
+    var readRevision = (await _txnGetRevision(txn)) ?? 0;
+    var success = (expectedRevision == readRevision);
+
+    if (success) {
+      if (query.entries?.isNotEmpty ?? false) {
+        readRevision = await _txnAddEntries(txn, query.entries);
+        // Set revision info
+      }
+      if (query.infoEntries?.isNotEmpty ?? false) {
+        for (var infoEntry in query.infoEntries) {
+          await _txnSetInfoEntry(txn, infoEntry);
+        }
+      }
+    }
+
+    return StorageJdbWriteResult(
+        revision: readRevision, query: query, success: success);
   }
 }
 

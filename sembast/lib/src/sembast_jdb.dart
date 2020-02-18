@@ -2,6 +2,7 @@ library sembast.sembast_jdb;
 
 import 'dart:async';
 
+import 'package:meta/meta.dart';
 import 'package:sembast/sembast.dart';
 import 'package:sembast/src/api/log_level.dart';
 import 'package:sembast/src/common_import.dart';
@@ -133,6 +134,10 @@ class SembastStorageJdb extends StorageBase implements StorageJdb {
 
   @override
   Future<int> getRevision() => jdbDatabase.getRevision();
+
+  @override
+  Future<StorageJdbWriteResult> writeIfRevision(StorageJdbWriteQuery query) =>
+      jdbDatabase.writeIfRevision(query);
 }
 
 /// Jdb implementation
@@ -156,4 +161,41 @@ class DatabaseFactoryJdb extends SembastDatabaseFactory
 
   @override
   bool get hasStorage => true;
+}
+
+/// Write query.
+class StorageJdbWriteQuery {
+  /// The info entries (meta)
+  final List<JdbInfoEntry> infoEntries;
+
+  /// The entries to write.
+  final List<JdbWriteEntry> entries;
+
+  /// The expected revision.
+  final int revision;
+
+  /// Write query.
+  StorageJdbWriteQuery(
+      {@required this.revision,
+      @required this.infoEntries,
+      @required this.entries});
+}
+
+/// Write result.
+class StorageJdbWriteResult {
+  /// The original query.
+  final StorageJdbWriteQuery query;
+
+  /// The read revision or the new one on success
+  final int revision;
+
+  /// True on success, otherwise should reload data.
+  final bool success;
+
+  /// Write result.
+  StorageJdbWriteResult({@required this.query, this.revision, this.success});
+
+  @override
+  String toString() =>
+      'original ${query.revision} read $revision success $success';
 }

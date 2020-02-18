@@ -99,6 +99,7 @@ void main() {
           }
         ]
       });
+      // Raw entry adding
       await jdb.addEntries([JdbWriteEntryMock(id: 1, key: 1, value: 'test')]);
       await jdb.setInfoEntry(JdbInfoEntry()
         ..id = '_main_store_last_id'
@@ -120,8 +121,21 @@ void main() {
       expect(await record1.get(db), isNull);
 
       var key = await store.add(db, 'test');
-      expect(key, 2);
-      expect(await record1.get(db), isNull);
+      expect(jdb.toDebugMap(), {
+        'entries': [
+          {'id': 1, 'store': '_main', 'key': 1, 'value': 'test'},
+          {'id': 2, 'store': '_main', 'key': 3, 'value': 'test'}
+        ],
+        'infos': [
+          {
+            'id': 'meta',
+            'value': {'version': 1, 'sembast': 1}
+          },
+          {'id': '_main_store_last_id', 'value': 3}
+        ]
+      });
+      expect(key, 3);
+      expect(await record1.get(db), 'test');
 
       //TODO
       ////devPrint('2 ${await record1.onSnapshot(db).first}');

@@ -2,7 +2,9 @@ library sembast.jdb_factory_memory;
 
 import 'dart:async';
 
+import 'package:sembast/src/api/protected/jdb.dart';
 import 'package:sembast/src/api/record_ref.dart';
+import 'package:sembast/src/common_import.dart';
 import 'package:sembast/src/jdb.dart' as jdb;
 import 'package:sembast/src/key_utils.dart';
 import 'package:sembast/src/record_impl.dart';
@@ -34,6 +36,19 @@ class JdbFactoryMemory implements jdb.JdbFactory {
 
   @override
   String toString() => 'JdbFactoryMemory(${_dbs.length} dbs)';
+}
+
+/// Simple transaction
+class JdbTransactionEntryMemory extends JdbEntryMemory {
+  /// Debug map.
+  @override
+  Map<String, dynamic> toDebugMap() {
+    var map = <String, dynamic>{
+      if (id != null) 'id': id,
+      if (deleted ?? false) 'deleted': true
+    };
+    return map;
+  }
 }
 
 /// In memory entry.
@@ -97,6 +112,7 @@ class JdbDatabaseMemory implements jdb.JdbDatabase {
   }
 
   int _revision;
+
   @override
   Stream<jdb.JdbReadEntry> get entries async* {
     for (var entry in _entries) {
@@ -120,30 +136,50 @@ class JdbDatabaseMemory implements jdb.JdbDatabase {
 
   @override
   Future setInfoEntry(jdb.JdbInfoEntry entry) async {
+    _setInfoEntry(entry);
+  }
+
+  void _setInfoEntry(jdb.JdbInfoEntry entry) {
     _infoEntries[entry.id] = entry;
+  }
+
+  JdbEntryMemory _writeEntryToMemory(jdb.JdbWriteEntry jdbWriteEntry) {
+    var record = jdbWriteEntry.record;
+    var entry = JdbEntryMemory()
+      ..record = record
+      ..value = jdbWriteEntry.value
+      ..id = _nextId
+      ..deleted = jdbWriteEntry.deleted;
+    return entry;
   }
 
   @override
   Future<int> addEntries(List<jdb.JdbWriteEntry> entries) async {
+    return _addEntries(entries);
+  }
+
+  int _addEntries(List<jdb.JdbWriteEntry> entries) {
     // Should import?
-    var revision = await getRevision() ?? 0;
-    if ((_revision ?? 0) < revision) {
+    var revision = _lastEntryId ?? 0;
+    var upToDate = (_revision ?? 0) == revision;
+    if (!upToDate) {
       _revisionUpdatesCtrl.add(revision);
     }
+    // devPrint('adding ${entries.length} uptodate $upToDate');
     for (var jdbWriteEntry in entries) {
       // remove existing
       var record = jdbWriteEntry.record;
       _entries.removeWhere((entry) => entry.record == record);
-      var entry = JdbEntryMemory()
-        ..record = record
-        ..value = jdbWriteEntry.value
-        ..id = _nextId
-        ..deleted = jdbWriteEntry.deleted;
+      var entry = _writeEntryToMemory(jdbWriteEntry);
       _entries.add(entry);
       (jdbWriteEntry.txnRecord?.record as ImmutableSembastRecordJdb)?.revision =
           entry.id;
     }
-    return null;
+    if (upToDate) {
+      _revision = _lastEntryId;
+    }
+
+    return _lastEntryId;
   }
 
   String _storeLastIdKey(String store) {
@@ -184,14 +220,39 @@ class JdbDatabaseMemory implements jdb.JdbDatabase {
   @override
   Future<int> getRevision() async {
     try {
-      return _entries.last.id;
+      return _lastEntryId;
     } catch (e) {
       return null;
     }
   }
 
+  int get _lastEntryId => _entries.isEmpty ? 0 : _entries.last.id;
+
   @override
   Stream<int> get revisionUpdate => _revisionUpdatesCtrl.stream;
+
+  @override
+  Future<StorageJdbWriteResult> writeIfRevision(
+      StorageJdbWriteQuery query) async {
+    var expectedRevision = query.revision ?? 0;
+    var readRevision = _lastEntryId ?? 0;
+    var success = (expectedRevision == readRevision);
+
+    if (success) {
+      // _entries.add(JdbTransactionEntryMemory()..id = _nextId);
+      if (query.entries?.isNotEmpty ?? false) {
+        _addEntries(query.entries);
+      }
+      readRevision = _revision = _lastEntryId;
+      if (query.infoEntries?.isNotEmpty ?? false) {
+        for (var infoEntry in query.infoEntries) {
+          _setInfoEntry(infoEntry);
+        }
+      }
+    }
+    return StorageJdbWriteResult(
+        revision: readRevision, query: query, success: success);
+  }
 }
 
 JdbFactoryMemory _jdbFactoryMemory = JdbFactoryMemory();

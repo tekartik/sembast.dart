@@ -1,6 +1,8 @@
 import 'dart:async';
 
+import 'package:sembast/src/api/protected/jdb.dart';
 import 'package:sembast/src/jdb.dart';
+import 'package:sembast/src/meta.dart';
 
 /// Base storage
 abstract class StorageBase {
@@ -54,6 +56,31 @@ class StorageJdbStateUpdate {
   StorageJdbStateUpdate(this.revision, this.minDeltaImportRevision);
 }
 
+/// Increment revision operation
+class StorageJdbIncrementRevisionStatus {
+  /// The original known revision
+  final int originalRevision;
+
+  /// The revision read, +1 if matching the original revision.
+  final int readRevision;
+
+  /// Check if increment was a success. this means content has not changed.
+  final bool success;
+
+  /// Increment revision operation.
+  StorageJdbIncrementRevisionStatus(
+      this.originalRevision, this.readRevision, this.success);
+
+  @override
+  String toString() =>
+      'original $originalRevision read $readRevision success $success';
+}
+
+/// Create meta info entry.
+JdbInfoEntry getMetaInfoEntry(Meta meta) => JdbInfoEntry()
+  ..id = metaKey
+  ..value = meta.toMap();
+
 /// Jdb implementation
 abstract class StorageJdb extends StorageBase {
   /// All entries.
@@ -88,4 +115,7 @@ abstract class StorageJdb extends StorageBase {
 
   /// Read the revision
   Future<int> getRevision();
+
+  /// Increment the revision if not change
+  Future<StorageJdbWriteResult> writeIfRevision(StorageJdbWriteQuery query);
 }

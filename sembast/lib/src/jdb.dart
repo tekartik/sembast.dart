@@ -2,6 +2,7 @@ library sembast.jdb;
 
 import 'dart:async';
 
+import 'package:sembast/src/api/protected/jdb.dart';
 import 'package:sembast/src/record_impl.dart';
 
 import 'api/v2/sembast.dart';
@@ -84,6 +85,7 @@ class JdbWriteEntry extends JdbEntry {
   /// value.
   @override
   dynamic get value => _value ??= txnRecord.record.value;
+
   @override
   String toString() => '[$id] $record $value';
 
@@ -122,6 +124,9 @@ abstract class JdbDatabase {
 
   /// Close the database
   void close();
+
+  /// Safe transaction write of multiple infos.
+  Future<StorageJdbWriteResult> writeIfRevision(StorageJdbWriteQuery query);
 }
 
 /// Jdb implementation.
