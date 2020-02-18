@@ -427,13 +427,6 @@ class SembastDatabase extends Object
           }
         }
         await _storage.appendLines(lines);
-      } else if (_storageJdb != null) {
-        var entries = <JdbWriteEntry>[];
-        for (var record in txnRecords) {
-          var entry = JdbWriteEntry()..txnRecord = record;
-          entries.add(entry);
-        }
-        await _storageJdb.addEntries(entries);
       }
     }
   }
@@ -953,6 +946,7 @@ class SembastDatabase extends Object
 
   /// Full import - must be in transaction
   Future jdbFullImport() async {
+    /// read revision before.
     _jdbRevision = await _storageJdb.getRevision();
     await for (var entry in _storageJdb.entries) {
       var record = ImmutableSembastRecordJdb(entry.record, entry.value,
@@ -1219,34 +1213,36 @@ class SembastDatabase extends Object
         try {
           // devPrint('transaction ${jdbRevision}');
           actionResult = await Future<T>.sync(() => action(_transaction));
-          var commitEntries = _txnBuildCommitEntries();
-          var hasWriteData = commitEntries.hasWriteData;
 
-          /// Replay the transaction if something has changed
-          if ((storageJdb != null) &&
-              (hasWriteData || commitEntries.upgrading)) {
-            // Build Entries
-            var entries = <JdbWriteEntry>[];
-            for (var record in commitEntries.txnRecords) {
-              var entry = JdbWriteEntry()..txnRecord = record;
-              entries.add(entry);
-            }
-            var query = StorageJdbWriteQuery(
-                revision: commitEntries.revision,
-                entries: entries,
-                infoEntries: upgrading
-                    ? [getMetaInfoEntry(commitEntries.upgradingMeta)]
-                    : null);
+          // Commit directly on jdb to handle transaction changes
+          if (storageJdb != null) {
+            var commitEntries = _txnBuildCommitEntries();
 
-            /// Commit to storage now
-            var status = await storageJdb.writeIfRevision(query);
-            // devPrint(status);
-            if (!status.success) {
-              reloadData = true;
-              jdbIncrementRevisionStatus = status;
-              _transactionCleanUp();
-            } else {
-              _jdbRevision = status.revision;
+            /// Replay the transaction if something has changed
+            if (commitEntries.hasWriteData || commitEntries.upgrading) {
+              // Build Entries
+              var entries = <JdbWriteEntry>[];
+              for (var record in commitEntries.txnRecords) {
+                var entry = JdbWriteEntry()..txnRecord = record;
+                entries.add(entry);
+              }
+              var query = StorageJdbWriteQuery(
+                  revision: commitEntries.revision,
+                  entries: entries,
+                  infoEntries: upgrading
+                      ? [getMetaInfoEntry(commitEntries.upgradingMeta)]
+                      : null);
+
+              /// Commit to storage now
+              var status = await storageJdb.writeIfRevision(query);
+              // devPrint(status);
+              if (!status.success) {
+                reloadData = true;
+                jdbIncrementRevisionStatus = status;
+                _transactionCleanUp();
+              } else {
+                _jdbRevision = status.revision;
+              }
             }
           }
           commitData = commitInMemory();
@@ -1267,13 +1263,9 @@ class SembastDatabase extends Object
                 // Write meta when upgrading, write before the records!
                 //
                 if (upgrading) {
-                  if (_storage != null) {
-                    await _storage
-                        .appendLine(json.encode(_upgradingMeta.toMap()));
-                    _exportStat.lineCount++;
-                  } else if (_storageJdb != null) {
-                    // NOLONGER NEEDED await _storageJdb.writeMeta(_upgradingMeta.toMap());
-                  }
+                  await _storage
+                      .appendLine(json.encode(_upgradingMeta.toMap()));
+                  _exportStat.lineCount++;
                 }
                 if (commitData?.txnRecords?.isNotEmpty == true) {
                   await storageCommitRecords(commitData.txnRecords);

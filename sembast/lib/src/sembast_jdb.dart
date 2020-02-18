@@ -84,13 +84,6 @@ class SembastStorageJdb extends StorageBase implements StorageJdb {
   }
 
   @override
-  Future writeMeta(Map<String, dynamic> map) async {
-    await jdbDatabase.setInfoEntry(JdbInfoEntry()
-      ..id = metaKey
-      ..value = map);
-  }
-
-  @override
   void close() {
     try {
       jdbDatabase?.close();

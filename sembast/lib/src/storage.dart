@@ -98,9 +98,6 @@ abstract class StorageJdb extends StorageBase {
   /// Read meta map
   Future<Map<String, dynamic>> readMeta();
 
-  /// Write meta map
-  Future writeMeta(Map<String, dynamic> map);
-
   /// Add multiple entries
   Future addEntries(List<JdbWriteEntry> entries);
 
