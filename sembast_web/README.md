@@ -45,3 +45,4 @@ Future main() async {
 * Experimental
 * Use int or key string only
 * Transactions are not cross-tab safe
+* Codec are not supported. Web is not safe anyway. Encrypt fields as needed.

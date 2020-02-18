@@ -131,6 +131,12 @@ class SembastStorageJdb extends StorageBase implements StorageJdb {
   @override
   Future<StorageJdbWriteResult> writeIfRevision(StorageJdbWriteQuery query) =>
       jdbDatabase.writeIfRevision(query);
+
+  @override
+  Future<Map<String, dynamic>> toDebugMap() {
+    // TODO: implement toDebugMap
+    return null;
+  }
 }
 
 /// Jdb implementation

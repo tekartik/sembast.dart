@@ -25,7 +25,7 @@ class JdbInfoEntry {
   String toString() => '[$id] $value';
 
   /// Debug map.
-  Map<String, dynamic> toDebugMap() {
+  Map<String, dynamic> exportToMap() {
     var map = <String, dynamic>{
       'id': id,
       'value': value,
@@ -93,6 +93,19 @@ class JdbWriteEntry extends JdbEntry {
   bool get deleted => txnRecord.deleted;
 }
 
+/// Raw entry.
+class JdbRawWriteEntry extends JdbWriteEntry {
+  @override
+  final dynamic value;
+  @override
+  final bool deleted;
+  @override
+  final RecordRef record;
+
+  /// Raw entry.
+  JdbRawWriteEntry({this.value, this.deleted, this.record});
+}
+
 /// Jdb.
 abstract class JdbDatabase {
   /// Get revision update from the database
@@ -127,6 +140,9 @@ abstract class JdbDatabase {
 
   /// Safe transaction write of multiple infos.
   Future<StorageJdbWriteResult> writeIfRevision(StorageJdbWriteQuery query);
+
+  /// Read all context (re-open if needed). Test only.
+  Future<Map<String, dynamic>> exportToMap();
 }
 
 /// Jdb implementation.

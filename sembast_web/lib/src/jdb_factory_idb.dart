@@ -232,13 +232,13 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
   Future addEntries(List<jdb.JdbWriteEntry> entries) async {
     var txn =
         _idbDatabase.transaction([_entryStore, _infoStore], idbModeReadWrite);
-    var lastEntryId = await _txnAddEntries(txn, entries);
+    // var lastEntryId =
+    await _txnAddEntries(txn, entries);
     await txn.completed;
 
-    // notify through storage
-    if (lastEntryId != null) {
-      notifyRevision(lastEntryId);
-    }
+    /*
+    don't notify - this is mainly for testing
+     */
   }
 
   Future _txnPutRevision(idb.Transaction txn, int revision) async {
@@ -281,9 +281,7 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
         print('$_debugPrefix added entry $lastEntryId $jdbWriteEntry');
       }
     }
-    if (lastEntryId != null) {
-      await _txnPutRevision(txn, lastEntryId);
-    }
+
     return lastEntryId;
   }
 
@@ -391,6 +389,9 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
       if (query.entries?.isNotEmpty ?? false) {
         readRevision = await _txnAddEntries(txn, query.entries);
         // Set revision info
+        if (readRevision != null) {
+          await _txnPutRevision(txn, readRevision);
+        }
       }
       if (query.infoEntries?.isNotEmpty ?? false) {
         for (var infoEntry in query.infoEntries) {
@@ -401,6 +402,32 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
 
     return StorageJdbWriteResult(
         revision: readRevision, query: query, success: success);
+  }
+
+  @override
+  Future<Map<String, dynamic>> exportToMap() async {
+    var txn =
+        _idbDatabase.transaction([_infoStore, _entryStore], idbModeReadOnly);
+    var map = <String, dynamic>{};
+    map['infos'] = await _txnStoreToDebugMap(txn, _infoStore);
+    map['entries'] = await _txnStoreToDebugMap(txn, _entryStore);
+
+    return map;
+  }
+
+  Future<List<Map<String, dynamic>>> _txnStoreToDebugMap(
+      idb.Transaction txn, String name) async {
+    var list = <Map<String, dynamic>>[];
+    var store = txn.objectStore(name);
+    await store.openCursor(autoAdvance: true).listen((cwv) {
+      dynamic value = cwv.value;
+      // hack to remove the store when testing
+      if (value is Map && value['store'] == '_main') {
+        value = Map.from(value as Map)..remove('store');
+      }
+      list.add(<String, dynamic>{'id': cwv.key, 'value': value});
+    }).asFuture();
+    return list;
   }
 }
 

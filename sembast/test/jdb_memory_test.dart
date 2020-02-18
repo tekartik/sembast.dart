@@ -58,29 +58,40 @@ void main() {
       expect(key, 1);
       expect(jdb.toDebugMap(), {
         'entries': [
-          {'id': 1, 'store': '_main', 'key': 1, 'value': 'test'}
+          {
+            'id': 1,
+            'value': {'key': 1, 'value': 'test'}
+          }
         ],
         'infos': [
+          {'id': '_main_store_last_id', 'value': 1},
           {
             'id': 'meta',
             'value': {'version': 1, 'sembast': 1}
           },
-          {'id': '_main_store_last_id', 'value': 1}
+          {'id': 'revision', 'value': 1}
         ]
       });
       key = await store.add(db, 'test');
       expect(key, 2);
       expect(jdb.toDebugMap(), {
         'entries': [
-          {'id': 1, 'store': '_main', 'key': 1, 'value': 'test'},
-          {'id': 2, 'store': '_main', 'key': 2, 'value': 'test'}
+          {
+            'id': 1,
+            'value': {'key': 1, 'value': 'test'}
+          },
+          {
+            'id': 2,
+            'value': {'key': 2, 'value': 'test'}
+          }
         ],
         'infos': [
+          {'id': '_main_store_last_id', 'value': 2},
           {
             'id': 'meta',
             'value': {'version': 1, 'sembast': 1}
           },
-          {'id': '_main_store_last_id', 'value': 2}
+          {'id': 'revision', 'value': 2}
         ]
       });
 
@@ -106,14 +117,17 @@ void main() {
         ..value = 1);
       expect(jdb.toDebugMap(), {
         'entries': [
-          {'id': 1, 'store': '_main', 'key': 1, 'value': 'test'}
+          {
+            'id': 1,
+            'value': {'key': 1, 'value': 'test'}
+          }
         ],
         'infos': [
+          {'id': '_main_store_last_id', 'value': 1},
           {
             'id': 'meta',
             'value': {'version': 1, 'sembast': 1}
           },
-          {'id': '_main_store_last_id', 'value': 1}
         ]
       });
       var store = StoreRef<int, String>.main();
@@ -123,15 +137,22 @@ void main() {
       var key = await store.add(db, 'test');
       expect(jdb.toDebugMap(), {
         'entries': [
-          {'id': 1, 'store': '_main', 'key': 1, 'value': 'test'},
-          {'id': 2, 'store': '_main', 'key': 3, 'value': 'test'}
+          {
+            'id': 1,
+            'value': {'key': 1, 'value': 'test'}
+          },
+          {
+            'id': 2,
+            'value': {'key': 3, 'value': 'test'}
+          }
         ],
         'infos': [
+          {'id': '_main_store_last_id', 'value': 3},
           {
             'id': 'meta',
             'value': {'version': 1, 'sembast': 1}
           },
-          {'id': '_main_store_last_id', 'value': 3}
+          {'id': 'revision', 'value': 2}
         ]
       });
       expect(key, 3);

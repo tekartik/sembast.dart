@@ -799,7 +799,7 @@ class SembastDatabase extends Object
         }
 
         // create _exportStat
-        if (_storage?.supported ?? false) {
+        if (_storageBase?.supported ?? false) {
           _exportStat = DatabaseExportStat();
         }
         await _findOrCreate();
@@ -811,8 +811,6 @@ class SembastDatabase extends Object
           _checkMainStore();
 
           if (_storage?.supported ?? false) {
-            _exportStat = DatabaseExportStat();
-
             //bool needCompact = false;
             var corrupted = false;
 
@@ -951,7 +949,11 @@ class SembastDatabase extends Object
     await for (var entry in _storageJdb.entries) {
       var record = ImmutableSembastRecordJdb(entry.record, entry.value,
           deleted: entry.deleted, revision: entry.id);
+      _exportStat.lineCount++;
       // Make it fast
+      if (entry.deleted ?? false) {
+        _exportStat.obsoleteLineCount++;
+      }
       loadRecord(record);
     }
   }

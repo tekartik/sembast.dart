@@ -8,6 +8,7 @@ import 'package:sembast/src/common_import.dart';
 import 'package:sembast/src/jdb.dart' as jdb;
 import 'package:sembast/src/key_utils.dart';
 import 'package:sembast/src/record_impl.dart';
+import 'package:sembast/src/sembast_impl.dart';
 
 /// In memory jdb.
 class JdbFactoryMemory implements jdb.JdbFactory {
@@ -42,7 +43,7 @@ class JdbFactoryMemory implements jdb.JdbFactory {
 class JdbTransactionEntryMemory extends JdbEntryMemory {
   /// Debug map.
   @override
-  Map<String, dynamic> toDebugMap() {
+  Map<String, dynamic> exportToMap() {
     var map = <String, dynamic>{
       if (id != null) 'id': id,
       if (deleted ?? false) 'deleted': true
@@ -50,6 +51,8 @@ class JdbTransactionEntryMemory extends JdbEntryMemory {
     return map;
   }
 }
+
+bool _isMainStore(String name) => name == null || name == dbMainStore;
 
 /// In memory entry.
 class JdbEntryMemory implements jdb.JdbReadEntry {
@@ -66,19 +69,21 @@ class JdbEntryMemory implements jdb.JdbReadEntry {
   bool deleted;
 
   /// Debug map.
-  Map<String, dynamic> toDebugMap() {
+  Map<String, dynamic> exportToMap() {
     var map = <String, dynamic>{
-      if (id != null) 'id': id,
-      'store': record?.store?.name,
-      'key': record?.key,
-      'value': value,
-      if (deleted ?? false) 'deleted': true
+      'id': id,
+      'value': <String, dynamic>{
+        if (!_isMainStore(record?.store?.name)) 'store': record.store.name,
+        'key': record?.key,
+        'value': value,
+        if (deleted ?? false) 'deleted': true
+      }
     };
     return map;
   }
 
   @override
-  String toString() => toDebugMap().toString();
+  String toString() => exportToMap().toString();
 }
 
 /// In memory database.
@@ -103,9 +108,10 @@ class JdbDatabaseMemory implements jdb.JdbDatabase {
   Map<String, dynamic> toDebugMap() {
     var map = <String, dynamic>{
       'entries':
-          _entries.map((entry) => entry.toDebugMap()).toList(growable: false),
-      'infos': _infoEntries.values
-          .map((info) => info.toDebugMap())
+          _entries.map((entry) => entry.exportToMap()).toList(growable: false),
+      'infos': (List<jdb.JdbInfoEntry>.from(_infoEntries.values)
+            ..sort((entry1, entry2) => entry1.id.compareTo(entry2.id)))
+          .map((info) => info.exportToMap())
           .toList(growable: false),
     };
     return map;
@@ -160,7 +166,7 @@ class JdbDatabaseMemory implements jdb.JdbDatabase {
 
   int _addEntries(List<jdb.JdbWriteEntry> entries) {
     // Should import?
-    var revision = _lastEntryId ?? 0;
+    var revision = _lastEntryId;
     var upToDate = (_revision ?? 0) == revision;
     if (!upToDate) {
       _revisionUpdatesCtrl.add(revision);
@@ -235,7 +241,7 @@ class JdbDatabaseMemory implements jdb.JdbDatabase {
   Future<StorageJdbWriteResult> writeIfRevision(
       StorageJdbWriteQuery query) async {
     var expectedRevision = query.revision ?? 0;
-    var readRevision = _lastEntryId ?? 0;
+    var readRevision = _lastEntryId;
     var success = (expectedRevision == readRevision);
 
     if (success) {
@@ -250,10 +256,25 @@ class JdbDatabaseMemory implements jdb.JdbDatabase {
         }
       }
     }
+    // Also set the revision
+    //if (r)
+    if (_lastEntryId > 0) {
+      await setInfoEntry(jdb.JdbInfoEntry()
+        ..id = _revisionKey
+        ..value = _lastEntryId);
+    }
     return StorageJdbWriteResult(
         revision: readRevision, query: query, success: success);
   }
+
+  @override
+  Future<Map<String, dynamic>> exportToMap() async {
+    return toDebugMap();
+  }
 }
+
+/// last entry id inserted
+const _revisionKey = 'revision';
 
 JdbFactoryMemory _jdbFactoryMemory = JdbFactoryMemory();
 

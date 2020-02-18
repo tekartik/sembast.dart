@@ -1,5 +1,6 @@
 library sembast.test.memory_fs_factory_test_;
 
+import 'package:sembast_test/all_jdb_test.dart' as all_jdb_test;
 import 'package:sembast/src/api/v2/sembast_memory.dart'; // ignore: implementation_imports
 import 'package:sembast/src/memory/database_factory_memory.dart' // ignore: implementation_imports
     show
@@ -20,6 +21,8 @@ void main() {
         databaseTestContextJdbMemory.jdbFactory);
   });
 
+  var testContext = databaseTestContextJdbMemory;
   // defineFileSystemTests(memoryFileSystemContext);
+  all_jdb_test.defineTests(testContext);
   defineTests(databaseTestContextJdbMemory);
 }

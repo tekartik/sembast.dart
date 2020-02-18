@@ -1,6 +1,5 @@
 library sembast.find_test;
 
-// basically same as the io runner but with extra output
 import 'dart:async';
 
 import 'test_common.dart';

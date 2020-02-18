@@ -115,4 +115,7 @@ abstract class StorageJdb extends StorageBase {
 
   /// Increment the revision if not change
   Future<StorageJdbWriteResult> writeIfRevision(StorageJdbWriteQuery query);
+
+  /// Test only.
+  Future<Map<String, dynamic>> toDebugMap();
 }
