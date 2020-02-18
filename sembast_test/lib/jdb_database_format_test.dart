@@ -32,6 +32,7 @@ void defineTests(DatabaseTestContextJdb ctx) {
       getJdbDatabase(db).exportToMap();
   DatabaseExportStat getExportStat(Database db) =>
       getDatabaseExportStat(getSembastDatabase(db));
+  Future compact(Database db) => getSembastDatabase(db).compact();
 
   Future importFromMap(Map map) {
     return jdbImportFromMap(ctx.jdbFactory, dbPath, map);
@@ -113,6 +114,63 @@ void defineTests(DatabaseTestContextJdb ctx) {
               'value': {'version': 1, 'sembast': 1}
             },
             {'id': 'revision', 'value': 1},
+          ]
+        });
+      } finally {
+        await db.close();
+      }
+    });
+
+    test('1 string record delete compact', () async {
+      await prepareForDb();
+      var db = await factory.openDatabase(dbPath);
+      try {
+        await store.record(1).put(db, 'hi');
+        expect(await getJdbDatabase(db).exportToMap(), {
+          'entries': [
+            {
+              'id': 1,
+              'value': {'key': 1, 'value': 'hi'}
+            }
+          ],
+          'infos': [
+            {
+              'id': 'meta',
+              'value': {'version': 1, 'sembast': 1}
+            },
+            {'id': 'revision', 'value': 1},
+          ]
+        });
+        await store.record(1).delete(db);
+        expect(await getJdbDatabase(db).exportToMap(), {
+          'entries': [
+            {
+              'id': 2,
+              'value': {'key': 1, 'value': null, 'deleted': true}
+            }
+          ],
+          'infos': [
+            {
+              'id': 'meta',
+              'value': {'version': 1, 'sembast': 1}
+            },
+            {'id': 'revision', 'value': 2}
+          ]
+        });
+        await compact(db);
+        expect(await getJdbDatabase(db).exportToMap(), {
+          'entries': [
+            {
+              'id': 2,
+              'value': {'key': 1, 'value': null, 'deleted': true}
+            }
+          ],
+          'infos': [
+            {
+              'id': 'meta',
+              'value': {'version': 1, 'sembast': 1}
+            },
+            {'id': 'revision', 'value': 2}
           ]
         });
       } finally {

@@ -24,7 +24,7 @@ mixin SembastRecordHelperMixin implements Record {
       MutableSembastRecord(ref ?? this.ref, value ?? this.value);
 
   ///
-  /// allow cloning a record to start modifying it
+  /// Copy a record.
   ///
   ImmutableSembastRecord sembastClone(
       {Store store,
@@ -34,6 +34,11 @@ mixin SembastRecordHelperMixin implements Record {
       bool deleted}) {
     return ImmutableSembastRecord(ref ?? this.ref, value ?? this.value,
         deleted: deleted);
+  }
+
+  /// Clone as deleted.
+  ImmutableSembastRecord sembastCloneAsDeleted() {
+    return ImmutableSembastRecord(ref, null, deleted: true);
   }
 
   Map<String, dynamic> _toBaseMap() {
@@ -52,7 +57,11 @@ mixin SembastRecordHelperMixin implements Record {
   // The actual map written to disk
   Map<String, dynamic> toDatabaseRowMap() {
     var map = _toBaseMap();
-    map[dbRecordValueKey] = value;
+    // Don't write the value for deleted
+    // ...and for null too anyway...
+    if (value != null && !deleted) {
+      map[dbRecordValueKey] = value;
+    }
     return map;
   }
 

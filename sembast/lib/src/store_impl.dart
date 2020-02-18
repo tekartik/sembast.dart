@@ -753,7 +753,7 @@ class SembastStore implements Store {
     } else {
       // Do the deletion
       // clone and mark as deleted
-      var clone = record.sembastClone(deleted: true);
+      var clone = record.sembastCloneAsDeleted();
       await txnPutRecord(txn, clone);
       return record.key;
     }
@@ -781,7 +781,7 @@ class SembastStore implements Store {
       var record = txnGetImmutableRecordSync(txn, key);
       if (record != null && !record.deleted) {
         // Clone and mark deleted
-        Record clone = record.sembastClone(deleted: true);
+        Record clone = record.sembastCloneAsDeleted();
 
         updates.add(clone);
         deletedKeys.add(key);

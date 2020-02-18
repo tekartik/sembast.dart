@@ -88,11 +88,36 @@ void defineTests(DatabaseTestContextFs ctx) {
       await prepareForDb();
       var db = await factory.openDatabase(dbPath);
       await store.record(1).put(db, 'hi');
+      await db.close();
       expect(await exportToMapList(), [
         {'version': 1, 'sembast': 1},
         {'key': 1, 'value': 'hi'}
       ]);
+    });
+
+    test('1 string record delete compact', () async {
+      await prepareForDb();
+      var db = await factory.openDatabase(dbPath);
+      await store.record(1).put(db, 'hi');
       await db.close();
+      expect(await exportToMapList(), [
+        {'version': 1, 'sembast': 1},
+        {'key': 1, 'value': 'hi'}
+      ]);
+      db = await factory.openDatabase(dbPath);
+      await store.record(1).delete(db);
+      await db.close();
+      expect(await exportToMapList(), [
+        {'version': 1, 'sembast': 1},
+        {'key': 1, 'value': 'hi'},
+        {'key': 1, 'deleted': true}
+      ]);
+      db = await factory.openDatabase(dbPath);
+      await compact(db);
+      await db.close();
+      expect(await exportToMapList(), [
+        {'version': 1, 'sembast': 1},
+      ]);
     });
 
     test('read 1 string record', () async {
