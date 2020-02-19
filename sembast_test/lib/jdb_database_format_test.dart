@@ -185,6 +185,13 @@ void defineTests(DatabaseTestContextJdb ctx) {
       var db = await factory.openDatabase(dbPath);
       try {
         await store.record(1).put(db, 'hi');
+        var storeEmptyFuture =
+            store.query().onSnapshots(db).where((event) => event.isEmpty).first;
+        var recordDeleteFuture = store
+            .record(1)
+            .onSnapshot(db)
+            .where((snapshot) => snapshot == null)
+            .first;
         await dbImportFromMap(db, {
           'entries': [
             {
@@ -218,15 +225,10 @@ void defineTests(DatabaseTestContextJdb ctx) {
             {'id': 'revision', 'value': 2}
           ]
         });
-      } catch (e, st) {
-        print(e);
-        print(st);
+        await storeEmptyFuture;
+        await recordDeleteFuture;
       } finally {
-        try {
-          await db.close();
-        } catch (e) {
-          print(e);
-        }
+        await db.close();
       }
     });
 
@@ -235,6 +237,13 @@ void defineTests(DatabaseTestContextJdb ctx) {
       var db = await factory.openDatabase(dbPath);
       try {
         await store.record(1).put(db, 'hi');
+        var storeEmptyFuture =
+            store.query().onSnapshots(db).where((event) => event.isEmpty).first;
+        var recordDeleteFuture = store
+            .record(1)
+            .onSnapshot(db)
+            .where((snapshot) => snapshot == null)
+            .first;
         await dbImportFromMap(db, {
           'entries': [],
           'infos': [
@@ -246,6 +255,7 @@ void defineTests(DatabaseTestContextJdb ctx) {
             {'id': 'deltaMinRevision', 'value': 2}
           ]
         });
+        // A full import will be performed
         await deltaImport(db, 2);
         expect(await getJdbDatabase(db).exportToMap(), {
           'entries': [],
@@ -258,6 +268,8 @@ void defineTests(DatabaseTestContextJdb ctx) {
             {'id': 'revision', 'value': 2}
           ]
         });
+        await storeEmptyFuture;
+        await recordDeleteFuture;
       } finally {
         await db.close();
       }

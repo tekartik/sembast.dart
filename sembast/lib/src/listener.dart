@@ -4,15 +4,14 @@ import 'package:sembast/src/api/query_ref.dart';
 import 'package:sembast/src/api/record_ref.dart';
 import 'package:sembast/src/common_import.dart';
 import 'package:sembast/src/cooperator.dart';
+import 'package:sembast/src/database_impl.dart';
+import 'package:sembast/src/debug_utils.dart';
 import 'package:sembast/src/filter_impl.dart';
 import 'package:sembast/src/finder_impl.dart';
 import 'package:sembast/src/query_ref_impl.dart';
 import 'package:sembast/src/record_impl.dart';
 
 // ignore_for_file: deprecated_member_use_from_same_package
-
-/// Debug listeners boolean
-final debugListener = false; // devWarning(true); // false
 
 class _ControllerBase {
   static var _lastId = 0;
@@ -27,6 +26,9 @@ class _ControllerBase {
 
 /// Query listener controller.
 class QueryListenerController<K, V> extends _ControllerBase {
+  /// onListen to start or restart query.
+  void Function() onListen;
+
   /// The query.
   final SembastQueryRef<K, V> queryRef;
   StreamController<List<RecordSnapshot<K, V>>> _streamController;
@@ -55,7 +57,7 @@ class QueryListenerController<K, V> extends _ControllerBase {
 
   /// Query listener controller.
   QueryListenerController(DatabaseListener listener, this.queryRef,
-      {@required void Function() onListen}) {
+      {@required this.onListen}) {
     // devPrint('query $queryRef');
 
     _streamController =
@@ -110,7 +112,7 @@ class QueryListenerController<K, V> extends _ControllerBase {
   ///
   /// We are async safe here
   Future update(
-      List<ImmutableSembastRecord> records, Cooperator cooperator) async {
+      Iterable<ImmutableSembastRecord> records, Cooperator cooperator) async {
     if (!_shouldAdd) {
       return;
     }
@@ -158,10 +160,23 @@ class QueryListenerController<K, V> extends _ControllerBase {
 
   @override
   String toString() => 'QueryListenerCtlr($_id)';
+
+  /// Restart controller.
+  void restart() {
+    if (_shouldAdd) {
+      if (debugListener) {
+        print('restarting listener $this');
+      }
+      onListen();
+    }
+  }
 }
 
 /// Record listener controller.
 class RecordListenerController<K, V> extends _ControllerBase {
+  /// Start or restart
+  void Function() onListen;
+
   /// has initial data.
   bool hasInitialData = false;
   StreamController<RecordSnapshot<K, V>> _streamController;
@@ -176,7 +191,7 @@ class RecordListenerController<K, V> extends _ControllerBase {
 
   /// Record listener controller.
   RecordListenerController(DatabaseListener listener, RecordRef<K, V> recordRef,
-      {@required void Function() onListen}) {
+      {@required this.onListen}) {
     _streamController = StreamController<RecordSnapshot<K, V>>(onCancel: () {
       if (debugListener) {
         print('onCancel $this');
@@ -195,6 +210,7 @@ class RecordListenerController<K, V> extends _ControllerBase {
   /// stream.
   Stream<RecordSnapshot<K, V>> get stream => _streamController.stream;
 
+  /// True if should add or start listening.
   bool get _shouldAdd => !isClosed && _streamController.hasListener;
 
   /// Add a snapshot if not deleted
@@ -216,12 +232,27 @@ class RecordListenerController<K, V> extends _ControllerBase {
 
   @override
   String toString() => 'RecordListenerController($_id)';
+
+  /// Restart controller.
+  void restart() {
+    if (_shouldAdd) {
+      if (debugListener) {
+        print('restarting listener $this');
+      }
+      onListen();
+    }
+  }
 }
 
 /// Store listener.
 class StoreListener {
+  /// Our store.
+  final StoreRef store;
   final _records = <dynamic, List<RecordListenerController>>{};
   final _queries = <QueryListenerController>[];
+
+  /// Store listener.
+  StoreListener(this.store);
 
   /// Add a record.
   RecordListenerController<K, V> addRecord<K, V>(
@@ -262,8 +293,11 @@ class StoreListener {
     }
   }
 
-  /// Get the records.
-  List<RecordListenerController<K, V>> getRecord<K, V>(
+  /// All record keys being watched
+  Iterable<dynamic> get recordKeys => _records.keys;
+
+  /// Get the record listener.
+  List<RecordListenerController<K, V>> getRecordControllers<K, V>(
       RecordRef<K, V> recordRef) {
     return _records[recordRef.key]?.cast<RecordListenerController<K, V>>();
   }
@@ -275,6 +309,18 @@ class StoreListener {
 
   /// true if empty.
   bool get isEmpty => _records.isEmpty && _queries.isEmpty;
+
+  /// Restart listening on the store and its records.
+  void restart() {
+    for (var list in _records.values) {
+      for (var recordController in list) {
+        recordController.restart();
+      }
+    }
+    for (var queryController in _queries) {
+      queryController.restart();
+    }
+  }
 }
 
 /// Database listener.
@@ -295,7 +341,7 @@ class DatabaseListener {
     var storeRef = recordRef.store;
     var store = _stores[storeRef];
     if (store == null) {
-      store = StoreListener();
+      store = StoreListener(storeRef);
       _stores[storeRef] = store;
     }
     return store.addRecord<K, V>(recordRef, ctlr);
@@ -322,7 +368,7 @@ class DatabaseListener {
     var storeRef = ctlr.queryRef.store;
     var store = _stores[storeRef];
     if (store == null) {
-      store = StoreListener();
+      store = StoreListener(storeRef);
       _stores[storeRef] = store;
     }
     store.addQuery<K, V>(ctlr);
@@ -358,12 +404,15 @@ class DatabaseListener {
   List<RecordListenerController<K, V>> getRecord<K, V>(
       RecordRef<K, V> recordRef) {
     return _stores[recordRef]
-        .getRecord(recordRef)
+        .getRecordControllers(recordRef)
         ?.cast<RecordListenerController<K, V>>();
   }
 
   /// Get a store listener.
   StoreListener getStore(StoreRef ref) => _stores[ref];
+
+  /// All store listeners.
+  Iterable<StoreRef> get stores => _stores.keys;
 
   /// Closed.
   void close() {
@@ -384,8 +433,11 @@ class StoreListenerOperation {
   final StoreListener listener;
 
   /// records changes.
-  final List<ImmutableSembastRecord> txnRecords;
+  final StoreContent content;
 
   /// Store listener operation.
-  StoreListenerOperation(this.listener, this.txnRecords);
+  StoreListenerOperation(this.listener, this.content);
+
+  /// Our store.
+  StoreRef get store => listener.store;
 }

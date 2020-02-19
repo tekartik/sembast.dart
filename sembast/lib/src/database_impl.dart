@@ -9,6 +9,7 @@ import 'package:sembast/src/common_import.dart';
 import 'package:sembast/src/cooperator.dart';
 import 'package:sembast/src/database_client_impl.dart';
 import 'package:sembast/src/database_factory_mixin.dart';
+import 'package:sembast/src/debug_utils.dart';
 import 'package:sembast/src/env_utils.dart';
 import 'package:sembast/src/jdb.dart';
 import 'package:sembast/src/listener.dart';
@@ -190,7 +191,9 @@ class SembastDatabase extends Object
     return _recordStore(record).setRecordInMemory(record?.record);
   }
 
-  /// Load a record if needed (delta)
+  /// Load a record if needed (delta).
+  ///
+  /// An old record (lower revision) won't be loaded
   bool jdbDeltaLoadRecord(ImmutableSembastRecordJdb record) {
     var store = _recordStore(record);
     dynamic existing = store.txnGetImmutableRecordSync(null, record.key);
@@ -345,6 +348,17 @@ class SembastDatabase extends Object
     return commitEntries;
   }
 
+  TxnDatabaseContent _getTxnDatabaseContent() {
+    var content = TxnDatabaseContent();
+    for (var store in stores) {
+      var records = (store as SembastStore).currentTxnRecords;
+      if (records?.isNotEmpty ?? false) {
+        content.addStoreRecords(store.ref, records);
+      }
+    }
+    return content;
+  }
+
   /// Save all records to fix in memory.
   ///
   /// Prepare the records for listeners and returns a list of listener operations.
@@ -354,26 +368,24 @@ class SembastDatabase extends Object
     final txnRecords = <TxnRecord>[];
     var listenerOperations = <StoreListenerOperation>[];
 
-    var stores = getCurrentStores();
-    for (var store in stores) {
-      var records = store.currentTxnRecords;
+    var content = _getTxnDatabaseContent();
+    for (var storeContent in content.stores) {
+      var records = storeContent.records;
+      var store = storeContent.store;
 
       if (records?.isNotEmpty == true) {
         // Prepare listener operations
         if (listener.isNotEmpty) {
-          var listener = this.listener.getStore(store.ref);
+          var listener = this.listener.getStore(store);
           if (listener != null) {
-            listenerOperations.add(StoreListenerOperation(
-                listener,
-                records
-                    .map((record) => record.record)
-                    .toList(growable: false)));
+            listenerOperations
+                .add(StoreListenerOperation(listener, storeContent));
           }
         }
-
-        txnRecords.addAll(records);
       }
     }
+
+    txnRecords.addAll(content._records);
 
     var commitData = CommitData()
       ..listenerOperations = listenerOperations
@@ -967,39 +979,48 @@ class SembastDatabase extends Object
       return await txnJdbDeltaImport(revision);
     });
 
-    if (result.allStores?.isNotEmpty ?? false) {
-      /// Prepare listener
-      var listenerOperations = <StoreListenerOperation>[];
+    if (listener.isNotEmpty) {
+      if (result.delta && (result.content.isNotEmpty)) {
+        /// Prepare listener
+        var listenerOperations = <StoreListenerOperation>[];
 
-      result.allStores.forEach((store, list) {
-        // Prepare listener operations
-        if (listener.isNotEmpty) {
-          var listener = this.listener.getStore(store);
+        result.content.stores.forEach((content) {
+          // Prepare listener operations
+
+          var listener = this.listener.getStore(content.store);
           if (listener != null) {
-            listenerOperations.add(StoreListenerOperation(
-                listener, list.values.toList(growable: false)));
+            listenerOperations.add(StoreListenerOperation(listener, content));
           }
+
+          //txnRecords.addAll(records);
+        });
+
+        // Notify if needed, done lazily
+        // devPrint(listenerOperations);
+        if (listenerOperations.isNotEmpty == true) {
+          notifyQueryListeners(listenerOperations);
         }
-
-        //txnRecords.addAll(records);
-      });
-
-      // Notify if needed, done lazily
-      // devPrint(listenerOperations);
-      if (listenerOperations.isNotEmpty == true) {
-        notifyQueryListeners(listenerOperations);
+        notifyLazyListeners();
+      } else {
+        // A full import was done, re-run all queries
+        for (var store in listener.stores) {
+          var storeListener = listener.getStore(store);
+          storeListener.restart();
+        }
       }
-      notifyLazyListeners();
     }
   }
 
   /// Delta import. Must be in a transaction
   Future<JdbImportResult> txnJdbDeltaImport(int revision) async {
-    var allStores = <StoreRef, Map<dynamic, ImmutableSembastRecordJdb>>{};
+    // All modifications
+    var content = TxnDatabaseContent();
+    bool delta;
     var minRevision = _jdbRevision ?? 0;
     var deltaMinRevision = await _storageJdb.getDeltaMinRevision();
 
     if (minRevision >= deltaMinRevision) {
+      delta = true;
       var entries = await _storageJdb.getEntriesAfter(minRevision ?? 0);
       // devPrint('delta import $entries $revision');
       if (!_closed) {
@@ -1008,25 +1029,17 @@ class SembastDatabase extends Object
           if (entry.record != null) {
             var record = ImmutableSembastRecordJdb(entry.record, entry.value,
                 deleted: entry.deleted, revision: entry.id);
-            var store = entry.record.store;
-            Map<dynamic, ImmutableSembastRecordJdb> map;
-            map = allStores[store];
-            if (map == null) {
-              allStores[store] = map = <dynamic, ImmutableSembastRecordJdb>{};
-            }
-            // devPrint('Loading $record');
+
             if (jdbDeltaLoadRecord(record)) {
-              map[record.key] = record;
-            } else {
-              // devPrint('not loaded $record');
+              // Ignore already added/old record
+              content.add(record);
             }
           }
         }
         _jdbRevision = revision;
       }
-      return JdbImportResult(delta: true, allStores: allStores);
     } else {
-      // devPrint('Full import');
+      delta = false;
       _exportStat = DatabaseExportStat();
       var records = <ImmutableSembastRecordJdb>[];
       await for (var entry in _storageJdb.entries) {
@@ -1038,6 +1051,8 @@ class SembastDatabase extends Object
           _exportStat.obsoleteLineCount++;
         }
         records.add(record);
+        // Always add
+        content.add(record);
       }
 
       // Synchronous reload
@@ -1047,8 +1062,8 @@ class SembastDatabase extends Object
       for (var record in records) {
         loadRecord(record);
       }
-      return JdbImportResult(delta: false);
     }
+    return JdbImportResult(delta: delta, content: content);
   }
 
   /// To call when in a databaseLock
@@ -1368,56 +1383,101 @@ class SembastDatabase extends Object
       _openTransaction as SembastTransaction;
 
   /// Notifify queryListeners
-  void notifyQueryListeners(List<StoreListenerOperation> listenerOperations) {
+  void notifyQueryListeners(List<StoreListenerOperation> listenerOperations,
+      {bool full}) {
+    if (listenerOperations?.isEmpty ?? true) {
+      return;
+    }
+    full ??= false;
+
     lazyListenerOperations.add(() async {
       for (var operation in listenerOperations) {
-        // records
-        for (var record in operation.txnRecords) {
-          var ctlrs = operation.listener.getRecord(record.ref);
-          if (ctlrs != null) {
+        if (full) {
+          if (debugListener) {
+            print('full import listeners none');
+          }
+          /*
+          // records, synchronous
+          var store = operation.store;
+          var keys = operation.listener.recordKeys;
+          for (var key in keys) {
+            var record = store.record(key);
+            var ctlrs = operation.listener.getRecordControllers(record);
             for (var ctlr in ctlrs) {
-              void _updateRecord() {
-                if (debugListener) {
-                  print('updating $ctlr: with ${record}');
-                }
-                if (!record.deleted) {
-                  ctlr.add(record);
-                } else {
-                  ctlr.add(null);
-                }
-              }
-
-              if (ctlr.hasInitialData) {
-                // devPrint('adding $record');
-                _updateRecord();
-              } else {
-                // postpone
-                // ignore: unawaited_futures
-                notificationLock.synchronized(() async {
-                  _updateRecord();
-                });
-              }
+              ctlr.add(operation.content.record(key));
             }
           }
-        }
-        // Fix existing queries
-        for (var query in List<QueryListenerController>.from(
-            operation.listener.getQuery())) {
-          Future _updateQuery() async {
-            if (debugListener) {
-              print('updating $query: with ${operation.txnRecords}');
+          // store, async
+          // Fix existing queries
+          for (var query in List<QueryListenerController>.from(
+              operation.listener.getQuery())) {
+            Future _updateQuery() async {
+              if (debugListener) {
+                print('updating $query: with ${operation.content.records}');
+              }
+              await query.update(operation.content.records, cooperator);
             }
-            await query.update(operation.txnRecords, cooperator);
-          }
 
-          if (query.hasInitialData) {
-            await _updateQuery();
-          } else {
-            // postpone
-            // ignore: unawaited_futures
-            notificationLock.synchronized(() async {
+            if (query.hasInitialData) {
               await _updateQuery();
-            });
+            } else {
+              // postpone
+              // ignore: unawaited_futures
+              notificationLock.synchronized(() async {
+                await _updateQuery();
+              });
+            }
+          }
+           */
+
+        } else {
+          for (var record in operation.content.records) {
+            var ctlrs = operation.listener.getRecordControllers(record.ref);
+            if (ctlrs != null) {
+              for (var ctlr in ctlrs) {
+                void _updateRecord() {
+                  if (debugListener) {
+                    print('updating $ctlr: with ${record}');
+                  }
+                  if (!record.deleted) {
+                    ctlr.add(record);
+                  } else {
+                    ctlr.add(null);
+                  }
+                }
+
+                if (ctlr.hasInitialData) {
+                  // devPrint('adding $record');
+                  _updateRecord();
+                } else {
+                  // postpone
+                  // ignore: unawaited_futures
+                  notificationLock.synchronized(() async {
+                    _updateRecord();
+                  });
+                }
+              }
+            }
+          }
+          // Fix existing queries
+          for (var query in List<QueryListenerController>.from(
+              operation.listener.getQuery())) {
+            Future _updateQuery() async {
+              if (debugListener) {
+                print('updating $query: with ${operation.content.records}');
+              }
+              await query.update(operation.content.records, cooperator);
+            }
+
+            if (query.hasInitialData) {
+              await _updateQuery();
+            } else {
+              // postpone
+              // ignore: unawaited_futures
+              notificationLock.synchronized(() async {
+                await _updateQuery();
+              });
+            }
           }
         }
       }
@@ -1470,14 +1530,101 @@ class DatabaseExportStat {
   String toString() => toJson().toString();
 }
 
+/// Store content.
+class StoreContent {
+  /// Store ref.
+  final StoreRef store;
+
+  /// Record with key.
+  final _map = <dynamic, ImmutableSembastRecord>{};
+
+  /// Store content.
+  StoreContent(this.store);
+
+  /// All records.
+  Iterable<ImmutableSembastRecord> get records => _map.values;
+
+  /// Add all records.
+  void addAll(Iterable<ImmutableSembastRecord> records) {
+    for (var record in records) {
+      add(record);
+    }
+  }
+
+  /// Add a single record.
+  void add(ImmutableSembastRecord record) {
+    _map[record.key] = record;
+  }
+
+  /// Get a single record.
+  ImmutableSembastRecord record(key) => _map[key];
+
+  @override
+  String toString() => '${store.name} ${records.length}';
+}
+
+/// Database content in a transaction.
+class TxnDatabaseContent extends DatabaseContent {
+  final _records = <TxnRecord>[];
+
+  /// Add a transaction record.
+  void addRecord(TxnRecord record) {
+    _records.add(record);
+    add(record.record);
+  }
+
+  /// Add transaction records for a give store
+  void addStoreRecords(StoreRef store, Iterable<TxnRecord> records) {
+    addStore(store).addAll(records.map((record) => record.record));
+    _records.addAll(records);
+  }
+}
+
+/// Database content.
+class DatabaseContent {
+  final _map = <StoreRef, StoreContent>{};
+
+  /// true if at least one store.
+  bool get isNotEmpty => _map.isNotEmpty;
+
+  /// All stores.
+  Iterable<StoreContent> get stores => _map.values;
+
+  /// Add all records.
+  void addAll(Iterable<ImmutableSembastRecord> records) {
+    for (var record in records) {
+      add(record);
+    }
+  }
+
+  /// Add a single record.
+  void add(ImmutableSembastRecord record) {
+    var store = record.ref.store;
+    var content = addStore(store);
+    content.add(record);
+  }
+
+  /// Add a store.
+  StoreContent addStore(StoreRef store) {
+    var content = _map[store] ??= StoreContent(store);
+    return content;
+  }
+
+  /// A given existing store.
+  StoreContent store(StoreRef store) => _map[store];
+
+  @override
+  String toString() => '$stores';
+}
+
 /// Import result.
 class JdbImportResult {
   /// True if delta import.
   final bool delta;
 
   /// Only for delta import.
-  final Map<StoreRef, Map<dynamic, ImmutableSembastRecordJdb>> allStores;
+  final TxnDatabaseContent content;
 
   /// Import result.
-  JdbImportResult({@required this.delta, this.allStores});
+  JdbImportResult({@required this.delta, this.content});
 }
