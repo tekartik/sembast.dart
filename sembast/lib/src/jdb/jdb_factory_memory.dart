@@ -179,9 +179,6 @@ class JdbDatabaseMemory implements jdb.JdbDatabase {
   }
 
   int _addEntries(List<jdb.JdbWriteEntry> entries) {
-    // Should import?
-    var upToDate = _checkUpToDate();
-
     // devPrint('adding ${entries.length} uptodate $upToDate');
     for (var jdbWriteEntry in entries) {
       // remove existing
@@ -192,10 +189,6 @@ class JdbDatabaseMemory implements jdb.JdbDatabase {
       (jdbWriteEntry.txnRecord?.record as ImmutableSembastRecordJdb)?.revision =
           entry.id;
     }
-    if (upToDate) {
-      _revision = _lastEntryId;
-    }
-
     return _lastEntryId;
   }
 
@@ -263,8 +256,7 @@ class JdbDatabaseMemory implements jdb.JdbDatabase {
         }
       }
     }
-    // Also set the revision
-    //if (r)
+    // Also set the revision in the db but not in RAM
     if (_lastEntryId > 0) {
       _setRevision(_lastEntryId);
     }

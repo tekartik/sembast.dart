@@ -115,6 +115,9 @@ void main() {
       await jdb.setInfoEntry(JdbInfoEntry()
         ..id = '_main_store_last_id'
         ..value = 1);
+      await jdb.setInfoEntry(JdbInfoEntry()
+        ..id = 'revision'
+        ..value = 1);
       expect(jdb.toDebugMap(), {
         'entries': [
           {
@@ -128,12 +131,15 @@ void main() {
             'id': 'meta',
             'value': {'version': 1, 'sembast': 1}
           },
+          {'id': 'revision', 'value': 1}
         ]
       });
       var store = StoreRef<int, String>.main();
       var record1 = store.record(1);
       expect(await record1.get(db), isNull);
 
+      // Add should trigger a reload
+      // Its key will be +1 twice since a reload happens
       var key = await store.add(db, 'test');
       expect(jdb.toDebugMap(), {
         'entries': [
