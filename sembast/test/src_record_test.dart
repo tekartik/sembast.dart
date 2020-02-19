@@ -7,6 +7,7 @@ void main() {
     test('toDatabaseRowMap', () {
       var record = ImmutableSembastRecord(StoreRef.main().record(1), 'val');
       expect(record.toDatabaseRowMap(), {'key': 1, 'value': 'val'});
+      // ignore: deprecated_member_use_from_same_package
       expect(record.deleted, isFalse);
       record = ImmutableSembastRecord(StoreRef.main().record(1), null);
       expect(record.toDatabaseRowMap(), {'key': 1});
