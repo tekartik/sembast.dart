@@ -83,6 +83,7 @@ class JdbFactoryIdb implements jdb.JdbFactory {
         checkAllClosed();
       }
       await idbFactory.deleteDatabase(path);
+      notifyRevision(StorageRevision(path, null));
       if (_debug) {
         print('[idb] deleted $path');
       }
@@ -395,12 +396,16 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
     var readRevision = (await _txnGetRevision(txn)) ?? 0;
     var success = (expectedRevision == readRevision);
 
+    // Notify for the web
+    int shouldNotifyRevision;
+
     if (success) {
       if (query.entries?.isNotEmpty ?? false) {
         readRevision = await _txnAddEntries(txn, query.entries);
         // Set revision info
         if (readRevision != null) {
           await _txnPutRevision(txn, readRevision);
+          shouldNotifyRevision = readRevision;
         }
       }
       if (query.infoEntries?.isNotEmpty ?? false) {
@@ -410,6 +415,9 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
       }
     }
     await txn.completed;
+    if (shouldNotifyRevision != null) {
+      notifyRevision(shouldNotifyRevision);
+    }
     return StorageJdbWriteResult(
         revision: readRevision, query: query, success: success);
   }

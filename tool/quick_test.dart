@@ -10,6 +10,16 @@ pub get
 pub run test test/jdb_memory_test.dart
 
     ''');
+
+  shell = shell.popd().pushd('sembast_web');
+  await shell.run('''
+
+pub get
+pub run build_runner test -- -p chrome test/web
+
+    ''');
+
+  // pub run build_runner test -- -p chrome test/web
   shell = shell.popd().pushd('sembast_test');
   await shell.run('''
 

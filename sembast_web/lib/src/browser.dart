@@ -54,10 +54,14 @@ String _sembastStorageKeyPrefix = 'sembast_web/revision:';
 /// add a storage revision
 void addStorageRevision(StorageRevision storageRevision) {
   if (debugStorageNotification) {
-    print('adding $storageRevision');
+    print('adding storage revision $storageRevision');
   }
-  window.localStorage['$_sembastStorageKeyPrefix${storageRevision.name}'] =
-      storageRevision.revision.toString();
+  var key = '$_sembastStorageKeyPrefix${storageRevision.name}';
+  if (storageRevision.revision != null) {
+    window.localStorage[key] = storageRevision.revision.toString();
+  } else {
+    window.localStorage.remove(key);
+  }
 }
 
 /// Storage revision notification from all tabs
