@@ -140,6 +140,10 @@ class JdbDatabaseMemory implements jdb.JdbDatabase {
     return _infoEntries[id];
   }
 
+  jdb.JdbInfoEntry _getInfoEntry(String id) {
+    return _infoEntries[id];
+  }
+
   @override
   Future setInfoEntry(jdb.JdbInfoEntry entry) async {
     _setInfoEntry(entry);
@@ -164,13 +168,20 @@ class JdbDatabaseMemory implements jdb.JdbDatabase {
     return _addEntries(entries);
   }
 
+  /// trigger a reload if needed, returns true if up to date
+  bool _checkUpToDate() {
+    var currentRevision = _getRevision();
+    var upToDate = (_revision ?? 0) == currentRevision;
+    if (!upToDate) {
+      _revisionUpdatesCtrl.add(currentRevision);
+    }
+    return upToDate;
+  }
+
   int _addEntries(List<jdb.JdbWriteEntry> entries) {
     // Should import?
-    var revision = _lastEntryId;
-    var upToDate = (_revision ?? 0) == revision;
-    if (!upToDate) {
-      _revisionUpdatesCtrl.add(revision);
-    }
+    var upToDate = _checkUpToDate();
+
     // devPrint('adding ${entries.length} uptodate $upToDate');
     for (var jdbWriteEntry in entries) {
       // remove existing
@@ -225,11 +236,7 @@ class JdbDatabaseMemory implements jdb.JdbDatabase {
 
   @override
   Future<int> getRevision() async {
-    try {
-      return _lastEntryId;
-    } catch (e) {
-      return null;
-    }
+    return _getRevision();
   }
 
   int get _lastEntryId => _entries.isEmpty ? 0 : _entries.last.id;
@@ -241,7 +248,7 @@ class JdbDatabaseMemory implements jdb.JdbDatabase {
   Future<StorageJdbWriteResult> writeIfRevision(
       StorageJdbWriteQuery query) async {
     var expectedRevision = query.revision ?? 0;
-    var readRevision = _lastEntryId;
+    var readRevision = _getRevision();
     var success = (expectedRevision == readRevision);
 
     if (success) {
@@ -259,9 +266,7 @@ class JdbDatabaseMemory implements jdb.JdbDatabase {
     // Also set the revision
     //if (r)
     if (_lastEntryId > 0) {
-      await setInfoEntry(jdb.JdbInfoEntry()
-        ..id = _revisionKey
-        ..value = _lastEntryId);
+      _setRevision(_lastEntryId);
     }
     return StorageJdbWriteResult(
         revision: readRevision, query: query, success: success);
@@ -271,10 +276,64 @@ class JdbDatabaseMemory implements jdb.JdbDatabase {
   Future<Map<String, dynamic>> exportToMap() async {
     return toDebugMap();
   }
+
+  @override
+  Future compact() async {
+    var deltaMinRevision = _getDeltaMinRevision();
+    var currentRevision = _getRevision();
+
+    var newDeltaMinRevision = deltaMinRevision;
+    var indecies = <int>[];
+    for (var i = 0; i < _entries.length; i++) {
+      var entry = _entries[i];
+      var revision = entry.id;
+      if (revision > newDeltaMinRevision && entry.deleted) {
+        // Stop at current revision, we'll trigger a reload anyway
+        if (revision > currentRevision) {
+          break;
+        }
+        indecies.add(i);
+        newDeltaMinRevision = revision;
+      }
+    }
+    if (indecies.isNotEmpty) {
+      for (var index in indecies.reversed) {
+        _entries.removeAt(index);
+      }
+      _setDeltaMinRevision(newDeltaMinRevision);
+    }
+    // Trigger a reload
+    _checkUpToDate();
+  }
+
+  int _getDeltaMinRevision() =>
+      _getInfoEntry(deltaMinRevisionKey)?.value as int ?? 0;
+
+  int _getRevision() => _getInfoEntry(_revisionKey)?.value as int ?? 0;
+
+  void _setDeltaMinRevision(int revision) => _setInfoEntry(JdbInfoEntry()
+    ..id = deltaMinRevisionKey
+    ..value = revision);
+
+  void _setRevision(int revision) => _setInfoEntry(JdbInfoEntry()
+    ..id = _revisionKey
+    ..value = revision);
+
+  @override
+  Future<int> getDeltaMinRevision() async => _getDeltaMinRevision();
+
+  @override
+  Future clearAll() async {
+    _entries.clear();
+    _infoEntries.clear();
+  }
 }
 
 /// last entry id inserted
 const _revisionKey = 'revision';
+
+/// Delta import min revision
+const deltaMinRevisionKey = 'deltaMinRevision';
 
 JdbFactoryMemory _jdbFactoryMemory = JdbFactoryMemory();
 

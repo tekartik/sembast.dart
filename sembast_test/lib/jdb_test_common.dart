@@ -16,12 +16,21 @@ DatabaseTestContextJdb get databaseTestContextJdbMemory =>
 ///
 Future jdbImportFromMap(JdbFactory jdbFactory, String name, Map map) async {
   var jdb = await jdbFactory.open(name);
+  await jdbDatabaseImportFromMap(jdb, map);
+  await jdb.close();
+}
+
+Future jdbDatabaseImportFromMap(JdbDatabase jdb, Map map) async {
+  // Clear all before import
+  await jdb.clearAll();
   var entries = (map['entries'] as List)?.cast<Map>()?.map((map) {
     var valueMap = map['value'] as Map;
     var storeName = valueMap['store'] as String;
     var store = storeName == null ? StoreRef.main() : StoreRef(storeName);
     return JdbRawWriteEntry(
-        value: valueMap['value'], record: store.record(valueMap['key']))
+        deleted: valueMap['deleted'] as bool,
+        value: valueMap['value'],
+        record: store.record(valueMap['key']))
       ..id = valueMap['id'] as int;
   })?.toList(growable: false);
   if (entries?.isNotEmpty ?? false) {
@@ -38,5 +47,4 @@ Future jdbImportFromMap(JdbFactory jdbFactory, String name, Map map) async {
       await jdb.setInfoEntry(info);
     }
   }
-  await jdb.close();
 }

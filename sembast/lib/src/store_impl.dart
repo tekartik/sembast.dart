@@ -38,7 +38,7 @@ class SembastStore implements Store {
 
   /// Record map.
   ///
-  /// Use a splay tree to be correctly orderd
+  /// Use a splay tree to be correctly ordered. To access in a synchronous way.
   Map<dynamic, ImmutableSembastRecord> recordMap =
       SplayTreeMap<dynamic, ImmutableSembastRecord>(compareKey);
 

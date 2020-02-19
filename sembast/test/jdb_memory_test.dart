@@ -165,5 +165,13 @@ void main() {
 
       await db.close();
     });
+
+    test('jdbDatabase', () async {
+      await ctx.jdbFactory.delete('test');
+      var db = (await ctx.jdbFactory.open('test')) as JdbDatabaseMemory;
+      expect(await db.getRevision(), 0);
+
+      db.close();
+    });
   });
 }

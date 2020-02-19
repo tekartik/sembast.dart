@@ -33,9 +33,15 @@ void defineTests(DatabaseTestContextJdb ctx) {
   DatabaseExportStat getExportStat(Database db) =>
       getDatabaseExportStat(getSembastDatabase(db));
   Future compact(Database db) => getSembastDatabase(db).compact();
+  Future deltaImport(Database db, int revision) =>
+      getSembastDatabase(db).jdbDeltaImport(revision);
 
   Future importFromMap(Map map) {
     return jdbImportFromMap(ctx.jdbFactory, dbPath, map);
+  }
+
+  Future dbImportFromMap(Database db, Map map) {
+    return jdbDatabaseImportFromMap(getJdbDatabase(db), map);
   }
 
   group('basic format', () {
@@ -159,6 +165,45 @@ void defineTests(DatabaseTestContextJdb ctx) {
         });
         await compact(db);
         expect(await getJdbDatabase(db).exportToMap(), {
+          'entries': [],
+          'infos': [
+            {'id': 'deltaMinRevision', 'value': 2},
+            {
+              'id': 'meta',
+              'value': {'version': 1, 'sembast': 1}
+            },
+            {'id': 'revision', 'value': 2}
+          ]
+        });
+      } finally {
+        await db.close();
+      }
+    });
+
+    test('deltaImport', () async {
+      await prepareForDb();
+      var db = await factory.openDatabase(dbPath);
+      try {
+        await store.record(1).put(db, 'hi');
+        await dbImportFromMap(db, {
+          'entries': [
+            {
+              'id': 2,
+              'value': {'key': 1, 'deleted': true}
+            }
+          ],
+          'infos': [
+            {
+              'id': 'meta',
+              'value': {'version': 1, 'sembast': 1}
+            },
+            {'id': 'revision', 'value': 2}
+          ]
+        });
+        // db = await factory.openDatabase(dbPath);
+        // devPrint('0');
+        await deltaImport(db, 2);
+        expect(await getJdbDatabase(db).exportToMap(), {
           'entries': [
             {
               'id': 2,
@@ -166,6 +211,46 @@ void defineTests(DatabaseTestContextJdb ctx) {
             }
           ],
           'infos': [
+            {
+              'id': 'meta',
+              'value': {'version': 1, 'sembast': 1}
+            },
+            {'id': 'revision', 'value': 2}
+          ]
+        });
+      } catch (e, st) {
+        print(e);
+        print(st);
+      } finally {
+        try {
+          await db.close();
+        } catch (e) {
+          print(e);
+        }
+      }
+    });
+
+    test('deltaImport_full', () async {
+      await prepareForDb();
+      var db = await factory.openDatabase(dbPath);
+      try {
+        await store.record(1).put(db, 'hi');
+        await dbImportFromMap(db, {
+          'entries': [],
+          'infos': [
+            {
+              'id': 'meta',
+              'value': {'version': 1, 'sembast': 1}
+            },
+            {'id': 'revision', 'value': 2},
+            {'id': 'deltaMinRevision', 'value': 2}
+          ]
+        });
+        await deltaImport(db, 2);
+        expect(await getJdbDatabase(db).exportToMap(), {
+          'entries': [],
+          'infos': [
+            {'id': 'deltaMinRevision', 'value': 2},
             {
               'id': 'meta',
               'value': {'version': 1, 'sembast': 1}

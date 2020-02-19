@@ -22,7 +22,7 @@ const _valuePath = dbRecordValueKey;
 const _deletedPath = dbRecordDeletedKey;
 
 /// last entry id inserted
-const _revisionKey = 'revision';
+const _revisionKey = jdbRevisionKey;
 
 /// In memory jdb.
 class JdbFactoryIdb implements jdb.JdbFactory {
@@ -48,10 +48,12 @@ class JdbFactoryIdb implements jdb.JdbFactory {
         print('[idb-$id] migrating ${event.oldVersion} -> ${event.newVersion}');
       }
       var db = event.database;
-      db.createObjectStore(_infoStore);
-      var entryStore = db.createObjectStore(_entryStore, autoIncrement: true);
-      entryStore.createIndex(_recordIndex, [_storePath, _keyPath]);
-      entryStore.createIndex(_deletedIndex, _deletedPath, multiEntry: true);
+      if (event.oldVersion < 2) {
+        db.createObjectStore(_infoStore);
+        var entryStore = db.createObjectStore(_entryStore, autoIncrement: true);
+        entryStore.createIndex(_recordIndex, [_storePath, _keyPath]);
+        entryStore.createIndex(_deletedIndex, _deletedPath, multiEntry: true);
+      }
     });
     if (iDb != null) {
       var db = JdbDatabaseIdb(this, iDb, id, path);
@@ -246,6 +248,11 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
     await infoStore.put(revision, _revisionKey);
   }
 
+  Future _txnPutDeltaMinRevision(idb.Transaction txn, int revision) async {
+    var infoStore = txn.objectStore(_infoStore);
+    await infoStore.put(revision, jdbDeltaMinRevisionKey);
+  }
+
   Future<int> _txnGetRevision(idb.Transaction txn) async {
     var infoStore = txn.objectStore(_infoStore);
     return (await infoStore.getObject(_revisionKey)) as int;
@@ -428,6 +435,46 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
       list.add(<String, dynamic>{'id': cwv.key, 'value': value});
     }).asFuture();
     return list;
+  }
+
+  @override
+  Future compact() async {
+    var txn =
+        _idbDatabase.transaction([_infoStore, _entryStore], idbModeReadWrite);
+    var deltaMinRevision = await _txnGetDeltaMinRevision(txn);
+    var currentRevision = await _txnGetRevision(txn);
+    var newDeltaMinRevision = deltaMinRevision;
+    var deleteIndex = txn.objectStore(_entryStore).index(_deletedIndex);
+    await deleteIndex.openCursor(autoAdvance: true).listen((cwv) {
+      assert(cwv.key as bool);
+      var revision = cwv.primaryKey as int;
+      if (revision > newDeltaMinRevision && revision <= currentRevision) {
+        newDeltaMinRevision = revision;
+        cwv.delete();
+      }
+    }).asFuture();
+    if (newDeltaMinRevision > deltaMinRevision) {
+      await _txnPutDeltaMinRevision(txn, newDeltaMinRevision);
+    }
+  }
+
+  @override
+  Future<int> getDeltaMinRevision() async {
+    return (await getInfoEntry(jdbDeltaMinRevisionKey))?.value as int ?? 0;
+  }
+
+  Future<int> _txnGetDeltaMinRevision(idb.Transaction txn) async {
+    return (await txn.objectStore(_infoStore).getObject(jdbDeltaMinRevisionKey))
+            as int ??
+        0;
+  }
+
+  @override
+  Future clearAll() async {
+    var txn =
+        _idbDatabase.transaction([_infoStore, _entryStore], idbModeReadWrite);
+    await txn.objectStore(_infoStore).clear();
+    await txn.objectStore(_entryStore).clear();
   }
 }
 

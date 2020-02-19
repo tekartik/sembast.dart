@@ -137,6 +137,12 @@ class SembastStorageJdb extends StorageBase implements StorageJdb {
     // TODO: implement toDebugMap
     return null;
   }
+
+  @override
+  Future compact() => jdbDatabase.compact();
+
+  @override
+  Future<int> getDeltaMinRevision() => jdbDatabase.getDeltaMinRevision();
 }
 
 /// Jdb implementation

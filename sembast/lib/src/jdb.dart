@@ -143,6 +143,15 @@ abstract class JdbDatabase {
 
   /// Read all context (re-open if needed). Test only.
   Future<Map<String, dynamic>> exportToMap();
+
+  /// Compact the database
+  Future compact();
+
+  /// Delta min revision
+  Future<int> getDeltaMinRevision();
+
+  /// Clear all data (testing only)
+  Future clearAll();
 }
 
 /// Jdb implementation.

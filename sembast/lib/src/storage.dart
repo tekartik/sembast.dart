@@ -118,4 +118,10 @@ abstract class StorageJdb extends StorageBase {
 
   /// Test only.
   Future<Map<String, dynamic>> toDebugMap();
+
+  /// Compact the database removing obsolete records
+  Future compact();
+
+  /// Delta min revision.
+  Future<int> getDeltaMinRevision();
 }
