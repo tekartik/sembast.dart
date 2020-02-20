@@ -46,7 +46,7 @@ Future main() async {
 * Use int or key string only
 * Transactions are cross-tab safe (since 0.1.0+4)
 * Codec are not supported. Web is not safe anyway. Encrypt fields as needed.
-* Transactions must be indempotent (i.e. they must produce the same result if run twice) as they might run again in case of
+* Transactions must be indempotent (i.e. they must produce the same result if run twice) as they might run again in case of concurrent access.
 
 ## How it works
 
