@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:meta/meta.dart';
 import 'package:sembast/sembast.dart';
 import 'package:sembast/src/api/log_level.dart';
 import 'package:sembast/src/api/v2/sembast.dart' as v2;
@@ -8,6 +9,7 @@ import 'package:sembast/src/common_import.dart';
 import 'package:sembast/src/cooperator.dart';
 import 'package:sembast/src/database_client_impl.dart';
 import 'package:sembast/src/database_factory_mixin.dart';
+import 'package:sembast/src/debug_utils.dart';
 import 'package:sembast/src/env_utils.dart';
 import 'package:sembast/src/jdb.dart';
 import 'package:sembast/src/listener.dart';
@@ -16,6 +18,7 @@ import 'package:sembast/src/record_impl.dart';
 import 'package:sembast/src/record_impl.dart' as record_impl;
 import 'package:sembast/src/sembast_codec_impl.dart';
 import 'package:sembast/src/sembast_impl.dart';
+import 'package:sembast/src/sembast_jdb.dart';
 import 'package:sembast/src/storage.dart';
 import 'package:sembast/src/store_impl.dart';
 import 'package:sembast/src/transaction_impl.dart';
@@ -29,14 +32,29 @@ final bool _debugStorage = false; // devWarning(true);
 SembastDatabase getDatabase(v2.Database database) =>
     database as SembastDatabase;
 
-/// Commit database information.
-class CommitData {
-  // Only when we have listeners
-  /// listeners.
-  List<StoreListenerOperation> listenerOperations;
+/// Commit entries in a transaction.
+class CommitEntries {
+  /// Last known revision
+  int revision;
 
   /// records changed.
   List<TxnRecord> txnRecords;
+
+  /// True when upgrading
+  bool upgrading;
+
+  /// Upgrading meta
+  Meta upgradingMeta;
+
+  /// Has at least one record
+  bool get hasWriteData => txnRecords?.isNotEmpty ?? false;
+}
+
+/// Commit database information.
+class CommitData extends CommitEntries {
+  // Only when we have listeners
+  /// listeners.
+  List<StoreListenerOperation> listenerOperations;
 }
 
 /// Database implementation.
@@ -139,6 +157,8 @@ class SembastDatabase extends Object
   }
 
   void _clearTxnData() {
+    _txnDroppedStores.clear();
+
 // remove temp data in all store
     for (var store in stores) {
       (store as SembastStore).rollback();
@@ -171,8 +191,10 @@ class SembastDatabase extends Object
     return _recordStore(record).setRecordInMemory(record?.record);
   }
 
-  /// Load a record if needed
-  bool loadRecordJdb(ImmutableSembastRecordJdb record) {
+  /// Load a record if needed (delta).
+  ///
+  /// An old record (lower revision) won't be loaded
+  bool jdbDeltaLoadRecord(ImmutableSembastRecordJdb record) {
     var store = _recordStore(record);
     dynamic existing = store.txnGetImmutableRecordSync(null, record.key);
     if (existing is ImmutableSembastRecordJdb) {
@@ -247,7 +269,7 @@ class SembastDatabase extends Object
   }
 
   ///
-  /// Compact the database (work in progress)
+  /// Compact the database
   ///
   Future txnCompact() async {
     assert(databaseLock.inLock);
@@ -299,7 +321,42 @@ class SembastDatabase extends Object
 
       _exportStat = exportStat;
       // devPrint('compacted: $_exportStat');
+    } else if (_storageJdb?.supported ?? false) {
+      await _storageJdb.compact();
     }
+  }
+
+  /// current transaction commit entries
+  CommitEntries _txnBuildCommitEntries() {
+    final txnRecords = <TxnRecord>[];
+
+    var stores = getCurrentStores();
+    for (var store in stores) {
+      var records = store.currentTxnRecords;
+
+      if (records?.isNotEmpty ?? false) {
+        txnRecords.addAll(records);
+      }
+    }
+
+    var commitEntries = CommitEntries()
+      ..txnRecords = txnRecords
+      ..upgrading = _upgrading
+      ..upgradingMeta = _upgradingMeta
+      ..revision = _jdbRevision;
+
+    return commitEntries;
+  }
+
+  TxnDatabaseContent _getTxnDatabaseContent() {
+    var content = TxnDatabaseContent();
+    for (var store in stores) {
+      var records = (store as SembastStore).currentTxnRecords;
+      if (records?.isNotEmpty ?? false) {
+        content.addStoreRecords(store.ref, records);
+      }
+    }
+    return content;
   }
 
   /// Save all records to fix in memory.
@@ -311,26 +368,24 @@ class SembastDatabase extends Object
     final txnRecords = <TxnRecord>[];
     var listenerOperations = <StoreListenerOperation>[];
 
-    var stores = getCurrentStores();
-    for (var store in stores) {
-      var records = store.currentTxnRecords;
+    var content = _getTxnDatabaseContent();
+    for (var storeContent in content.stores) {
+      var records = storeContent.records;
+      var store = storeContent.store;
 
       if (records?.isNotEmpty == true) {
         // Prepare listener operations
         if (listener.isNotEmpty) {
-          var listener = this.listener.getStore(store.ref);
+          var listener = this.listener.getStore(store);
           if (listener != null) {
-            listenerOperations.add(StoreListenerOperation(
-                listener,
-                records
-                    .map((record) => record.record)
-                    .toList(growable: false)));
+            listenerOperations
+                .add(StoreListenerOperation(listener, storeContent));
           }
         }
-
-        txnRecords.addAll(records);
       }
     }
+
+    txnRecords.addAll(content._records);
 
     var commitData = CommitData()
       ..listenerOperations = listenerOperations
@@ -387,13 +442,6 @@ class SembastDatabase extends Object
           }
         }
         await _storage.appendLines(lines);
-      } else if (_storageJdb != null) {
-        var entries = <JdbWriteEntry>[];
-        for (var record in txnRecords) {
-          var entry = JdbWriteEntry()..txnRecord = record;
-          entries.add(entry);
-        }
-        await _storageJdb.addEntries(entries);
       }
     }
   }
@@ -766,7 +814,7 @@ class SembastDatabase extends Object
         }
 
         // create _exportStat
-        if (_storage?.supported ?? false) {
+        if (_storageBase?.supported ?? false) {
           _exportStat = DatabaseExportStat();
         }
         await _findOrCreate();
@@ -778,8 +826,6 @@ class SembastDatabase extends Object
           _checkMainStore();
 
           if (_storage?.supported ?? false) {
-            _exportStat = DatabaseExportStat();
-
             //bool needCompact = false;
             var corrupted = false;
 
@@ -913,68 +959,111 @@ class SembastDatabase extends Object
 
   /// Full import - must be in transaction
   Future jdbFullImport() async {
+    /// read revision before.
     _jdbRevision = await _storageJdb.getRevision();
     await for (var entry in _storageJdb.entries) {
       var record = ImmutableSembastRecordJdb(entry.record, entry.value,
           deleted: entry.deleted, revision: entry.id);
+      _exportStat.lineCount++;
       // Make it fast
+      if (entry.deleted ?? false) {
+        _exportStat.obsoleteLineCount++;
+      }
       loadRecord(record);
     }
   }
 
   /// Delta import. Must not be in a transaction
   Future jdbDeltaImport(int revision) async {
-    var allStores = <StoreRef, Map<dynamic, ImmutableSembastRecordJdb>>{};
-    await transaction((txn) async {
-      var minRevision = _jdbRevision ?? 0;
+    var result = await transaction((txn) async {
+      return await txnJdbDeltaImport(revision);
+    });
 
+    if (listener.isNotEmpty) {
+      if (result.delta && (result.content.isNotEmpty)) {
+        /// Prepare listener
+        var listenerOperations = <StoreListenerOperation>[];
+
+        result.content.stores.forEach((content) {
+          // Prepare listener operations
+
+          var listener = this.listener.getStore(content.store);
+          if (listener != null) {
+            listenerOperations.add(StoreListenerOperation(listener, content));
+          }
+
+          //txnRecords.addAll(records);
+        });
+
+        // Notify if needed, done lazily
+        // devPrint(listenerOperations);
+        if (listenerOperations.isNotEmpty == true) {
+          notifyQueryListeners(listenerOperations);
+        }
+        notifyLazyListeners();
+      } else {
+        // A full import was done, re-run all queries
+        for (var store in listener.stores) {
+          var storeListener = listener.getStore(store);
+          storeListener.restart();
+        }
+      }
+    }
+  }
+
+  /// Delta import. Must be in a transaction
+  Future<JdbImportResult> txnJdbDeltaImport(int revision) async {
+    // All modifications
+    var content = TxnDatabaseContent();
+    bool delta;
+    var minRevision = _jdbRevision ?? 0;
+    var deltaMinRevision = await _storageJdb.getDeltaMinRevision();
+
+    if (minRevision >= deltaMinRevision) {
+      delta = true;
       var entries = await _storageJdb.getEntriesAfter(minRevision ?? 0);
-      // devPrint('delta import $entries');
+      // devPrint('delta import $entries $revision');
       if (!_closed) {
         for (var entry in entries) {
-          var record = ImmutableSembastRecordJdb(entry.record, entry.value,
-              deleted: entry.deleted, revision: entry.id);
-          var store = entry.record.store;
-          Map<dynamic, ImmutableSembastRecordJdb> map;
-          map = allStores[store];
-          if (map == null) {
-            allStores[store] = map = <dynamic, ImmutableSembastRecordJdb>{};
-          }
-          // devPrint('Loading $record');
-          if (loadRecordJdb(record)) {
-            map[record.key] = record;
-          } else {
-            // devPrint('not loaded $record');
+          // skip transaction empry record
+          if (entry.record != null) {
+            var record = ImmutableSembastRecordJdb(entry.record, entry.value,
+                deleted: entry.deleted, revision: entry.id);
+
+            if (jdbDeltaLoadRecord(record)) {
+              // Ignore already added/old record
+              content.add(record);
+            }
           }
         }
         _jdbRevision = revision;
       }
-    });
-
-    if (allStores.isNotEmpty) {
-      /// Prepare listener
-      var listenerOperations = <StoreListenerOperation>[];
-
-      allStores.forEach((store, list) {
-        // Prepare listener operations
-        if (listener.isNotEmpty) {
-          var listener = this.listener.getStore(store);
-          if (listener != null) {
-            listenerOperations.add(StoreListenerOperation(
-                listener, list.values.toList(growable: false)));
-          }
+    } else {
+      delta = false;
+      _exportStat = DatabaseExportStat();
+      var records = <ImmutableSembastRecordJdb>[];
+      await for (var entry in _storageJdb.entries) {
+        var record = ImmutableSembastRecordJdb(entry.record, entry.value,
+            deleted: entry.deleted, revision: entry.id);
+        _exportStat.lineCount++;
+        // Make it fast
+        if (entry.deleted ?? false) {
+          _exportStat.obsoleteLineCount++;
         }
-
-        //txnRecords.addAll(records);
-      });
-
-      // Notify if needed, done lazily
-      // devPrint(listenerOperations);
-      if (listenerOperations.isNotEmpty == true) {
-        notifyQueryListeners(listenerOperations);
+        records.add(record);
+        // Always add
+        content.add(record);
       }
-      notifyLazyListeners();
+
+      // Synchronous reload
+      for (var store in stores) {
+        (store as SembastStore).recordMap.clear();
+      }
+      for (var record in records) {
+        loadRecord(record);
+      }
     }
+    return JdbImportResult(delta: delta, content: content);
   }
 
   /// To call when in a databaseLock
@@ -1093,89 +1182,129 @@ class SembastDatabase extends Object
     CommitData commitData;
 
     final upgrading = _upgrading;
-    return transactionLock.synchronized(() async {
-      _transaction = SembastTransaction(this, ++_txnId);
-      // To handle dropped stores
-      _txnDroppedStores.clear();
 
-      void _transactionCleanUp() {
-        // Mark transaction complete, ignore error
-        _transaction.completer.complete();
-
-        // Compatibility remove transaction
-        _transaction = null;
+    /// For jdb only
+    var reloadData = false;
+    StorageJdbWriteResult jdbIncrementRevisionStatus;
+    T result;
+    do {
+      if (reloadData) {
+        await transactionLock.synchronized(() async {
+          await txnJdbDeltaImport(jdbIncrementRevisionStatus.revision);
+        });
+        reloadData = false;
       }
+      result = await transactionLock.synchronized(() async {
+        _transaction = SembastTransaction(this, ++_txnId);
+        // To handle dropped stores
 
-      T actionResult;
+        void _transactionCleanUp() {
+          _clearTxnData();
+          // Mark transaction complete, ignore error
+          _transaction?.completer?.complete();
 
-      try {
-        actionResult = await Future<T>.sync(() => action(_transaction));
-        commitData = commitInMemory();
-      } catch (e) {
-        _clearTxnData();
-        _transactionCleanUp();
-        rethrow;
-      } finally {
-        if (_storageBase.supported) {
-          final hasRecords = commitData?.txnRecords?.isNotEmpty == true;
+          // Compatibility remove transaction
+          _transaction = null;
+        }
 
-          if (hasRecords || upgrading) {
-            Future postTransaction() async {
-              // spawn commit if needed
-              // storagage commit and compacting is done lazily
+        T actionResult;
 
-              //
-              // Write meta when upgrading, write before the records!
-              //
-              if (upgrading) {
-                if (_storage != null) {
+        try {
+          // devPrint('transaction ${jdbRevision}');
+          actionResult = await Future<T>.sync(() => action(_transaction));
+
+          // Commit directly on jdb to handle transaction changes
+          if (storageJdb != null) {
+            var commitEntries = _txnBuildCommitEntries();
+
+            /// Replay the transaction if something has changed
+            if (commitEntries.hasWriteData || commitEntries.upgrading) {
+              // Build Entries
+              var entries = <JdbWriteEntry>[];
+              for (var record in commitEntries.txnRecords) {
+                var entry = JdbWriteEntry()..txnRecord = record;
+                entries.add(entry);
+              }
+              var query = StorageJdbWriteQuery(
+                  revision: commitEntries.revision,
+                  entries: entries,
+                  infoEntries: upgrading
+                      ? [getMetaInfoEntry(commitEntries.upgradingMeta)]
+                      : null);
+
+              /// Commit to storage now
+              var status = await storageJdb.writeIfRevision(query);
+              // devPrint(status);
+              if (!status.success) {
+                reloadData = true;
+                jdbIncrementRevisionStatus = status;
+                _transactionCleanUp();
+              } else {
+                _jdbRevision = status.revision;
+              }
+            }
+          }
+          commitData = commitInMemory();
+        } catch (e) {
+          _transactionCleanUp();
+          rethrow;
+        } finally {
+          // fs storage only
+          if (_storage?.supported ?? false) {
+            final hasRecords = commitData?.txnRecords?.isNotEmpty == true;
+
+            if (hasRecords || upgrading) {
+              Future postTransaction() async {
+                // spawn commit if needed
+                // storagage commit and compacting is done lazily
+
+                //
+                // Write meta when upgrading, write before the records!
+                //
+                if (upgrading) {
                   await _storage
                       .appendLine(json.encode(_upgradingMeta.toMap()));
                   _exportStat.lineCount++;
-                } else if (_storageJdb != null) {
-                  await _storageJdb.writeMeta(_upgradingMeta.toMap());
+                }
+                if (commitData?.txnRecords?.isNotEmpty == true) {
+                  await storageCommitRecords(commitData.txnRecords);
+                }
+
+                // devPrint('needCompact $_needCompact $_exportStat');
+
+                // Check compaction if records were changed only
+                // Lazy compact!
+                if (!_upgrading && _needCompact) {
+                  await txnCompact();
                 }
               }
-              if (commitData?.txnRecords?.isNotEmpty == true) {
-                await storageCommitRecords(commitData.txnRecords);
+
+              if (upgrading) {
+                await postTransaction();
+              } else {
+                lazyStorageOperations.add(postTransaction);
               }
-
-              // devPrint('needCompact $_needCompact $_exportStat');
-
-              // Check compaction if records were changed only
-              // Lazy compact!
-              if (!_upgrading && _needCompact) {
-                await txnCompact();
-              }
-            }
-
-            if (upgrading) {
-              await postTransaction();
-            } else {
-              lazyStorageOperations.add(postTransaction);
             }
           }
         }
-      }
 
-      // Notify if needed, done lazily
-      if (commitData?.listenerOperations?.isNotEmpty == true) {
-        notifyQueryListeners(commitData.listenerOperations);
-      }
+        // Notify if needed, done lazily
+        if (commitData?.listenerOperations?.isNotEmpty == true) {
+          notifyQueryListeners(commitData.listenerOperations);
+        }
+        _transactionCleanUp();
 
-      _clearTxnData();
+        return actionResult;
+      }).whenComplete(() async {
+        notifyLazyListeners();
 
-      _transactionCleanUp();
-
-      return actionResult;
-    }).whenComplete(() async {
-      notifyLazyListeners();
-
-      if (!upgrading) {
-        // trigger lazy operation
-        await databaseOperation(null);
-      }
-    });
+        if (!upgrading) {
+          // trigger lazy operation
+          await databaseOperation(null);
+        }
+      });
+    } while (reloadData);
+    return result;
   }
 
   /// Lazily notify listeners
@@ -1254,56 +1383,101 @@ class SembastDatabase extends Object
       _openTransaction as SembastTransaction;
 
   /// Notifify queryListeners
-  void notifyQueryListeners(List<StoreListenerOperation> listenerOperations) {
+  void notifyQueryListeners(List<StoreListenerOperation> listenerOperations,
+      {bool full}) {
+    if (listenerOperations?.isEmpty ?? true) {
+      return;
+    }
+    full ??= false;
+
     lazyListenerOperations.add(() async {
       for (var operation in listenerOperations) {
-        // records
-        for (var record in operation.txnRecords) {
-          var ctlrs = operation.listener.getRecord(record.ref);
-          if (ctlrs != null) {
+        if (full) {
+          if (debugListener) {
+            print('full import listeners none');
+          }
+          /*
+          // records, synchronous
+          var store = operation.store;
+          var keys = operation.listener.recordKeys;
+          for (var key in keys) {
+            var record = store.record(key);
+            var ctlrs = operation.listener.getRecordControllers(record);
             for (var ctlr in ctlrs) {
-              void _updateRecord() {
-                if (debugListener) {
-                  print('updating $ctlr: with ${record}');
-                }
-                if (!record.deleted) {
-                  ctlr.add(record);
-                } else {
-                  ctlr.add(null);
-                }
-              }
-
-              if (ctlr.hasInitialData) {
-                // devPrint('adding $record');
-                _updateRecord();
-              } else {
-                // postpone
-                // ignore: unawaited_futures
-                notificationLock.synchronized(() async {
-                  _updateRecord();
-                });
-              }
+              ctlr.add(operation.content.record(key));
             }
           }
-        }
-        // Fix existing queries
-        for (var query in List<QueryListenerController>.from(
-            operation.listener.getQuery())) {
-          Future _updateQuery() async {
-            if (debugListener) {
-              print('updating $query: with ${operation.txnRecords}');
+          // store, async
+          // Fix existing queries
+          for (var query in List<QueryListenerController>.from(
+              operation.listener.getQuery())) {
+            Future _updateQuery() async {
+              if (debugListener) {
+                print('updating $query: with ${operation.content.records}');
+              }
+              await query.update(operation.content.records, cooperator);
             }
-            await query.update(operation.txnRecords, cooperator);
-          }
 
-          if (query.hasInitialData) {
-            await _updateQuery();
-          } else {
-            // postpone
-            // ignore: unawaited_futures
-            notificationLock.synchronized(() async {
+            if (query.hasInitialData) {
               await _updateQuery();
-            });
+            } else {
+              // postpone
+              // ignore: unawaited_futures
+              notificationLock.synchronized(() async {
+                await _updateQuery();
+              });
+            }
+          }
+           */
+
+        } else {
+          for (var record in operation.content.records) {
+            var ctlrs = operation.listener.getRecordControllers(record.ref);
+            if (ctlrs != null) {
+              for (var ctlr in ctlrs) {
+                void _updateRecord() {
+                  if (debugListener) {
+                    print('updating $ctlr: with ${record}');
+                  }
+                  if (!record.deleted) {
+                    ctlr.add(record);
+                  } else {
+                    ctlr.add(null);
+                  }
+                }
+
+                if (ctlr.hasInitialData) {
+                  // devPrint('adding $record');
+                  _updateRecord();
+                } else {
+                  // postpone
+                  // ignore: unawaited_futures
+                  notificationLock.synchronized(() async {
+                    _updateRecord();
+                  });
+                }
+              }
+            }
+          }
+          // Fix existing queries
+          for (var query in List<QueryListenerController>.from(
+              operation.listener.getQuery())) {
+            Future _updateQuery() async {
+              if (debugListener) {
+                print('updating $query: with ${operation.content.records}');
+              }
+              await query.update(operation.content.records, cooperator);
+            }
+
+            if (query.hasInitialData) {
+              await _updateQuery();
+            } else {
+              // postpone
+              // ignore: unawaited_futures
+              notificationLock.synchronized(() async {
+                await _updateQuery();
+              });
+            }
           }
         }
       }
@@ -1354,4 +1528,103 @@ class DatabaseExportStat {
 
   @override
   String toString() => toJson().toString();
+}
+
+/// Store content.
+class StoreContent {
+  /// Store ref.
+  final StoreRef store;
+
+  /// Record with key.
+  final _map = <dynamic, ImmutableSembastRecord>{};
+
+  /// Store content.
+  StoreContent(this.store);
+
+  /// All records.
+  Iterable<ImmutableSembastRecord> get records => _map.values;
+
+  /// Add all records.
+  void addAll(Iterable<ImmutableSembastRecord> records) {
+    for (var record in records) {
+      add(record);
+    }
+  }
+
+  /// Add a single record.
+  void add(ImmutableSembastRecord record) {
+    _map[record.key] = record;
+  }
+
+  /// Get a single record.
+  ImmutableSembastRecord record(key) => _map[key];
+
+  @override
+  String toString() => '${store.name} ${records.length}';
+}
+
+/// Database content in a transaction.
+class TxnDatabaseContent extends DatabaseContent {
+  final _records = <TxnRecord>[];
+
+  /// Add a transaction record.
+  void addRecord(TxnRecord record) {
+    _records.add(record);
+    add(record.record);
+  }
+
+  /// Add transaction records for a give store
+  void addStoreRecords(StoreRef store, Iterable<TxnRecord> records) {
+    addStore(store).addAll(records.map((record) => record.record));
+    _records.addAll(records);
+  }
+}
+
+/// Database content.
+class DatabaseContent {
+  final _map = <StoreRef, StoreContent>{};
+
+  /// true if at least one store.
+  bool get isNotEmpty => _map.isNotEmpty;
+
+  /// All stores.
+  Iterable<StoreContent> get stores => _map.values;
+
+  /// Add all records.
+  void addAll(Iterable<ImmutableSembastRecord> records) {
+    for (var record in records) {
+      add(record);
+    }
+  }
+
+  /// Add a single record.
+  void add(ImmutableSembastRecord record) {
+    var store = record.ref.store;
+    var content = addStore(store);
+    content.add(record);
+  }
+
+  /// Add a store.
+  StoreContent addStore(StoreRef store) {
+    var content = _map[store] ??= StoreContent(store);
+    return content;
+  }
+
+  /// A given existing store.
+  StoreContent store(StoreRef store) => _map[store];
+
+  @override
+  String toString() => '$stores';
+}
+
+/// Import result.
+class JdbImportResult {
+  /// True if delta import.
+  final bool delta;
+
+  /// Only for delta import.
+  final TxnDatabaseContent content;
+
+  /// Import result.
+  JdbImportResult({@required this.delta, this.content});
 }

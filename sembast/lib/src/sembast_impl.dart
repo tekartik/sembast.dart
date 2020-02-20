@@ -26,3 +26,9 @@ const String dbMainStore = '_main'; // main store name;
 
 /// Main store reference.
 final mainStoreRef = StoreRef<dynamic, dynamic>(dbMainStore);
+
+/// Jdb revision.
+const String jdbRevisionKey = 'revision';
+
+/// Jdb delta min revision.
+const String jdbDeltaMinRevisionKey = 'deltaMinRevision';

@@ -58,29 +58,40 @@ void main() {
       expect(key, 1);
       expect(jdb.toDebugMap(), {
         'entries': [
-          {'id': 1, 'store': '_main', 'key': 1, 'value': 'test'}
+          {
+            'id': 1,
+            'value': {'key': 1, 'value': 'test'}
+          }
         ],
         'infos': [
+          {'id': '_main_store_last_id', 'value': 1},
           {
             'id': 'meta',
             'value': {'version': 1, 'sembast': 1}
           },
-          {'id': '_main_store_last_id', 'value': 1}
+          {'id': 'revision', 'value': 1}
         ]
       });
       key = await store.add(db, 'test');
       expect(key, 2);
       expect(jdb.toDebugMap(), {
         'entries': [
-          {'id': 1, 'store': '_main', 'key': 1, 'value': 'test'},
-          {'id': 2, 'store': '_main', 'key': 2, 'value': 'test'}
+          {
+            'id': 1,
+            'value': {'key': 1, 'value': 'test'}
+          },
+          {
+            'id': 2,
+            'value': {'key': 2, 'value': 'test'}
+          }
         ],
         'infos': [
+          {'id': '_main_store_last_id', 'value': 2},
           {
             'id': 'meta',
             'value': {'version': 1, 'sembast': 1}
           },
-          {'id': '_main_store_last_id', 'value': 2}
+          {'id': 'revision', 'value': 2}
         ]
       });
 
@@ -99,29 +110,59 @@ void main() {
           }
         ]
       });
+      // Raw entry adding
       await jdb.addEntries([JdbWriteEntryMock(id: 1, key: 1, value: 'test')]);
       await jdb.setInfoEntry(JdbInfoEntry()
         ..id = '_main_store_last_id'
         ..value = 1);
+      await jdb.setInfoEntry(JdbInfoEntry()
+        ..id = 'revision'
+        ..value = 1);
       expect(jdb.toDebugMap(), {
         'entries': [
-          {'id': 1, 'store': '_main', 'key': 1, 'value': 'test'}
+          {
+            'id': 1,
+            'value': {'key': 1, 'value': 'test'}
+          }
         ],
         'infos': [
+          {'id': '_main_store_last_id', 'value': 1},
           {
             'id': 'meta',
             'value': {'version': 1, 'sembast': 1}
           },
-          {'id': '_main_store_last_id', 'value': 1}
+          {'id': 'revision', 'value': 1}
         ]
       });
       var store = StoreRef<int, String>.main();
       var record1 = store.record(1);
       expect(await record1.get(db), isNull);
 
+      // Add should trigger a reload
+      // Its key will be +1 twice since a reload happens
       var key = await store.add(db, 'test');
-      expect(key, 2);
-      expect(await record1.get(db), isNull);
+      expect(jdb.toDebugMap(), {
+        'entries': [
+          {
+            'id': 1,
+            'value': {'key': 1, 'value': 'test'}
+          },
+          {
+            'id': 2,
+            'value': {'key': 3, 'value': 'test'}
+          }
+        ],
+        'infos': [
+          {'id': '_main_store_last_id', 'value': 3},
+          {
+            'id': 'meta',
+            'value': {'version': 1, 'sembast': 1}
+          },
+          {'id': 'revision', 'value': 2}
+        ]
+      });
+      expect(key, 3);
+      expect(await record1.get(db), 'test');
 
       //TODO
       ////devPrint('2 ${await record1.onSnapshot(db).first}');
@@ -129,6 +170,14 @@ void main() {
       expect(await store.record(1).get(db), isNotNull);
 
       await db.close();
+    });
+
+    test('jdbDatabase', () async {
+      await ctx.jdbFactory.delete('test');
+      var db = (await ctx.jdbFactory.open('test')) as JdbDatabaseMemory;
+      expect(await db.getRevision(), 0);
+
+      db.close();
     });
   });
 }

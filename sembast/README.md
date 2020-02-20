@@ -11,9 +11,11 @@ Yet another NoSQL persistent store database solution for single process io appli
 The whole document based database resides in a single file and is loaded in memory when opened. Changes are appended right away to the 
 file and the file is automatically compacted when needed.
 
-Works on Dart VM and Flutter (no plugin needed, 100% Dart). Inspired from IndexedDB, DataStore, WebSql, NeDB, Lawndart...
+Works on Dart VM and Flutter (no plugin needed, 100% Dart so works on all platforms - MacOS/Android/iOS/Linux/Windows). Inspired from IndexedDB, DataStore, WebSql, NeDB, Lawndart...
 
 Supports encryption using user-defined codec.
+
+Web support through `sembast_web`(https://pub.dev/packages/sembast_web)
 
 ## Usage
 

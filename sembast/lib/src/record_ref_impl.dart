@@ -7,6 +7,7 @@ import 'package:sembast/src/api/v2/sembast.dart' as v2;
 import 'package:sembast/src/common_import.dart';
 import 'package:sembast/src/database_client_impl.dart';
 import 'package:sembast/src/database_impl.dart';
+import 'package:sembast/src/debug_utils.dart';
 import 'package:sembast/src/listener.dart';
 import 'package:sembast/src/record_snapshot_impl.dart';
 import 'package:sembast/src/utils.dart';

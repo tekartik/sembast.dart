@@ -2,7 +2,6 @@ library sembast.test_runner;
 
 import 'database_codec_test.dart' as database_codec_test;
 import 'database_format_test.dart' as database_format_test;
-import 'store_api_test.dart' as store_api_test;
 import 'test_common.dart';
 
 // default use memory
@@ -17,5 +16,5 @@ void defineFileSystemTests(FileSystemTestContext ctx) {
 }
 
 void defineTests(DatabaseTestContext ctx) {
-  store_api_test.defineTests(ctx);
+// store_api_test.defineTests(ctx);
 }

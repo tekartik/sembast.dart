@@ -108,7 +108,7 @@ mixin StoreRefMixin<K, V> implements StoreRef<K, V> {
     }
   }
 
-  // Find immutables records
+  /// Find immutables records.
   Future<List<ImmutableSembastRecord>> findImmutableRecords(
       DatabaseClient databaseClient,
       {Finder finder}) async {

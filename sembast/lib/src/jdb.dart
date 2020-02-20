@@ -2,6 +2,7 @@ library sembast.jdb;
 
 import 'dart:async';
 
+import 'package:sembast/src/api/protected/jdb.dart';
 import 'package:sembast/src/record_impl.dart';
 
 import 'api/v2/sembast.dart';
@@ -24,7 +25,7 @@ class JdbInfoEntry {
   String toString() => '[$id] $value';
 
   /// Debug map.
-  Map<String, dynamic> toDebugMap() {
+  Map<String, dynamic> exportToMap() {
     var map = <String, dynamic>{
       'id': id,
       'value': value,
@@ -84,11 +85,25 @@ class JdbWriteEntry extends JdbEntry {
   /// value.
   @override
   dynamic get value => _value ??= txnRecord.record.value;
+
   @override
   String toString() => '[$id] $record $value';
 
   @override
   bool get deleted => txnRecord.deleted;
+}
+
+/// Raw entry.
+class JdbRawWriteEntry extends JdbWriteEntry {
+  @override
+  final dynamic value;
+  @override
+  final bool deleted;
+  @override
+  final RecordRef record;
+
+  /// Raw entry.
+  JdbRawWriteEntry({this.value, this.deleted, this.record});
 }
 
 /// Jdb.
@@ -122,6 +137,21 @@ abstract class JdbDatabase {
 
   /// Close the database
   void close();
+
+  /// Safe transaction write of multiple infos.
+  Future<StorageJdbWriteResult> writeIfRevision(StorageJdbWriteQuery query);
+
+  /// Read all context (re-open if needed). Test only.
+  Future<Map<String, dynamic>> exportToMap();
+
+  /// Compact the database
+  Future compact();
+
+  /// Delta min revision
+  Future<int> getDeltaMinRevision();
+
+  /// Clear all data (testing only)
+  Future clearAll();
 }
 
 /// Jdb implementation.

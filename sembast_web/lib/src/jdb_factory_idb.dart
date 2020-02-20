@@ -4,8 +4,10 @@ import 'package:idb_shim/idb_client_memory.dart';
 import 'package:idb_shim/idb_shim.dart';
 import 'package:idb_shim/idb_shim.dart' as idb;
 import 'package:sembast/sembast.dart';
+//import 'package:sembast/src/storage.dart';
 import 'package:sembast_web/src/constant_import.dart';
 import 'package:sembast_web/src/jdb_import.dart' as jdb;
+import 'package:sembast_web/src/jdb_import.dart';
 import 'package:sembast_web/src/sembast_import.dart';
 import 'package:sembast_web/src/web_defs.dart';
 
@@ -20,7 +22,7 @@ const _valuePath = dbRecordValueKey;
 const _deletedPath = dbRecordDeletedKey;
 
 /// last entry id inserted
-const _revisionKey = 'revision';
+const _revisionKey = jdbRevisionKey;
 
 /// In memory jdb.
 class JdbFactoryIdb implements jdb.JdbFactory {
@@ -46,10 +48,12 @@ class JdbFactoryIdb implements jdb.JdbFactory {
         print('[idb-$id] migrating ${event.oldVersion} -> ${event.newVersion}');
       }
       var db = event.database;
-      db.createObjectStore(_infoStore);
-      var entryStore = db.createObjectStore(_entryStore, autoIncrement: true);
-      entryStore.createIndex(_recordIndex, [_storePath, _keyPath]);
-      entryStore.createIndex(_deletedIndex, _deletedPath, multiEntry: true);
+      if (event.oldVersion < 2) {
+        db.createObjectStore(_infoStore);
+        var entryStore = db.createObjectStore(_entryStore, autoIncrement: true);
+        entryStore.createIndex(_recordIndex, [_storePath, _keyPath]);
+        entryStore.createIndex(_deletedIndex, _deletedPath, multiEntry: true);
+      }
     });
     if (iDb != null) {
       var db = JdbDatabaseIdb(this, iDb, id, path);
@@ -79,6 +83,7 @@ class JdbFactoryIdb implements jdb.JdbFactory {
         checkAllClosed();
       }
       await idbFactory.deleteDatabase(path);
+      notifyRevision(StorageRevision(path, null));
       if (_debug) {
         print('[idb] deleted $path');
       }
@@ -144,7 +149,8 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
       ..id = cwv.key as int
       ..record = StoreRef(map[_storePath] as String).record(map[_keyPath])
       ..value = map[_valuePath]
-      ..deleted = map[_deletedPath] as bool;
+      // Deleted is an int
+      ..deleted = map[_deletedPath] == 1;
     return entry;
   }
 
@@ -203,11 +209,13 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
 
   @override
   Future<jdb.JdbInfoEntry> getInfoEntry(String id) async {
-    var info = await _idbDatabase
-        .transaction(_infoStore, idbModeReadOnly)
-        .objectStore(_infoStore)
-        .getObject(id);
+    var txn = _idbDatabase.transaction(_infoStore, idbModeReadOnly);
+    return _txnGetInfoEntry(txn, id);
+  }
 
+  Future<jdb.JdbInfoEntry> _txnGetInfoEntry(
+      idb.Transaction txn, String id) async {
+    var info = await txn.objectStore(_infoStore).getObject(id);
     return jdb.JdbInfoEntry()
       ..id = id
       ..value = info;
@@ -216,16 +224,46 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
   @override
   Future setInfoEntry(jdb.JdbInfoEntry entry) async {
     var txn = _idbDatabase.transaction(_infoStore, idbModeReadWrite);
+    await _txnSetInfoEntry(txn, entry);
+    await txn.completed;
+  }
+
+  Future _txnSetInfoEntry(idb.Transaction txn, jdb.JdbInfoEntry entry) async {
     await txn.objectStore(_infoStore).put(entry.value, entry.id);
-    // await txn.completed;
   }
 
   @override
   Future addEntries(List<jdb.JdbWriteEntry> entries) async {
     var txn =
         _idbDatabase.transaction([_entryStore, _infoStore], idbModeReadWrite);
-    var objectStore = txn.objectStore(_entryStore);
+    // var lastEntryId =
+    await _txnAddEntries(txn, entries);
+    await txn.completed;
+
+    /*
+    don't notify - this is mainly for testing
+     */
+  }
+
+  Future _txnPutRevision(idb.Transaction txn, int revision) async {
     var infoStore = txn.objectStore(_infoStore);
+    await infoStore.put(revision, _revisionKey);
+  }
+
+  Future _txnPutDeltaMinRevision(idb.Transaction txn, int revision) async {
+    var infoStore = txn.objectStore(_infoStore);
+    await infoStore.put(revision, jdbDeltaMinRevisionKey);
+  }
+
+  Future<int> _txnGetRevision(idb.Transaction txn) async {
+    var infoStore = txn.objectStore(_infoStore);
+    return (await infoStore.getObject(_revisionKey)) as int;
+  }
+
+  // Return the last entryId
+  Future<int> _txnAddEntries(
+      idb.Transaction txn, List<jdb.JdbWriteEntry> entries) async {
+    var objectStore = txn.objectStore(_entryStore);
     var index = objectStore.index(_recordIndex);
     int lastEntryId;
     for (var jdbWriteEntry in entries) {
@@ -244,7 +282,7 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
         _storePath: store,
         _keyPath: key,
         _valuePath: jdbWriteEntry.value,
-        if (jdbWriteEntry.deleted ?? false) _deletedPath: true
+        if (jdbWriteEntry.deleted ?? false) _deletedPath: 1
       })) as int;
       // Save the revision in memory!
       jdbWriteEntry?.txnRecord?.record?.revision = lastEntryId;
@@ -252,14 +290,8 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
         print('$_debugPrefix added entry $lastEntryId $jdbWriteEntry');
       }
     }
-    if (lastEntryId != null) {
-      await infoStore.put(lastEntryId, _revisionKey);
-    }
-    await txn.completed;
-    // notify through storage
-    if (lastEntryId != null) {
-      notifyRevision(lastEntryId);
-    }
+
+    return lastEntryId;
   }
 
   /// Notify other clients of the new revision
@@ -294,6 +326,7 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
       keys.add(lastId);
     }
     await infoStore.put(lastId, infoKey);
+    await txn.completed;
     return keys;
   }
 
@@ -313,6 +346,7 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
       }
       keys.add(key);
     }
+    await txn.completed;
     return keys;
   }
 
@@ -350,6 +384,118 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
   /// Will notify.
   void addRevision(int revision) {
     _revisionUpdateController.add(revision);
+  }
+
+  @override
+  Future<StorageJdbWriteResult> writeIfRevision(
+      StorageJdbWriteQuery query) async {
+    var txn =
+        _idbDatabase.transaction([_infoStore, _entryStore], idbModeReadWrite);
+
+    var expectedRevision = query.revision ?? 0;
+    var readRevision = (await _txnGetRevision(txn)) ?? 0;
+    var success = (expectedRevision == readRevision);
+
+    // Notify for the web
+    int shouldNotifyRevision;
+
+    if (success) {
+      if (query.entries?.isNotEmpty ?? false) {
+        readRevision = await _txnAddEntries(txn, query.entries);
+        // Set revision info
+        if (readRevision != null) {
+          await _txnPutRevision(txn, readRevision);
+          shouldNotifyRevision = readRevision;
+        }
+      }
+      if (query.infoEntries?.isNotEmpty ?? false) {
+        for (var infoEntry in query.infoEntries) {
+          await _txnSetInfoEntry(txn, infoEntry);
+        }
+      }
+    }
+    await txn.completed;
+    if (shouldNotifyRevision != null) {
+      notifyRevision(shouldNotifyRevision);
+    }
+    return StorageJdbWriteResult(
+        revision: readRevision, query: query, success: success);
+  }
+
+  @override
+  Future<Map<String, dynamic>> exportToMap() async {
+    var txn =
+        _idbDatabase.transaction([_infoStore, _entryStore], idbModeReadOnly);
+    var map = <String, dynamic>{};
+    map['infos'] = await _txnStoreToDebugMap(txn, _infoStore);
+    map['entries'] = await _txnStoreToDebugMap(txn, _entryStore);
+
+    return map;
+  }
+
+  Future<List<Map<String, dynamic>>> _txnStoreToDebugMap(
+      idb.Transaction txn, String name) async {
+    var list = <Map<String, dynamic>>[];
+    var store = txn.objectStore(name);
+    await store.openCursor(autoAdvance: true).listen((cwv) {
+      dynamic value = cwv.value;
+
+      if (value is Map) {
+        // hack to remove the store when testing
+        if (value[_storePath] == '_main') {
+          value = Map.from(value as Map)..remove('store');
+        }
+        // Hack to change deleted from 1 to true
+        if (value[_deletedPath] == 1) {
+          value = Map.from(value as Map)..[_deletedPath] = true;
+        }
+      }
+      list.add(<String, dynamic>{'id': cwv.key, 'value': value});
+    }).asFuture();
+    return list;
+  }
+
+  @override
+  Future compact() async {
+    var txn =
+        _idbDatabase.transaction([_infoStore, _entryStore], idbModeReadWrite);
+    var deltaMinRevision = await _txnGetDeltaMinRevision(txn);
+    var currentRevision = await _txnGetRevision(txn);
+    var newDeltaMinRevision = deltaMinRevision;
+    var deleteIndex = txn.objectStore(_entryStore).index(_deletedIndex);
+    await deleteIndex.openCursor(autoAdvance: true).listen((cwv) {
+      assert(cwv.key is int);
+      var revision = cwv.primaryKey as int;
+      if (revision > newDeltaMinRevision && revision <= currentRevision) {
+        newDeltaMinRevision = revision;
+        cwv.delete();
+      }
+    }).asFuture();
+    // devPrint('compact $newDeltaMinRevision vs $deltaMinRevision, $currentRevision');
+    if (newDeltaMinRevision > deltaMinRevision) {
+      await _txnPutDeltaMinRevision(txn, newDeltaMinRevision);
+    }
+    await txn.completed;
+  }
+
+  @override
+  Future<int> getDeltaMinRevision() async {
+    return (await getInfoEntry(jdbDeltaMinRevisionKey))?.value as int ?? 0;
+  }
+
+  Future<int> _txnGetDeltaMinRevision(idb.Transaction txn) async {
+    return (await txn.objectStore(_infoStore).getObject(jdbDeltaMinRevisionKey))
+            as int ??
+        0;
+  }
+
+  @override
+  Future clearAll() async {
+    var txn =
+        _idbDatabase.transaction([_infoStore, _entryStore], idbModeReadWrite);
+    await txn.objectStore(_infoStore).clear();
+    await txn.objectStore(_entryStore).clear();
+    await txn.completed;
   }
 }
 
