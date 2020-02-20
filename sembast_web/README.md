@@ -50,4 +50,6 @@ Future main() async {
 
 ## How it works
 
-Like sembast the whole database is loaded into memory.
+Like sembast the whole database is loaded into memory from indexeddb. It notifies cross tabs
+using localStorage. data is incrementally updated from indexeddb. If a transaction is ran after
+some changes happens, new data is loaded and transaction is ran again.
