@@ -42,7 +42,14 @@ Future main() async {
 
 ## Features and bugs
 
-* Experimental
+* Alpha
 * Use int or key string only
-* Transactions are not cross-tab safe
+* Transactions are cross-tab safe (since 0.1.0+4)
 * Codec are not supported. Web is not safe anyway. Encrypt fields as needed.
+* Transactions must be indempotent (i.e. they must produce the same result if run twice) as they might run again in case of
+
+## How it works
+
+Like sembast the whole database is loaded into memory from indexeddb. It notifies cross tabs
+using localStorage. data is incrementally updated from indexeddb. If a transaction is ran after
+some changes happens, new data is loaded and transaction is ran again.
