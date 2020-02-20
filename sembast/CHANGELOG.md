@@ -1,4 +1,4 @@
-## 2.2.0-dev.3
+## 2.2.0
 
 * Support for `sembast_web`
 
