@@ -15,7 +15,7 @@ Works on Dart VM and Flutter (no plugin needed, 100% Dart so works on all platfo
 
 Supports encryption using user-defined codec.
 
-Web support through `sembast_web`(https://pub.dev/packages/sembast_web)
+Web support through `sembast_web` (https://pub.dev/packages/sembast_web)
 
 ## Usage
 
