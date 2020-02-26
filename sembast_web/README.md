@@ -44,15 +44,15 @@ Future main() async {
 
 * Alpha
 * Use int or key string only
-* Content is synchronized accross all open tabs
+* Content is synchronized across all open tabs
 * Transactions are cross-tab safe (since 0.1.0+4)
 * Codec are not supported. Web is not safe anyway. Encrypt fields as needed.
-* Transactions must be indempotent (i.e. they must produce the same result if run twice) as they might run again in case of concurrent access.
+* Transactions must be idempotent (i.e. they must produce the same result if run twice) as they might run again in case of concurrent access.
 
 See a basic [sembast_web demo](https://github.com/alextekartik/flutter_app_example/tree/master/demosembast) on flutter.
 
 ## How it works
 
-Like sembast the whole database is loaded into memory from indexeddb. It notifies cross tabs
-using localStorage. data is incrementally updated from indexeddb. If a transaction is ran after
+Like sembast the whole database is loaded into memory from indexedDB. It notifies cross tabs
+using localStorage. data is incrementally updated from indexedDB. If a transaction is ran after
 some changes happens, new data is loaded and transaction is ran again.
