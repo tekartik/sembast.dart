@@ -37,6 +37,10 @@ var dbPath = join(dir.path, 'my_database.db');
 var db = await databaseFactoryIo.openDatabase(dbPath);
 ```
 
+### Flutter Web
+
+On flutter web, [`sembast_web`](https://pub.dev/packages/sembast_web) should be used.
+
 ## Database migration
 
 Like in some other databases (sqflite, indexed_db), the database has a version that the app can use to perform migrations

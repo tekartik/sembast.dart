@@ -1,6 +1,8 @@
 # Sembast for the web
 
-**Preview**: [sembast](https://pub.dev/packages/sembast) for the Web, NoSQL persistent embedded database for the Web on top of IndexedDB.
+[sembast](https://pub.dev/packages/sembast) for the Web, NoSQL persistent embedded database for the Web on top of IndexedDB.
+
+Works on browser applications and flutter web applications. See a basic [sembast_web demo](https://github.com/alextekartik/flutter_app_example/tree/master/demosembast) on flutter.
 
 ## Setup
 
@@ -8,7 +10,7 @@ In pubspec.yaml
 
 ```yaml
 dependencies:
-  sembast_web: '>=0.1.0'
+  sembast_web: '>=1.0.0'
 ```
 
 ## Usage
@@ -40,16 +42,18 @@ Future main() async {
 }
 ```
 
-## Features and bugs
+## Features and limitations
 
-* Alpha
 * Use int or key string only
+* Content is synchronized across all open tabs
 * Transactions are cross-tab safe (since 0.1.0+4)
 * Codec are not supported. Web is not safe anyway. Encrypt fields as needed.
-* Transactions must be indempotent (i.e. they must produce the same result if run twice) as they might run again in case of
+* Transactions must be idempotent (i.e. they must produce the same result if run twice) as they might run again in case of concurrent access.
 
 ## How it works
 
-Like sembast the whole database is loaded into memory from indexeddb. It notifies cross tabs
-using localStorage. data is incrementally updated from indexeddb. If a transaction is ran after
+Like sembast the whole database is loaded into memory from indexedDB. It notifies cross tabs
+using localStorage. data is incrementally updated from indexedDB. If a transaction is ran after
 some changes happens, new data is loaded and transaction is ran again.
+
+The only exported API is `databaseFactoryWeb`. For more information on the API see [sembast](https://pub.dev/packages/sembast) documentation.
