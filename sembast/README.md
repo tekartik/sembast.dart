@@ -188,35 +188,6 @@ Database db = await factory.openDatabase(dbPath, codec: codec);
 
 More information [here](https://github.com/tekartik/sembast.dart/blob/master/sembast/doc/codec.md).
 
-### idb_shim
-
-The project idb_shim provides a shim allowing accessing it using the IndexedDB api. The benefit is to be able to write the logic/synchronization part of the database layer and 
-test its algorithms using Dart VM and not Dartium
-
-```dart
-// Idb factory based on sembast
-var idbFactory = IdbSembastFactory(databaseFactoryIo);
-
-String store = "my_store";
-
-// Here the indexed db API can be used
-void _initializeDatabase(VersionChangeEvent e) {
-  Database db = e.database;
-  // create a store
-  ObjectStore objectStore = db.createObjectStore(store);
-}
-Database db = await idbFactory.open(dbPath, version: 1, onUpgradeNeeded: _initializeDatabase);
-
-Transaction transaction = db.transaction(store, IDB_MODE_READ_WRITE);
-ObjectStore objectStore = transaction.objectStore(store);
-
-// put and read on object
-await objectStore.put("value", "test");
-expect(await objectStore.getObject("test"), "value");
-
-await transaction.completed;
-```
-
 ## Information
 
 ### Storage format
@@ -251,6 +222,10 @@ Supported value types are:
 - List (`List<dynamic>`)
 - bool
 - `null`
+
+### Resources
+
+Third party examples and tutorials available are listed [here](https://github.com/tekartik/sembast.dart/blob/master/sembast/doc/resources.md).
 
 ## Build status
 
