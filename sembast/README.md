@@ -41,7 +41,7 @@ More information [here](https://github.com/tekartik/sembast.dart/blob/master/sem
 Simple example of writing and reading records
 
 ```dart
-// default store
+// dynamically typed store
 var store = StoreRef.main();
 // Easy to put/get simple values or map
 // A key can be of type int or String and the value can be anything as long as it can
