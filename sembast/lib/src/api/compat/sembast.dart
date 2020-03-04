@@ -7,7 +7,6 @@ import 'package:sembast/src/api/filter.dart';
 import 'package:sembast/src/api/finder.dart';
 import 'package:sembast/src/api/sembast.dart';
 
-export 'package:sembast/src/api/compat/database_mode.dart';
 export 'package:sembast/src/api/compat/finder.dart';
 export 'package:sembast/src/api/compat/record.dart';
 export 'package:sembast/src/api/compat/store.dart';
