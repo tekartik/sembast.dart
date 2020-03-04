@@ -23,7 +23,7 @@ import 'package:sembast/src/storage.dart';
 import 'package:sembast/src/store_impl.dart';
 import 'package:sembast/src/transaction_impl.dart';
 import 'package:synchronized/synchronized.dart';
-
+import 'package:sembast/src/api/compat/sembast.dart';
 // ignore_for_file: deprecated_member_use_from_same_package
 
 final bool _debugStorage = false; // devWarning(true);

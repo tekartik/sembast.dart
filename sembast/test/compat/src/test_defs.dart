@@ -5,6 +5,7 @@ library sembast.test.compat.src.test_defs;
 import 'dart:async';
 
 import 'package:sembast/sembast_memory.dart';
+import 'package:sembast/src/api/compat/sembast.dart';
 import 'package:sembast/src/database_factory_mixin.dart';
 import 'package:sembast/src/database_impl.dart';
 

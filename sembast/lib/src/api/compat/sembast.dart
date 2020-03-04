@@ -1,3 +1,6 @@
+@deprecated
+library sembast.api.compat.v1.sembast;
+
 import 'package:sembast/src/api/compat/record.dart';
 import 'package:sembast/src/api/compat/store.dart';
 import 'package:sembast/src/api/filter.dart';

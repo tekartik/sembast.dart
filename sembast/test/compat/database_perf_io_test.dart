@@ -1,16 +1,18 @@
 @TestOn('vm')
 library sembast.database_perf_io_test;
 
-// ignore_for_file: deprecated_member_use_from_same_package
 import 'dart:async';
 import 'dart:io';
 
 import 'package:path/path.dart';
 import 'package:sembast/sembast.dart';
 import 'package:sembast/sembast_io.dart';
+import 'package:sembast/src/api/compat/sembast.dart';
 import 'package:test/test.dart';
 
 import 'test_common.dart';
+
+// ignore_for_file: deprecated_member_use_from_same_package
 
 void main() {
   test('perf', () async {

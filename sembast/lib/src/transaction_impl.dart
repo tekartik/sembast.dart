@@ -1,5 +1,5 @@
 import 'dart:async';
-
+import 'package:sembast/src/api/compat/sembast.dart';
 import 'package:sembast/sembast.dart';
 import 'package:sembast/src/database_client_impl.dart';
 import 'package:sembast/src/database_impl.dart';

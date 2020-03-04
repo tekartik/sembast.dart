@@ -1,4 +1,5 @@
 import 'package:sembast/sembast.dart';
+import 'package:sembast/src/api/compat/sembast.dart'; // ignore: deprecated_member_use_from_same_package
 import 'package:sembast/src/api/finder.dart';
 import 'package:sembast/src/api/query_ref.dart';
 import 'package:sembast/src/api/store_ref.dart';
@@ -8,7 +9,6 @@ import 'package:sembast/src/database_impl.dart';
 import 'package:sembast/src/debug_utils.dart';
 import 'package:sembast/src/listener.dart';
 import 'package:sembast/src/store_ref_impl.dart';
-
 // _ignore_for_file: deprecated_member_use_from_same_package
 
 /// A query is unique

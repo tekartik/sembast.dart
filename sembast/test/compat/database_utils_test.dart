@@ -1,11 +1,12 @@
 library sembast.database_utils_test;
 
-// ignore_for_file: deprecated_member_use_from_same_package
-
 import 'package:sembast/sembast.dart';
-import 'package:sembast/utils/database_utils.dart';
+import 'package:sembast/src/api/compat/database_utils.dart';
+import 'package:sembast/src/api/compat/sembast.dart';
 
 import 'test_common.dart';
+
+// ignore_for_file: deprecated_member_use_from_same_package
 
 void main() {
   defineTests(memoryDatabaseContext);

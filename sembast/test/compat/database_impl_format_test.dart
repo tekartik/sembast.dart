@@ -1,15 +1,17 @@
 library sembast.test.compat.database_impl_format_test;
 
-// ignore_for_file: deprecated_member_use_from_same_package
 import 'dart:async';
 import 'dart:convert';
 
 import 'package:sembast/sembast.dart';
+import 'package:sembast/src/api/compat/sembast.dart'; // ignore: deprecated_member_use_from_same_package
 import 'package:sembast/src/database_impl.dart';
 import 'package:sembast/src/sembast_fs.dart';
 
 import '../test_common_impl.dart';
 import 'test_common.dart';
+
+// ignore_for_file: deprecated_member_use_from_same_package
 
 void main() {
   defineTests(memoryFileSystemContext);

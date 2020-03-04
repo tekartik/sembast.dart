@@ -5,6 +5,8 @@ library sembast.test.compat.value_test;
 // basically same as the io runner but with extra output
 import 'dart:async';
 
+import 'package:sembast/src/api/compat/sembast.dart';
+
 import 'test_common.dart';
 
 void main() {

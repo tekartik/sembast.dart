@@ -10,7 +10,7 @@ import 'package:sembast/src/filter_impl.dart';
 import 'package:sembast/src/finder_impl.dart';
 import 'package:sembast/src/query_ref_impl.dart';
 import 'package:sembast/src/record_impl.dart';
-
+import 'package:sembast/src/api/compat/sembast.dart';
 // ignore_for_file: deprecated_member_use_from_same_package
 
 class _ControllerBase {
