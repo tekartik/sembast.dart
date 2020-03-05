@@ -37,6 +37,9 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     test('put/get timing', () async {
+      // No random timing
+      setDatabaseCooperator(db, null);
+
       var record = StoreRef<int, String>.main().record(1);
       var future1 = record.get(db);
       await record.put(db, 'test');
@@ -52,6 +55,9 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     test('put/on timing', () async {
+      // No random timing
+      setDatabaseCooperator(db, null);
+
       var record = StoreRef<int, String>.main().record(1);
       var future1 = record.onSnapshot(db).first;
       await record.put(db, 'test');
