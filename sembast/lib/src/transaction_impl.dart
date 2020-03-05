@@ -34,10 +34,11 @@ mixin DatabaseExecutorMixin implements DatabaseExecutor, StoreExecutor {
   Future<List> findKeys(Finder finder) => mainStore.findKeys(finder);
 
   /// Get a value from a key
-  Future get(key) => (mainStore as SembastStore).get(key);
+  Future get(key) => (mainStore as SembastTransactionStore).get(key);
 
   @override
-  Future put(value, [key]) => (mainStore as SembastStore).put(value, key);
+  Future put(value, [key]) =>
+      (mainStore as SembastTransactionStore).put(value, key);
 
   @override
   Future update(value, key) => mainStore.update(value, key);
