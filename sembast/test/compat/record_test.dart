@@ -64,65 +64,6 @@ void defineTests(DatabaseTestContext ctx) {
       expect(record['path.sub'], 2);
     });
 
-    test('update', () async {
-      var record = Record(null, {'name': 'name1', 'test': 'test1'});
-      record = await db.putRecord(record);
-      var key = record.key;
-      record = await db.getRecord(key);
-      record['test'] = 'test2';
-      await db.putRecord(record);
-      expect((await db.getRecord(record.key)).value,
-          {'name': 'name1', 'test': 'test2'});
-
-      await db.transaction((txn) async {
-        record = await txn.getRecord(key);
-        record['test'] = 'test2';
-        await txn.putRecord(record);
-        expect((await txn.getRecord(record.key)).value,
-            {'name': 'name1', 'test': 'test2'});
-      });
-    });
-    test('put database', () async {
-      final record = Record(null, 'hi');
-      final inserted = await db.putRecord(record);
-      expect(record.store, isNull);
-      expect(record.key, isNull);
-      expect(inserted.key, 1);
-      expect(inserted.store, db.mainStore);
-    });
-
-    test('put store', () async {
-      var store = db.getStore('store');
-      var record = Record(store, 'hi');
-      record = await db.putRecord(record);
-      expect(record.store, store);
-      expect(record.key, 1);
-
-      record = await store.getRecord(record.key);
-      expect(record.key, 1);
-      expect(record.store, store);
-
-      await db.transaction((txn) async {
-        record = await txn.getStore(store.name).getRecord(record.key);
-        expect(record.key, 1);
-        expect(record.store, store);
-        expect(record.value, 'hi');
-
-        record = await txn.putRecord(record);
-        expect(record.key, 1);
-        expect(record.store, store);
-
-        expect(record.key, 1);
-        expect(record.store, store);
-
-        await txn.getStore(store.name).put('ho', record.key);
-        record = await txn.getStore(store.name).getRecord(record.key);
-        expect(record.key, 1);
-        expect(record.store, store);
-        expect(record.value, 'ho');
-      });
-    });
-
     test('put multi database', () async {
       final record = Record(null, 'hi');
       final inserted = (await db.putRecords([record])).first;
@@ -130,18 +71,6 @@ void defineTests(DatabaseTestContext ctx) {
       expect(record.key, isNull);
       expect(inserted.key, 1);
       expect(inserted.store, db.mainStore);
-    });
-
-    test('put transaction', () async {
-      await db.transaction((txn) async {
-        final record = Record(null, 'hi');
-        final inserted = await txn.putRecord(record);
-        expect(record.store, isNull);
-        expect(record.key, isNull);
-        expect(inserted.key, 1);
-        // !!weird no?
-        expect(inserted.store, db.mainStore);
-      });
     });
 
     test('put multi transaction', () async {
@@ -182,30 +111,5 @@ void defineTests(DatabaseTestContext ctx) {
       });
     });
 
-    test('put/get/delete', () {
-      final store = db.mainStore;
-      final record = Record(store, 'hi');
-      return db.putRecord(record).then((Record insertedRecord) {
-        expect(record.key, null);
-        expect(insertedRecord.key, 1);
-        expect(insertedRecord.value, 'hi');
-        expect(insertedRecord.deleted, false);
-        expect(insertedRecord.store, store);
-        return store.getRecord(insertedRecord.key).then((Record record) {
-          expect(record.key, 1);
-          expect(record.value, 'hi');
-          expect(record.deleted, false);
-          expect(record.store, store);
-
-          return store.delete(record.key).then((_) {
-            // must not have changed
-            expect(record.key, 1);
-            expect(record.value, 'hi');
-            expect(record.deleted, false);
-            expect(record.store, store);
-          });
-        });
-      });
-    });
   });
 }

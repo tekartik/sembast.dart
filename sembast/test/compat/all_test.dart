@@ -8,7 +8,6 @@ import 'database_impl_format_test.dart' as database_impl_format_test;
 import 'database_import_export_test.dart' as database_import_export_test;
 import 'database_perf_test.dart' as database_perf_test;
 import 'database_test.dart' as database_test;
-import 'database_utils_test.dart' as database_utils_test;
 import 'doc_test.dart' as doc_test;
 import 'exception_test.dart' as exception_test;
 import 'key_test.dart' as key_test;
@@ -45,6 +44,5 @@ void defineTests(DatabaseTestContext ctx) {
   transaction_test.defineTests(ctx);
   exception_test.defineTests(ctx);
   database_import_export_test.defineTests(ctx);
-  database_utils_test.defineTests(ctx);
   doc_test.defineTests(ctx);
 }

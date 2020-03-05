@@ -55,12 +55,6 @@ abstract class TransactionExecutor extends DatabaseExecutor {
 /// @deprecated v2
 @deprecated
 abstract class DatabaseExecutor extends StoreExecutor {
-  /// @deprecated v2
-  ///
-  /// Put a record
-  ///
-  @deprecated
-  Future<Record> putRecord(Record record);
 
   /// @deprecated v2
   ///

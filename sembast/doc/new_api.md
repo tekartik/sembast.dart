@@ -1,25 +1,3 @@
-# Post 2.3.0
-
-To access the deprecated API use:
-
-## Sembast
-
-If needed import
-```dart
-import 'package:sembast/src/api/compat/sembast.dart';
-```
-
-## Utils
-
-```dart
-import 'package:sembast/utils/database_utils.dart';
-```
-
-with
-```dart
-import 'package:sembast/src/api/compat/database_utils.dart';
-```
-
 # Migrating to 1.15.0
 
 As of 1.15.0, there is a new API available to manipulate data in the database. 
