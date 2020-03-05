@@ -4,6 +4,11 @@ import 'package:sembast/src/api/v2/sembast.dart';
 /// The database factory that allow opening database
 ///
 abstract class DatabaseFactory {
+  /// True if it has an associated storage (fs, idb).
+  ///
+  /// false for memory
+  bool get hasStorage;
+
   ///
   /// Open a new or existing database.
   ///

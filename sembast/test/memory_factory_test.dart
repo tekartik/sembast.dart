@@ -6,9 +6,9 @@ import 'package:test/test.dart';
 
 void main() {
   group('factory', () {
-    var factory = databaseFactoryMemoryFs;
+    var factory = databaseFactoryMemory;
     test('hasStorage', () async {
-      expect(factory.hasStorage, true);
+      expect(factory.hasStorage, false);
     });
   });
 }

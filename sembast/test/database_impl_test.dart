@@ -115,7 +115,7 @@ void defineTests(DatabaseTestContext ctx) {
         expect(
             // ignore: deprecated_member_use
             db.toJson()['exportStat'],
-            // ignore: deprecated_member_use
+            // ignore: deprecated_member_use, deprecated_member_use_from_same_package
             factory.hasStorage ? isNotNull : isNull);
       });
     });
