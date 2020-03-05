@@ -1,3 +1,7 @@
+## 2.3.0-dev.1
+
+* Remove 1.x deprecated APIs
+
 ## 2.2.0+1
 
 * Support for `sembast_web`
