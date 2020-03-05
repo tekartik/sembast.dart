@@ -1,4 +1,4 @@
-## 2.3.0-dev.1
+## 2.3.0
 
 * Remove 1.x deprecated APIs
 
