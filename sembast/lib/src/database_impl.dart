@@ -147,7 +147,7 @@ class SembastDatabase extends Object
   ///
   @override
   Future put(dynamic value, [dynamic key]) {
-    return _mainStore.put(value, key);
+    return (_mainStore as SembastStore).put(value, key);
   }
 
   @override

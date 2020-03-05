@@ -37,7 +37,7 @@ mixin DatabaseExecutorMixin implements DatabaseExecutor, StoreExecutor {
   Future get(key) => (mainStore as SembastStore).get(key);
 
   @override
-  Future put(value, [key]) => mainStore.put(value, key);
+  Future put(value, [key]) => (mainStore as SembastStore).put(value, key);
 
   @override
   Future update(value, key) => mainStore.update(value, key);

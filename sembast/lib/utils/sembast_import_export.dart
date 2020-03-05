@@ -95,7 +95,7 @@ Future<Database> importDatabase(
 
         var store = txn.getStore(storeName);
         for (var i = 0; i < keys.length; i++) {
-          await store.put(values[i], keys[i]);
+          await (store as SembastTransactionStore).put(values[i], keys[i]);
         }
       }
     }
