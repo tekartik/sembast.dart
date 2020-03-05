@@ -470,7 +470,7 @@ class SembastDatabase extends Object
   }
 
   /// Check if a record is present
-  bool _noTxnHasRecord(Record record) {
+  bool _noTxnHasRecord(ImmutableSembastRecord record) {
     return _recordStore(record).txnContainsKey(null, record.key);
   }
 
