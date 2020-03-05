@@ -63,6 +63,5 @@ void defineTests(DatabaseTestContext ctx) {
       });
       expect(record['path.sub'], 2);
     });
-
   });
 }
