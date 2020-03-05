@@ -11,11 +11,4 @@ abstract class Record extends RecordSnapshot<dynamic, dynamic> {
   /// true if the record has been deleted
   @deprecated
   bool get deleted;
-
-  /// @deprecated v2
-  ///
-  /// set the [value] of the specified [field]
-  ///
-  @deprecated
-  void operator []=(String field, dynamic value);
 }

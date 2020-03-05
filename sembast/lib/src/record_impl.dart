@@ -96,11 +96,6 @@ class ImmutableSembastRecordJdb extends ImmutableSembastRecord {
 class ImmutableSembastRecord
     with SembastRecordMixin, SembastRecordHelperMixin, RecordSnapshotMixin {
   @override
-  void operator []=(String field, value) {
-    throw StateError('Record is immutable. Clone to modify it');
-  }
-
-  @override
   set value(value) {
     throw StateError('Record is immutable. Clone to modify it');
   }
@@ -158,10 +153,6 @@ class TxnRecord with SembastRecordHelperMixin implements Record {
   TxnRecord(this.record);
 
   @override
-  void operator []=(String field, value) =>
-      throw UnsupportedError('Not supported for txn records');
-
-  @override
   dynamic operator [](String field) => record[field];
 
   @override
@@ -183,38 +174,9 @@ class TxnRecord with SembastRecordHelperMixin implements Record {
   ImmutableSembastRecord get nonDeletedRecord => deleted ? null : record;
 }
 
-mixin MutableSembastRecordMixin implements Record {
-  set value(dynamic value);
-
-  set ref(RecordRef<dynamic, dynamic> ref);
-
-  ///
-  /// set the [value] of the specified [field]
-  ///
-  void setField(String field, dynamic value) {
-    if (field == Field.value) {
-      this.value = value;
-    } else if (field == Field.key) {
-      ref = ref.store.record(value);
-    } else {
-      if (!(this.value is Map)) {
-        this.value = {};
-      }
-      setMapFieldValue(this.value as Map, field, value);
-    }
-  }
-
-  @override
-  void operator []=(String field, value) => setField(field, value);
-}
-
 /// Sembast record.
 class SembastRecord
-    with
-        SembastRecordMixin,
-        SembastRecordHelperMixin,
-        MutableSembastRecordMixin,
-        RecordSnapshotMixin {
+    with SembastRecordMixin, SembastRecordHelperMixin, RecordSnapshotMixin {
   ///
   /// check whether the map specified looks like a record
   ///
