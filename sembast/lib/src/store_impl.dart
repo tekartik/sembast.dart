@@ -2,7 +2,6 @@ import 'dart:collection';
 import 'dart:math';
 
 import 'package:sembast/sembast.dart';
-import 'package:sembast/src/api/compat/record.dart';
 import 'package:sembast/src/filter_impl.dart';
 import 'package:sembast/src/finder_impl.dart';
 import 'package:sembast/src/key_utils.dart';
@@ -366,7 +365,7 @@ class SembastStore {
           var sort = Sort(database.cooperator);
           await sort.sort(
               results,
-              (Record record1, Record record2) =>
+              (SembastRecord record1, SembastRecord record2) =>
                   sembastFinder.compareThenKey(record1, record2));
         } else {
           results.sort((record1, record2) =>
@@ -405,7 +404,7 @@ class SembastStore {
   /// Find keys in a transaction.
   Future<List> txnFindKeys(SembastTransaction txn, Finder finder) async {
     var records = await txnFindRecords(txn, finder);
-    return records.map((Record record) => record.key).toList();
+    return records.map((SembastRecord record) => record.key).toList();
   }
 
   ///
@@ -570,7 +569,7 @@ class SembastStore {
 
   /// Get a record by key in a transaction.
   Future<dynamic> txnGet(SembastTransaction txn, key) async {
-    Record record = await txnGetRecord(txn, key);
+    SembastRecord record = await txnGetRecord(txn, key);
     return record?.value;
   }
 

@@ -1,5 +1,4 @@
 import 'package:sembast/sembast.dart';
-import 'package:sembast/src/api/compat/record.dart';
 import 'package:sembast/src/api/record_ref.dart';
 import 'package:sembast/src/api/record_snapshot.dart';
 import 'package:sembast/src/record_snapshot_impl.dart';
@@ -7,11 +6,16 @@ import 'package:sembast/src/sembast_impl.dart';
 import 'package:sembast/src/store_impl.dart';
 import 'package:sembast/src/utils.dart';
 
-// ignore_for_file: deprecated_member_use_from_same_package
-
-mixin SembastRecordHelperMixin implements RecordSnapshot {
+///
+/// Internal Record, either in store or in transaction
+///
+abstract class SembastRecord extends RecordSnapshot<dynamic, dynamic> {
+  ///
+  /// true if the record has been deleted
   bool get deleted;
+}
 
+mixin SembastRecordHelperMixin implements SembastRecord {
   ///
   /// Copy a record.
   ///
@@ -59,7 +63,7 @@ mixin SembastRecordHelperMixin implements RecordSnapshot {
 
   @override
   bool operator ==(o) {
-    if (o is Record) {
+    if (o is SembastRecord) {
       return key == null ? false : (key == o.key);
     }
     return false;
@@ -72,9 +76,10 @@ abstract class SembastRecordValue<V> {
   V rawValue;
 }
 
-mixin SembastRecordMixin implements Record, SembastRecordValue {
+mixin SembastRecordMixin implements SembastRecord, SembastRecordValue {
   bool _deleted;
 
+  @override
   bool get deleted => _deleted == true;
 
   set deleted(bool deleted) => _deleted = deleted;
@@ -145,7 +150,7 @@ class ImmutableSembastRecord
 }
 
 /// Transaction record.
-class TxnRecord with SembastRecordHelperMixin implements Record {
+class TxnRecord with SembastRecordHelperMixin implements SembastRecord {
   /// Can change overtime if modified
   ImmutableSembastRecord record;
 

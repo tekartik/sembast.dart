@@ -8,8 +8,6 @@ import 'package:sembast/src/sort.dart';
 import 'package:sembast/src/sort_order_impl.dart';
 import 'package:sembast/src/utils.dart';
 
-import 'api/compat/record.dart';
-
 // ignore_for_file: deprecated_member_use_from_same_package
 
 /// Sort and limit a list.
@@ -24,7 +22,7 @@ Future<List<ImmutableSembastRecord>> sortAndLimit(
       var sort = Sort(cooperator);
       await sort.sort(
           results,
-          (Record record1, Record record2) =>
+          (SembastRecord record1, SembastRecord record2) =>
               finder.compareThenKey(record1, record2));
     } else {
       results
@@ -137,7 +135,7 @@ class SembastFinder implements Finder {
   }
 
   /// Compare 2 records.
-  int compare(Record record1, Record record2) {
+  int compare(SembastRecord record1, SembastRecord record2) {
     var result = 0;
     if (sortOrders != null) {
       for (var order in sortOrders) {
@@ -152,7 +150,7 @@ class SembastFinder implements Finder {
   }
 
   /// Compare records then then key
-  int compareThenKey(Record record1, Record record2) {
+  int compareThenKey(SembastRecord record1, SembastRecord record2) {
     final result = compare(record1, record2);
     if (result == 0) {
       return compareKey(record1.key, record2.key);
@@ -163,7 +161,7 @@ class SembastFinder implements Finder {
   /// Compare to boundary.
   ///
   /// Used in search, record is the record checked from the db
-  int compareToBoundary(Record record, Boundary boundary) {
+  int compareToBoundary(SembastRecord record, Boundary boundary) {
     var result = 0;
     if (sortOrders != null) {
       for (var i = 0; i < sortOrders.length; i++) {
@@ -189,7 +187,7 @@ class SembastFinder implements Finder {
   }
 
   /// True if we are atstart  boundary.
-  bool starts(Record record, Boundary boundary) {
+  bool starts(SembastRecord record, Boundary boundary) {
     final result = compareToBoundary(record, boundary);
     if (result == 0 && boundary.include) {
       return true;
@@ -198,7 +196,7 @@ class SembastFinder implements Finder {
   }
 
   /// True if we are at end boundary.
-  bool ends(Record record, Boundary boundary) {
+  bool ends(SembastRecord record, Boundary boundary) {
     final result = compareToBoundary(record, boundary);
     if (result == 0 && boundary.include) {
       return false;

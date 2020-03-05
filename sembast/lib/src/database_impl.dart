@@ -163,7 +163,7 @@ class SembastDatabase extends Object
   /// Exported for testing
   SembastTransaction get currentTransaction => _transaction;
 
-  SembastStore _recordStore(SembastRecordHelperMixin record) =>
+  SembastStore _recordStore(SembastRecord record) =>
       getSembastStore(record.ref.store);
 
 //      (record.store ?? mainStore) as SembastStore;
