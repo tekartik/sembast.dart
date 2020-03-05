@@ -2,6 +2,7 @@ library sembast.test_runner;
 
 import 'database_codec_test.dart' as database_codec_test;
 import 'database_format_test.dart' as database_format_test;
+import 'database_impl_format_test.dart' as database_impl_format_test;
 import 'database_perf_test.dart' as database_perf_test;
 import 'test_common.dart';
 import 'transaction_impl_test.dart' as transaction_impl_test;
@@ -15,6 +16,7 @@ void main() {
 void defineFileSystemTests(FileSystemTestContext ctx) {
   database_format_test.defineTests(ctx);
   database_codec_test.defineTests(ctx);
+  database_impl_format_test.defineTests(ctx);
 }
 
 void defineTests(DatabaseTestContext ctx) {

@@ -1,7 +1,6 @@
 library sembast.record_test;
 
 // basically same as the io runner but with extra output
-import 'package:sembast/sembast.dart';
 import 'package:sembast/src/record_impl.dart';
 import 'package:sembast/src/sembast_impl.dart';
 
@@ -17,7 +16,7 @@ void defineTests(DatabaseTestContext ctx) {
       Database db;
 
       setUp(() async {
-        db = await setupForTest(ctx, 'compat/record_impl.db');
+        db = await setupForTest(ctx, 'record_impl.db');
       });
 
       tearDown(() {

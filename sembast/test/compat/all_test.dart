@@ -1,6 +1,6 @@
 library sembast.compat.test_runner;
 
-import 'database_impl_format_test.dart' as database_impl_format_test;
+
 import 'database_import_export_test.dart' as database_import_export_test;
 import 'src_file_system_test.dart' as src_file_system_test;
 import 'test_common.dart';
@@ -13,7 +13,6 @@ void main() {
 
 void defineFileSystemTests(FileSystemTestContext ctx) {
   src_file_system_test.defineTests(ctx);
-  database_impl_format_test.defineTests(ctx);
 }
 
 void defineTests(DatabaseTestContext ctx) {
