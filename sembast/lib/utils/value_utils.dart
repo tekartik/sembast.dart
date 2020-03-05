@@ -1,26 +1,4 @@
-import 'package:sembast/src/utils.dart';
 import 'package:sembast/src/utils.dart' as utils;
-
-/// @deprecated v2
-@deprecated
-bool lessThan(dynamic value1, dynamic value2) {
-  var cmp = compareValue(value1, value2);
-  return cmp != null && cmp < 0;
-}
-
-/// @deprecated v2
-@deprecated
-bool greaterThan(dynamic value1, dynamic value2) {
-  var cmp = compareValue(value1, value2);
-  return cmp != null && cmp > 0;
-}
-
-/// @deprecated v2
-@deprecated
-bool equals(dynamic value1, dynamic value2) {
-  var cmp = compareValue(value1, value2);
-  return cmp == 0;
-}
 
 /// Clone a map to make it writable.
 ///
