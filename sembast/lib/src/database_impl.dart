@@ -503,7 +503,7 @@ class SembastDatabase extends Object
   ///
   @override
   Future get(var key) {
-    return _mainStore.get(key);
+    return (_mainStore as SembastStore).get(key);
   }
 
   ///

@@ -5,7 +5,6 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:sembast/sembast.dart';
-import 'package:sembast/src/database_impl.dart';
 import 'package:sembast/src/sembast_codec_impl.dart';
 import 'package:sembast/src/sembast_fs.dart';
 
@@ -207,72 +206,6 @@ void defineTests(FileSystemTestContext ctx, {SembastCodec codec}) {
         expect(json.decode(lines.first), expected);
       }
       expect(decodeRecord(lines[1]), {'key': 1, 'value': 'hi'});
-    });
-
-    test('open_version_1_then_2_then_compact', () async {
-      await prepareForDb();
-      var db = await factory.openDatabase(dbPath, codec: codec);
-      await db.put('test1');
-      await db.close();
-      db = await factory.openDatabase(dbPath, version: 2, codec: codec);
-
-      await db.put('test2');
-      await db.close();
-      var lines = await readContent(fs, dbPath);
-      expect(lines.length, 4);
-      var expected = <String, dynamic>{'version': 1, 'sembast': 1};
-      if (codec != null) {
-        expected['codec'] = getCodecEncodedSignature(codec);
-        var map = json.decode(lines.first);
-        expect(getCodecDecodedSignature(codec, map['codec'] as String),
-            {'signature': codec.signature});
-      }
-      if (!_hasRandomIv(codec)) {
-        expect(json.decode(lines.first), expected);
-      }
-
-      var expectedV2 = <String, dynamic>{'version': 2, 'sembast': 1};
-
-      if (codec != null) {
-        expectedV2['codec'] = getCodecEncodedSignature(codec);
-        var line = lines[2];
-        var map = json.decode(line);
-        expect(getCodecDecodedSignature(codec, map['codec'] as String),
-            {'signature': codec.signature});
-      }
-      if (!_hasRandomIv(codec)) {
-        var line = lines[2];
-        expect(json.decode(line), expectedV2);
-      }
-
-      await db.close();
-
-      db = await factory.openDatabase(dbPath, codec: codec);
-      expect(await db.get(1), 'test1');
-      expect(await db.get(2), 'test2');
-      expect((await readContent(fs, dbPath)).length, 4);
-      await (db as SembastDatabase).compact();
-
-      lines = await readContent(fs, dbPath);
-      expect(lines.length, 3);
-      if (codec != null) {
-        var line = lines[0];
-        expectedV2['codec'] = getCodecEncodedSignature(codec);
-        var map = json.decode(line);
-        expect(getCodecDecodedSignature(codec, map['codec'] as String),
-            {'signature': codec.signature});
-      }
-      if (!_hasRandomIv(codec)) {
-        var line = lines[0];
-        expect(json.decode(line), expectedV2);
-      }
-
-      await db.close();
-
-      db = await factory.openDatabase(dbPath, codec: codec);
-      expect(await db.get(1), 'test1');
-      expect(await db.get(2), 'test2');
-      await db.close();
     });
   });
 

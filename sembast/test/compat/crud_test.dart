@@ -52,56 +52,5 @@ void defineTests(DatabaseTestContext ctx) {
       var key2 = await db.put('hi');
       expect(key2, 2);
     });
-
-    test('get none', () {
-      return db.get(1).then((value) {
-        expect(value, isNull);
-      });
-    });
-
-    test('put_get', () {
-      final value = 'hi';
-      return db.put(value, 1).then((_) {
-        return db.get(1).then((readValue) {
-          expect(readValue, 'hi');
-          // immutable value are not clones
-          expect(identical(value, readValue), isTrue);
-          return db.count().then((int count) {
-            expect(count, 1);
-          });
-        });
-      });
-    });
-
-    test('put_update', () {
-      return db.put('hi', 1).then((_) {
-        return db.put('ho', 1).then((_) {
-          return db.get(1).then((value) {
-            expect(value, 'ho');
-            return db.count().then((int count) {
-              expect(count, 1);
-            });
-          });
-        });
-      });
-    });
-
-    test('put_delete', () async {
-      expect(await db.put('hi', 1), 1);
-      expect(await db.delete(1), 1);
-      var value = await db.get(1);
-      expect(value, isNull);
-      expect(await db.count(), 0);
-    });
-
-    test('auto_increment put_get_map', () {
-      final info = <String, dynamic>{'info': 12};
-      return db.put(info).then((key) {
-        return db.get(key).then((infoRead) {
-          expect(infoRead, info);
-          expect(identical(infoRead, info), isFalse);
-        });
-      });
-    });
   });
 }

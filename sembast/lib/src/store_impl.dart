@@ -676,7 +676,7 @@ class SembastStore implements Store {
   ///
   /// get a value from a key
   ///
-  @override
+  @Deprecated('why cloning?')
   Future get(var key) async {
     return cloneValue(await txnGet(null, key));
   }

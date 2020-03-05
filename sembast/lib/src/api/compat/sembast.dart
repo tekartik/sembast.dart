@@ -58,14 +58,6 @@ abstract class BaseExecutor {
 
   /// @deprecated v2
   ///
-  /// get a value from a key
-  /// null if not found or if value null
-  ///
-  @deprecated
-  Future get(dynamic key);
-
-  /// @deprecated v2
-  ///
   /// count all records
   ///
   @deprecated

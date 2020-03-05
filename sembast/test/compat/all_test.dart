@@ -15,7 +15,6 @@ import 'record_test.dart' as record_test;
 import 'src_file_system_test.dart' as src_file_system_test;
 import 'test_common.dart';
 import 'transaction_test.dart' as transaction_test;
-import 'value_test.dart' as value_test;
 
 // default use memory
 void main() {
@@ -38,7 +37,6 @@ void defineTests(DatabaseTestContext ctx) {
   crud_impl_test.defineTests(ctx);
   record_test.defineTests(ctx);
   key_test.defineTests(ctx);
-  value_test.defineTests(ctx);
   transaction_test.defineTests(ctx);
   exception_test.defineTests(ctx);
   database_import_export_test.defineTests(ctx);

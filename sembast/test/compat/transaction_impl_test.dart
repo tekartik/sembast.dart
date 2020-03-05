@@ -6,7 +6,6 @@ library sembast.transaction_test;
 import 'dart:async';
 
 import 'package:sembast/src/database_impl.dart';
-import 'package:sembast/src/transaction_impl.dart';
 
 import 'test_common.dart';
 
@@ -46,54 +45,6 @@ void defineTests(DatabaseTestContext ctx) {
         // here the value should not be loaded yet
         return db.get(1).then((value) {
           // expect(db.currentTransaction, isNull);
-        });
-      });
-    });
-
-    test('put and rollback', () async {
-      await db.transaction((txn) {
-        return txn.put('hi', 1).then((_) {
-          // still here
-          return txn.get(1).then((value) {
-            expect(value, 'hi');
-          }).then((_) {
-            db.txnRollback(txn as SembastTransaction);
-            return txn.get(1).then((value) {
-              expect(value, null);
-            });
-          });
-        });
-      });
-      expect(await db.get(1), isNull);
-      // put something else to make sure the txn has been cleaned
-      return db.put('ho', 2).then((_) {
-        return db.get(1).then((value) {
-          expect(value, null);
-        });
-      });
-    });
-
-    test('delete and rollback', () {
-      return db.put('hi', 1).then((_) {
-        return db.transaction((txn) {
-          return txn.delete(1).then((_) {
-            // still here
-            return txn.get(1).then((value) {
-              expect(value, null);
-            }).then((_) {
-              db.txnRollback(txn as SembastTransaction);
-              return txn.get(1).then((value) {
-                expect(value, 'hi');
-              });
-            });
-          });
-        }).then((_) {
-          // put something else to make sure the txn has been cleaned
-          return db.put('ho', 2).then((_) {
-            return db.get(1).then((value) {
-              expect(value, 'hi');
-            });
-          });
         });
       });
     });

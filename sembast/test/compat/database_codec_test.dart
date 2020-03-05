@@ -5,7 +5,6 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:sembast/sembast.dart';
-import 'package:sembast/src/database_impl.dart';
 import 'package:sembast/src/sembast_fs.dart';
 
 import '../encrypt_codec.dart';
@@ -123,28 +122,6 @@ void defineTests(FileSystemTestContext ctx) {
 
         // reopen
       });
-
-      test('reopen_and_compact', () async {
-        var db = await _prepareOneRecordDatabase(codec: codec);
-        await db.close();
-
-        db = await factory.openDatabase(dbPath, codec: codec);
-        expect(await db.get(1), 'test');
-
-        await (db as SembastDatabase).compact();
-
-        final lines = await readContent(fs, dbPath);
-        expect(lines.length, 2);
-        expect(json.decode(lines.first), {
-          'version': 1,
-          'sembast': 1,
-          'codec': 'eyJzaWduYXR1cmUiOiJiYXNlNjQifQ=='
-        });
-        expect(json.decode(utf8.decode(base64.decode(lines[1]))),
-            {'key': 1, 'value': 'test'});
-
-        await db.close();
-      });
     });
 
     group('encrypt_codec', () {
@@ -152,17 +129,6 @@ void defineTests(FileSystemTestContext ctx) {
       database_format_test.defineTests(ctx, codec: codec);
       _commonTests(codec);
 
-      test('read existing', () async {
-        dbPath = dbPathFromName(
-            'compat/database_code/encrypt_codec/read_existing.db');
-        await writeContent(fs, dbPath, [
-          '{"version":1,"sembast":1,"codec":"i6/eGhL+yC4=gYCjWHqkgdawwoROer5+jQ0EzCdgFrk="}',
-          'GY9lA8yc56M=FSqctQswKkhfgzp/XaFdxOxSJhRGHB3a'
-        ]);
-        var db = await factory.openDatabase(dbPath, codec: codec);
-        expect(await db.get(1), 'test');
-        await db.close();
-      });
       test('one_record', () async {
         var db = await _prepareOneRecordDatabase(codec: codec);
         await db.close();
@@ -172,50 +138,6 @@ void defineTests(FileSystemTestContext ctx) {
         expect(codec.codec.decode(json.decode(lines.first)['codec'] as String),
             {'signature': 'encrypt'});
         expect(codec.codec.decode(lines[1]), {'key': 1, 'value': 'test'});
-      });
-
-      test('reopen_and_compact', () async {
-        var db = await _prepareOneRecordDatabase(codec: codec);
-        await db.close();
-
-        db = await factory.openDatabase(dbPath, codec: codec);
-        expect(await db.get(1), 'test');
-
-        await (db as SembastDatabase).compact();
-
-        var lines = await readContent(fs, dbPath);
-        expect(lines.length, 2);
-        expect((json.decode(lines.first) as Map)..remove('codec'), {
-          'version': 1,
-          'sembast': 1,
-        });
-        expect(codec.codec.decode(json.decode(lines.first)['codec'] as String),
-            {'signature': 'encrypt'});
-
-        expect(codec.codec.decode(lines[1]), {'key': 1, 'value': 'test'});
-
-        await db.close();
-      });
-
-      test('open with wrong password', () async {
-        var db = await _prepareOneRecordDatabase(codec: codec);
-        await db.close();
-
-        try {
-          var codecWithABadPassword =
-              getEncryptSembastCodec(password: 'bad_password');
-          // Open again with a bad password
-          db = await factory.openDatabase(dbPath, codec: codecWithABadPassword);
-
-          fail('should fail');
-        } on DatabaseException catch (e) {
-          expect(e.code, DatabaseException.errInvalidCodec);
-        }
-
-        // Open again with the proper password
-        db = await factory.openDatabase(dbPath, codec: codec);
-        expect(await db.get(1), 'test');
-        await db.close();
       });
     });
 

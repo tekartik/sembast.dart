@@ -33,8 +33,8 @@ mixin DatabaseExecutorMixin implements DatabaseExecutor, StoreExecutor {
   @override
   Future<List> findKeys(Finder finder) => mainStore.findKeys(finder);
 
-  @override
-  Future get(key) => mainStore.get(key);
+  /// Get a value from a key
+  Future get(key) => (mainStore as SembastStore).get(key);
 
   @override
   Future put(value, [key]) => mainStore.put(value, key);
@@ -150,7 +150,7 @@ class SembastTransactionStore implements StoreTransaction {
   Future<List<Record>> findRecords(Finder finder) async => store
       .makeOutRecords(await store.txnFindRecords(sembastTransaction, finder));
 
-  @override
+  /// Get a value from a key
   Future get(key) async =>
       cloneValue(await store.txnGet(sembastTransaction, key));
 

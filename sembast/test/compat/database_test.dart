@@ -2,7 +2,6 @@ library sembast.database_test;
 
 // ignore_for_file: deprecated_member_use_from_same_package
 
-import 'package:pedantic/pedantic.dart';
 import 'package:sembast/src/api/sembast.dart';
 
 import 'test_common.dart';
@@ -74,35 +73,6 @@ void defineTests(DatabaseTestContext ctx) {
         expect(identical(db1, db3), isTrue);
         await db1.close();
       });
-
-      test('open_close_open', () async {
-        var db = await factory.openDatabase(dbPath);
-        try {
-          // don't await to make sure it gets written at some point
-          unawaited(db.transaction((txn) async {
-            await Future.delayed(const Duration(milliseconds: 10));
-            await txn.put('test', 1);
-          }));
-          unawaited(db.close());
-          db = await factory.openDatabase(dbPath);
-          expect(await db.get(1), 'test');
-          // Do it again
-          // don't await to make sure it gets written at some point
-          unawaited(db.transaction((txn) async {
-            await Future.delayed(const Duration(milliseconds: 10));
-            await txn.put('test2', 1);
-          }));
-          unawaited(db.close());
-          db = await factory.openDatabase(dbPath);
-          expect(await db.get(1), 'test2');
-
-          await db.close();
-          db = await factory.openDatabase(dbPath);
-          expect(await db.get(1), 'test2');
-        } finally {
-          await db.close();
-        }
-      });
     });
 
     group('onVersionChanged', () {
@@ -153,69 +123,6 @@ void defineTests(DatabaseTestContext ctx) {
         expect(db.version, 1);
         expect(db.path, endsWith(dbPath));
         await db.close();
-      });
-
-      test('changes during onVersionChanged', () async {
-        var db = await factory.openDatabase(dbPath, version: 1,
-            onVersionChanged: (db, _, __) async {
-          await db.put('test', 1);
-        });
-        await db.put('other', 2);
-
-        try {
-          expect(await db.get(1), 'test');
-          expect(db.version, 1);
-          db = await reOpen(db);
-          expect(await db.get(1), 'test');
-          expect(await db.get(2), 'other');
-          expect(db.version, 1);
-        } finally {
-          await db?.close();
-        }
-      });
-
-      test('txn during onVersionChanged', () async {
-        var db = await factory.openDatabase(dbPath, version: 1,
-            onVersionChanged: (db, _, __) async {
-          await db.transaction((txn) async {
-            await txn.put('test', 1);
-          });
-        });
-        await db.put('other', 2);
-
-        try {
-          expect(await db.get(1), 'test');
-          expect(db.version, 1);
-          db = await reOpen(db);
-          expect(await db.get(1), 'test');
-          expect(await db.get(2), 'other');
-          expect(db.version, 1);
-        } finally {
-          await db?.close();
-        }
-
-        db = await factory.openDatabase(dbPath, version: 2,
-            onVersionChanged: (db, oldVersion, __) async {
-          if (oldVersion == 1) {
-            await db.transaction((txn) async {
-              expect(await txn.get(1), 'test');
-              await txn.put('test2', 1);
-            });
-          }
-        });
-        await db.put('other2', 2);
-
-        try {
-          expect(await db.get(1), 'test2');
-          expect(await db.get(2), 'other2');
-          expect(db.version, 2);
-          db = await reOpen(db);
-          expect(await db.get(1), 'test2');
-          expect(await db.get(2), 'other2');
-          expect(db.version, 2);
-        } finally {
-          await db?.close();
-        }
       });
 
       test('throw during first onVersionChanged', () async {

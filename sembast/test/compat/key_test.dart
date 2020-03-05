@@ -44,22 +44,5 @@ void defineTests(DatabaseTestContext ctx) {
       final key1 = await db.put('test') as int;
       expect(key1, 1);
     });
-
-    test('double', () async {
-      await db.put('test', 1.2);
-      expect(await db.get(1.2), 'test');
-      // next will increment
-      final key1 = await db.put('test') as int;
-      expect(key1, 1);
-    });
-
-    test('double_rounded', () async {
-      await db.put('test', 2.0);
-      expect(await db.get(2.0), 'test');
-      // next will increment
-      final key1 = await db.put('test') as int;
-      // in dart2js this increases!
-      expect(key1 == 1 || key1 == 3, isTrue);
-    });
   });
 }
