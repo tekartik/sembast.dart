@@ -621,14 +621,6 @@ class SembastStore {
     return snapshots;
   }
 
-  ///
-  /// get a value from a key
-  ///
-  @Deprecated('why cloning?')
-  Future get(var key) async {
-    return cloneValue(await txnGet(null, key));
-  }
-
   /// Get a record by key in a transaction.
   Future<dynamic> txnGet(SembastTransaction txn, key) async {
     Record record = await txnGetRecord(txn, key);

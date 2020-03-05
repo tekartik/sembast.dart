@@ -225,8 +225,3 @@ final intMapStoreFactory = StoreFactoryBase<int, Map<String, dynamic>>();
 
 /// common `<String, Map<String, dynamic>>` factory
 final stringMapStoreFactory = StoreFactoryBase<String, Map<String, dynamic>>();
-
-// Deprecated since 2019-10-28, never used before.
-/// Deprecated.
-@deprecated
-abstract class StoreClient {}
