@@ -26,34 +26,6 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     group('no_db', () {
-      test('immutable', () {
-        //var store = StoreRef<dynamic, dynamic> store = db.mainStore;
-        final record = ImmutableSembastRecord(mainStoreRef.record(1), 'hi');
-        expect(record.ref.store.name, '_main');
-        expect(record.key, 1);
-        expect(record.value, 'hi');
-        try {
-          // ignore: deprecated_member_use, deprecated_member_use_from_same_package
-          record.store;
-          fail('should fail');
-        } on UnsupportedError catch (_) {}
-        try {
-          record.value = 'ho';
-          fail('should fail');
-        } on StateError catch (_) {}
-        try {
-          record['field'] = 'value';
-          fail('should fail');
-        } on StateError catch (_) {}
-
-        expect(record.toDatabaseRowMap(), {'key': 1, 'value': 'hi'});
-
-        var clone = record.clone();
-        expect(clone.key, 1);
-        expect(clone.value, 'hi');
-        expect(clone.ref.store.name, '_main');
-      });
-
       test('immutable_value', () {
         final record =
             ImmutableSembastRecord(mainStoreRef.record(1), {'foo': 'bar'});

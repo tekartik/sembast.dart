@@ -19,8 +19,8 @@ mixin SembastRecordHelperMixin implements Record {
   ///
   /// allow cloning a record to start modifying it
   ///
-  @override
-  Record clone({RecordRef<dynamic, dynamic> ref, dynamic value}) =>
+  MutableSembastRecord clone(
+          {RecordRef<dynamic, dynamic> ref, dynamic value}) =>
       MutableSembastRecord(ref ?? this.ref, value ?? this.value);
 
   ///
