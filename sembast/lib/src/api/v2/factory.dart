@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:sembast/src/api/v2/sembast.dart';
 
 ///
@@ -33,3 +35,10 @@ abstract class DatabaseFactory {
   ///
   Future deleteDatabase(String path);
 }
+
+/// Callback interface called when the existing version differs from the
+/// one expected.
+///
+/// Allow to perform migration or data change. Can return a future or not.
+typedef OnVersionChangedFunction = FutureOr Function(
+    Database db, int oldVersion, int newVersion);

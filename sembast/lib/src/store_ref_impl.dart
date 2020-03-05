@@ -4,14 +4,13 @@ import 'package:sembast/src/api/query_ref.dart';
 import 'package:sembast/src/api/records_ref.dart';
 import 'package:sembast/src/api/store_ref.dart';
 import 'package:sembast/src/database_client_impl.dart';
+import 'package:sembast/src/finder_impl.dart';
 import 'package:sembast/src/query_ref_impl.dart';
 import 'package:sembast/src/record_impl.dart';
 import 'package:sembast/src/record_ref_impl.dart';
 import 'package:sembast/src/record_snapshot_impl.dart';
 import 'package:sembast/src/records_ref_impl.dart';
 import 'package:sembast/src/utils.dart';
-import 'package:sembast/src/api/compat/sembast.dart';
-// ignore_for_file: deprecated_member_use_from_same_package
 
 /// Store implementation.
 class SembastStoreRef<K, V> with StoreRefMixin<K, V> {

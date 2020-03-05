@@ -1,18 +1,12 @@
 import 'dart:async';
 
 import 'package:sembast/sembast.dart';
-import 'package:sembast/src/api/compat/sembast.dart';
 import 'package:sembast/src/database_client_impl.dart';
 import 'package:sembast/src/database_impl.dart';
 import 'package:sembast/src/store_impl.dart';
 
-// ignore_for_file: deprecated_member_use_from_same_package
-
-mixin DatabaseExecutorMixin implements DatabaseExecutor, StoreExecutor {}
-
 /// Transaction implementation.
 class SembastTransaction extends Object
-    with DatabaseExecutorMixin
     implements Transaction, SembastDatabaseClient {
   /// The database.
   @override
@@ -42,17 +36,12 @@ class SembastTransaction extends Object
   }
 
   /// Make it an executor.
-  SembastTransactionStore toExecutor(Store store) => store != null
-      ? SembastTransactionStore(this, store as SembastStore)
-      : null;
+  SembastTransactionStore toExecutor(SembastStore store) =>
+      store != null ? SembastTransactionStore(this, store) : null;
 
   /// Delete a store
   Future deleteStore(String storeName) =>
       database.txnDeleteStore(this, storeName);
-
-  /// Find a store
-  StoreExecutor findStore(String storeName) =>
-      database.txnFindStore(this, storeName);
 
   /// local helper
   SembastDatabase get database => sembastDatabase;
@@ -71,7 +60,7 @@ class SembastTransaction extends Object
 }
 
 /// Store implementation.
-class SembastTransactionStore implements StoreTransaction {
+class SembastTransactionStore {
   /// Transaction.
   final SembastTransaction sembastTransaction;
 
