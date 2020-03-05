@@ -3,7 +3,6 @@ import 'dart:math';
 
 import 'package:sembast/sembast.dart';
 import 'package:sembast/src/api/compat/record.dart';
-import 'package:sembast/src/api/compat/store.dart';
 import 'package:sembast/src/filter_impl.dart';
 import 'package:sembast/src/finder_impl.dart';
 import 'package:sembast/src/key_utils.dart';
@@ -19,16 +18,16 @@ import 'database_impl.dart';
 // ignore_for_file: deprecated_member_use_from_same_package
 
 /// Store implementation.
-class SembastStore implements Store {
+class SembastStore {
   /// The database.
   final SembastDatabase database;
-  @override
+
+  /// Store reference.
   final StoreRef<dynamic, dynamic> ref;
 
   ///
   /// Store name
   ///
-  @override
   String get name => ref.name;
 
   /// for key generation

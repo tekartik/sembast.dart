@@ -1,11 +1,11 @@
 import 'package:sembast/sembast.dart';
 import 'package:sembast/src/api/compat/record.dart';
-import 'package:sembast/src/api/compat/store.dart';
 import 'package:sembast/src/api/record_ref.dart';
 import 'package:sembast/src/api/record_snapshot.dart';
 import 'package:sembast/src/record_ref_impl.dart';
 import 'package:sembast/src/record_snapshot_impl.dart';
 import 'package:sembast/src/sembast_impl.dart';
+import 'package:sembast/src/store_impl.dart';
 import 'package:sembast/src/utils.dart';
 
 // ignore_for_file: deprecated_member_use_from_same_package
@@ -13,7 +13,7 @@ import 'package:sembast/src/utils.dart';
 mixin SembastRecordWithStoreMixin implements Record {
   // Kept for compatibility
   @override
-  Store store;
+  SembastStore store;
 }
 mixin SembastRecordHelperMixin implements Record {
   ///
@@ -27,7 +27,7 @@ mixin SembastRecordHelperMixin implements Record {
   /// Copy a record.
   ///
   ImmutableSembastRecord sembastClone(
-      {Store store,
+      {SembastStore store,
       dynamic key,
       RecordRef<dynamic, dynamic> ref,
       dynamic value,
@@ -99,7 +99,7 @@ class LazyMutableSembastRecord with SembastRecordHelperMixin implements Record {
   // For compatibility
   // Will be remove in 2.0
   @override
-  Store store;
+  SembastStore store;
 
   /// Can change overtime if modified
   Record record;
@@ -183,6 +183,7 @@ class ImmutableSembastRecord
   dynamic get value => immutableValue(super.value);
 
   static var _lastRevision = 0;
+
   int _makeRevision() {
     return ++_lastRevision;
   }
@@ -214,7 +215,7 @@ class ImmutableSembastRecord
 
   @override
   @deprecated
-  Store get store => throw UnsupportedError(
+  SembastStore get store => throw UnsupportedError(
       'Deprecated for immutable record. use ref.store instead');
 
   @override
@@ -249,7 +250,7 @@ class TxnRecord with SembastRecordHelperMixin implements Record {
   dynamic get key => record.key;
 
   @override
-  Store store;
+  SembastStore store;
 
   @override
   dynamic get value => record.value;
@@ -307,7 +308,7 @@ class MutableSembastRecord
   }
 
   @override
-  Store get store =>
+  SembastStore get store =>
       throw UnsupportedError('Deprecated. use ref.store instead');
 }
 
@@ -332,7 +333,7 @@ class SembastRecord
   /// We know data has been sanitized before
   /// an optional [key]
   ///
-  SembastRecord(Store store, dynamic value, [dynamic key]) {
+  SembastRecord(SembastStore store, dynamic value, [dynamic key]) {
     /// Store kept for compatibility
     this.store = store;
     this.value = value;
@@ -382,7 +383,7 @@ RecordSnapshot makeImmutableRecordSnapshot(RecordSnapshot record) {
 
 /// Make lazy mutable snapshot.
 LazyMutableSembastRecord makeLazyMutableRecord(
-    Store store, ImmutableSembastRecord record) {
+    SembastStore store, ImmutableSembastRecord record) {
   if (record == null) {
     return null;
   }

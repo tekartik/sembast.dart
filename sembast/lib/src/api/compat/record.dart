@@ -1,6 +1,6 @@
 import 'package:sembast/sembast.dart';
-import 'package:sembast/src/api/compat/store.dart';
 import 'package:sembast/src/record_impl.dart';
+import 'package:sembast/src/store_impl.dart';
 
 /// @deprecated v2
 ///
@@ -19,7 +19,7 @@ abstract class Record extends RecordSnapshot<dynamic, dynamic> {
   /// its store
   /// 2019-03-06 Will be deprecated
   @deprecated
-  Store get store;
+  SembastStore get store;
 
   /// @deprecated v2
   ///
@@ -27,7 +27,7 @@ abstract class Record extends RecordSnapshot<dynamic, dynamic> {
   /// an optional [key]
   ///
   @deprecated
-  factory Record(Store store, dynamic value, [dynamic key]) =>
+  factory Record(SembastStore store, dynamic value, [dynamic key]) =>
       SembastRecord(store, value, key);
 
   /// @deprecated v2

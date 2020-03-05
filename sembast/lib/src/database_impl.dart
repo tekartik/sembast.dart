@@ -4,7 +4,6 @@ import 'dart:convert';
 import 'package:meta/meta.dart';
 import 'package:sembast/sembast.dart';
 import 'package:sembast/src/api/compat/record.dart';
-import 'package:sembast/src/api/compat/store.dart';
 import 'package:sembast/src/api/log_level.dart';
 import 'package:sembast/src/api/v2/sembast.dart' as v2;
 import 'package:sembast/src/common_import.dart';
@@ -25,6 +24,7 @@ import 'package:sembast/src/storage.dart';
 import 'package:sembast/src/store_impl.dart';
 import 'package:sembast/src/transaction_impl.dart';
 import 'package:synchronized/synchronized.dart';
+
 // ignore_for_file: deprecated_member_use_from_same_package
 
 final bool _debugStorage = false; // devWarning(true);
@@ -118,14 +118,14 @@ class SembastDatabase extends Object
   Transaction _openTransaction;
 
   /// Our main store
-  Store get mainStore => _mainStore;
+  SembastStore get mainStore => _mainStore;
 
-  Store _mainStore;
-  final Map<String, Store> _stores = {};
+  SembastStore _mainStore;
+  final Map<String, SembastStore> _stores = {};
   final List<String> _txnDroppedStores = [];
 
   /// Current in memory stores
-  Iterable<Store> get stores => _stores.values;
+  Iterable<SembastStore> get stores => _stores.values;
 
   /// Current in memory store names
   Iterable<String> get storeNames => _stores.values.map((store) => store.name);
@@ -144,7 +144,7 @@ class SembastDatabase extends Object
 
 // remove temp data in all store
     for (var store in stores) {
-      (store as SembastStore).rollback();
+      store.rollback();
     }
   }
 
@@ -232,8 +232,8 @@ class SembastDatabase extends Object
 
   /// Get the list of current records that can be safely iterate even
   /// in an async way.
-  List<ImmutableSembastRecord> getCurrentRecords(Store store) =>
-      (store as SembastStore).currentRecords;
+  List<ImmutableSembastRecord> getCurrentRecords(SembastStore store) =>
+      store.currentRecords;
 
   /// For jdb only
   Future<int> generateUniqueIntKey(String store) {
@@ -293,7 +293,7 @@ class SembastDatabase extends Object
       await _addStringLine(json.encode(_meta.toMap()));
 
       var stores = getCurrentStores();
-      for (Store store in stores) {
+      for (var store in stores) {
         final records = getCurrentRecords(store);
         for (var record in records) {
           await _addLine(record.toDatabaseRowMap());
@@ -334,7 +334,7 @@ class SembastDatabase extends Object
   TxnDatabaseContent _getTxnDatabaseContent() {
     var content = TxnDatabaseContent();
     for (var store in stores) {
-      var records = (store as SembastStore).currentTxnRecords;
+      var records = store.currentTxnRecords;
       if (records?.isNotEmpty ?? false) {
         content.addStoreRecords(store.ref, records);
       }
@@ -497,11 +497,11 @@ class SembastDatabase extends Object
     }
   }
 
-  Store _addStore(String storeName) {
+  SembastStore _addStore(String storeName) {
     if (storeName == null) {
       return _mainStore = _addStore(dbMainStore);
     } else {
-      Store store = SembastStore(this, storeName);
+      var store = SembastStore(this, storeName);
       _stores[storeName] = store;
       return store;
     }
@@ -510,8 +510,8 @@ class SembastDatabase extends Object
   ///
   /// find existing store
   ///
-  Store findStore(String storeName) {
-    Store store;
+  SembastStore findStore(String storeName) {
+    SembastStore store;
     if (storeName == null) {
       store = _mainStore;
     } else {
@@ -524,7 +524,7 @@ class SembastDatabase extends Object
   SembastTransactionStore txnFindStore(
       SembastTransaction txn, String storeName) {
     var store = findStore(storeName);
-    return txn.toExecutor(store as SembastStore);
+    return txn.toExecutor(store);
   }
 
   void _checkOpen() {
@@ -537,7 +537,7 @@ class SembastDatabase extends Object
   /// get or create a store
   /// an empty store will not be persistent
   ///
-  Store getStore(String storeName) {
+  SembastStore getStore(String storeName) {
     _checkOpen();
     var store = findStore(storeName);
     store ??= _addStore(storeName);
@@ -555,7 +555,7 @@ class SembastDatabase extends Object
     var store = findStore(ref.name);
     store ??= _addStore(ref.name);
 
-    return store as SembastStore;
+    return store;
   }
 
   /// Get a store in a transaction.
@@ -959,7 +959,7 @@ class SembastDatabase extends Object
 
       // Synchronous reload
       for (var store in stores) {
-        (store as SembastStore).recordMap.clear();
+        store.recordMap.clear();
       }
       for (var record in records) {
         loadRecord(record);
@@ -1008,7 +1008,7 @@ class SembastDatabase extends Object
     if (_stores != null) {
       final stores = <Map<String, dynamic>>[];
       for (var store in _stores.values) {
-        stores.add((store as SembastStore).toJson());
+        stores.add(store.toJson());
       }
       map['stores'] = stores;
     }
