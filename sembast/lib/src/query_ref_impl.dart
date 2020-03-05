@@ -6,10 +6,9 @@ import 'package:sembast/src/api/v2/sembast.dart' as v2;
 import 'package:sembast/src/common_import.dart';
 import 'package:sembast/src/database_impl.dart';
 import 'package:sembast/src/debug_utils.dart';
+import 'package:sembast/src/finder_impl.dart';
 import 'package:sembast/src/listener.dart';
 import 'package:sembast/src/store_ref_impl.dart';
-
-// _ignore_for_file: deprecated_member_use_from_same_package
 
 /// A query is unique
 class SembastQueryRef<K, V> implements QueryRef<K, V> {

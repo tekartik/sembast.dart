@@ -1,53 +1,15 @@
 import 'package:sembast/sembast.dart';
-import 'package:sembast/src/api/compat/filter.dart';
-import 'package:sembast/src/api/compat/record.dart';
 import 'package:sembast/src/filter_impl.dart';
-
-// ignore_for_file: deprecated_member_use_from_same_package
 
 ///
 /// Filter for searching into the database
 ///
 /// Don't subclass
 abstract class Filter {
-  /// @deprecated v2
-  @deprecated
-  static bool matchRecord(Filter filter, Record record) {
-    if (filter != null) {
-      return filter.match(record);
-    } else {
-      return (!record.deleted);
-    }
-  }
-
-  /// @deprecated v2
-  @deprecated
-  bool match(Record record) {
-    if (record.deleted) {
-      return false;
-    }
-    return true;
-  }
-
-  /// @deprecated v2
-  @deprecated
-  Filter();
-
-  /// @deprecated 2018-11-29 will be deprecated in 2.0
-  ///
-  @Deprecated('uses Filter.equals instead')
-  factory Filter.equal(String field, value) => Filter.equals(field, value);
-
   /// [field] value must be equals to [value].
   factory Filter.equals(String field, value, {bool anyInList}) {
     return SembastEqualsFilter(field, value, anyInList);
   }
-
-  /// @deprecated 2018-11-29 will be deprecated in 2.0
-  ///
-  @Deprecated('uses Filter.notEquals instead')
-  factory Filter.notEqual(String field, value) =>
-      Filter.notEquals(field, value);
 
   /// Filter where the [field] value is not equals to the specified value.
   factory Filter.notEquals(String field, value) {

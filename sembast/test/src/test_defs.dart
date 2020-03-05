@@ -7,9 +7,7 @@ import 'package:path/path.dart';
 import 'package:sembast/src/api/protected/jdb.dart';
 import 'package:sembast/src/api/v2/sembast.dart';
 import 'package:sembast/src/api/v2/sembast_memory.dart';
-
 import 'package:sembast/src/database_factory_mixin.dart';
-import 'package:sembast/src/database_impl.dart';
 import 'package:sembast/src/file_system.dart';
 import 'package:sembast/src/memory/file_system_memory.dart';
 
@@ -27,7 +25,7 @@ class TestException implements Exception {
 class FileSystemTestContext {
   FileSystem fs;
 
-  //String get outPath => fs.currentDirectory.path;
+//String get outPath => fs.currentDirectory.path;
 }
 
 FileSystemTestContext get memoryFileSystemContext =>
@@ -65,10 +63,6 @@ Future writeContent(FileSystem fs, String filePath, List<String> lines) async {
 
 void devPrintJson(Map json) {
   print(const JsonEncoder.withIndent('  ').convert(json));
-}
-
-Future<Database> reOpen(Database db, {DatabaseMode mode}) {
-  return (db as SembastDatabase).reOpen(DatabaseOpenOptions(mode: mode));
 }
 
 bool hasStorage(DatabaseFactory factory) =>

@@ -11,8 +11,6 @@ import 'package:sembast/src/finder_impl.dart';
 import 'package:sembast/src/query_ref_impl.dart';
 import 'package:sembast/src/record_impl.dart';
 
-// ignore_for_file: deprecated_member_use_from_same_package
-
 class _ControllerBase {
   static var _lastId = 0;
 
@@ -137,10 +135,8 @@ class QueryListenerController<K, V> extends _ControllerBase {
       allMatching.removeWhere(_where);
 
       // By default matches if non-deleted
-      var matches = !txnRecord.deleted;
-      if (matches && filter != null) {
-        matches = filterMatchesRecord(filter, txnRecord);
-      }
+      var matches =
+          !txnRecord.deleted && filterMatchesRecord(filter, txnRecord);
 
       if (matches) {
         hasChanges = true;

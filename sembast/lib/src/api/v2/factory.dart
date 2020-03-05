@@ -1,9 +1,16 @@
+import 'dart:async';
+
 import 'package:sembast/src/api/v2/sembast.dart';
 
 ///
 /// The database factory that allow opening database
 ///
 abstract class DatabaseFactory {
+  /// True if it has an associated storage (fs, idb).
+  ///
+  /// false for memory
+  bool get hasStorage;
+
   ///
   /// Open a new or existing database.
   ///
@@ -28,3 +35,10 @@ abstract class DatabaseFactory {
   ///
   Future deleteDatabase(String path);
 }
+
+/// Callback interface called when the existing version differs from the
+/// one expected.
+///
+/// Allow to perform migration or data change. Can return a future or not.
+typedef OnVersionChangedFunction = FutureOr Function(
+    Database db, int oldVersion, int newVersion);

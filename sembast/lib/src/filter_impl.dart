@@ -1,7 +1,4 @@
 import 'package:sembast/sembast.dart';
-import 'package:sembast/src/api/compat/filter.dart';
-import 'package:sembast/src/api/compat/record.dart';
-import 'package:sembast/src/api/compat/sembast.dart';
 import 'package:sembast/src/api/filter.dart';
 import 'package:sembast/src/api/record_snapshot.dart';
 import 'package:sembast/src/record_snapshot_impl.dart';
@@ -14,6 +11,10 @@ bool canMatch(String field, dynamic recordValue) =>
 
 /// Check if a [record] match a [filter]
 bool filterMatchesRecord(Filter filter, RecordSnapshot record) {
+  if (filter == null) {
+    return true;
+  }
+
   /// Allow raw access to record from within filters
   return (filter as SembastFilterBase)
       .matchesRecord(SembastRecordRawSnapshot(record));
@@ -23,15 +24,6 @@ bool filterMatchesRecord(Filter filter, RecordSnapshot record) {
 abstract class SembastFilterBase implements Filter {
   /// True if the record matches.
   bool matchesRecord(RecordSnapshot record);
-
-  /// True if the record matches.
-  @override
-  bool match(Record record) {
-    if (record.deleted) {
-      return false;
-    }
-    return matchesRecord(record);
-  }
 }
 
 /// Custom filter
@@ -152,13 +144,13 @@ class SembastMatchesFilter extends SembastFilterBase
   }
 }
 
-/// @deprecated v2
-@deprecated
+/// Composite filter
 class SembastCompositeFilter extends SembastFilterBase {
   // ignore: public_member_api_docs
   bool isAnd; // if false it is OR
   // ignore: public_member_api_docs
   bool get isOr => !isAnd;
+
   // ignore: public_member_api_docs
   List<Filter> filters;
 
@@ -254,5 +246,61 @@ class SembastFilterPredicate extends SembastFilterBase
   @override
   String toString() {
     return '${field} ${operation} ${value}';
+  }
+}
+
+/// Filter operation
+class FilterOperation {
+  /// Value to compare
+  final int value;
+
+  const FilterOperation._(this.value);
+
+  /// equal filter
+  static const FilterOperation equals = FilterOperation._(1);
+
+  /// not equal filter
+  static const FilterOperation notEquals = FilterOperation._(2);
+
+  /// less then filter
+  static const FilterOperation lessThan = FilterOperation._(3);
+
+  /// less than or equals filter
+  static const FilterOperation lessThanOrEquals = FilterOperation._(4);
+
+  /// greater than filter
+  static const FilterOperation greaterThan = FilterOperation._(5);
+
+  /// greater than or equals filter
+  static const FilterOperation greaterThanOrEquals = FilterOperation._(6);
+
+  /// in list filter
+  static const FilterOperation inList = FilterOperation._(7);
+
+  /// matches filter
+  static const FilterOperation matches = FilterOperation._(8);
+
+  @override
+  String toString() {
+    switch (this) {
+      case FilterOperation.equals:
+        return '=';
+      case FilterOperation.notEquals:
+        return '!=';
+      case FilterOperation.lessThan:
+        return '<';
+      case FilterOperation.lessThanOrEquals:
+        return '<=';
+      case FilterOperation.greaterThan:
+        return '>';
+      case FilterOperation.greaterThanOrEquals:
+        return '>=';
+      case FilterOperation.inList:
+        return 'IN';
+      case FilterOperation.matches:
+        return 'MATCHES';
+      default:
+        throw '${this} not supported';
+    }
   }
 }

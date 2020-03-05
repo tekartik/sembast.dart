@@ -23,6 +23,9 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     test('put/query timing', () async {
+      // No random timing
+      setDatabaseCooperator(db, null);
+
       var record = StoreRef<int, String>.main().record(1);
       var query = record.store.query();
       var future1 = query.getSnapshots(db);
@@ -61,6 +64,9 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     test('put/onSnapshots timing', () async {
+      // No random timing
+      setDatabaseCooperator(db, null);
+
       var record = StoreRef<int, String>.main().record(1);
       var query = record.store.query();
       var future1 = query.onSnapshots(db).first;
@@ -89,6 +95,9 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     test('put/onSnapshot timing', () async {
+      // No random timing
+      setDatabaseCooperator(db, null);
+
       var record = StoreRef<int, String>.main().record(1);
       var future1 = record.onSnapshot(db).first;
       await record.put(db, 'test');

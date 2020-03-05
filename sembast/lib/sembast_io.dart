@@ -12,7 +12,3 @@ DatabaseFactory get databaseFactoryIo => database_io.databaseFactoryIo;
 /// the current directory or absolute in the whole file system
 DatabaseFactory createDatabaseFactoryIo({String rootPath}) =>
     database_io.createDatabaseFactoryIo(rootPath: rootPath);
-
-/// deprecated.
-@Deprecated('Use databaseFactoryIo instead')
-DatabaseFactory get ioDatabaseFactory => databaseFactoryIo;

@@ -1,5 +1,6 @@
 import 'package:sembast/src/api/v2/sembast.dart';
 import 'package:sembast/src/cooperator.dart';
+import 'package:sembast/src/database_factory_mixin.dart';
 import 'package:sembast/src/database_impl.dart';
 
 export 'package:sembast/src/api/v2/sembast.dart';
@@ -28,4 +29,8 @@ void unused(dynamic value) {}
 
 void setDatabaseCooperator(Database db, Cooperator cooperator) {
   (db as SembastDatabase).cooperator = cooperator;
+}
+
+Future<Database> reOpen(Database db, {DatabaseMode mode}) {
+  return (db as SembastDatabase).reOpen(DatabaseOpenOptions(mode: mode));
 }

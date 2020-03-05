@@ -4,14 +4,13 @@ import 'package:sembast/src/api/query_ref.dart';
 import 'package:sembast/src/api/records_ref.dart';
 import 'package:sembast/src/api/store_ref.dart';
 import 'package:sembast/src/database_client_impl.dart';
+import 'package:sembast/src/finder_impl.dart';
 import 'package:sembast/src/query_ref_impl.dart';
 import 'package:sembast/src/record_impl.dart';
 import 'package:sembast/src/record_ref_impl.dart';
 import 'package:sembast/src/record_snapshot_impl.dart';
 import 'package:sembast/src/records_ref_impl.dart';
 import 'package:sembast/src/utils.dart';
-
-// ignore_for_file: deprecated_member_use_from_same_package
 
 /// Store implementation.
 class SembastStoreRef<K, V> with StoreRefMixin<K, V> {
@@ -226,8 +225,3 @@ final intMapStoreFactory = StoreFactoryBase<int, Map<String, dynamic>>();
 
 /// common `<String, Map<String, dynamic>>` factory
 final stringMapStoreFactory = StoreFactoryBase<String, Map<String, dynamic>>();
-
-// Deprecated since 2019-10-28, never used before.
-/// Deprecated.
-@deprecated
-abstract class StoreClient {}

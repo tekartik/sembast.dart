@@ -1,12 +1,10 @@
 @TestOn('vm')
 library sembast.database_perf_io_test;
 
-// ignore_for_file: deprecated_member_use_from_same_package
 import 'dart:async';
 import 'dart:io';
 
 import 'package:path/path.dart';
-import 'package:sembast/sembast.dart';
 import 'package:sembast/sembast_io.dart';
 import 'package:test/test.dart';
 
@@ -21,10 +19,10 @@ void main() {
         bool inTransaction}) async {
       inTransaction ??= transactionCount != null && transactionCount > 0;
       transactionCount ??= inTransaction ? 1 : 0;
-      final _record = bigRecord == true
+      final _recordContent = bigRecord == true
           ? List.generate(3000, (i) => '$i').join('')
           : 'some value';
-      recordSize = _record.length;
+      recordSize = _recordContent.length;
 
       var dbPath = join('.dart_tool', 'sembast', 'test',
           'perf_${recordCount}_${times}_${recordSize}_${transactionCount}.db');
@@ -36,14 +34,15 @@ void main() {
       // Remove cooperator to get raw result
       setDatabaseCooperator(db, null);
 
+      var store = StoreRef<int, String>.main();
       try {
         var sw = Stopwatch();
         sw.start();
 
-        Future _do(StoreExecutor executor, int recordCount, int times) async {
+        Future _do(DatabaseClient client, int recordCount, int times) async {
           for (var j = 0; j < times; j++) {
             for (var i = 0; i < recordCount; i++) {
-              await executor.put(_record, i);
+              await store.record(i).put(client, _recordContent);
             }
           }
         }
@@ -62,7 +61,7 @@ void main() {
           '$recordCount', '$times',
           inTransaction == true ? '$transactionCount' : ' ',
           // bigRecord == true ? 'BIG': ' ',
-          '${_record.length}',
+          '${_recordContent.length}',
           '${sw.elapsedMilliseconds}'
         ];
         //print('$recordCount record(s) $times times: ${sw.elapsed}${inTransaction == true ? ' in transaction' : ''}');

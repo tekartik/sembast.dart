@@ -15,7 +15,6 @@ import 'package:sembast/src/jdb.dart';
 import 'package:sembast/src/listener.dart';
 import 'package:sembast/src/meta.dart';
 import 'package:sembast/src/record_impl.dart';
-import 'package:sembast/src/record_impl.dart' as record_impl;
 import 'package:sembast/src/sembast_codec_impl.dart';
 import 'package:sembast/src/sembast_impl.dart';
 import 'package:sembast/src/sembast_jdb.dart';
@@ -59,7 +58,6 @@ class CommitData extends CommitEntries {
 
 /// Database implementation.
 class SembastDatabase extends Object
-    with DatabaseExecutorMixin
     implements Database, SembastDatabaseClient {
   // Can be modified by openHelper for test purpose
   /// its open helper.
@@ -117,21 +115,17 @@ class SembastDatabase extends Object
   // Only set during open (used during onVersionChanged
   Transaction _openTransaction;
 
-  @override
-  Store get store => mainStore;
+  /// Our main store
+  SembastStore get mainStore => _mainStore;
 
-  @override
-  Store get mainStore => _mainStore;
-
-  Store _mainStore;
-  final Map<String, Store> _stores = {};
+  SembastStore _mainStore;
+  final Map<String, SembastStore> _stores = {};
   final List<String> _txnDroppedStores = [];
 
-  @override
-  Iterable<Store> get stores => _stores.values;
+  /// Current in memory stores
+  Iterable<SembastStore> get stores => _stores.values;
 
-  // Current store names
-  @override
+  /// Current in memory store names
   Iterable<String> get storeNames => _stores.values.map((store) => store.name);
 
   /// Database implementation.
@@ -143,25 +137,12 @@ class SembastDatabase extends Object
     }
   }
 
-  ///
-  /// put a value in the main store
-  ///
-  @override
-  Future put(dynamic value, [dynamic key]) {
-    return _mainStore.put(value, key);
-  }
-
-  @override
-  Future update(dynamic value, [dynamic key]) {
-    return _mainStore.update(value, key);
-  }
-
   void _clearTxnData() {
     _txnDroppedStores.clear();
 
 // remove temp data in all store
     for (var store in stores) {
-      (store as SembastStore).rollback();
+      store.rollback();
     }
   }
 
@@ -182,7 +163,8 @@ class SembastDatabase extends Object
   /// Exported for testing
   SembastTransaction get currentTransaction => _transaction;
 
-  SembastStore _recordStore(Record record) => getSembastStore(record.ref.store);
+  SembastStore _recordStore(SembastRecord record) =>
+      getSembastStore(record.ref.store);
 
 //      (record.store ?? mainStore) as SembastStore;
 
@@ -249,8 +231,8 @@ class SembastDatabase extends Object
 
   /// Get the list of current records that can be safely iterate even
   /// in an async way.
-  List<ImmutableSembastRecord> getCurrentRecords(Store store) =>
-      (store as SembastStore).currentRecords;
+  List<ImmutableSembastRecord> getCurrentRecords(SembastStore store) =>
+      store.currentRecords;
 
   /// For jdb only
   Future<int> generateUniqueIntKey(String store) {
@@ -310,7 +292,7 @@ class SembastDatabase extends Object
       await _addStringLine(json.encode(_meta.toMap()));
 
       var stores = getCurrentStores();
-      for (Store store in stores) {
+      for (var store in stores) {
         final records = getCurrentRecords(store);
         for (var record in records) {
           await _addLine(record.toDatabaseRowMap());
@@ -351,7 +333,7 @@ class SembastDatabase extends Object
   TxnDatabaseContent _getTxnDatabaseContent() {
     var content = TxnDatabaseContent();
     for (var store in stores) {
-      var records = (store as SembastStore).currentTxnRecords;
+      var records = store.currentTxnRecords;
       if (records?.isNotEmpty ?? false) {
         content.addStoreRecords(store.ref, records);
       }
@@ -446,59 +428,11 @@ class SembastDatabase extends Object
     }
   }
 
-  ///
-  /// Put a record
-  ///
-  @override
-  Future<Record> putRecord(Record record) =>
-      getSembastStore(record.ref.store).putRecord(record);
-
-  ///
-  /// Get a record by its key
-  ///
-  @override
-  Future<Record> getRecord(var key) {
-    return mainStore.getRecord(key);
-  }
-
-  ///
-  /// Put a list or records
-  ///
-  @override
-  Future<List<Record>> putRecords(List<Record> records) {
-    return transaction((txn) async {
-      return makeOutRecords(
-          await txnPutRecords(txn as SembastTransaction, records));
-    });
-  }
-
-  /// cooperate safe
-  Record makeOutRecord(ImmutableSembastRecord record) =>
-      record_impl.makeLazyMutableRecord(_recordStore(record), record);
-
-  /// cooperate safe
-  Future<List<Record>> makeOutRecords(
-      List<ImmutableSembastRecord> records) async {
-    if (records != null) {
-      var clones = <Record>[];
-      // make it safe for the loop
-      records = List<ImmutableSembastRecord>.from(records, growable: false);
-      for (var record in records) {
-        if (needCooperate) {
-          await cooperate();
-        }
-        clones.add(makeOutRecord(record));
-      }
-      return clones;
-    }
-    return null;
-  }
-
   /// Put records in a transaction
   Future<List<ImmutableSembastRecord>> txnPutRecords(
-      SembastTransaction txn, List<Record> records) async {
+      SembastTransaction txn, List<ImmutableSembastRecord> records) async {
     // clone for safe loop
-    records = List<Record>.from(records);
+    records = List<ImmutableSembastRecord>.from(records);
     var recordsResult = List<ImmutableSembastRecord>(records.length);
     for (var i = 0; i < records.length; i++) {
       recordsResult[i] = await txnPutRecord(txn, records[i]);
@@ -506,66 +440,14 @@ class SembastDatabase extends Object
     return recordsResult;
   }
 
-  ///
-  /// find records in the main store
-  ///
-  @override
-  Future<List<Record>> findRecords(Finder finder) {
-    return mainStore.findRecords(finder);
-  }
-
-  @override
-  Future<Record> findRecord(Finder finder) {
-    return mainStore.findRecord(finder);
-  }
-
   /// Put a record in a transaction.
   Future<ImmutableSembastRecord> txnPutRecord(
-      SembastTransaction txn, Record record) {
+      SembastTransaction txn, ImmutableSembastRecord record) {
     return _recordStore(record).txnPutRecord(txn, record);
   }
 
-  ///
-  /// get a value by key in the main store
-  ///
-  @override
-  Future get(var key) {
-    return _mainStore.get(key);
-  }
-
-  ///
-  /// count all records in the main store
-  ///
-  @override
-  Future<int> count([Filter filter]) {
-    return _mainStore.count(filter);
-  }
-
-  ///
-  /// delete a record by key in the main store
-  ///
-  @override
-  Future delete(var key) {
-    return _mainStore.delete(key);
-  }
-
-  ///
-  /// delete a [record]
-  ///
-  @override
-  Future deleteRecord(Record record) {
-    return record.store.delete(record.key);
-  }
-
-  ///
-  /// delete a record by key in the main store
-  ///
-  Future deleteStoreRecord(Store store, var key) {
-    return store.delete(key);
-  }
-
   /// Check if a record is present
-  bool _noTxnHasRecord(Record record) {
+  bool _noTxnHasRecord(ImmutableSembastRecord record) {
     return _recordStore(record).txnContainsKey(null, record.key);
   }
 
@@ -592,11 +474,11 @@ class SembastDatabase extends Object
     }
   }
 
-  Store _addStore(String storeName) {
+  SembastStore _addStore(String storeName) {
     if (storeName == null) {
       return _mainStore = _addStore(dbMainStore);
     } else {
-      Store store = SembastStore(this, storeName);
+      var store = SembastStore(this, storeName);
       _stores[storeName] = store;
       return store;
     }
@@ -605,9 +487,8 @@ class SembastDatabase extends Object
   ///
   /// find existing store
   ///
-  @override
-  Store findStore(String storeName) {
-    Store store;
+  SembastStore findStore(String storeName) {
+    SembastStore store;
     if (storeName == null) {
       store = _mainStore;
     } else {
@@ -633,8 +514,7 @@ class SembastDatabase extends Object
   /// get or create a store
   /// an empty store will not be persistent
   ///
-  @override
-  Store getStore(String storeName) {
+  SembastStore getStore(String storeName) {
     _checkOpen();
     var store = findStore(storeName);
     store ??= _addStore(storeName);
@@ -652,20 +532,19 @@ class SembastDatabase extends Object
     var store = findStore(ref.name);
     store ??= _addStore(ref.name);
 
-    return store as SembastStore;
+    return store;
   }
 
   /// Get a store in a transaction.
   SembastTransactionStore txnGetStore(
       SembastTransaction txn, String storeName) {
-    var store = getStore(storeName);
+    var store = getSembastStore(v2.StoreRef(storeName));
     return txn.toExecutor(store);
   }
 
   ///
   /// clear and delete a store
   ///
-  @override
   Future deleteStore(String storeName) {
     return transaction((txn) {
       return txnDeleteStore(txn as SembastTransaction, storeName);
@@ -881,7 +760,7 @@ class SembastDatabase extends Object
                 }
               }
 
-              if (SembastRecord.isMapRecord(map)) {
+              if (isMapRecord(map)) {
                 // record?
                 final record =
                     ImmutableSembastRecord.fromDatabaseRowMap(this, map);
@@ -1057,7 +936,7 @@ class SembastDatabase extends Object
 
       // Synchronous reload
       for (var store in stores) {
-        (store as SembastStore).recordMap.clear();
+        store.recordMap.clear();
       }
       for (var record in records) {
         loadRecord(record);
@@ -1106,7 +985,7 @@ class SembastDatabase extends Object
     if (_stores != null) {
       final stores = <Map<String, dynamic>>[];
       for (var store in _stores.values) {
-        stores.add((store as SembastStore).toJson());
+        stores.add(store.toJson());
       }
       map['stores'] = stores;
     }
@@ -1143,9 +1022,6 @@ class SembastDatabase extends Object
   String toString() {
     return toJson().toString();
   }
-
-  @override
-  Future<bool> containsKey(key) => _mainStore.containsKey(key);
 
   /// Execute an exclusive operation on the database storage
   Future databaseOperation(Future Function() action) async {
@@ -1332,9 +1208,6 @@ class SembastDatabase extends Object
       });
     }
   }
-
-  @override
-  Future clear() => mainStore.clear();
 
   /// Our cooperator.
   var cooperator = Cooperator();
