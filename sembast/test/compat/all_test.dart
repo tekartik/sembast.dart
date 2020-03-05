@@ -13,7 +13,6 @@ import 'exception_test.dart' as exception_test;
 import 'key_test.dart' as key_test;
 import 'record_test.dart' as record_test;
 import 'src_file_system_test.dart' as src_file_system_test;
-import 'store_test.dart' as store_test;
 import 'test_common.dart';
 import 'transaction_test.dart' as transaction_test;
 import 'value_test.dart' as value_test;
@@ -40,7 +39,6 @@ void defineTests(DatabaseTestContext ctx) {
   record_test.defineTests(ctx);
   key_test.defineTests(ctx);
   value_test.defineTests(ctx);
-  store_test.defineTests(ctx);
   transaction_test.defineTests(ctx);
   exception_test.defineTests(ctx);
   database_import_export_test.defineTests(ctx);

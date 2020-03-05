@@ -26,6 +26,5 @@ void defineTests(DatabaseTestContext ctx) {
       expect(Field.key, '_key');
       expect(Field.value, '_value');
     });
-
   });
 }
