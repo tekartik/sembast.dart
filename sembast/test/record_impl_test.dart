@@ -35,15 +35,6 @@ void defineTests(DatabaseTestContext ctx) {
         } on StateError catch (_) {}
         expect(record.value, {'foo': 'bar'});
       });
-
-      test('lazy muttable', () {
-        final record =
-            ImmutableSembastRecord(mainStoreRef.record(1), {'foo': 'bar'});
-        var lazy = makeLazyMutableRecord(null, record);
-        expect(lazy.value, {'foo': 'bar'});
-        lazy['test'] = 1;
-        expect(lazy.value, {'foo': 'bar', 'test': 1});
-      });
     });
   });
 }

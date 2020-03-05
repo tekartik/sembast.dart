@@ -90,64 +90,6 @@ mixin SembastRecordMixin implements Record, SembastRecordValue {
   set value(value) => rawValue = sanitizeValue(value);
 }
 
-/// Record that can modified although not cloned right away
-class LazyMutableSembastRecord with SembastRecordHelperMixin implements Record {
-  /// Can change overtime if modified
-  Record record;
-
-  /// Build a record lazily.
-  LazyMutableSembastRecord(this.record) {
-    assert(record != null);
-    assert(!(record is LazyMutableSembastRecord));
-  }
-
-  @override
-  void operator []=(String field, value) {
-    // Mutate if needed
-    mutableRecord[field] = value;
-  }
-
-  /// Mutate only once
-  Record get mutableRecord {
-    if (record is ImmutableSembastRecord) {
-      var immutable = record as ImmutableSembastRecord;
-      // Clone it as compatibility SembastRecord
-      record = SembastRecord(
-          record.ref.store, cloneValue(immutable.value), record.key);
-    }
-    return record;
-  }
-
-  @override
-  dynamic operator [](String field) {
-    var value = record[field];
-
-    if (record is ImmutableSembastRecord) {
-      // Need mutation?
-      if (isValueMutable(value)) {
-        return mutableRecord[field];
-      }
-    }
-    return value;
-  }
-
-  @override
-  bool get deleted => record.deleted;
-
-  @override
-  dynamic get key => record.key;
-
-  /// We allow the target to modify the map so clone it
-  @override
-  dynamic get value => mutableRecord.value;
-
-  @override
-  RecordRef get ref => record.ref;
-
-  @override
-  RecordSnapshot<RK, RV> cast<RK, RV>() => record.cast<RK, RV>();
-}
-
 /// Immutable record in jdb.
 class ImmutableSembastRecordJdb extends ImmutableSembastRecord {
   /// Immutable record in jdb.
@@ -357,15 +299,6 @@ RecordSnapshot makeImmutableRecordSnapshot(RecordSnapshot record) {
     return null;
   }
   return SembastRecordSnapshot(record.ref, cloneValue(record.value));
-}
-
-/// Make lazy mutable snapshot.
-LazyMutableSembastRecord makeLazyMutableRecord(
-    SembastStore store, ImmutableSembastRecord record) {
-  if (record == null) {
-    return null;
-  }
-  return LazyMutableSembastRecord(record);
 }
 
 /// create snapshot list.

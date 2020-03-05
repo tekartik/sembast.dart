@@ -16,7 +16,6 @@ import 'package:sembast/src/jdb.dart';
 import 'package:sembast/src/listener.dart';
 import 'package:sembast/src/meta.dart';
 import 'package:sembast/src/record_impl.dart';
-import 'package:sembast/src/record_impl.dart' as record_impl;
 import 'package:sembast/src/sembast_codec_impl.dart';
 import 'package:sembast/src/sembast_impl.dart';
 import 'package:sembast/src/sembast_jdb.dart';
@@ -427,28 +426,6 @@ class SembastDatabase extends Object
         await _storage.appendLines(lines);
       }
     }
-  }
-
-  /// cooperate safe
-  Record makeOutRecord(ImmutableSembastRecord record) =>
-      record_impl.makeLazyMutableRecord(_recordStore(record), record);
-
-  /// cooperate safe
-  Future<List<Record>> makeOutRecords(
-      List<ImmutableSembastRecord> records) async {
-    if (records != null) {
-      var clones = <Record>[];
-      // make it safe for the loop
-      records = List<ImmutableSembastRecord>.from(records, growable: false);
-      for (var record in records) {
-        if (needCooperate) {
-          await cooperate();
-        }
-        clones.add(makeOutRecord(record));
-      }
-      return clones;
-    }
-    return null;
   }
 
   /// Put records in a transaction

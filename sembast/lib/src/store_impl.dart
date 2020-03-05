@@ -7,11 +7,11 @@ import 'package:sembast/src/filter_impl.dart';
 import 'package:sembast/src/finder_impl.dart';
 import 'package:sembast/src/key_utils.dart';
 import 'package:sembast/src/record_impl.dart';
-import 'package:sembast/src/record_impl.dart' as record_impl;
 import 'package:sembast/src/record_snapshot_impl.dart';
 import 'package:sembast/src/sort.dart';
 import 'package:sembast/src/transaction_impl.dart';
 import 'package:sembast/src/utils.dart';
+
 import 'common_import.dart';
 import 'database_impl.dart';
 
@@ -177,27 +177,6 @@ class SembastStore {
       print('${txn} update ${record}');
     }
     return record.value;
-  }
-
-  Future _feedController(
-      SembastTransaction txn, StreamController<Record> ctlr) async {
-    await forEachRecords(txn, null, (record) {
-      ctlr.add(makeOutRecord(record));
-      return true;
-    });
-  }
-
-  ///
-  /// stream all the records
-  ///
-  Stream<Record> txnGetRecordsStream(SembastTransaction transaction) {
-    StreamController<Record> ctlr;
-    ctlr = StreamController<Record>(onListen: () {
-      _feedController(transaction, ctlr).then((_) {
-        ctlr.close();
-      });
-    });
-    return ctlr.stream;
   }
 
   ///
@@ -455,16 +434,6 @@ class SembastStore {
     }
   }
 
-  ///
-  /// Put a record
-  ///
-  Future<Record> putRecord(Record record) {
-    return transaction((txn) async {
-      return makeOutRecord(
-          await txnPutRecord(txn as SembastTransaction, record));
-    });
-  }
-
   /// Put a record in a transaction.
   Future<ImmutableSembastRecord> txnPutRecord(
       SembastTransaction txn, Record record) async {
@@ -525,28 +494,6 @@ class SembastStore {
       print('${database.currentTransaction} get ${record} key ${key}');
     }
     return record;
-  }
-
-  /// cooperate safe
-  Record makeOutRecord(ImmutableSembastRecord record) =>
-      record_impl.makeLazyMutableRecord(this, record);
-
-  /// cooperate safe
-  Future<List<Record>> makeOutRecords(
-      List<ImmutableSembastRecord> records) async {
-    if (records != null) {
-      var clones = <Record>[];
-      // make it safe for the loop
-      records = List<ImmutableSembastRecord>.from(records, growable: false);
-      for (var record in records) {
-        if (needCooperate) {
-          await cooperate();
-        }
-        clones.add(record_impl.makeLazyMutableRecord(this, record));
-      }
-      return clones;
-    }
-    return null;
   }
 
   /// Get a record in a transaction.
