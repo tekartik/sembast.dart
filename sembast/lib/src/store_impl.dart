@@ -128,6 +128,10 @@ class SembastStore {
         value = mergeValue(record.value, value, allowDotsInKeys: true);
       }
     }
+    // Clone the value if not merged before
+    if (record == null) {
+      value = cloneValue(value);
+    }
     record = ImmutableSembastRecord(ref.record(key), value);
 
     record = txnPutRecordSync(txn, record);
