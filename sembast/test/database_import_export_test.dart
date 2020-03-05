@@ -1,10 +1,8 @@
 library sembast.database_import_export_test;
 
-// ignore_for_file: deprecated_member_use_from_same_package
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:sembast/sembast.dart';
 import 'package:sembast/utils/sembast_import_export.dart';
 
 import 'test_common.dart';
@@ -49,10 +47,11 @@ void defineTests(DatabaseTestContext ctx) {
       await _checkExportImport(db, {'sembast_export': 1, 'version': 2});
     });
 
+    var store = StoreRef<int, String>.main();
     test('1_string_record', () async {
       final db =
           await setupForTest(ctx, 'compat/import_export/1_string_record.db');
-      await db.put('hi', 1);
+      await store.record(1).put(db, 'hi');
       await _checkExportImport(db, {
         'sembast_export': 1,
         'version': 1,
@@ -69,7 +68,9 @@ void defineTests(DatabaseTestContext ctx) {
     test('1_deleted_record', () async {
       final db =
           await setupForTest(ctx, 'compat/import_export/1_deleted_record.db');
-      await db.delete(await db.put('hi', 1));
+      var record = store.record(1);
+      await record.put(db, 'hi');
+      await record.delete(db);
       // deleted record not exported
       await _checkExportImport(db, {'sembast_export': 1, 'version': 1});
     });
@@ -77,8 +78,8 @@ void defineTests(DatabaseTestContext ctx) {
     test('twice_same_record', () async {
       final db =
           await setupForTest(ctx, 'compat/import_export/twice_same_record.db');
-      await db.put('hi', 1);
-      await db.put('hi', 1);
+      await store.record(1).put(db, 'hi');
+      await store.record(1).put(db, 'hi');
       await _checkExportImport(db, {
         'sembast_export': 1,
         'version': 1,
@@ -96,7 +97,8 @@ void defineTests(DatabaseTestContext ctx) {
       final db =
           await setupForTest(ctx, 'compat/import_export/1_map_record.db');
 
-      await db.put({'test': 2}, 1);
+      var store = intMapStoreFactory.store();
+      await store.record(1).put(db, {'test': 2});
 
       await _checkExportImport(db, {
         'sembast_export': 1,

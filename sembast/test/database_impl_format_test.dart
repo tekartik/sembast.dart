@@ -9,8 +9,6 @@ import 'package:sembast/src/sembast_fs.dart';
 import 'test_common.dart';
 import 'test_common_impl.dart';
 
-// ignore_for_file: deprecated_member_use_from_same_package
-
 void main() {
   defineTests(memoryFileSystemContext);
 }
@@ -32,9 +30,12 @@ void defineTests(FileSystemTestContext ctx) {
       await prepareForDb();
     });
 
+    var store = StoreRef<int, String>.main();
+    var record = store.record(1);
+
     test('add/put/delete', () async {
       final db = await factory.openDatabase(dbPath) as SembastDatabase;
-      await db.put('test1', 1);
+      await record.put(db, 'test1');
 
       var exportStat = getDatabaseExportStat(db);
       expect(exportStat.compactCount, 0);
@@ -42,7 +43,7 @@ void defineTests(FileSystemTestContext ctx) {
       expect(exportStat.obsoleteLineCount, 0);
 
       // put same
-      await db.put('test1', 1);
+      await record.put(db, 'test1');
 
       exportStat = getDatabaseExportStat(db);
       expect(exportStat.compactCount, 0);
@@ -50,7 +51,7 @@ void defineTests(FileSystemTestContext ctx) {
       expect(exportStat.obsoleteLineCount, 1);
 
       // delete
-      await db.delete(1);
+      await record.delete(db);
 
       exportStat = getDatabaseExportStat(db);
       expect(exportStat.compactCount, 0);
@@ -60,12 +61,14 @@ void defineTests(FileSystemTestContext ctx) {
   });
 
   group('compact', () {
+    var store = StoreRef<int, String>.main();
+
     test('compact_and_write', () async {
       await prepareForDb();
       final db = await factory.openDatabase(dbPath) as SembastDatabase;
-      await db.put('test1', 1);
+      await store.record(1).put(db, 'test1');
       await db.compact();
-      await db.put('test2', 2);
+      await store.record(2).put(db, 'test2');
       await db.close();
       final lines = await readContent(fs, dbPath);
       expect(lines.length, 3);
@@ -76,10 +79,10 @@ void defineTests(FileSystemTestContext ctx) {
     test('compact_and_reopen', () async {
       await prepareForDb();
       var db = await factory.openDatabase(dbPath) as SembastDatabase;
-      await db.put('test1', 1);
+      await store.record(1).put(db, 'test1');
       await db.compact();
       db = await db.reOpen() as SembastDatabase;
-      await db.put('test2', 2);
+      await store.record(2).put(db, 'test2');
       await db.close();
       final lines = await readContent(fs, dbPath);
       expect(lines.length, 3);
@@ -91,8 +94,8 @@ void defineTests(FileSystemTestContext ctx) {
     test('twice same record', () async {
       await prepareForDb();
       final db = await factory.openDatabase(dbPath) as SembastDatabase;
-      await db.put('hi', 1);
-      await db.put('hi', 1);
+      await store.record(1).put(db, 'hi');
+      await store.record(1).put(db, 'hi');
       await db.compact();
       await db.flush();
       var lines = await readContent(fs, dbPath);

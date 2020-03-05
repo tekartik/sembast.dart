@@ -1,6 +1,5 @@
 library sembast.database_perf_test;
 
-// _ignore_for_file: deprecated_member_use_from_same_package
 import 'dart:async';
 
 import 'test_common.dart';

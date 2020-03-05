@@ -68,8 +68,8 @@ Future<Map<String, dynamic>> exportDatabase(v2.Database db) {
 ///
 /// Import the exported data into a new database
 ///
-Future<Database> importDatabase(
-    Map srcData, DatabaseFactory dstFactory, String dstPath) async {
+Future<v2.Database> importDatabase(
+    Map srcData, v2.DatabaseFactory dstFactory, String dstPath) async {
   await dstFactory.deleteDatabase(dstPath);
 
   // check signature

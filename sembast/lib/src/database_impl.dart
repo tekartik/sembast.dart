@@ -519,6 +519,7 @@ class SembastDatabase extends Object
   /// delete a record by key in the main store
   ///
   @override
+  @deprecated
   Future delete(var key) {
     return _mainStore.delete(key);
   }
