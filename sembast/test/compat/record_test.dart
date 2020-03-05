@@ -110,6 +110,5 @@ void defineTests(DatabaseTestContext ctx) {
         });
       });
     });
-
   });
 }

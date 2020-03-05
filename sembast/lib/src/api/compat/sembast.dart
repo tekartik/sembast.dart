@@ -55,7 +55,6 @@ abstract class TransactionExecutor extends DatabaseExecutor {
 /// @deprecated v2
 @deprecated
 abstract class DatabaseExecutor extends StoreExecutor {
-
   /// @deprecated v2
   ///
   /// Put a list or records
