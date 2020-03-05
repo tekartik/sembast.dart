@@ -36,20 +36,6 @@ abstract class TransactionExecutor extends DatabaseExecutor {
   ///
   @deprecated
   StoreExecutor getStore(String storeName);
-
-  /// @deprecated v2
-  ///
-  /// clear and delete a store
-  ///
-  @deprecated
-  Future deleteStore(String storeName);
-
-  /// @deprecated v2
-  ///
-  /// find existing store
-  ///
-  @deprecated
-  StoreExecutor findStore(String storeName);
 }
 
 /// @deprecated v2

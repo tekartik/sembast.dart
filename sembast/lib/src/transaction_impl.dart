@@ -89,11 +89,11 @@ class SembastTransaction extends Object
   Iterable<SembastTransactionStore> get stores =>
       database.stores.map(toExecutor);
 
-  @override
+  /// Delete a store
   Future deleteStore(String storeName) =>
       database.txnDeleteStore(this, storeName);
 
-  @override
+  /// Find a store
   StoreExecutor findStore(String storeName) =>
       database.txnFindStore(this, storeName);
 
