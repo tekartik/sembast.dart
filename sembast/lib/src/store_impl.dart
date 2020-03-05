@@ -129,7 +129,7 @@ class SembastStore {
         value = mergeValue(record.value, value, allowDotsInKeys: true);
       }
     }
-    record = SembastRecord(this, value, key);
+    record = SembastRecord(ref, value, key);
 
     record = txnPutRecordSync(txn, record);
     if (database.logV) {
@@ -170,7 +170,7 @@ class SembastStore {
     }
 
     var mergedValue = mergeValue(existingRecord.value, value);
-    Record record = SembastRecord(this, mergedValue, key);
+    Record record = SembastRecord(ref, mergedValue, key);
 
     txnPutRecordSync(txn, record);
     if (database.logV) {
@@ -501,7 +501,7 @@ class SembastStore {
     checkTransaction(txn);
     txnRecords ??= <dynamic, TxnRecord>{};
 
-    txnRecords[sembastRecord.key] = TxnRecord(this, sembastRecord);
+    txnRecords[sembastRecord.key] = TxnRecord(sembastRecord);
     return sembastRecord;
   }
 

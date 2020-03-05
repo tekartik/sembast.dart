@@ -10,11 +10,7 @@ import 'package:sembast/src/utils.dart';
 
 // ignore_for_file: deprecated_member_use_from_same_package
 
-mixin SembastRecordWithStoreMixin implements Record {
-  // Kept for compatibility
-  @override
-  SembastStore store;
-}
+mixin SembastRecordWithStoreMixin implements Record {}
 mixin SembastRecordHelperMixin implements Record {
   ///
   /// allow cloning a record to start modifying it
@@ -96,16 +92,11 @@ mixin SembastRecordMixin implements Record, SembastRecordValue {
 
 /// Record that can modified although not cloned right away
 class LazyMutableSembastRecord with SembastRecordHelperMixin implements Record {
-  // For compatibility
-  // Will be remove in 2.0
-  @override
-  SembastStore store;
-
   /// Can change overtime if modified
   Record record;
 
   /// Build a record lazily.
-  LazyMutableSembastRecord(this.store, this.record) {
+  LazyMutableSembastRecord(this.record) {
     assert(record != null);
     assert(!(record is LazyMutableSembastRecord));
   }
@@ -121,7 +112,8 @@ class LazyMutableSembastRecord with SembastRecordHelperMixin implements Record {
     if (record is ImmutableSembastRecord) {
       var immutable = record as ImmutableSembastRecord;
       // Clone it as compatibility SembastRecord
-      record = SembastRecord(store, cloneValue(immutable.value), record.key);
+      record = SembastRecord(
+          record.ref.store, cloneValue(immutable.value), record.key);
     }
     return record;
   }
@@ -214,11 +206,6 @@ class ImmutableSembastRecord
   }
 
   @override
-  @deprecated
-  SembastStore get store => throw UnsupportedError(
-      'Deprecated for immutable record. use ref.store instead');
-
-  @override
   String toString() {
     var map = toDatabaseRowMap();
     if (revision != null) {
@@ -234,7 +221,7 @@ class TxnRecord with SembastRecordHelperMixin implements Record {
   ImmutableSembastRecord record;
 
   /// Transaction record.
-  TxnRecord(this.store, this.record);
+  TxnRecord(this.record);
 
   @override
   void operator []=(String field, value) =>
@@ -248,9 +235,6 @@ class TxnRecord with SembastRecordHelperMixin implements Record {
 
   @override
   dynamic get key => record.key;
-
-  @override
-  SembastStore store;
 
   @override
   dynamic get value => record.value;
@@ -306,10 +290,6 @@ class MutableSembastRecord
     this.ref = ref;
     this.value = value;
   }
-
-  @override
-  SembastStore get store =>
-      throw UnsupportedError('Deprecated. use ref.store instead');
 }
 
 /// Sembast record.
@@ -333,13 +313,11 @@ class SembastRecord
   /// We know data has been sanitized before
   /// an optional [key]
   ///
-  SembastRecord(SembastStore store, dynamic value, [dynamic key]) {
-    /// Store kept for compatibility
-    this.store = store;
+  SembastRecord(StoreRef store, dynamic value, [dynamic key]) {
     this.value = value;
     // The key could be null in the compat layer so we don't use
     // store.record that will throw an exception
-    ref = SembastRecordRef(store?.ref ?? mainStoreRef, key);
+    ref = SembastRecordRef(store ?? mainStoreRef, key);
   }
 }
 
@@ -387,7 +365,7 @@ LazyMutableSembastRecord makeLazyMutableRecord(
   if (record == null) {
     return null;
   }
-  return LazyMutableSembastRecord(store, record);
+  return LazyMutableSembastRecord(record);
 }
 
 /// create snapshot list.
