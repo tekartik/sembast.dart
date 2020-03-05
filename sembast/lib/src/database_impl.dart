@@ -3,7 +3,6 @@ import 'dart:convert';
 
 import 'package:meta/meta.dart';
 import 'package:sembast/sembast.dart';
-import 'package:sembast/src/api/compat/record.dart';
 import 'package:sembast/src/api/log_level.dart';
 import 'package:sembast/src/api/v2/sembast.dart' as v2;
 import 'package:sembast/src/common_import.dart';
@@ -164,7 +163,8 @@ class SembastDatabase extends Object
   /// Exported for testing
   SembastTransaction get currentTransaction => _transaction;
 
-  SembastStore _recordStore(Record record) => getSembastStore(record.ref.store);
+  SembastStore _recordStore(SembastRecordHelperMixin record) =>
+      getSembastStore(record.ref.store);
 
 //      (record.store ?? mainStore) as SembastStore;
 
@@ -430,9 +430,9 @@ class SembastDatabase extends Object
 
   /// Put records in a transaction
   Future<List<ImmutableSembastRecord>> txnPutRecords(
-      SembastTransaction txn, List<Record> records) async {
+      SembastTransaction txn, List<ImmutableSembastRecord> records) async {
     // clone for safe loop
-    records = List<Record>.from(records);
+    records = List<ImmutableSembastRecord>.from(records);
     var recordsResult = List<ImmutableSembastRecord>(records.length);
     for (var i = 0; i < records.length; i++) {
       recordsResult[i] = await txnPutRecord(txn, records[i]);
@@ -442,7 +442,7 @@ class SembastDatabase extends Object
 
   /// Put a record in a transaction.
   Future<ImmutableSembastRecord> txnPutRecord(
-      SembastTransaction txn, Record record) {
+      SembastTransaction txn, ImmutableSembastRecord record) {
     return _recordStore(record).txnPutRecord(txn, record);
   }
 
@@ -760,7 +760,7 @@ class SembastDatabase extends Object
                 }
               }
 
-              if (SembastRecord.isMapRecord(map)) {
+              if (isMapRecord(map)) {
                 // record?
                 final record =
                     ImmutableSembastRecord.fromDatabaseRowMap(this, map);

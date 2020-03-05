@@ -2,7 +2,6 @@ import 'package:sembast/sembast.dart';
 import 'package:sembast/src/api/compat/record.dart';
 import 'package:sembast/src/api/record_ref.dart';
 import 'package:sembast/src/api/record_snapshot.dart';
-import 'package:sembast/src/record_ref_impl.dart';
 import 'package:sembast/src/record_snapshot_impl.dart';
 import 'package:sembast/src/sembast_impl.dart';
 import 'package:sembast/src/store_impl.dart';
@@ -10,7 +9,9 @@ import 'package:sembast/src/utils.dart';
 
 // ignore_for_file: deprecated_member_use_from_same_package
 
-mixin SembastRecordHelperMixin implements Record {
+mixin SembastRecordHelperMixin implements RecordSnapshot {
+  bool get deleted;
+
   ///
   /// Copy a record.
   ///
@@ -74,7 +75,6 @@ abstract class SembastRecordValue<V> {
 mixin SembastRecordMixin implements Record, SembastRecordValue {
   bool _deleted;
 
-  @override
   bool get deleted => _deleted == true;
 
   set deleted(bool deleted) => _deleted = deleted;
@@ -174,44 +174,17 @@ class TxnRecord with SembastRecordHelperMixin implements Record {
   ImmutableSembastRecord get nonDeletedRecord => deleted ? null : record;
 }
 
-/// Sembast record.
-class SembastRecord
-    with SembastRecordMixin, SembastRecordHelperMixin, RecordSnapshotMixin {
-  ///
-  /// check whether the map specified looks like a record
-  ///
-  static bool isMapRecord(Map map) {
-    var key = map[dbRecordKey];
-    return (key != null);
-  }
-
-  ///
-  /// Create a record in a given [store] with a given [value] and
-  /// We know data has been sanitized before
-  /// an optional [key]
-  ///
-  SembastRecord(StoreRef store, dynamic value, [dynamic key]) {
-    this.value = value;
-    // The key could be null in the compat layer so we don't use
-    // store.record that will throw an exception
-    ref = SembastRecordRef(store ?? mainStoreRef, key);
-  }
-}
-
-/// Convert to immultable if needed
-ImmutableSembastRecord makeImmutableRecord(Record record) {
-  if (record is ImmutableSembastRecord) {
-    return record;
-  } else if (record == null) {
-    // This can happen when settings boundary
-    return null;
-  }
-  return ImmutableSembastRecord(record.ref, cloneValue(record.value),
-      deleted: record.deleted);
+///
+/// check whether the map specified looks like a record
+///
+bool isMapRecord(Map map) {
+  var key = map[dbRecordKey];
+  return (key != null);
 }
 
 /// Convert to immutable if needed
-ImmutableSembastRecordJdb makeImmutableRecordJdb(Record record) {
+ImmutableSembastRecordJdb makeImmutableRecordJdb(
+    ImmutableSembastRecord record) {
   if (record is ImmutableSembastRecordJdb) {
     return record;
   } else if (record == null) {

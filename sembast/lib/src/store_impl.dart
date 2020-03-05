@@ -122,14 +122,14 @@ class SembastStore {
   /// Returns the value
   Future<dynamic> txnPutSync(SembastTransaction txn, var value, var key,
       {bool merge}) async {
-    Record record;
+    ImmutableSembastRecord record;
     if (merge == true) {
       record = txnGetRecordSync(txn, key);
       if (record != null) {
         value = mergeValue(record.value, value, allowDotsInKeys: true);
       }
     }
-    record = SembastRecord(ref, value, key);
+    record = ImmutableSembastRecord(ref.record(key), value);
 
     record = txnPutRecordSync(txn, record);
     if (database.logV) {
@@ -170,7 +170,7 @@ class SembastStore {
     }
 
     var mergedValue = mergeValue(existingRecord.value, value);
-    Record record = SembastRecord(ref, mergedValue, key);
+    var record = ImmutableSembastRecord(ref.record(key), mergedValue);
 
     txnPutRecordSync(txn, record);
     if (database.logV) {
@@ -220,7 +220,7 @@ class SembastStore {
   /// Cancel if false is returned
   Future forEachRecords(SembastTransaction txn, Filter filter,
       bool Function(ImmutableSembastRecord record) action) async {
-    bool _filterMatchRecord(Filter filter, Record record) {
+    bool _filterMatchRecord(Filter filter, ImmutableSembastRecord record) {
       if (record.deleted) {
         return false;
       }
@@ -436,19 +436,19 @@ class SembastStore {
 
   /// Put a record in a transaction.
   Future<ImmutableSembastRecord> txnPutRecord(
-      SembastTransaction txn, Record record) async {
+      SembastTransaction txn, ImmutableSembastRecord record) async {
     await cooperate();
     return txnPutRecordSync(txn, record);
   }
 
   /// Put a record in a transaction.
   ImmutableSembastRecord txnPutRecordSync(
-      SembastTransaction txn, Record record) {
+      SembastTransaction txn, ImmutableSembastRecord record) {
     ImmutableSembastRecord sembastRecord;
     if (database.storageJdb != null) {
       sembastRecord = makeImmutableRecordJdb(record);
     } else {
-      sembastRecord = makeImmutableRecord(record);
+      sembastRecord = record;
     }
 
     // auto-gen key if needed
@@ -601,7 +601,7 @@ class SembastStore {
 
   /// Delete multiple records in a transaction.
   Future<List> txnDeleteAll(SembastTransaction txn, Iterable keys) async {
-    final updates = <Record>[];
+    final updates = <ImmutableSembastRecord>[];
     final deletedKeys = [];
 
     // make it safe in a async way
@@ -611,7 +611,7 @@ class SembastStore {
       var record = txnGetImmutableRecordSync(txn, key);
       if (record != null && !record.deleted) {
         // Clone and mark deleted
-        Record clone = record.sembastCloneAsDeleted();
+        var clone = record.sembastCloneAsDeleted();
 
         updates.add(clone);
         deletedKeys.add(key);
