@@ -10,15 +10,7 @@ import 'package:sembast/src/utils.dart';
 
 // ignore_for_file: deprecated_member_use_from_same_package
 
-mixin SembastRecordWithStoreMixin implements Record {}
 mixin SembastRecordHelperMixin implements Record {
-  ///
-  /// allow cloning a record to start modifying it
-  ///
-  MutableSembastRecord clone(
-          {RecordRef<dynamic, dynamic> ref, dynamic value}) =>
-      MutableSembastRecord(ref ?? this.ref, value ?? this.value);
-
   ///
   /// Copy a record.
   ///
@@ -216,30 +208,11 @@ mixin MutableSembastRecordMixin implements Record {
   void operator []=(String field, value) => setField(field, value);
 }
 
-/// Mutable sembast record.
-class MutableSembastRecord
-    with
-        SembastRecordMixin,
-        SembastRecordHelperMixin,
-        MutableSembastRecordMixin,
-        RecordSnapshotMixin {
-  ///
-  /// Create a record at a given [ref] with a given [value] and
-  /// We know data has been sanitized before
-  /// an optional [key]
-  ///
-  MutableSembastRecord(RecordRef<dynamic, dynamic> ref, dynamic value) {
-    this.ref = ref;
-    this.value = value;
-  }
-}
-
 /// Sembast record.
 class SembastRecord
     with
         SembastRecordMixin,
         SembastRecordHelperMixin,
-        SembastRecordWithStoreMixin,
         MutableSembastRecordMixin,
         RecordSnapshotMixin {
   ///
