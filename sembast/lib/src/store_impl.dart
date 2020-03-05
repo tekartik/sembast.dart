@@ -202,22 +202,6 @@ class SembastStore implements Store {
     return record.value;
   }
 
-  ///
-  /// stream all the records
-  ///
-  @override
-  Stream<Record> get records {
-    StreamController<Record> ctlr;
-    ctlr = StreamController<Record>(onListen: () {
-      // asynchronous feeding
-      _feedController(null, ctlr).then((_) {
-        ctlr.close();
-      });
-    });
-
-    return ctlr.stream;
-  }
-
   Future _feedController(
       SembastTransaction txn, StreamController<Record> ctlr) async {
     await forEachRecords(txn, null, (record) {
@@ -595,14 +579,6 @@ class SembastStore implements Store {
     return record;
   }
 
-  ///
-  /// get a record by key
-  ///
-  @override
-  Future<Record> getRecord(var key) async {
-    return makeOutRecord(await txnGetRecord(null, key));
-  }
-
   /// cooperate safe
   Record makeOutRecord(ImmutableSembastRecord record) =>
       record_impl.makeLazyMutableRecord(this, record);
@@ -653,14 +629,6 @@ class SembastStore implements Store {
       return null;
     }
     return record;
-  }
-
-  ///
-  /// Get all records from a list of keys
-  ///
-  @override
-  Future<List<Record>> getRecords(Iterable keys) async {
-    return makeOutRecords(await txnGetRecordsCompat(null, keys));
   }
 
   /// Return records ignoring non found ones and deleted
@@ -759,16 +727,6 @@ class SembastStore implements Store {
     }
   }
 
-  ///
-  /// return the list of deleted keys
-  ///
-  @override
-  Future deleteAll(Iterable keys) {
-    return transaction((txn) {
-      return txnDeleteAll(txn as SembastTransaction, keys);
-    });
-  }
-
   /// Delete multiple records in a transaction.
   Future<List> txnDeleteAll(SembastTransaction txn, Iterable keys) async {
     final updates = <Record>[];
@@ -849,18 +807,6 @@ class SembastStore implements Store {
   @override
   String toString() {
     return '${name}';
-  }
-
-  ///
-  /// delete all records in a store
-  ///
-  ///
-  @override
-  Future clear() {
-    return transaction((txn) {
-      // first delete the one in transaction
-      return txnClear(txn as SembastTransaction);
-    });
   }
 
   /// Clear a store in a transaction.

@@ -127,11 +127,10 @@ class SembastDatabase extends Object
   final Map<String, Store> _stores = {};
   final List<String> _txnDroppedStores = [];
 
-  @override
+  /// Current in memory stores
   Iterable<Store> get stores => _stores.values;
 
-  // Current store names
-  @override
+  /// Current in memory store names
   Iterable<String> get storeNames => _stores.values.map((store) => store.name);
 
   /// Database implementation.
@@ -446,32 +445,6 @@ class SembastDatabase extends Object
     }
   }
 
-  ///
-  /// Put a record
-  ///
-  @override
-  Future<Record> putRecord(Record record) =>
-      getSembastStore(record.ref.store).putRecord(record);
-
-  ///
-  /// Get a record by its key
-  ///
-  @override
-  Future<Record> getRecord(var key) {
-    return mainStore.getRecord(key);
-  }
-
-  ///
-  /// Put a list or records
-  ///
-  @override
-  Future<List<Record>> putRecords(List<Record> records) {
-    return transaction((txn) async {
-      return makeOutRecords(
-          await txnPutRecords(txn as SembastTransaction, records));
-    });
-  }
-
   /// cooperate safe
   Record makeOutRecord(ImmutableSembastRecord record) =>
       record_impl.makeLazyMutableRecord(_recordStore(record), record);
@@ -550,14 +523,6 @@ class SembastDatabase extends Object
   }
 
   ///
-  /// delete a [record]
-  ///
-  @override
-  Future deleteRecord(Record record) {
-    return record.store.delete(record.key);
-  }
-
-  ///
   /// delete a record by key in the main store
   ///
   Future deleteStoreRecord(Store store, var key) {
@@ -605,7 +570,6 @@ class SembastDatabase extends Object
   ///
   /// find existing store
   ///
-  @override
   Store findStore(String storeName) {
     Store store;
     if (storeName == null) {
@@ -633,7 +597,6 @@ class SembastDatabase extends Object
   /// get or create a store
   /// an empty store will not be persistent
   ///
-  @override
   Store getStore(String storeName) {
     _checkOpen();
     var store = findStore(storeName);
@@ -665,7 +628,6 @@ class SembastDatabase extends Object
   ///
   /// clear and delete a store
   ///
-  @override
   Future deleteStore(String storeName) {
     return transaction((txn) {
       return txnDeleteStore(txn as SembastTransaction, storeName);
@@ -1332,9 +1294,6 @@ class SembastDatabase extends Object
       });
     }
   }
-
-  @override
-  Future clear() => mainStore.clear();
 
   /// Our cooperator.
   var cooperator = Cooperator();

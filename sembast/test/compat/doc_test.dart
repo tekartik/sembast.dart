@@ -27,20 +27,6 @@ void defineTests(DatabaseTestContext ctx) {
         db = null;
       }
     });
-
-    test('pre_1.15 doc', () async {
-      db = await setupForTest(ctx, 'compat/doc/pre_1.15.db');
-
-      {
-        // Cast necessary to manipulate the key
-        var key = await db.put({'offline': true}) as int;
-        final record = await db.getRecord(key);
-        // Cast necessary to manipulate the data
-        var value = record.value as Map<String, dynamic>;
-
-        unused(value);
-      }
-    });
   });
 }
 

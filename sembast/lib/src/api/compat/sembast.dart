@@ -58,42 +58,7 @@ abstract class DatabaseExecutor extends StoreExecutor {}
 
 /// @deprecated v2
 @deprecated
-abstract class StoreExecutor extends BaseExecutor {
-  /// @deprecated v2
-  ///
-  /// delete all records in a store
-  ///
-  @deprecated
-  Future clear();
-
-  /// @deprecated v2
-  ///
-  /// get a record by key
-  ///
-  @deprecated
-  Future<Record> getRecord(dynamic key);
-
-  /// @deprecated v2
-  ///
-  /// Get all records from a list of keys
-  ///
-  @deprecated
-  Future<List<Record>> getRecords(Iterable keys);
-
-  /// @deprecated v2
-  ///
-  /// return the list of deleted keys
-  ///
-  @deprecated
-  Future deleteAll(Iterable keys);
-
-  /// @deprecated v2
-  ///
-  /// stream all the records
-  ///
-  @deprecated
-  Stream<Record> get records;
-}
+abstract class StoreExecutor extends BaseExecutor {}
 
 /// @deprecated v2
 ///

@@ -2,7 +2,6 @@ library sembast.database_perf_test;
 
 // ignore_for_file: deprecated_member_use_from_same_package
 import 'dart:async';
-import 'dart:math';
 
 import 'package:sembast/sembast.dart';
 
@@ -52,43 +51,6 @@ void defineTests(DatabaseTestContext ctx, int putCount,
           expect(count, putCount);
         });
       });
-    });
-  });
-
-  group('random_perf', () {
-    Database db;
-
-    setUp(() async {
-      db = await setupForTest(ctx, 'compat/random_perf.db');
-    });
-
-    tearDown(() {
-      return db.close();
-    });
-
-    test('random $randomCount', () async {
-      final random = Random();
-
-      for (var i = 0; i < randomCount; i++) {
-        final actionChoice = random.nextInt(5);
-        final store = 'store ${random.nextInt(randomChoices)}';
-        final key = random.nextInt(randomChoices);
-        switch (actionChoice) {
-          // put
-          case 0:
-            // delete
-            //print('delete');
-            await db.getStore(store).delete(key);
-            break;
-          default:
-            //print('put');
-            await db.getStore(store).put('test', key);
-            break;
-        }
-        // let it breathe
-        //print(i);
-        await Future.delayed(const Duration(milliseconds: 0));
-      }
     });
   });
 }

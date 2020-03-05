@@ -50,24 +50,6 @@ void defineTests(DatabaseTestContext ctx) {
       });
     });
 
-    test('put/clear/get in currentTransaction', () async {
-      SembastTransaction sembastTransaction;
-      await db.transaction((txn) {
-        sembastTransaction = txn as SembastTransaction;
-        expect(sembastTransaction.isCompleted, isFalse);
-        return txn.put('hi', 1).then((_) {
-          return txn.mainStore.clear().then((_) {
-            return txn.get(1).then((value) {
-              expect(value, null);
-            });
-          });
-        });
-      });
-      expect(sembastTransaction.isCompleted, isTrue);
-      await sembastTransaction.completed;
-      expect(sembastTransaction.isCompleted, isTrue);
-    });
-
     test('put and rollback', () async {
       await db.transaction((txn) {
         return txn.put('hi', 1).then((_) {

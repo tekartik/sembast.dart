@@ -4,7 +4,6 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:sembast/sembast.dart';
-import 'package:sembast/src/api/compat/sembast.dart'; // ignore: deprecated_member_use_from_same_package
 import 'package:sembast/src/database_impl.dart';
 import 'package:sembast/src/sembast_fs.dart';
 
@@ -101,116 +100,6 @@ void defineTests(FileSystemTestContext ctx) {
       expect(lines.length, 2);
       expect(json.decode(lines[1]), {'key': 1, 'value': 'hi'});
       await db.close();
-    });
-
-    List<Record> generate(int count) {
-      final records = <Record>[];
-      for (var i = 1; i <= count; i++) {
-        final record = Record(null, 'value$i', i);
-        records.add(record);
-      }
-      return records;
-    }
-
-    test('auto_by_count', () async {
-      await prepareForDb();
-      final db = await factory.openDatabase(dbPath) as SembastDatabase;
-      // write 6
-      await db.putRecords(generate(6));
-      // update 5
-      await db.putRecords(generate(5));
-
-      var exportStat = getDatabaseExportStat(db);
-      expect(exportStat.compactCount, 0);
-      expect(exportStat.lineCount, 12);
-      expect(exportStat.obsoleteLineCount, 5);
-
-      // update 1 more to trigger auto compact
-      await db.putRecords(generate(1));
-      await db.flush();
-      //await db.reOpen();
-
-      exportStat = getDatabaseExportStat(db);
-      expect(exportStat.compactCount, 1);
-      expect(exportStat.lineCount, 7);
-      expect(exportStat.obsoleteLineCount, 0);
-    });
-
-    test('auto_by_count/delete', () async {
-      await prepareForDb();
-      final db = await factory.openDatabase(dbPath) as SembastDatabase;
-      // write 6
-      await db.putRecords(generate(6));
-      // update 5
-      await db.putRecords(generate(5));
-
-      var exportStat = getDatabaseExportStat(db);
-      expect(exportStat.compactCount, 0);
-      expect(exportStat.lineCount, 12);
-      expect(exportStat.obsoleteLineCount, 5);
-
-      // update 1 more to trigger auto compact
-      await db.delete(1);
-      await db.flush();
-
-      exportStat = getDatabaseExportStat(db);
-      expect(exportStat.compactCount, 1);
-      expect(exportStat.lineCount, 6); // as one has been deleted
-      expect(exportStat.obsoleteLineCount, 0);
-    });
-
-    test('auto_by_count_reopon', () async {
-      await prepareForDb();
-      var db = await factory.openDatabase(dbPath) as SembastDatabase;
-      await db.putRecords(generate(6));
-      // devPrint(await readContent(fs, db.path));
-      await db.putRecords(generate(6));
-
-      await db.flush();
-      // devPrint(await readContent(fs, db.path));
-
-      final exportStat = getDatabaseExportStat(db);
-      expect(exportStat.compactCount, 1);
-      expect(exportStat.lineCount, 7);
-      expect(exportStat.obsoleteLineCount, 0);
-
-      // devPrint(await readContent(fs, db.path));
-      db = await db.reOpen() as SembastDatabase;
-      await db.flush();
-
-      /*
-      // devPrint(await readContent(fs, db.path));
-
-      exportStat = getDatabaseExportStat(db);
-      expect(exportStat.compactCount, 0);
-      expect(exportStat.lineCount, 7);
-      expect(exportStat.obsoleteLineCount, 0);
-       */
-    });
-
-    // tmp
-    test('auto_by_ratio', () async {
-      await prepareForDb();
-      // 20% +
-      final db = await factory.openDatabase(dbPath) as SembastDatabase;
-      // write 30
-      await db.putRecords(generate(30));
-      // update 7 (that's 19.4% of 37
-      await db.putRecords(generate(7));
-
-      var exportStat = getDatabaseExportStat(db);
-      expect(exportStat.compactCount, 0);
-      expect(exportStat.lineCount, 38);
-      expect(exportStat.obsoleteLineCount, 7);
-
-      // update 1 more to trigger auto compact
-      await db.putRecords(generate(1));
-      await db.flush();
-
-      exportStat = getDatabaseExportStat(db);
-      expect(exportStat.compactCount, 1);
-      expect(exportStat.lineCount, 31);
-      expect(exportStat.obsoleteLineCount, 0);
     });
   });
 

@@ -3,7 +3,6 @@ import 'package:sembast/src/api/compat/sembast.dart';
 import 'package:sembast/sembast.dart';
 import 'package:sembast/src/database_client_impl.dart';
 import 'package:sembast/src/database_impl.dart';
-import 'package:sembast/src/record_impl.dart';
 import 'package:sembast/src/store_impl.dart';
 import 'package:sembast/src/utils.dart';
 
@@ -45,18 +44,6 @@ mixin DatabaseExecutorMixin implements DatabaseExecutor, StoreExecutor {
 
   @override
   Store get store => mainStore.store;
-
-  @override
-  Future deleteAll(Iterable keys) => mainStore.deleteAll(keys);
-
-  @override
-  Future<Record> getRecord(key) => mainStore.getRecord(key);
-
-  @override
-  Future<List<Record>> getRecords(Iterable keys) => mainStore.getRecords(keys);
-
-  @override
-  Stream<Record> get records => mainStore.records;
 }
 
 /// Transaction implementation.
@@ -99,9 +86,6 @@ class SembastTransaction extends Object
       : null;
 
   @override
-  Future clear() => mainStore.clear();
-
-  @override
   Iterable<SembastTransactionStore> get stores =>
       database.stores.map(toExecutor);
 
@@ -116,18 +100,6 @@ class SembastTransaction extends Object
   @override
   StoreExecutor getStore(String storeName) =>
       database.txnGetStore(this, storeName);
-
-  @override
-  Future deleteRecord(Record record) async =>
-      (record.store as SembastStore).txnDelete(this, record.key);
-
-  @override
-  Future<Record> putRecord(Record record) async =>
-      database.makeOutRecord(await database.txnPutRecord(this, record));
-
-  @override
-  Future<List<Record>> putRecords(List<Record> records) async =>
-      database.makeOutRecords(await database.txnPutRecords(this, records));
 
   /// Store implementation.
   SembastTransactionStore recordStore(Record record) =>
@@ -194,25 +166,6 @@ class SembastTransactionStore implements StoreTransaction {
   @override
   Future update(value, key) async =>
       cloneValue(await store.txnUpdate(sembastTransaction, value, key));
-
-  @override
-  Future clear() async => store.txnClear(sembastTransaction);
-
-  @override
-  Future deleteAll(Iterable keys) async =>
-      store.txnDeleteAll(sembastTransaction, keys);
-
-  @override
-  Future<Record> getRecord(key) async => makeLazyMutableRecord(
-      store, await store.txnGetRecord(sembastTransaction, key));
-
-  @override
-  Future<List<Record>> getRecords(Iterable keys) async =>
-      await store.makeOutRecords(
-          await store.txnGetRecordsCompat(sembastTransaction, keys));
-
-  @override
-  Stream<Record> get records => store.txnGetRecordsStream(sembastTransaction);
 
   @override
   Future findKey(Finder finder) => store.txnFindKey(sembastTransaction, finder);

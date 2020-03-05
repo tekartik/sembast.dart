@@ -27,41 +27,5 @@ void defineTests(DatabaseTestContext ctx) {
       expect(Field.value, '_value');
     });
 
-    test('properties', () {
-      final store = db.mainStore;
-      var record = Record(store, 'hi', 1);
-      expect(record.store, store);
-      expect(record.key, 1);
-      expect(record.value, 'hi');
-      expect(record[Field.value], 'hi');
-      expect(record[Field.key], 1);
-
-      record = Record(store, {'text': 'hi', 'int': 1, 'bool': true}, 'mykey');
-
-      expect(record.store, store);
-      expect(record.key, 'mykey');
-      expect(record.value, {'text': 'hi', 'int': 1, 'bool': true});
-      expect(record[Field.value], record.value);
-      expect(record[Field.key], record.key);
-      expect(record['text'], 'hi');
-      expect(record['int'], 1);
-      expect(record['bool'], true);
-
-      record['bool'] = false;
-      expect(record['bool'], isFalse);
-      record[Field.key] = 'newkey';
-      record[Field.value] = 'newvalue';
-      expect(record.key, 'newkey');
-      expect(record.value, 'newvalue');
-      record['test'] = 1;
-      expect(record.value, {'test': 1});
-      expect(record['path.sub'], isNull);
-      record['path.sub'] = 2;
-      expect(record.value, {
-        'test': 1,
-        'path': {'sub': 2}
-      });
-      expect(record['path.sub'], 2);
-    });
   });
 }

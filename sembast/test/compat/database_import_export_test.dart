@@ -74,25 +74,6 @@ void defineTests(DatabaseTestContext ctx) {
       await _checkExportImport(db, {'sembast_export': 1, 'version': 1});
     });
 
-    test('1_record_in_2_stores', () async {
-      final db = await setupForTest(
-          ctx, 'compat/import_export/1_record_in_2_stores.db');
-      db.getStore('store1');
-      final store2 = db.getStore('store2');
-      await store2.put('hi', 1);
-      await _checkExportImport(db, {
-        'sembast_export': 1,
-        'version': 1,
-        'stores': [
-          {
-            'name': 'store2',
-            'keys': [1],
-            'values': ['hi']
-          }
-        ]
-      });
-    });
-
     test('twice_same_record', () async {
       final db =
           await setupForTest(ctx, 'compat/import_export/twice_same_record.db');

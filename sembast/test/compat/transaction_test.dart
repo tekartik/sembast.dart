@@ -33,14 +33,6 @@ void defineTests(DatabaseTestContext ctx) {
       expect(await db.get(1), 'hi');
     });
 
-    test('put/clear/get in transaction', () async {
-      await db.transaction((txn) async {
-        await txn.put('hi', 1);
-        await txn.mainStore.clear();
-        expect(await txn.get(1), isNull);
-      });
-    });
-
     test('put in transaction', () async {
       final futures = <Future>[];
       futures.add(db.transaction((txn) async {
@@ -55,57 +47,6 @@ void defineTests(DatabaseTestContext ctx) {
 
       // here the value should not be loaded yet
       expect(await db.get(1), isNull);
-      return Future.wait(futures);
-    });
-
-    test('transaction and read', () async {
-      final futures = <Future>[];
-      var completer1 = Completer();
-      var completer2 = Completer();
-      futures.add(db.transaction((txn) async {
-        expect(await txn.containsKey(1), isFalse);
-
-        await txn.put('hi', 1);
-        completer1.complete();
-
-        expect(await txn.get(1), 'hi');
-
-        var records = await txn.findRecords(null);
-        expect(records.length, 1);
-
-        records = await txn.records.toList();
-        expect(records.length, 1);
-
-        var count = await txn.count(null);
-        expect(count, 1);
-
-        expect(await txn.containsKey(1), isTrue);
-
-        await completer2.future;
-      }));
-
-      await completer1.future;
-
-      expect(await db.get(1), isNull);
-      expect(await db.mainStore.getRecord(1), isNull);
-      var records = await db.findRecords(null);
-      expect(records.length, 0);
-
-      records = await db.records.toList();
-      expect(records.length, 0);
-
-      var count = await db.count(null);
-      expect(count, 0);
-
-      expect(await db.containsKey(1), isFalse);
-
-      // here we are in a transaction so it will wait for the other to finish
-      futures.add(db.transaction((txn) async {
-        expect(await txn.get(1), 'hi');
-      }));
-
-      completer2.complete();
-
       return Future.wait(futures);
     });
 

@@ -137,19 +137,6 @@ void defineTests(FileSystemTestContext ctx, {SembastCodec codec}) {
       expect(decodeRecord(lines[1]), {'key': 1, 'value': 'hi'});
     });
 
-    test('1_record_in_2_stores', () async {
-      await prepareForDb();
-      final db = await factory.openDatabase(dbPath, codec: codec);
-      db.getStore('store1');
-      final store2 = db.getStore('store2');
-      await store2.put('hi', 1);
-      await db.close();
-      final lines = await readContent(fs, dbPath);
-      expect(lines.length, 2);
-      expect(
-          decodeRecord(lines[1]), {'store': 'store2', 'key': 1, 'value': 'hi'});
-    });
-
     test('twice same record', () async {
       await prepareForDb();
       var db = await factory.openDatabase(dbPath, codec: codec);
