@@ -108,8 +108,8 @@ abstract class StoreFactory<K, V> {
   StoreRef<K, V> store(String name);
 }
 
-/// common `<int, Map<String, dynamic>>` factory
+/// Store factory with key as int and value as Map
 final intMapStoreFactory = StoreFactoryBase<int, Map<String, dynamic>>();
 
-/// common `<String, Map<String, dynamic>>` factory
+/// Store factory with key as String and value as Map
 final stringMapStoreFactory = StoreFactoryBase<String, Map<String, dynamic>>();

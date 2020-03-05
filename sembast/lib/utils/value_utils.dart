@@ -1,3 +1,5 @@
+library sembast.utils.value_utils;
+
 import 'package:sembast/src/utils.dart' as utils;
 
 /// Clone a map to make it writable.
