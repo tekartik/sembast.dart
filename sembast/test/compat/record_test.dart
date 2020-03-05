@@ -64,51 +64,5 @@ void defineTests(DatabaseTestContext ctx) {
       expect(record['path.sub'], 2);
     });
 
-    test('put multi database', () async {
-      final record = Record(null, 'hi');
-      final inserted = (await db.putRecords([record])).first;
-      expect(record.store, isNull);
-      expect(record.key, isNull);
-      expect(inserted.key, 1);
-      expect(inserted.store, db.mainStore);
-    });
-
-    test('put multi transaction', () async {
-      await db.transaction((txn) async {
-        final record = Record(null, 'hi');
-        final inserted = (await txn.putRecords([record])).first;
-        expect(record.store, isNull);
-        expect(record.key, isNull);
-        expect(inserted.key, 1);
-        // !!weird no?
-        expect(inserted.store, db.mainStore);
-      });
-    });
-
-    test('put/delete multiple', () {
-      final store = db.mainStore;
-      final record1 = Record(store, 'hi', 1);
-      final record2 = Record(store, 'ho', 2);
-      final record3 = Record(store, 'ha', 3);
-      return db.putRecords([record1, record2, record3]).then(
-          (List<Record> inserted) {
-        expect(inserted.length, 3);
-        expect(inserted[0].key, 1);
-
-        return store.getRecords([1, 4, 3]).then((List<Record> got) {
-          expect(got.length, 3);
-          expect(got[0].key, 1);
-          expect(got[1], null);
-          expect(got[2].key, 3);
-        });
-      }).then((_) {
-        return store.deleteAll([1, 4, 2]).then((keys) {
-          expect(keys, [1, null, 2]);
-          return store.count().then((count) {
-            expect(count, 1);
-          });
-        });
-      });
-    });
   });
 }
