@@ -106,6 +106,7 @@ void defineTests(FileSystemTestContext ctx) {
   });
 
   group('format_import', () {
+    var store = StoreRef<int, int>.main();
     test('open_no_compact', () async {
       await prepareForDb();
       final line = json.encode({'key': 1, 'value': 2});
@@ -120,7 +121,7 @@ void defineTests(FileSystemTestContext ctx) {
         line
       ]);
       final db = await factory.openDatabase(dbPath) as SembastDatabase;
-      expect(await db.get(1), 2);
+      expect(await store.record(1).get(db), 2);
       final lines = await readContent(fs, dbPath);
       expect(lines.length, 7);
 
@@ -145,7 +146,7 @@ void defineTests(FileSystemTestContext ctx) {
         line
       ]);
       final db = await factory.openDatabase(dbPath) as SembastDatabase;
-      expect(await db.get(1), 2);
+      expect(await store.record(1).get(db), 2);
       final lines = await readContent(fs, dbPath);
       expect(lines.length, 2);
 

@@ -139,8 +139,8 @@ void defineTests(FileSystemTestContext ctx, {SembastCodec codec}) {
     test('1_record_in_2_stores', () async {
       await prepareForDb();
       final db = await factory.openDatabase(dbPath, codec: codec);
-      (db as SembastDatabase).getStore('store1');
-      (db as SembastDatabase).getStore('store2');
+      (db as SembastDatabase).getSembastStore(StoreRef('store1'));
+      (db as SembastDatabase).getSembastStore(StoreRef('store2'));
       await StoreRef('store2').record(1).put(db, 'hi');
       await db.close();
       final lines = await readContent(fs, dbPath);

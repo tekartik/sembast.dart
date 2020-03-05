@@ -41,7 +41,7 @@ Future<Map<String, dynamic>> exportDatabase(v2.Database db) {
       final values = [];
 
       final storeExport = <String, dynamic>{
-        _name: store.store.name,
+        _name: store.name,
         _keys: keys,
         _values: values
       };
@@ -93,9 +93,10 @@ Future<v2.Database> importDatabase(
         final values =
             (storeExport[_values] as Iterable)?.toList(growable: false);
 
-        var store = txn.getStore(storeName);
+        var store =
+            (txn as SembastTransaction).getSembastStore(StoreRef(storeName));
         for (var i = 0; i < keys.length; i++) {
-          await (store as SembastTransactionStore).put(values[i], keys[i]);
+          await store.txnPut(txn as SembastTransaction, values[i], keys[i]);
         }
       }
     }

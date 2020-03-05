@@ -117,10 +117,7 @@ class SembastDatabase extends Object
   // Only set during open (used during onVersionChanged
   Transaction _openTransaction;
 
-  @override
-  Store get store => mainStore;
-
-  @override
+  /// Our main store
   Store get mainStore => _mainStore;
 
   Store _mainStore;
@@ -140,20 +137,6 @@ class SembastDatabase extends Object
     } else if (_storageBase is StorageJdb) {
       _storageJdb = _storageBase as StorageJdb;
     }
-  }
-
-  ///
-  /// put a value in the main store
-  ///
-  @override
-  @deprecated
-  Future put(dynamic value, [dynamic key]) {
-    return (_mainStore as SembastStore).put(value, key);
-  }
-
-  @override
-  Future update(dynamic value, [dynamic key]) {
-    return _mainStore.update(value, key);
   }
 
   void _clearTxnData() {
@@ -480,55 +463,10 @@ class SembastDatabase extends Object
     return recordsResult;
   }
 
-  ///
-  /// find records in the main store
-  ///
-  @override
-  Future<List<Record>> findRecords(Finder finder) {
-    return mainStore.findRecords(finder);
-  }
-
-  @override
-  Future<Record> findRecord(Finder finder) {
-    return mainStore.findRecord(finder);
-  }
-
   /// Put a record in a transaction.
   Future<ImmutableSembastRecord> txnPutRecord(
       SembastTransaction txn, Record record) {
     return _recordStore(record).txnPutRecord(txn, record);
-  }
-
-  ///
-  /// get a value by key in the main store
-  ///
-  @override
-  Future get(var key) {
-    return (_mainStore as SembastStore).get(key);
-  }
-
-  ///
-  /// count all records in the main store
-  ///
-  @override
-  Future<int> count([Filter filter]) {
-    return _mainStore.count(filter);
-  }
-
-  ///
-  /// delete a record by key in the main store
-  ///
-  @override
-  @deprecated
-  Future delete(var key) {
-    return _mainStore.delete(key);
-  }
-
-  ///
-  /// delete a record by key in the main store
-  ///
-  Future deleteStoreRecord(Store store, var key) {
-    return store.delete(key);
   }
 
   /// Check if a record is present
@@ -623,7 +561,7 @@ class SembastDatabase extends Object
   /// Get a store in a transaction.
   SembastTransactionStore txnGetStore(
       SembastTransaction txn, String storeName) {
-    var store = getStore(storeName);
+    var store = getSembastStore(v2.StoreRef(storeName));
     return txn.toExecutor(store);
   }
 
@@ -1107,9 +1045,6 @@ class SembastDatabase extends Object
   String toString() {
     return toJson().toString();
   }
-
-  @override
-  Future<bool> containsKey(key) => _mainStore.containsKey(key);
 
   /// Execute an exclusive operation on the database storage
   Future databaseOperation(Future Function() action) async {

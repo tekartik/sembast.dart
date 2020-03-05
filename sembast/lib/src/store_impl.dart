@@ -24,9 +24,6 @@ class SembastStore implements Store {
   @override
   final StoreRef<dynamic, dynamic> ref;
 
-  @override
-  Store get store => this;
-
   ///
   /// Store name
   ///
@@ -61,26 +58,6 @@ class SembastStore implements Store {
   Future<T> transaction<T>(
           FutureOr<T> Function(Transaction transaction) action) =>
       database.transaction(action);
-
-  // return the key
-  @override
-  Future put(var value, [var key]) {
-    return transaction((txn) async {
-      if (key == null) {
-        return txnAdd(txn as SembastTransaction, value);
-      } else {
-        await txnPut(txn as SembastTransaction, value, key);
-        return key;
-      }
-    });
-  }
-
-  @override
-  Future update(dynamic value, dynamic key) {
-    return transaction((txn) async {
-      return cloneValue(await txnUpdate(txn as SembastTransaction, value, key));
-    });
-  }
 
   /// put a record in a transaction.
   ///
@@ -314,17 +291,6 @@ class SembastStore implements Store {
     }
   }
 
-  ///
-  /// find the first matching record
-  ///
-  @override
-  Future<Record> findRecord(Finder finder) async {
-    return makeOutRecord(await txnFindRecord(null, finder));
-  }
-
-  @override
-  Future findKey(Finder finder) async => (await findRecord(finder))?.key;
-
   /// Find a record key in a transaction.
   Future txnFindKey(SembastTransaction txn, Finder finder) async =>
       (await txnFindRecord(txn, finder))?.key;
@@ -384,14 +350,6 @@ class SembastStore implements Store {
       return results.sublist(0, endIndex);
     }
     return results;
-  }
-
-  ///
-  /// find all records
-  ///
-  @override
-  Future<List<Record>> findRecords(Finder finder) async {
-    return await makeOutRecords(await txnFindRecords(null, finder));
   }
 
   /// Find records in a transaction.
@@ -468,11 +426,6 @@ class SembastStore implements Store {
       // Already sorted by SplayTreeMap
     }
     return results;
-  }
-
-  @override
-  Future<List> findKeys(Finder finder) async {
-    return txnFindKeys(null, finder);
   }
 
   /// Find keys in a transaction.
@@ -687,14 +640,6 @@ class SembastStore implements Store {
     return record?.value;
   }
 
-  ///
-  /// count all records
-  ///
-  @override
-  Future<int> count([Filter filter]) async {
-    return await txnCount(null, filter);
-  }
-
   /// Count records in a transaction.
   Future<int> txnCount(SembastTransaction txn, Filter filter) async {
     var count = 0;
@@ -703,13 +648,6 @@ class SembastStore implements Store {
       return true;
     });
     return count;
-  }
-
-  @override
-  Future delete(var key) {
-    return transaction((txn) {
-      return txnDelete(txn as SembastTransaction, key);
-    });
   }
 
   /// Delete a record in a transaction.
@@ -762,11 +700,6 @@ class SembastStore implements Store {
       resultValues.add(await txnUpdate(txn, values[i], keys[i]));
     }
     return resultValues;
-  }
-
-  @override
-  Future<bool> containsKey(key) async {
-    return txnContainsKey(null, key);
   }
 
   bool _hasTransactionRecords(SembastTransaction txn) {
