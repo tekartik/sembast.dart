@@ -1,15 +1,15 @@
 @TestOn('vm')
 library sembast.test.io_test;
 
-// ignore_for_file: deprecated_member_use_from_same_package
+// _ignore_for_file: deprecated_member_use_from_same_package
 
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io' as io;
 
 import 'package:path/path.dart';
-import 'package:sembast/sembast.dart';
 import 'package:sembast/sembast_io.dart';
+import 'package:sembast/src/database_impl.dart';
 import 'package:sembast/src/io/database_factory_io.dart' as impl;
 import 'package:sembast/src/io/file_system_io.dart';
 
@@ -50,15 +50,16 @@ void main() {
         var db = await databaseFactoryIo.openDatabase(dbPath);
         expect(db.version, 2);
 
-        await db.put('value', 'key');
+        await StoreRef.main().record('key').put(db, 'value');
 
         //print(await new io.File(dbPath).readAsString());
 
         try {
-          db = await reOpen(db, mode: DatabaseMode.create);
+          db = (await reOpen(db, mode: DatabaseMode.create)) as SembastDatabase;
           fail('should fail');
         } on FormatException catch (_) {
-          db = await reOpen(db, mode: DatabaseMode.neverFails);
+          db = (await reOpen(db, mode: DatabaseMode.neverFails))
+              as SembastDatabase;
           // version cannot be read anymore...
           expect(db.version, 1);
         }
@@ -77,15 +78,16 @@ void main() {
         var db = await databaseFactoryIo.openDatabase(dbPath);
         expect(db.version, 2);
 
-        await db.put('value3');
+        await StoreRef.main().add(db, 'value3');
 
         //print(await new io.File(dbPath).readAsString());
 
         try {
-          db = await reOpen(db, mode: DatabaseMode.create);
+          db = (await reOpen(db, mode: DatabaseMode.create)) as SembastDatabase;
           fail('should fail');
         } on FormatException catch (_) {
-          db = await reOpen(db, mode: DatabaseMode.neverFails);
+          db = (await reOpen(db, mode: DatabaseMode.neverFails))
+              as SembastDatabase;
           final lines = await readContent(fs, dbPath);
           // Only the first line remains
           expect(lines.length, 2);
