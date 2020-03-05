@@ -1,9 +1,7 @@
 library sembast.database_perf_test;
 
-// ignore_for_file: deprecated_member_use_from_same_package
+// _ignore_for_file: deprecated_member_use_from_same_package
 import 'dart:async';
-
-import 'package:sembast/sembast.dart';
 
 import 'test_common.dart';
 
@@ -24,33 +22,29 @@ void defineTests(DatabaseTestContext ctx, int putCount,
       return db.close();
     });
 
+    var store = StoreRef<int, String>.main();
     test('put/read $putCount', () async {
       final futures = <Future>[];
       for (var i = 0; i < putCount; i++) {
-        futures.add(db.put('value $i', i));
+        futures.add(store.record(i).put(db, 'value $i'));
         // let it breathe
         //print(i);
         await Future.delayed(const Duration());
       }
-      await Future.wait(futures).then((_) {
-        return db.count().then((int count) {
-          expect(count, putCount);
-        });
-      });
+      await Future.wait(futures);
+      expect(await store.count(db), putCount);
     });
 
-    test('put/read in transaction $putCount', () {
-      return db.transaction((txn) {
+    test('put/read in transaction $putCount', () async {
+      await db.transaction((txn) async {
         final futures = <Future>[];
         for (var i = 0; i < putCount; i++) {
-          futures.add(txn.put('value $i', i));
+          futures.add(store.record(i).put(txn, 'value $i'));
         }
-        return Future.wait(futures);
-      }).then((_) {
-        return db.count().then((int count) {
-          expect(count, putCount);
-        });
+        await Future.wait(futures);
+        expect(await store.count(txn), putCount);
       });
+      expect(await store.count(db), putCount);
     });
   });
 }

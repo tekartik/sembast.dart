@@ -146,6 +146,7 @@ class SembastDatabase extends Object
   /// put a value in the main store
   ///
   @override
+  @deprecated
   Future put(dynamic value, [dynamic key]) {
     return (_mainStore as SembastStore).put(value, key);
   }
