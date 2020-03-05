@@ -135,10 +135,8 @@ class QueryListenerController<K, V> extends _ControllerBase {
       allMatching.removeWhere(_where);
 
       // By default matches if non-deleted
-      var matches = !txnRecord.deleted;
-      if (matches && filter != null) {
-        matches = filterMatchesRecord(filter, txnRecord);
-      }
+      var matches =
+          !txnRecord.deleted && filterMatchesRecord(filter, txnRecord);
 
       if (matches) {
         hasChanges = true;

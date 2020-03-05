@@ -1,5 +1,4 @@
 import 'package:sembast/sembast.dart';
-import 'package:sembast/src/api/compat/record.dart';
 import 'package:sembast/src/filter_impl.dart';
 
 ///
@@ -7,25 +6,6 @@ import 'package:sembast/src/filter_impl.dart';
 ///
 /// Don't subclass
 abstract class Filter {
-  /// @deprecated v2
-  @deprecated
-  static bool matchRecord(Filter filter, Record record) {
-    if (filter != null) {
-      return filter.match(record);
-    } else {
-      return (!record.deleted);
-    }
-  }
-
-  /// @deprecated v2
-  @deprecated
-  bool match(Record record) {
-    if (record.deleted) {
-      return false;
-    }
-    return true;
-  }
-
   /// [field] value must be equals to [value].
   factory Filter.equals(String field, value, {bool anyInList}) {
     return SembastEqualsFilter(field, value, anyInList);

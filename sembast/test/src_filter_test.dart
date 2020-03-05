@@ -18,6 +18,9 @@ bool _match(Filter filter, dynamic value) {
 
 void main() {
   group('src_filter_test', () {
+    test('null filter', () {
+      expect(_match(null, {'test': 1}), isTrue);
+    });
     test('equals', () {
       var filter = Filter.equals('test', 1);
       expect(_match(filter, {'test': 1}), isTrue);

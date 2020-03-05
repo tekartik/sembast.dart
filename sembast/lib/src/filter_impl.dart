@@ -1,5 +1,4 @@
 import 'package:sembast/sembast.dart';
-import 'package:sembast/src/api/compat/record.dart';
 import 'package:sembast/src/api/filter.dart';
 import 'package:sembast/src/api/record_snapshot.dart';
 import 'package:sembast/src/record_snapshot_impl.dart';
@@ -12,6 +11,10 @@ bool canMatch(String field, dynamic recordValue) =>
 
 /// Check if a [record] match a [filter]
 bool filterMatchesRecord(Filter filter, RecordSnapshot record) {
+  if (filter == null) {
+    return true;
+  }
+
   /// Allow raw access to record from within filters
   return (filter as SembastFilterBase)
       .matchesRecord(SembastRecordRawSnapshot(record));
@@ -21,15 +24,6 @@ bool filterMatchesRecord(Filter filter, RecordSnapshot record) {
 abstract class SembastFilterBase implements Filter {
   /// True if the record matches.
   bool matchesRecord(RecordSnapshot record);
-
-  /// True if the record matches.
-  @override
-  bool match(Record record) {
-    if (record.deleted) {
-      return false;
-    }
-    return matchesRecord(record);
-  }
 }
 
 /// Custom filter

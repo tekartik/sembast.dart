@@ -242,15 +242,10 @@ class SembastStore {
   Future forEachRecords(SembastTransaction txn, Filter filter,
       bool Function(ImmutableSembastRecord record) action) async {
     bool _filterMatchRecord(Filter filter, Record record) {
-      if (filter is SembastFilterBase) {
-        if (record.deleted) {
-          return false;
-        }
-        return filterMatchesRecord(filter, record);
-      } else {
-        // compat
-        return Filter.matchRecord(filter, record);
+      if (record.deleted) {
+        return false;
       }
+      return filterMatchesRecord(filter as SembastFilterBase, record);
     }
 
     // handle record in transaction first
