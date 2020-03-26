@@ -68,6 +68,8 @@ db = await factory.openDatabase(path, version: 2, onVersionChanged: (db, oldVers
 });
 ```
 
+See complete example [here](migration_example.dart).
+
 ## Preloading data
 
 The basic versioning system can also be used to preload data. Data must be inserted record by record, coming
