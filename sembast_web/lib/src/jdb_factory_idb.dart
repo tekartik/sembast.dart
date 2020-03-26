@@ -355,7 +355,7 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
     revision ??= 0;
     StreamController<jdb.JdbEntry> ctlr;
     ctlr = StreamController<jdb.JdbEntry>(onListen: () async {
-      var keyRange = KeyRange.lowerBound(revision);
+      var keyRange = KeyRange.lowerBound(revision, true);
       await _idbDatabase
           .transaction(_entryStore, idbModeReadOnly)
           .objectStore(_entryStore)
