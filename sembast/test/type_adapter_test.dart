@@ -1,7 +1,6 @@
-library sembast.key_test;
+library sembast.type_adapter_test;
 
-// basically same as the io runner but with extra output
-import 'dart:typed_data';
+import 'dart:convert';
 
 import 'package:sembast/src/type_adapter_impl.dart';
 
@@ -31,10 +30,102 @@ void main() {
           DateTime.fromMillisecondsSinceEpoch(1, isUtc: true));
     });
     test('blob', () {
-      expect(sembastBlobAdapter.encode(Uint8List.fromList([1, 2, 3])), 'AQID');
+      expect(sembastBlobAdapter.encode(Blob.fromList([1, 2, 3])), 'AQID');
 
-      expect(sembastBlobAdapter.decode('AQID'), [1, 2, 3]);
-      expect(sembastBlobAdapter.decode('AQID'), const TypeMatcher<Uint8List>());
+      expect(sembastBlobAdapter.decode('AQID'), Blob.fromList([1, 2, 3]));
+      expect(sembastBlobAdapter.decode('AQID'), const TypeMatcher<Blob>());
+
+      expect(Blob.fromList([1, 2, 3]), Blob.fromList([1, 2, 3]));
+    });
+    test('extendedEncoder', () {
+      var decoded = {
+        'null': null,
+        'int': 1,
+        'listList': [1, 2, 3],
+        'string': 'text',
+        'dateTime': DateTime.fromMillisecondsSinceEpoch(1, isUtc: true),
+        'blob': Blob.fromList([1, 2, 3]),
+      };
+      var encoded = {
+        'null': null,
+        'int': 1,
+        'listList': [1, 2, 3],
+        'string': 'text',
+        'dateTime': {'@DateTime': '1970-01-01T00:00:00.001Z'},
+        'blob': {'@Blob': 'AQID'}
+      };
+
+      expect(jsonDecode(sembastExtendedCodec.codec.encode(decoded)), encoded);
+      expect(sembastExtendedCodec.codec.decode(jsonEncode(encoded)), decoded);
+
+      // Empty blob
+      decoded = {
+        'blob': Blob.fromList([]),
+      };
+      encoded = {
+        'blob': {'@Blob': ''}
+      };
+      expect(jsonDecode(sembastExtendedCodec.codec.encode(decoded)), encoded);
+      expect(sembastExtendedCodec.codec.decode(jsonEncode(encoded)), decoded);
+
+      // Null blob
+      decoded = {
+        'blob': Blob(null),
+      };
+      try {
+        expect(jsonDecode(sembastExtendedCodec.codec.encode(decoded)), encoded);
+        fail('should fail');
+      } on JsonUnsupportedObjectError catch (e) {}
+
+      // Bad format
+      encoded = {
+        'dateTime': {'@DateTime': 'dummy'},
+        'blob': {'@Blob': 'dummy'}
+      };
+
+      expect(sembastExtendedCodec.codec.decode(jsonEncode(encoded)), {
+        'dateTime': {'@DateTime': 'dummy'},
+        'blob': {'@Blob': 'dummy'}
+      });
+
+      // Bad type
+      encoded = {
+        'dateTime': {'@DateTime': 1},
+        'blob': {'@Blob': 1}
+      };
+
+      expect(sembastExtendedCodec.codec.decode(jsonEncode(encoded)), {
+        'dateTime': {'@DateTime': 1},
+        'blob': {'@Blob': 1}
+      });
+
+      // Null value
+      encoded = {
+        'dateTime': {'@DateTime': null},
+        'blob': {'@Blob': null}
+      };
+
+      expect(sembastExtendedCodec.codec.decode(jsonEncode(encoded)), {
+        'dateTime': {'@DateTime': null},
+        'blob': {'@Blob': null}
+      });
+
+      // Nested
+      encoded = {
+        'dateTime': {
+          '@DateTime': {
+            'blob': {'@Blob': 'AQID'}
+          },
+        }
+      };
+
+      expect(sembastExtendedCodec.codec.decode(jsonEncode(encoded)), {
+        'dateTime': {
+          '@DateTime': {
+            'blob': Blob.fromList([1, 2, 3])
+          },
+        }
+      });
     });
   });
 }
