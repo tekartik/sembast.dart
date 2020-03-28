@@ -1,7 +1,9 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:sembast/blob.dart';
 import 'package:sembast/sembast.dart';
+import 'package:sembast/timestamp.dart';
 
 String _decodeType(String typeKey) {
   if (typeKey.startsWith('@')) {
@@ -77,7 +79,7 @@ class _Converter<S, T> extends Converter<S, T> {
   T convert(S input) => _convert(input);
 }
 
-/// Convert date time to iso8601 string.
+/// Convert date time to a iso8601 string.
 ///
 /// Be aware that the format can differ on the platform, web will use milliseconds
 /// precision while io will have microseconds precision.
@@ -95,50 +97,41 @@ class _DateTimeAdapter extends SembastTypeAdapter<DateTime, String>
   String get name => 'DateTime';
 }
 
+/// Convert a timestamp to a iso8601 string.
+///
+/// Be aware that the format can differ on the platform, web will use milliseconds
+/// precision while io will have microseconds precision.
+class _TimestampAdapter extends SembastTypeAdapter<Timestamp, String>
+    with TypeAdapterCodecMixin<Timestamp, String> {
+  _TimestampAdapter() {
+    // Encode to string
+    encoder = _Converter<Timestamp, String>(
+        (timestamp) => timestamp.toIso8601String());
+    // Decode from string
+    decoder = _Converter<String, Timestamp>((text) => Timestamp.parse(text));
+  }
+
+  @override
+  String get name => 'Timestamp';
+}
+
 /// Convert UInt8List time to base64 text.
 class _BlobAdapter extends SembastTypeAdapter<Blob, String>
     with TypeAdapterCodecMixin<Blob, String> {
   _BlobAdapter() {
     // Encode to string
-    encoder = _Converter<Blob, String>((blob) => base64Encode(blob.bytes));
+    encoder = _Converter<Blob, String>((blob) => blob.toBase64());
     // Decode from string
-    decoder = _Converter<String, Blob>((text) => Blob(base64Decode(text)));
+    decoder = _Converter<String, Blob>((text) => Blob.fromBase64(text));
   }
 
   @override
   String get name => 'Blob';
 }
 
-/// Sembast blob definition
-class Blob {
-  /// Blob bytes. null not supported.
-  final Uint8List bytes;
-
-  /// Blob creation
-  Blob(this.bytes);
-
-  /// Blob creation from int list.
-  Blob.fromList(List<int> list) : bytes = Uint8List.fromList(list);
-
-  bool _listsAreEqual(List one, List two) {
-    var i = -1;
-    return one.every((element) {
-      i++;
-
-      return two[i] == element;
-    });
-  }
-
-  @override
-  int get hashCode => bytes.length;
-
-  @override
-  bool operator ==(other) =>
-      other is Blob && _listsAreEqual(bytes, other.bytes);
-
-  @override
-  String toString() => 'Blob(len: ${bytes?.length})';
-}
+/// Simple timestamp adapter to convert to iso8601 string.
+final SembastTypeAdapter<Timestamp, String> sembastTimestampAdapter =
+    _TimestampAdapter();
 
 /// Simple datetime adapter to convert to iso8601 string.
 final SembastTypeAdapter<DateTime, String> sembastDateTimeAdapter =
@@ -156,8 +149,8 @@ SembastCodec sembastCodecWithAdapters(Iterable<SembastTypeAdapter> adapters,
 }
 
 /// Json Codec with supports for DateTime and Blobs (UInt8List)
-SembastCodec sembastExtendedCodec =
-    sembastCodecWithAdapters([sembastDateTimeAdapter, sembastBlobAdapter]);
+SembastCodec defaultSembastCodec = sembastCodecWithAdapters(
+    [sembastDateTimeAdapter, sembastBlobAdapter, sembastTimestampAdapter]);
 
 /// Base type adapter codec
 abstract class SembastTypeAdapter<S, T> extends Codec<S, T> {
