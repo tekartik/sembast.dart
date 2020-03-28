@@ -34,3 +34,5 @@ void setDatabaseCooperator(Database db, Cooperator cooperator) {
 Future<Database> reOpen(Database db, {DatabaseMode mode}) {
   return (db as SembastDatabase).reOpen(DatabaseOpenOptions(mode: mode));
 }
+
+bool get isWeb => identical(1, 1.0);
