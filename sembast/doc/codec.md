@@ -38,5 +38,5 @@ Zdd+qwanmghQw6VkwnolQkWrQX0zNcL2otYFH0gmudNtdnXd+CYxUE29U6MbdkdypevetyCeAKjd7Xl1
 The header of the database will contain a signature encoded by the codec itself so that a database cannot be opened
 if the password is wrong.
 
-Any other custom encryption/codec can be used as long as you provide a way to encode/decode a Map to/from a single
-line String.
+Any other custom encryption/codec can be used as long as you provide a way to encode/decode a json encodable 
+object (Map, List, num, String, bool and num) to/from a single line String.

@@ -1,4 +1,4 @@
-## 2.4.0-dev.6
+## 2.4.0
 
 * Add Blob and Timestamp support
 

@@ -7,8 +7,6 @@ Supported types depends on JSON supported types.
 Supported key types are:
 - int (default with autoincrement when no key are passed)
 - String (supports generation of unique key)
-- double (not recommended)
-
 
 ## Values
 
@@ -19,6 +17,8 @@ Supported value types are:
 - List
 - bool
 - `null`
+- Blob (custom type)
+- Timestamp (custom type)
 
 Using the Store API, Map must be of type `Map<String, dynamic>`.
 
