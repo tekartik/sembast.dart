@@ -146,9 +146,11 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
   jdb.JdbReadEntry _entryFromCursor(CursorWithValue cwv) {
     var map = cwv.value as Map;
 
-    /// Deserialize unsupported types (Blob, Timestamp
+    /// Deserialize unsupported types (Blob, Timestamp)
+    ///
+    /// TODO handle Codec
     var decodedValue =
-        jdb.defaultSembastCodec.fromSerializable(map[_valuePath]);
+        sembastCodecDefault.jsonEncodableCodec.decode(map[_valuePath]);
 
     var entry = jdb.JdbReadEntry()
       ..id = cwv.key as int
@@ -283,12 +285,15 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
         await objectStore.delete(idbKey);
       }
 
-      // Serialize value
-      var value = jdb.defaultSembastCodec.toSerializable(jdbWriteEntry.value);
+      /// Serialize value
+      ///
+      /// TODO handle codec
+      var value =
+          sembastCodecDefault.jsonEncodableCodec.encode(jdbWriteEntry.value);
       lastEntryId = (await objectStore.add(<String, dynamic>{
         _storePath: store,
         _keyPath: key,
-        // _valuePath: defaultSembastCodec.codec.encode(jdbWriteEntry.value),
+        // _valuePath: sembastCodecDefault.codec.encode(jdbWriteEntry.value),
         // TODO serialize
         _valuePath: value,
         if (jdbWriteEntry.deleted ?? false)
