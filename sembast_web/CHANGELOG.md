@@ -1,3 +1,7 @@
+## 1.1.0
+
+- Add Blob and Timestamp support
+
 ## 1.0.0
 
 - First stable version

@@ -1,7 +1,9 @@
 library sembast.value_utils_test;
 
 // basically same as the io runner but with extra output
-import 'package:sembast/src/utils.dart' show compareValue;
+import 'package:sembast/blob.dart';
+import 'package:sembast/src/utils.dart' show compareValue, compareValueType;
+import 'package:sembast/timestamp.dart';
 import 'package:sembast/utils/value_utils.dart' as utils;
 
 import 'test_common.dart';
@@ -100,5 +102,41 @@ void main() {
       // compareValue
       expect(compareValue([0], [0]), 0);
     });
+    test('compare int', () {
+      expect(compareValue(1, 1), 0);
+      expect(compareValue(1, 2), lessThan(0));
+      expect(compareValue(2, 1), greaterThan(0));
+      expect(compareValue(null, 1), lessThan(0));
+      expect(compareValue(1, null), greaterThan(0));
+    });
+    test('compare bool', () {
+      expect(compareValue(true, true), 0);
+      expect(compareValue(false, true), lessThan(0));
+      expect(compareValue(true, false), greaterThan(0));
+      expect(compareValue(null, true), lessThan(0));
+      expect(compareValue(false, null), greaterThan(0));
+    });
+    test('compare value type', () {
+      expect(compareValueType(null, true), -1);
+      expect(compareValueType(true, null), 1);
+      expect(compareValueType(true, 1), -1);
+      expect(compareValueType(1, Timestamp(0, 0)), -1);
+      expect(compareValueType(Timestamp(0, 0), 1), 1);
+      expect(compareValueType(Timestamp(0, 0), 'test'), -1);
+      expect(compareValueType('test', Timestamp(0, 0)), 1);
+      expect(compareValueType('test', Blob.fromList([1, 2, 3])), -1);
+      expect(compareValueType(Blob.fromList([1, 2, 3]), 'test'), 1);
+      expect(compareValueType(Blob.fromList([1, 2, 3]), [1, 2, 3]), -1);
+      expect(compareValueType('test', [1, 2, 3]), -1);
+      expect(compareValueType([1, 2, 3], 'test'), 1);
+      expect(compareValueType([1, 2, 3], {}), -1);
+      expect(compareValueType({}, [1, 2, 3]), 1);
+      expect(compareValueType({}, _Dummy1()), -1);
+      expect(compareValueType(_Dummy1(), _Dummy2()), null);
+    });
   });
 }
+
+class _Dummy1 {}
+
+class _Dummy2 {}

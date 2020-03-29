@@ -10,7 +10,6 @@ import 'package:sembast/src/database_impl.dart';
 import 'package:sembast/src/debug_utils.dart';
 import 'package:sembast/src/listener.dart';
 import 'package:sembast/src/record_snapshot_impl.dart';
-import 'package:sembast/src/utils.dart';
 
 mixin RecordRefMixin<K, V> implements RecordRef<K, V> {
   @override
@@ -27,7 +26,7 @@ mixin RecordRefMixin<K, V> implements RecordRef<K, V> {
   @override
   Future<V> update(DatabaseClient databaseClient, V value) async {
     var client = getClient(databaseClient);
-    value = sanitizeInputValue<V>(value);
+    value = client.sembastDatabase.sanitizeInputValue<V>(value);
     return await client.inTransaction((txn) {
       return client.getSembastStore(store).txnUpdate(txn, value, key);
     }) as V;
@@ -39,7 +38,7 @@ mixin RecordRefMixin<K, V> implements RecordRef<K, V> {
   @override
   Future<V> put(DatabaseClient databaseClient, V value, {bool merge}) async {
     var client = getClient(databaseClient);
-    value = sanitizeInputValue<V>(value);
+    value = client.sembastDatabase.sanitizeInputValue<V>(value);
     return await client.inTransaction((txn) {
       return client
           .getSembastStore(store)
@@ -53,7 +52,7 @@ mixin RecordRefMixin<K, V> implements RecordRef<K, V> {
   @override
   Future<K> add(DatabaseClient databaseClient, V value) async {
     var client = getClient(databaseClient);
-    value = sanitizeInputValue<V>(value);
+    value = client.sembastDatabase.sanitizeInputValue<V>(value);
     return await client.inTransaction((txn) {
       return client.getSembastStore(store).txnAdd(txn, value, key);
     });

@@ -1,5 +1,5 @@
 import 'dart:async';
-
+import 'package:idb_shim/utils/idb_import_export.dart' as import_export;
 import 'package:idb_shim/idb_client_memory.dart';
 import 'package:idb_shim/idb_shim.dart';
 import 'package:idb_shim/idb_shim.dart' as idb;
@@ -38,7 +38,8 @@ class JdbFactoryIdb implements jdb.JdbFactory {
   final databases = <String, List<JdbDatabaseIdb>>{};
 
   @override
-  Future<jdb.JdbDatabase> open(String path) async {
+  Future<jdb.JdbDatabase> open(String path,
+      {DatabaseOpenOptions options}) async {
     var id = ++_lastId;
     if (_debug) {
       print('[idb-$id] opening $path');
@@ -56,7 +57,7 @@ class JdbFactoryIdb implements jdb.JdbFactory {
       }
     });
     if (iDb != null) {
-      var db = JdbDatabaseIdb(this, iDb, id, path);
+      var db = JdbDatabaseIdb(this, iDb, id, path, options);
 
       /// Add to our list
       if (path != null) {
@@ -142,13 +143,26 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
   final int _id;
   final String _path;
   final _revisionUpdateController = StreamController<int>();
+  final jdb.DatabaseOpenOptions _options;
 
   jdb.JdbReadEntry _entryFromCursor(CursorWithValue cwv) {
     var map = cwv.value as Map;
+
+    var value = map[_valuePath];
+
+    /// Deserialize unsupported types (Blob, Timestamp)
+    ///
+    if (_options?.codec?.codec != null && value is String) {
+      value = _options.codec.codec.decode(value as String);
+    }
+    var decodedValue = (_options?.codec?.jsonEncodableCodec ??
+            jdb.sembastDefaultJsonEncodableCodec)
+        .decode(value);
+
     var entry = jdb.JdbReadEntry()
       ..id = cwv.key as int
       ..record = StoreRef(map[_storePath] as String).record(map[_keyPath])
-      ..value = map[_valuePath]
+      ..value = decodedValue
       // Deleted is an int
       ..deleted = map[_deletedPath] == 1;
     return entry;
@@ -181,7 +195,8 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
   }
 
   /// New in memory database.
-  JdbDatabaseIdb(this._factory, this._idbDatabase, this._id, this._path);
+  JdbDatabaseIdb(
+      this._factory, this._idbDatabase, this._id, this._path, this._options);
 
   var _closed = false;
 
@@ -278,10 +293,19 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
         await objectStore.delete(idbKey);
       }
 
+      /// Serialize value
+      ///
+      var value = (_options?.codec?.jsonEncodableCodec ??
+              sembastDefaultJsonEncodableCodec)
+          .encode(jdbWriteEntry.value);
+      if (_options?.codec?.codec != null && value != null) {
+        value = _options.codec.codec.encode(value);
+      }
+      //if
       lastEntryId = (await objectStore.add(<String, dynamic>{
         _storePath: store,
         _keyPath: key,
-        _valuePath: jdbWriteEntry.value,
+        _valuePath: value,
         if (jdbWriteEntry.deleted ?? false) _deletedPath: 1
       })) as int;
       // Save the revision in memory!
@@ -497,6 +521,10 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
     await txn.objectStore(_entryStore).clear();
     await txn.completed;
   }
+
+  /// Export the database using sdb format
+  Future<Map> sdbExportDatabase() async =>
+      import_export.sdbExportDatabase(_idbDatabase);
 }
 
 JdbFactoryIdb _jdbFactoryIdbMemory = JdbFactoryIdb(idbFactoryMemory);

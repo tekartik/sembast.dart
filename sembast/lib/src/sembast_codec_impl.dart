@@ -2,19 +2,28 @@ import 'dart:convert';
 
 import 'package:meta/meta.dart';
 import 'package:sembast/sembast.dart';
+import 'package:sembast/src/json_encodable_codec.dart';
 
 /// Sembast codec implementation.
 class SembastCodecImpl implements SembastCodec {
   @override
   final String signature;
   @override
-  final Codec<Map<String, dynamic>, String> codec;
-
-  /// Sembast codec implementation.
-  SembastCodecImpl({@required this.signature, @required this.codec});
+  final Codec<dynamic, String> codec;
 
   @override
-  String toString() => 'SembastCodex($signature)';
+  JsonEncodableCodec jsonEncodableCodec;
+
+  /// Sembast codec implementation.
+  SembastCodecImpl(
+      {@required this.signature,
+      @required this.codec,
+      @required JsonEncodableCodec jsonEncodableCodec})
+      : jsonEncodableCodec =
+            jsonEncodableCodec ?? sembastDefaultJsonEncodableCodec;
+
+  @override
+  String toString() => 'SembastCodec($signature)';
 }
 
 /// Extra the raw signaure as a map.
@@ -27,7 +36,7 @@ Map<String, dynamic> getRawSignatureMap(SembastCodec codec) {
 
 /// The encoded signature is a map {'signature': signature} encoded by itself!
 String getCodecEncodedSignature(SembastCodec codec) {
-  if (codec != null) {
+  if (codec?.signature != null) {
     return codec.codec?.encode(getRawSignatureMap(codec));
   }
   return null;
@@ -38,7 +47,10 @@ Map<String, dynamic> getCodecDecodedSignature(
     SembastCodec codec, String encodedSignature) {
   if (codec != null && encodedSignature != null) {
     try {
-      return codec.codec?.decode(encodedSignature);
+      var result = codec.codec?.decode(encodedSignature);
+      if (result is Map) {
+        return result.cast<String, dynamic>();
+      }
     } catch (_) {}
   }
   return null;
@@ -48,6 +60,10 @@ Map<String, dynamic> getCodecDecodedSignature(
 ///
 /// We decode the signature to make sure it matches the raw decoded one
 void checkCodecEncodedSignature(SembastCodec codec, String encodedSignature) {
+  if (codec?.signature == null && encodedSignature == null) {
+    // Ignore if both signature are null
+    return null;
+  }
   var rawSignatureMap = getRawSignatureMap(codec);
   var decodedSignature = getCodecDecodedSignature(codec, encodedSignature);
   var matches = true;

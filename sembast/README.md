@@ -215,7 +215,6 @@ Supported types depends on JSON supported types. More information [here](https:/
 Supported key types are:
 - int (default with autoincrement when no key are passed)
 - String (String keys can also be generated à la firestore)
-- double
 
 #### Values
 
@@ -226,6 +225,8 @@ Supported value types are:
 - List (`List<dynamic>`)
 - bool
 - `null`
+- Blob (custom type)
+- Timestamp (custom type)
 
 ### Resources
 

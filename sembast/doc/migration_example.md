@@ -16,7 +16,7 @@ expect(db.version, 1);
 await db.close();
 ```
 
-Handling creation can be safely done in onVersionChanged.
+Handling creation can be safely done in `onVersionChanged`.
 
 ```dart
 // It has version 0 if created in onVersionChanged
@@ -47,15 +47,15 @@ var demoProductRecord3 = store.record('demo_product_3');
 ```dart
 await factory.deleteDatabase(path);
 db = await factory.openDatabase(path, version: 1,
-onVersionChanged: (db, oldVersion, newVersion) async {
-// If the db does not exist, create some data
-if (oldVersion == 0) {
-  await demoProductRecord1
-    .put(db, {'name': 'Demo product 1', 'price': 10});
-  await demoProductRecord2
-    .put(db, {'name': 'Demo product 2', 'price': 100});
-}
-});
+  onVersionChanged: (db, oldVersion, newVersion) async {
+    // If the db does not exist, create some data
+    if (oldVersion == 0) {
+      await demoProductRecord1
+        .put(db, {'name': 'Demo product 1', 'price': 10});
+      await demoProductRecord2
+        .put(db, {'name': 'Demo product 2', 'price': 100});
+    }
+  });
 ```
 
 Let's see our content after opening:

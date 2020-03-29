@@ -14,6 +14,7 @@ import 'store_test.dart' as store_test;
 import 'test_common.dart';
 import 'transaction_test.dart' as transaction_test;
 import 'value_test.dart' as value_test;
+import 'codec_test.dart' as codec_test;
 
 // default use memory
 void main() {
@@ -36,4 +37,5 @@ void defineTests(DatabaseTestContext ctx) {
   query_test.defineTests(ctx);
 
   doc_test.defineTests(ctx);
+  codec_test.defineTests(ctx);
 }

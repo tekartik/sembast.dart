@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:meta/meta.dart';
 import 'package:sembast/sembast.dart';
 import 'package:sembast/src/api/log_level.dart';
+import 'package:sembast/src/api/protected/jdb.dart';
 import 'package:sembast/src/api/v2/sembast.dart' as v2;
 import 'package:sembast/src/common_import.dart';
 import 'package:sembast/src/cooperator.dart';
@@ -12,6 +13,7 @@ import 'package:sembast/src/database_factory_mixin.dart';
 import 'package:sembast/src/debug_utils.dart';
 import 'package:sembast/src/env_utils.dart';
 import 'package:sembast/src/jdb.dart';
+import 'package:sembast/src/json_encodable_codec.dart';
 import 'package:sembast/src/listener.dart';
 import 'package:sembast/src/meta.dart';
 import 'package:sembast/src/record_impl.dart';
@@ -21,6 +23,7 @@ import 'package:sembast/src/sembast_jdb.dart';
 import 'package:sembast/src/storage.dart';
 import 'package:sembast/src/store_impl.dart';
 import 'package:sembast/src/transaction_impl.dart';
+import 'package:sembast/src/utils.dart';
 import 'package:synchronized/synchronized.dart';
 
 // ignore_for_file: deprecated_member_use_from_same_package
@@ -208,21 +211,19 @@ class SembastDatabase extends Object
   }
 
   /// Encode a map before writing it to disk
-  String encodeMap(Map<String, dynamic> map) {
-    if (openOptions.codec != null) {
-      return openOptions.codec.codec.encode(map);
-    } else {
-      return json.encode(map);
-    }
-  }
+  String encodeMap(Map map) =>
+      _jsonCodec.encode(_jsonEncodableCodec.encode(map));
 
   /// Decode a text.
-  Map<String, dynamic> decodeString(String text) {
-    if (openOptions.codec != null) {
-      return openOptions.codec.codec.decode(text);
-    } else {
-      return (json.decode(text) as Map)?.cast<String, dynamic>();
+  Map<String, dynamic> decodeRecordLineString(String text) {
+    var result = _jsonEncodableCodec.decode(_jsonCodec.decode(text));
+    if (result is Map<String, dynamic>) {
+      return result;
     }
+    if (result is Map) {
+      return result?.cast<String, dynamic>();
+    }
+    return null;
   }
 
   /// Get the list of current store that can be safely iterate even
@@ -587,11 +588,15 @@ class SembastDatabase extends Object
     // Check codec
     if (options.codec != null) {
       if (options.codec.signature == null) {
-        throw DatabaseException.invalidCodec('Codec signature cannot be null');
-      }
-      if (options.codec.codec == null) {
-        throw DatabaseException.invalidCodec(
-            'Codec implementation cannot be null');
+        if (options.codec.codec != null) {
+          throw DatabaseException.invalidCodec(
+              'Codec signature cannot be null');
+        }
+      } else {
+        if (options.codec.codec == null) {
+          throw DatabaseException.invalidCodec(
+              'Codec implementation cannot be null');
+        }
       }
     }
 
@@ -734,7 +739,7 @@ class SembastDatabase extends Object
                 } else {
                   // If a codec is used, we fail
                   if (_openMode == DatabaseMode.neverFails &&
-                      options.codec == null) {
+                      options.codec?.signature == null) {
                     corrupted = true;
                     break;
                   } else {
@@ -745,7 +750,7 @@ class SembastDatabase extends Object
 
               try {
                 // decode record
-                map = decodeString(line);
+                map = decodeRecordLineString(line);
               } on Exception catch (_) {
                 // We can have meta here
                 try {
@@ -1355,6 +1360,80 @@ class SembastDatabase extends Object
         }
       }
     });
+  }
+
+  /// Sanitize a value.
+  dynamic sanitizeValue(value) {
+    if (value == null) {
+      return null;
+    } else if (value is num || value is String || value is bool) {
+      return value;
+    } else if (value is List) {
+      return value;
+    } else if (value is Map) {
+      if (!(value is Map<String, dynamic>)) {
+        // We force the value map type for easy usage
+        return value.cast<String, dynamic>();
+      }
+      return value;
+    }
+    if (openOptions.codec.jsonEncodableCodec.supportsType(value)) {
+      return value;
+    }
+    throw ArgumentError.value(
+        value, null, 'type ${value.runtimeType} not supported');
+  }
+
+  /// Use the one defined or the default one
+  Codec<dynamic, String> get _jsonCodec => openOptions.codec?.codec ?? json;
+
+  /// Use the one defined or the default one
+  JsonEncodableCodec get _jsonEncodableCodec =>
+      openOptions.codec?.jsonEncodableCodec ?? sembastDefaultJsonEncodableCodec;
+
+  /// Sanitize a value.
+  void _check(value) {
+    if (!isBasicTypeFieldValueOrNull(value)) {
+      if (value is List) {
+        for (var item in value) {
+          _check(item);
+        }
+        return;
+      } else if (value is Map) {
+        for (var item in value.values) {
+          _check(item);
+        }
+        return;
+      }
+      if (_jsonEncodableCodec.supportsType(value)) {
+        return;
+      }
+
+      throw ArgumentError.value(
+          value, null, 'type ${value.runtimeType} not supported');
+    }
+  }
+
+  /// Sanitized an input value for the store
+  V sanitizeInputValue<V>(dynamic value) {
+    _check(value);
+    if (value is List) {
+      try {
+        return value.cast<dynamic>() as V;
+      } catch (e) {
+        throw ArgumentError.value(value, 'type $V not supported',
+            'List must be of type List<dynamic> for type ${value.runtimeType} value $value');
+      }
+    } else if (value is Map) {
+      try {
+        // We force the value map type for easy usage
+        return value.cast<String, dynamic>() as V;
+      } catch (e) {
+        throw ArgumentError.value(value, 'type $V not supported',
+            'Map must be of type Map<String, dynamic> for type ${value.runtimeType} value $value');
+      }
+    }
+    return value as V;
   }
 }
 

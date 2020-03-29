@@ -118,6 +118,7 @@ mixin DatabaseFactoryMixin implements SembastDatabaseFactory {
 
   Future<Database> openDatabaseWithOptions(
       String path, DatabaseOpenOptions options) {
+    // Always specify the default codec
     var helper = getDatabaseOpenHelper(path, options);
     return helper.openDatabase();
   }

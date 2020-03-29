@@ -3,14 +3,22 @@ library sembast.test.utils_test;
 // basically same as the io runner but with extra output
 import 'package:sembast/src/utils.dart';
 import 'test_common.dart';
+import 'package:sembast/src/database_impl.dart' show SembastDatabase;
 
 void main() {
   group('utils', () {
+    /*
     test('sanitize_map', () {
       var map = <dynamic, dynamic>{'test': 1};
       final sanitizedMap = sanitizeValue(map);
       expect(sanitizedMap, map);
     });
+
+     */
+    var db = SembastDatabase(null);
+    V sanitizeInputValue<V>(dynamic value) {
+      return db.sanitizeInputValue<V>(value);
+    }
 
     test('sanitize_input_map', () {
       var map = <dynamic, dynamic>{'test': 1};

@@ -2,54 +2,14 @@ import 'dart:collection';
 import 'dart:math';
 import 'dart:typed_data';
 
+import 'package:sembast/blob.dart';
 import 'package:sembast/sembast.dart';
 import 'package:sembast/src/common_import.dart';
 import 'package:sembast/src/record_impl.dart';
+import 'package:sembast/src/timestamp_impl.dart';
 
 /// Backtick char code.
 final backtickChrCode = '`'.codeUnitAt(0);
-
-/// Sanitized an input value for the store
-V sanitizeInputValue<V>(dynamic value) {
-  if (value == null) {
-    return null;
-  } else if (value is num || value is String || value is bool) {
-    return value as V;
-  } else if (value is List) {
-    try {
-      return value.cast<dynamic>() as V;
-    } catch (e) {
-      throw ArgumentError.value(value, 'type $V not supported',
-          'List must be of type List<dynamic> for type ${value.runtimeType} value $value');
-    }
-  } else if (value is Map) {
-    try {
-      // We force the value map type for easy usage
-      return value.cast<String, dynamic>() as V;
-    } catch (e) {
-      throw ArgumentError.value(value, 'type $V not supported',
-          'Map must be of type Map<String, dynamic> for type ${value.runtimeType} value $value');
-    }
-  }
-  throw ArgumentError.value(
-      value, null, 'type ${value.runtimeType} not supported');
-}
-
-/// Sanitize a value.
-dynamic sanitizeValue(value) {
-  if (value == null) {
-    return null;
-  } else if (value is num || value is String || value is bool) {
-    return value;
-  } else if (value is List) {
-    return value;
-  } else if (value is Map) {
-    // We force the value map type for easy usage
-    return value.cast<String, dynamic>();
-  }
-  throw ArgumentError.value(
-      value, null, 'type ${value.runtimeType} not supported');
-}
 
 /// Check keys.
 bool checkMapKey(key) {
@@ -102,7 +62,20 @@ int compareRecordKey(
 /// Compare 2 values.
 ///
 /// return <0 if value1 < value2 or >0 if greater
-/// returns null if cannot be compared
+/// returns null if cannot be compared.
+///
+/// Follows firestore ordering:
+/// https://firebase.google.com/docs/firestore/manage-data/data-types
+///
+/// Value type ordering (field with values of mixed types, The following list shows the order):
+/// - Null values
+/// - Boolean values
+/// - Integer and floating-point values, sorted in numerical order
+/// - Timestamp values
+/// - Text string values
+/// - Blob values
+/// - List values
+/// - Map values
 int compareValue(dynamic value1, dynamic value2) {
   try {
     if (value1 is Comparable && value2 is Comparable) {
@@ -120,14 +93,127 @@ int compareValue(dynamic value1, dynamic value2) {
       }
       // Same ? return the length diff if any
       return compareValue(list1.length, list2.length);
+    } else if (value1 is bool && value2 is bool) {
+      return compareBool(value1, value2);
     }
   } catch (_) {
+    // Handle null and various exception not handled
+  }
+  // Compare value type
+  var cmp = compareValueType(value1, value2);
+  if (cmp == null) {
     /// Convert to string in the worst case
     if (!(value1 is String) || !(value2 is String)) {
       return compareValue(value1?.toString(), value2?.toString());
     }
   }
-  return 0;
+  return cmp ?? 0;
+}
+
+/// Compare 2 boolean: fase < null
+int compareBool(bool value1, bool value2) {
+  if (value1) {
+    if (value2) {
+      return 0;
+    }
+    return 1;
+  }
+  return value2 ? -1 : 0;
+}
+
+/// Compare 2 value types.
+///
+/// return <0 if value1 < value2 or >0 if greater
+/// returns null if cannot be compared (typically custom types)
+///
+/// Follows firestore ordering:
+/// https://firebase.google.com/docs/firestore/manage-data/data-types
+///
+/// Value type ordering (field with values of mixed types, The following list shows the order):
+/// - Null values
+/// - Boolean values
+/// - Integer and floating-point values, sorted in numerical order
+/// - Timestamp values
+/// - Text string values
+/// - Blob values
+/// - List values
+/// - Map values
+int compareValueType(dynamic value1, dynamic value2) {
+  // first null
+  if (value1 == null) {
+    if (value2 == null) {
+      return 0;
+    } else {
+      // null first
+      return -1;
+    }
+  } else if (value2 == null) {
+    return 1;
+  } else if (value1 is bool) {
+    // then bool
+    if (value2 is bool) {
+      return 0;
+    } else {
+      return -1;
+    }
+  } else if (value2 is bool) {
+    return 1;
+  } else if (value1 is num) {
+    // then num
+    if (value2 is num) {
+      return 0;
+    } else {
+      return -1;
+    }
+  } else if (value2 is num) {
+    return 1;
+  } else if (value1 is Timestamp) {
+    // then timestamp
+    if (value2 is Timestamp) {
+      return 0;
+    } else {
+      return -1;
+    }
+  } else if (value2 is Timestamp) {
+    return 1;
+  } else if (value1 is String) {
+    // then timestamp
+    if (value2 is String) {
+      return 0;
+    } else {
+      return -1;
+    }
+  } else if (value2 is String) {
+    return 1;
+  } else if (value1 is Blob) {
+    // then timestamp
+    if (value2 is Blob) {
+      return 0;
+    } else {
+      return -1;
+    }
+  } else if (value2 is Blob) {
+    return 1;
+  } else if (value1 is List) {
+    // then timestamp
+    if (value2 is List) {
+      return 0;
+    } else {
+      return -1;
+    }
+  } else if (value2 is List) {
+    return 1;
+  } else if (value1 is Map) {
+    // then timestamp
+    if (value2 is List) {
+      return 0;
+    } else {
+      return -1;
+    }
+  } else if (value2 is Map) {
+    return 1;
+  }
+  return null;
 }
 
 Map<String, dynamic> _fixMap(Map map) {
@@ -176,20 +262,29 @@ dynamic cloneValue(dynamic value) {
   if (value is Iterable) {
     return value.map((value) => cloneValue(value)).toList();
   }
-  if (value is String) {
-    return value;
+  return value;
+}
+
+/// Sanitize Map type for root value
+dynamic sanitizeValueIfMap(dynamic value) {
+  if (value is Map) {
+    if (!(value is Map<String, dynamic>)) {
+      return value?.cast<String, dynamic>();
+    }
   }
-  if (value is bool) {
-    return value;
-  }
-  if (value is num) {
-    return value;
-  }
+  return value;
+}
+
+/// True for null, num, String, bool
+bool isBasicTypeFieldValueOrNull(dynamic value) {
   if (value == null) {
-    return value;
+    return true;
+  } else if (value is num || value is String || value is bool) {
+    return true;
+  } else if (value is FieldValue) {
+    return true;
   }
-  throw ArgumentError(
-      'value ${value} unsupported${value != null ? ' type ${value.runtimeType}' : ''}');
+  return false;
 }
 
 /// Make a value immutable.

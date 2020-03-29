@@ -2,6 +2,8 @@ library sembast.find_test;
 
 import 'dart:async';
 
+import 'package:sembast/timestamp.dart';
+
 import 'test_common.dart';
 
 void main() {
@@ -339,6 +341,37 @@ void defineTests(DatabaseTestContext ctx) {
         await db.close();
       });
 
+      group('custom_type', () {
+        Database db;
+
+        tearDown(() async {
+          await db?.close();
+        });
+        var store = intMapStoreFactory.store();
+        var _records = store.records([1, 2, 3, 4]);
+
+        // Convenient access for test
+        var record1 = _records[0];
+        var record2 = _records[1];
+        var record3 = _records[2];
+        var record4 = _records[3];
+        setUp(() async {
+          db = await setupForTest(ctx, 'find/custom_type.db');
+          return _records.put(db, [
+            {'timestamp': Timestamp(0, 3)},
+            {'timestamp': Timestamp(0, 1)},
+            {'timestamp': null},
+            {'timestamp': Timestamp(0, 2)},
+          ]);
+        });
+
+        test('sort', () async {
+          var finder = Finder(sortOrders: [SortOrder('timestamp', true)]);
+          var snapshots = await store.find(db, finder: finder);
+          expect(
+              snapshotsRefs(snapshots), [record3, record2, record4, record1]);
+        });
+      });
       group('sub_field', () {
         Database db;
 

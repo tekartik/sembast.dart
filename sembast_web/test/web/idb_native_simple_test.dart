@@ -2,10 +2,14 @@
 library sembast_web.test.idb_io_simple_test;
 
 import 'dart:html';
+
 import 'package:sembast/sembast.dart';
 import 'package:sembast_web/sembast_web.dart';
 import 'package:sembast_web/src/sembast_import.dart';
 import 'package:test/test.dart';
+
+import '../multiplatform/idb_jdb_test.dart' as idb_jdb_test;
+import '../multiplatform/idb_jdb_test.dart';
 
 var testPath = '.dart_tool/sembast_web/databases';
 
@@ -65,5 +69,8 @@ Future main() async {
       await factory.deleteDatabase('test');
       expect(window.localStorage['sembast_web/revision:test'], isNull);
     });
+
+    idb_jdb_test.defineTests(
+        asJdbJactoryIdb(asDatabaseFactoryIdb(databaseFactoryWeb).jdbFactory));
   });
 }

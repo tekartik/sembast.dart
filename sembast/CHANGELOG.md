@@ -1,3 +1,7 @@
+## 2.4.0
+
+* Add Blob and Timestamp support
+
 ## 2.3.0
 
 * Remove 1.x deprecated APIs
