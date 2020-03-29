@@ -90,7 +90,6 @@ class _JsonEncoder extends Converter<Map<String, dynamic>, String> {
     }
   }
 
-  @override
   dynamic toSerializable(dynamic value) {
     var state = _JsonEncodeState();
     _toSerializable(state, value);

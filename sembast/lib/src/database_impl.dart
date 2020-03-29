@@ -1398,9 +1398,8 @@ class SembastDatabase extends Object
         }
         return;
       }
-      if (openOptions?.codec?.codec is DefaultSembastCodec) {
-        if ((openOptions.codec.codec as DefaultSembastCodec)
-            .supportsType(value)) {
+      if (openOptions?.codec is DefaultSembastCodec) {
+        if ((openOptions.codec as DefaultSembastCodec).supportsType(value)) {
           return;
         }
       }
