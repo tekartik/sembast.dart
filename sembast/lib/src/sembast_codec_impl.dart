@@ -17,10 +17,9 @@ class SembastCodecImpl implements SembastCodec {
   /// Sembast codec implementation.
   SembastCodecImpl(
       {@required this.signature,
-      @required Codec<dynamic, String> codec,
-      JsonEncodableCodec jsonEncodableCodec})
-      : codec = codec ?? json,
-        jsonEncodableCodec =
+      @required this.codec,
+      @required JsonEncodableCodec jsonEncodableCodec})
+      : jsonEncodableCodec =
             jsonEncodableCodec ?? sembastDefaultJsonEncodableCodec;
 
   @override

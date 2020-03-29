@@ -5,6 +5,7 @@ import 'dart:async';
 import 'package:sembast/src/api/protected/jdb.dart';
 import 'package:sembast/src/api/record_ref.dart';
 import 'package:sembast/src/common_import.dart';
+import 'package:sembast/src/database_factory_mixin.dart';
 import 'package:sembast/src/jdb.dart' as jdb;
 import 'package:sembast/src/key_utils.dart';
 import 'package:sembast/src/record_impl.dart';
@@ -15,7 +16,8 @@ class JdbFactoryMemory implements jdb.JdbFactory {
   final _dbs = <String, JdbDatabaseMemory>{};
 
   @override
-  Future<jdb.JdbDatabase> open(String path) async {
+  Future<jdb.JdbDatabase> open(String path,
+      {DatabaseOpenOptions options}) async {
     var db = _dbs[path];
     if (db == null) {
       db = JdbDatabaseMemory(this, path);

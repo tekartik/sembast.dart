@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:sembast/sembast.dart';
 import 'package:sembast/src/api/factory.dart';
 import 'package:sembast/src/database_impl.dart';
-import 'package:sembast/src/sembast_codec.dart';
 import 'package:synchronized/synchronized.dart';
 
 /// Open options.
@@ -25,8 +24,8 @@ class DatabaseOpenOptions {
     this.version,
     this.onVersionChanged,
     this.mode,
-    SembastCodec codec,
-  }) : codec = codec ?? sembastCodecDefault;
+    this.codec,
+  });
 
   @override
   String toString() {

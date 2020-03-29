@@ -6,6 +6,8 @@ import 'package:sembast_web/src/jdb_factory_idb.dart'
 import 'package:sembast_web/src/jdb_import.dart';
 import 'package:test/test.dart';
 
+import '../base64_codec.dart';
+
 DatabaseFactoryJdb asDatabaseFactoryIdb(DatabaseFactory databaseFactory) =>
     databaseFactory as DatabaseFactoryJdb;
 
@@ -85,6 +87,93 @@ void defineTests(JdbFactoryIdb jdbFactoryIdb) {
         await db.close();
 
         db = await factory.openDatabase('test');
+        expect(await record.get(db), 'value');
+        expect(await dbAsJsbDatabaseIdb(db).sdbExportDatabase(), export);
+        await record.put(db, 'value2');
+        expect(await record.get(db), 'value2');
+        await db.close();
+      });
+
+      test('import/close open', () async {
+        var dbName = 'test_import.db';
+        var store = StoreRef<String, String>.main();
+        var record = store.record('key');
+        await factory.deleteDatabase(dbName);
+
+        var sdb =
+            await sdbImportDatabase(export, jdbFactoryIdb.idbFactory, dbName);
+
+        sdb.close();
+
+        var db = await factory.openDatabase(dbName);
+        expect(await record.get(db), 'value');
+        await record.put(db, 'value');
+        expect(await record.get(db), 'value');
+        await db.close();
+      }, skip: true);
+    });
+
+    group('codec_export', () {
+      var export = {
+        'sembast_export': 1,
+        'version': 1,
+        'stores': [
+          {
+            'name': '_main',
+            'keys': ['store_entry', 'store_info', 'stores', 'version'],
+            'values': [
+              {
+                'name': 'entry',
+                'autoIncrement': true,
+                'indecies': [
+                  {'name': 'deleted', 'keyPath': 'deleted', 'multiEntry': true},
+                  {
+                    'name': 'record',
+                    'keyPath': ['store', 'key']
+                  },
+                ]
+              },
+              {'name': 'info'},
+              ['entry', 'info'],
+              2
+            ]
+          },
+          {
+            'name': 'entry',
+            'keys': [1],
+            'values': [
+              {'store': '_main', 'key': 'key', 'value': 'InZhbHVlIg=='}
+            ]
+          },
+          {
+            'name': 'info',
+            'keys': ['meta', 'revision'],
+            'values': [
+              {
+                'version': 1,
+                'sembast': 1,
+                'codec': 'eyJzaWduYXR1cmUiOiJiYXNlNjQifQ=='
+              },
+              1
+            ]
+          },
+        ]
+      };
+
+      test('export', () async {
+        var codec =
+            SembastCodec(signature: 'base64', codec: SembaseBase64Codec());
+        var store = StoreRef<String, String>.main();
+        var record = store.record('key');
+        await factory.deleteDatabase('test');
+        var db = await factory.openDatabase('test', codec: codec);
+        expect(await record.get(db), isNull);
+        await record.put(db, 'value');
+        expect(await record.get(db), 'value');
+        expect(await dbAsJsbDatabaseIdb(db).sdbExportDatabase(), export);
+        await db.close();
+
+        db = await factory.openDatabase('test', codec: codec);
         expect(await record.get(db), 'value');
         expect(await dbAsJsbDatabaseIdb(db).sdbExportDatabase(), export);
         await record.put(db, 'value2');

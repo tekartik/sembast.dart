@@ -38,7 +38,8 @@ class JdbFactoryIdb implements jdb.JdbFactory {
   final databases = <String, List<JdbDatabaseIdb>>{};
 
   @override
-  Future<jdb.JdbDatabase> open(String path) async {
+  Future<jdb.JdbDatabase> open(String path,
+      {DatabaseOpenOptions options}) async {
     var id = ++_lastId;
     if (_debug) {
       print('[idb-$id] opening $path');
@@ -56,7 +57,7 @@ class JdbFactoryIdb implements jdb.JdbFactory {
       }
     });
     if (iDb != null) {
-      var db = JdbDatabaseIdb(this, iDb, id, path);
+      var db = JdbDatabaseIdb(this, iDb, id, path, options);
 
       /// Add to our list
       if (path != null) {
@@ -142,15 +143,21 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
   final int _id;
   final String _path;
   final _revisionUpdateController = StreamController<int>();
+  final jdb.DatabaseOpenOptions _options;
 
   jdb.JdbReadEntry _entryFromCursor(CursorWithValue cwv) {
     var map = cwv.value as Map;
 
+    var value = map[_valuePath];
+
     /// Deserialize unsupported types (Blob, Timestamp)
     ///
-    /// TODO handle Codec
-    var decodedValue =
-        sembastCodecDefault.jsonEncodableCodec.decode(map[_valuePath]);
+    if (_options?.codec?.codec != null && value is String) {
+      value = _options.codec.codec.decode(value as String);
+    }
+    var decodedValue = (_options?.codec?.jsonEncodableCodec ??
+            jdb.sembastDefaultJsonEncodableCodec)
+        .decode(value);
 
     var entry = jdb.JdbReadEntry()
       ..id = cwv.key as int
@@ -188,7 +195,8 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
   }
 
   /// New in memory database.
-  JdbDatabaseIdb(this._factory, this._idbDatabase, this._id, this._path);
+  JdbDatabaseIdb(
+      this._factory, this._idbDatabase, this._id, this._path, this._options);
 
   var _closed = false;
 
@@ -287,17 +295,18 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
 
       /// Serialize value
       ///
-      /// TODO handle codec
-      var value =
-          sembastCodecDefault.jsonEncodableCodec.encode(jdbWriteEntry.value);
+      var value = (_options?.codec?.jsonEncodableCodec ??
+              sembastDefaultJsonEncodableCodec)
+          .encode(jdbWriteEntry.value);
+      if (_options?.codec?.codec != null && value != null) {
+        value = _options.codec.codec.encode(value);
+      }
+      //if
       lastEntryId = (await objectStore.add(<String, dynamic>{
         _storePath: store,
         _keyPath: key,
-        // _valuePath: sembastCodecDefault.codec.encode(jdbWriteEntry.value),
-        // TODO serialize
         _valuePath: value,
-        if (jdbWriteEntry.deleted ?? false)
-          _deletedPath: 1
+        if (jdbWriteEntry.deleted ?? false) _deletedPath: 1
       })) as int;
       // Save the revision in memory!
       jdbWriteEntry?.txnRecord?.record?.revision = lastEntryId;

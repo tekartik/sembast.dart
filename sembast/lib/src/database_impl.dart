@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:meta/meta.dart';
 import 'package:sembast/sembast.dart';
 import 'package:sembast/src/api/log_level.dart';
+import 'package:sembast/src/api/protected/jdb.dart';
 import 'package:sembast/src/api/v2/sembast.dart' as v2;
 import 'package:sembast/src/common_import.dart';
 import 'package:sembast/src/cooperator.dart';
@@ -12,6 +13,7 @@ import 'package:sembast/src/database_factory_mixin.dart';
 import 'package:sembast/src/debug_utils.dart';
 import 'package:sembast/src/env_utils.dart';
 import 'package:sembast/src/jdb.dart';
+import 'package:sembast/src/json_encodable_codec.dart';
 import 'package:sembast/src/listener.dart';
 import 'package:sembast/src/meta.dart';
 import 'package:sembast/src/record_impl.dart';
@@ -209,13 +211,12 @@ class SembastDatabase extends Object
   }
 
   /// Encode a map before writing it to disk
-  String encodeMap(Map map) => openOptions.codec.codec
-      .encode(openOptions.codec.jsonEncodableCodec.encode(map));
+  String encodeMap(Map map) =>
+      _jsonCodec.encode(_jsonEncodableCodec.encode(map));
 
   /// Decode a text.
   Map<String, dynamic> decodeRecordLineString(String text) {
-    var result = openOptions.codec.jsonEncodableCodec
-        .decode(openOptions.codec.codec.decode(text));
+    var result = _jsonEncodableCodec.decode(_jsonCodec.decode(text));
     if (result is Map<String, dynamic>) {
       return result;
     }
@@ -584,12 +585,10 @@ class SembastDatabase extends Object
       return this;
     }
 
-    /*
-    // No longer needed as a codec now always has signature and codec
     // Check codec
     if (options.codec != null) {
       if (options.codec.signature == null) {
-        if (options.codec.codec != json) {
+        if (options.codec.codec != null) {
           throw DatabaseException.invalidCodec(
               'Codec signature cannot be null');
         }
@@ -600,7 +599,6 @@ class SembastDatabase extends Object
         }
       }
     }
-     */
 
     await databaseLock.synchronized(() async {
       // needed for reOpen
@@ -741,7 +739,7 @@ class SembastDatabase extends Object
                 } else {
                   // If a codec is used, we fail
                   if (_openMode == DatabaseMode.neverFails &&
-                      options.codec.signature == null) {
+                      options.codec?.signature == null) {
                     corrupted = true;
                     break;
                   } else {
@@ -1386,6 +1384,13 @@ class SembastDatabase extends Object
         value, null, 'type ${value.runtimeType} not supported');
   }
 
+  /// Use the one defined or the default one
+  Codec<dynamic, String> get _jsonCodec => openOptions.codec?.codec ?? json;
+
+  /// Use the one defined or the default one
+  JsonEncodableCodec get _jsonEncodableCodec =>
+      openOptions.codec?.jsonEncodableCodec ?? sembastDefaultJsonEncodableCodec;
+
   /// Sanitize a value.
   void _check(value) {
     if (!isBasicTypeFieldValueOrNull(value)) {
@@ -1400,7 +1405,7 @@ class SembastDatabase extends Object
         }
         return;
       }
-      if (openOptions.codec.jsonEncodableCodec.supportsType(value)) {
+      if (_jsonEncodableCodec.supportsType(value)) {
         return;
       }
 

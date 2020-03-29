@@ -231,15 +231,20 @@ void defineTests(FileSystemTestContext ctx) {
     });
 
     test('invalid_codec', () async {
-      var db = await _prepareOneRecordDatabase(
-          codec: SembastCodec(signature: 'test', codec: null));
-      expect(await store.record(1).get(db), 'test');
-      await db.close();
-
-      db = await _prepareOneRecordDatabase(
-          codec: SembastCodec(signature: null, codec: MyJsonCodec()));
-      expect(await store.record(1).get(db), 'test');
-      await db.close();
+      try {
+        await _prepareOneRecordDatabase(
+            codec: SembastCodec(signature: 'test', codec: null));
+        fail('should fail');
+      } on DatabaseException catch (e) {
+        expect(e.code, DatabaseException.errInvalidCodec);
+      }
+      try {
+        await _prepareOneRecordDatabase(
+            codec: SembastCodec(signature: null, codec: MyJsonCodec()));
+        fail('should fail');
+      } on DatabaseException catch (e) {
+        expect(e.code, DatabaseException.errInvalidCodec);
+      }
     });
   });
 }

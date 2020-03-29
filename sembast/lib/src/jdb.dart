@@ -3,6 +3,7 @@ library sembast.jdb;
 import 'dart:async';
 
 import 'package:sembast/src/api/protected/jdb.dart';
+import 'package:sembast/src/database_factory_mixin.dart';
 import 'package:sembast/src/record_impl.dart';
 
 import 'api/v2/sembast.dart';
@@ -157,7 +158,7 @@ abstract class JdbDatabase {
 /// Jdb implementation.
 abstract class JdbFactory {
   /// Open the database.
-  Future<JdbDatabase> open(String path);
+  Future<JdbDatabase> open(String path, {DatabaseOpenOptions options});
 
   /// Delete a database
   Future delete(String path);
