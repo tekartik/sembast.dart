@@ -66,7 +66,7 @@ void main() {
       );
     });
     test('various', () {
-      _test(Blob blob) {
+      void _test(Blob blob) {
         var other = Blob(blob.bytes);
         expect(other, blob);
         other = Blob.fromBase64(blob.toBase64());

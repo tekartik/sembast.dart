@@ -9,48 +9,6 @@ import 'package:sembast/src/record_impl.dart';
 /// Backtick char code.
 final backtickChrCode = '`'.codeUnitAt(0);
 
-/// Sanitized an input value for the store
-V sanitizeInputValue<V>(dynamic value) {
-  if (value == null) {
-    return null;
-  } else if (value is num || value is String || value is bool) {
-    return value as V;
-  } else if (value is List) {
-    try {
-      return value.cast<dynamic>() as V;
-    } catch (e) {
-      throw ArgumentError.value(value, 'type $V not supported',
-          'List must be of type List<dynamic> for type ${value.runtimeType} value $value');
-    }
-  } else if (value is Map) {
-    try {
-      // We force the value map type for easy usage
-      return value.cast<String, dynamic>() as V;
-    } catch (e) {
-      throw ArgumentError.value(value, 'type $V not supported',
-          'Map must be of type Map<String, dynamic> for type ${value.runtimeType} value $value');
-    }
-  }
-  throw ArgumentError.value(
-      value, null, 'type ${value.runtimeType} not supported');
-}
-
-/// Sanitize a value.
-dynamic sanitizeValue(value) {
-  if (value == null) {
-    return null;
-  } else if (value is num || value is String || value is bool) {
-    return value;
-  } else if (value is List) {
-    return value;
-  } else if (value is Map) {
-    // We force the value map type for easy usage
-    return value.cast<String, dynamic>();
-  }
-  throw ArgumentError.value(
-      value, null, 'type ${value.runtimeType} not supported');
-}
-
 /// Check keys.
 bool checkMapKey(key) {
   if (!(key is String)) {
@@ -176,20 +134,29 @@ dynamic cloneValue(dynamic value) {
   if (value is Iterable) {
     return value.map((value) => cloneValue(value)).toList();
   }
-  if (value is String) {
-    return value;
+  return value;
+}
+
+/// Sanitize Map type for root value
+dynamic sanitizeValueIfMap(dynamic value) {
+  if (value is Map) {
+    if (!(value is Map<String, dynamic>)) {
+      return value?.cast<String, dynamic>();
+    }
   }
-  if (value is bool) {
-    return value;
-  }
-  if (value is num) {
-    return value;
-  }
+  return value;
+}
+
+/// True for null, num, String, bool
+bool isBasicTypeFieldValueOrNull(dynamic value) {
   if (value == null) {
-    return value;
+    return true;
+  } else if (value is num || value is String || value is bool) {
+    return true;
+  } else if (value is FieldValue) {
+    return true;
   }
-  throw ArgumentError(
-      'value ${value} unsupported${value != null ? ' type ${value.runtimeType}' : ''}');
+  return false;
 }
 
 /// Make a value immutable.

@@ -3,6 +3,9 @@ library sembast.test.value_test;
 // basically same as the io runner but with extra output
 import 'dart:async';
 
+import 'package:sembast/blob.dart';
+import 'package:sembast/timestamp.dart';
+
 import 'test_common.dart';
 
 void main() {
@@ -86,6 +89,34 @@ void defineTests(DatabaseTestContext ctx) {
         final value = await record.get(db) as String;
         expect(await record.exists(db), isTrue);
         expect(value, 'hello');
+      }
+
+      await _check();
+      db = await reOpen(db);
+      await _check();
+    });
+
+    test('Timestamp', () async {
+      expect(await record.exists(db), isFalse);
+      await record.put(db, Timestamp(1, 2));
+      Future _check() async {
+        final value = await record.get(db) as Timestamp;
+        expect(await record.exists(db), isTrue);
+        expect(value, Timestamp(1, 2));
+      }
+
+      await _check();
+      db = await reOpen(db);
+      await _check();
+    });
+
+    test('Blob', () async {
+      expect(await record.exists(db), isFalse);
+      await record.put(db, Blob.fromList([1, 2]));
+      Future _check() async {
+        final value = await record.get(db) as Blob;
+        expect(await record.exists(db), isTrue);
+        expect(value, Blob.fromList([1, 2]));
       }
 
       await _check();

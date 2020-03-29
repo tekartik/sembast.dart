@@ -56,7 +56,8 @@ void defineTests(FileSystemTestContext ctx, {SembastCodec codec}) {
         expected['codec'] = getCodecEncodedSignature(codec);
         var map = json.decode(lines.first);
         expect(getCodecDecodedSignature(codec, map['codec'] as String),
-            {'signature': codec.signature});
+            {'signature': codec.signature},
+            reason: 'lines: $lines');
       }
       if (!_hasRandomIv(codec)) {
         expect(json.decode(lines.first), expected);

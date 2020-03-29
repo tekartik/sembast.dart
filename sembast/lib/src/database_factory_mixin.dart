@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:sembast/sembast.dart';
 import 'package:sembast/src/api/factory.dart';
 import 'package:sembast/src/database_impl.dart';
+import 'package:sembast/src/type_adapter_impl.dart';
 import 'package:synchronized/synchronized.dart';
 
 /// Open options.
@@ -24,8 +25,8 @@ class DatabaseOpenOptions {
     this.version,
     this.onVersionChanged,
     this.mode,
-    this.codec,
-  });
+    SembastCodec codec,
+  }) : codec = codec ?? defaultSembastCodec;
 
   @override
   String toString() {
@@ -118,6 +119,7 @@ mixin DatabaseFactoryMixin implements SembastDatabaseFactory {
 
   Future<Database> openDatabaseWithOptions(
       String path, DatabaseOpenOptions options) {
+    // Always specify the default codec
     var helper = getDatabaseOpenHelper(path, options);
     return helper.openDatabase();
   }

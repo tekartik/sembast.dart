@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:sembast/blob.dart';
 import 'package:sembast/sembast.dart';
@@ -149,8 +148,8 @@ SembastCodec sembastCodecWithAdapters(Iterable<SembastTypeAdapter> adapters,
 }
 
 /// Json Codec with supports for DateTime and Blobs (UInt8List)
-SembastCodec defaultSembastCodec = sembastCodecWithAdapters(
-    [sembastDateTimeAdapter, sembastBlobAdapter, sembastTimestampAdapter]);
+SembastCodec defaultSembastCodec =
+    sembastCodecWithAdapters([sembastBlobAdapter, sembastTimestampAdapter]);
 
 /// Base type adapter codec
 abstract class SembastTypeAdapter<S, T> extends Codec<S, T> {
@@ -177,7 +176,14 @@ mixin TypeAdapterCodecMixin<S, T> implements SembastTypeAdapter<S, T> {
   String toString() => 'TypeAdapter($name)';
 }
 
-class _SembastDataJsonCodec extends Codec<Map<String, dynamic>, String> {
+/// Default sembast codec.
+abstract class DefaultSembastCodec {
+  /// True if type is supported.
+  bool supportsType(dynamic value);
+}
+
+class _SembastDataJsonCodec extends Codec<Map<String, dynamic>, String>
+    implements DefaultSembastCodec {
   final _adapters = <String, SembastTypeAdapter>{};
 
   _SembastDataJsonCodec({Iterable<SembastTypeAdapter> adapters}) {
@@ -201,4 +207,16 @@ class _SembastDataJsonCodec extends Codec<Map<String, dynamic>, String> {
 
   @override
   _JsonEncoder get encoder => _encoder;
+
+  @override
+  bool supportsType(value) {
+    if (_adapters != null) {
+      for (var adapter in _adapters.values) {
+        if (adapter.isType(value)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
 }

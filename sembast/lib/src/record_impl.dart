@@ -84,7 +84,7 @@ mixin SembastRecordMixin implements SembastRecord, SembastRecordValue {
 
   set deleted(bool deleted) => _deleted = deleted;
 
-  set value(value) => rawValue = sanitizeValue(value);
+  set value(value) => rawValue = sanitizeValueIfMap(value);
 }
 
 /// Immutable record in jdb.
@@ -121,7 +121,7 @@ class ImmutableSembastRecord
         ? mainStoreRef
         : StoreRef<dynamic, dynamic>(storeName);
     ref = storeRef.record(map[dbRecordKey]);
-    super.value = sanitizeValue(map[dbRecordValueKey]);
+    super.value = sanitizeValueIfMap(map[dbRecordValueKey]);
     _deleted = map[dbRecordDeletedKey] == true;
     revision = _makeRevision();
   }

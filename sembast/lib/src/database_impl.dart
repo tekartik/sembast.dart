@@ -21,6 +21,8 @@ import 'package:sembast/src/sembast_jdb.dart';
 import 'package:sembast/src/storage.dart';
 import 'package:sembast/src/store_impl.dart';
 import 'package:sembast/src/transaction_impl.dart';
+import 'package:sembast/src/type_adapter_impl.dart';
+import 'package:sembast/src/utils.dart';
 import 'package:synchronized/synchronized.dart';
 
 // ignore_for_file: deprecated_member_use_from_same_package
@@ -587,7 +589,10 @@ class SembastDatabase extends Object
     // Check codec
     if (options.codec != null) {
       if (options.codec.signature == null) {
-        throw DatabaseException.invalidCodec('Codec signature cannot be null');
+        if (!(options.codec.codec is DefaultSembastCodec)) {
+          throw DatabaseException.invalidCodec(
+              'Codec signature cannot be null');
+        }
       }
       if (options.codec.codec == null) {
         throw DatabaseException.invalidCodec(
@@ -734,7 +739,7 @@ class SembastDatabase extends Object
                 } else {
                   // If a codec is used, we fail
                   if (_openMode == DatabaseMode.neverFails &&
-                      options.codec == null) {
+                      options.codec.signature == null) {
                     corrupted = true;
                     break;
                   } else {
@@ -1355,6 +1360,76 @@ class SembastDatabase extends Object
         }
       }
     });
+  }
+
+  /// Sanitize a value.
+  dynamic sanitizeValue(value) {
+    if (value == null) {
+      return null;
+    } else if (value is num || value is String || value is bool) {
+      return value;
+    } else if (value is List) {
+      return value;
+    } else if (value is Map) {
+      if (!(value is Map<String, dynamic>)) {
+        // We force the value map type for easy usage
+        return value.cast<String, dynamic>();
+      }
+      return value;
+    }
+    if (openOptions?.codec is DefaultSembastCodec) {
+      return (openOptions.codec as DefaultSembastCodec).supportsType(value);
+    }
+    throw ArgumentError.value(
+        value, null, 'type ${value.runtimeType} not supported');
+  }
+
+  /// Sanitize a value.
+  void _check(value) {
+    if (!isBasicTypeFieldValueOrNull(value)) {
+      if (value is List) {
+        for (var item in value) {
+          _check(item);
+        }
+        return;
+      } else if (value is Map) {
+        for (var item in value.values) {
+          _check(item);
+        }
+        return;
+      }
+      if (openOptions?.codec?.codec is DefaultSembastCodec) {
+        if ((openOptions.codec.codec as DefaultSembastCodec)
+            .supportsType(value)) {
+          return;
+        }
+      }
+
+      throw ArgumentError.value(
+          value, null, 'type ${value.runtimeType} not supported');
+    }
+  }
+
+  /// Sanitized an input value for the store
+  V sanitizeInputValue<V>(dynamic value) {
+    _check(value);
+    if (value is List) {
+      try {
+        return value.cast<dynamic>() as V;
+      } catch (e) {
+        throw ArgumentError.value(value, 'type $V not supported',
+            'List must be of type List<dynamic> for type ${value.runtimeType} value $value');
+      }
+    } else if (value is Map) {
+      try {
+        // We force the value map type for easy usage
+        return value.cast<String, dynamic>() as V;
+      } catch (e) {
+        throw ArgumentError.value(value, 'type $V not supported',
+            'Map must be of type Map<String, dynamic> for type ${value.runtimeType} value $value');
+      }
+    }
+    return value as V;
   }
 }
 

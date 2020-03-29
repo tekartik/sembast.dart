@@ -62,7 +62,6 @@ void main() {
         'int': 1,
         'listList': [1, 2, 3],
         'string': 'text',
-        'dateTime': DateTime.fromMillisecondsSinceEpoch(1, isUtc: true),
         'timestamp': Timestamp.fromMicrosecondsSinceEpoch(1),
         'blob': Blob.fromList([1, 2, 3]),
       };
@@ -71,7 +70,6 @@ void main() {
         'int': 1,
         'listList': [1, 2, 3],
         'string': 'text',
-        'dateTime': {'@DateTime': '1970-01-01T00:00:00.001Z'},
         'timestamp': {'@Timestamp': '1970-01-01T00:00:00.000001Z'},
         'blob': {'@Blob': 'AQID'}
       };

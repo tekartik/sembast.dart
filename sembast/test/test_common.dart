@@ -32,7 +32,11 @@ void setDatabaseCooperator(Database db, Cooperator cooperator) {
 }
 
 Future<Database> reOpen(Database db, {DatabaseMode mode}) {
-  return (db as SembastDatabase).reOpen(DatabaseOpenOptions(mode: mode));
+  return (db as SembastDatabase).reOpen(DatabaseOpenOptions(
+      mode: mode ?? (db as SembastDatabase).openOptions.mode,
+      codec: (db as SembastDatabase).openOptions.codec,
+      version: (db as SembastDatabase).openOptions.version,
+      onVersionChanged: (db as SembastDatabase).openOptions.onVersionChanged));
 }
 
 bool get isWeb => identical(1, 1.0);
