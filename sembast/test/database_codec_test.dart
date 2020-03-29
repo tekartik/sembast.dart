@@ -5,6 +5,7 @@ import 'dart:convert';
 
 import 'package:sembast/src/database_impl.dart';
 import 'package:sembast/src/sembast_fs.dart';
+import 'package:sembast/src/timestamp_impl.dart';
 
 import 'database_format_test.dart' as database_format_test;
 import 'encrypt_codec.dart';
@@ -20,7 +21,7 @@ void defineTests(FileSystemTestContext ctx) {
   DatabaseFactory factory = DatabaseFactoryFs(fs);
   // String getDbPath() => ctx.outPath + '.db';
   String dbPath;
-  var store = StoreRef.main();
+  var store = StoreRef<int, dynamic>.main();
 
   Future<String> prepareForDb() async {
     dbPath = dbPathFromName('compat/database_codec.db');
@@ -62,6 +63,18 @@ void defineTests(FileSystemTestContext ctx) {
       } on DatabaseException catch (e) {
         expect(e.code, DatabaseException.errInvalidCodec);
       }
+    });
+
+    test('custom type', () async {
+      // Create a codec encrypted database
+      await prepareForDb();
+      var db = await factory.openDatabase(dbPath, codec: codec);
+      var key = await store.add(db, Timestamp(1, 2));
+      await db.close();
+
+      db = await factory.openDatabase(dbPath, codec: codec);
+      expect(await store.record(key).get(db), Timestamp(1, 2));
+      await db.close();
     });
   }
 
@@ -218,20 +231,15 @@ void defineTests(FileSystemTestContext ctx) {
     });
 
     test('invalid_codec', () async {
-      try {
-        await _prepareOneRecordDatabase(
-            codec: SembastCodec(signature: 'test', codec: null));
-        fail('should fail');
-      } on DatabaseException catch (e) {
-        expect(e.code, DatabaseException.errInvalidCodec);
-      }
-      try {
-        await _prepareOneRecordDatabase(
-            codec: SembastCodec(signature: null, codec: MyJsonCodec()));
-        fail('should fail');
-      } on DatabaseException catch (e) {
-        expect(e.code, DatabaseException.errInvalidCodec);
-      }
+      var db = await _prepareOneRecordDatabase(
+          codec: SembastCodec(signature: 'test', codec: null));
+      expect(await store.record(1).get(db), 'test');
+      await db.close();
+
+      db = await _prepareOneRecordDatabase(
+          codec: SembastCodec(signature: null, codec: MyJsonCodec()));
+      expect(await store.record(1).get(db), 'test');
+      await db.close();
     });
   });
 }

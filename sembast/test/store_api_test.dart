@@ -44,6 +44,12 @@ void main() {
       FieldKey;
       // ignore: unnecessary_statements
       Field;
+      // ignore: unnecessary_statements
+      sembastDefaultTypeAdapters;
+      // ignore: unnecessary_statements
+      sembastCodecDefault;
+      // ignore: unnecessary_statements
+      sembastCodecWithAdapters;
     });
 
     test('null_store', () {

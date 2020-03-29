@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:meta/meta.dart';
+import 'package:sembast/src/json_encodable_codec.dart';
 import 'package:sembast/src/sembast_codec_impl.dart';
 
 /// The sembast codec to use to read/write records.
@@ -16,9 +17,16 @@ abstract class SembastCodec {
   /// The actual codec used
   Codec<dynamic, String> get codec;
 
+  /// The codec to handle custom types
+  JsonEncodableCodec get jsonEncodableCodec;
+
   /// [codec] must convert between a map and a single line string
   factory SembastCodec(
           {@required String signature,
-          @required Codec<dynamic, String> codec}) =>
-      SembastCodecImpl(signature: signature, codec: codec);
+          @required Codec<dynamic, String> codec,
+          JsonEncodableCodec jsonEncodableCodec}) =>
+      SembastCodecImpl(
+          signature: signature,
+          codec: codec,
+          jsonEncodableCodec: jsonEncodableCodec);
 }

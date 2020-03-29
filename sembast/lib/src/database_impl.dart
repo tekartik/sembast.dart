@@ -21,7 +21,6 @@ import 'package:sembast/src/sembast_jdb.dart';
 import 'package:sembast/src/storage.dart';
 import 'package:sembast/src/store_impl.dart';
 import 'package:sembast/src/transaction_impl.dart';
-import 'package:sembast/src/type_adapter_impl.dart';
 import 'package:sembast/src/utils.dart';
 import 'package:synchronized/synchronized.dart';
 
@@ -210,17 +209,16 @@ class SembastDatabase extends Object
   }
 
   /// Encode a map before writing it to disk
-  String encodeMap(Map<String, dynamic> map) {
-    if (openOptions.codec != null) {
-      return openOptions.codec.codec.encode(map);
-    } else {
-      return json.encode(map);
-    }
-  }
+  String encodeMap(Map map) => openOptions.codec.codec
+      .encode(openOptions.codec.jsonEncodableCodec.encode(map));
 
   /// Decode a text.
   Map<String, dynamic> decodeRecordLineString(String text) {
-    var result = openOptions.codec.codec.decode(text);
+    var result = openOptions.codec.jsonEncodableCodec
+        .decode(openOptions.codec.codec.decode(text));
+    if (result is Map<String, dynamic>) {
+      return result;
+    }
     if (result is Map) {
       return result?.cast<String, dynamic>();
     }
@@ -586,19 +584,23 @@ class SembastDatabase extends Object
       return this;
     }
 
+    /*
+    // No longer needed as a codec now always has signature and codec
     // Check codec
     if (options.codec != null) {
       if (options.codec.signature == null) {
-        if (!(options.codec is DefaultSembastCodec)) {
+        if (options.codec.codec != json) {
           throw DatabaseException.invalidCodec(
               'Codec signature cannot be null');
         }
-      }
-      if (options.codec.codec == null) {
-        throw DatabaseException.invalidCodec(
-            'Codec implementation cannot be null');
+      } else {
+        if (options.codec.codec == null) {
+          throw DatabaseException.invalidCodec(
+              'Codec implementation cannot be null');
+        }
       }
     }
+     */
 
     await databaseLock.synchronized(() async {
       // needed for reOpen
@@ -1377,8 +1379,8 @@ class SembastDatabase extends Object
       }
       return value;
     }
-    if (openOptions?.codec is DefaultSembastCodec) {
-      return (openOptions.codec as DefaultSembastCodec).supportsType(value);
+    if (openOptions.codec.jsonEncodableCodec.supportsType(value)) {
+      return value;
     }
     throw ArgumentError.value(
         value, null, 'type ${value.runtimeType} not supported');
@@ -1398,10 +1400,8 @@ class SembastDatabase extends Object
         }
         return;
       }
-      if (openOptions?.codec is DefaultSembastCodec) {
-        if ((openOptions.codec as DefaultSembastCodec).supportsType(value)) {
-          return;
-        }
+      if (openOptions.codec.jsonEncodableCodec.supportsType(value)) {
+        return;
       }
 
       throw ArgumentError.value(

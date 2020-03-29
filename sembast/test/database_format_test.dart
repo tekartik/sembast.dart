@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'package:sembast/src/database_impl.dart';
 import 'package:sembast/src/sembast_codec_impl.dart';
 import 'package:sembast/src/sembast_fs.dart';
+import 'package:sembast/timestamp.dart';
 
 import 'test_codecs.dart';
 import 'test_common.dart';
@@ -174,6 +175,22 @@ void defineTests(FileSystemTestContext ctx, {SembastCodec codec}) {
       expect(json.decode(lines[1]), {
         'key': 1,
         'value': {'test': 2}
+      });
+    });
+
+    test('1 custom type record', () async {
+      await prepareForDb();
+      var db = await factory.openDatabase(dbPath);
+      var record = store.record(1);
+      await record.put(db, {'test': Timestamp(1, 2)});
+      await db.close();
+      var lines = await readContent(fs, dbPath);
+      expect(lines.length, 2);
+      expect(json.decode(lines[1]), {
+        'key': 1,
+        'value': {
+          'test': {'@Timestamp': '1970-01-01T00:00:01.000000002Z'}
+        }
       });
     });
 

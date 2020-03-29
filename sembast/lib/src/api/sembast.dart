@@ -14,3 +14,8 @@ export 'package:sembast/src/api/sort_order.dart';
 export 'package:sembast/src/api/store_ref.dart';
 export 'package:sembast/src/api/transaction.dart';
 export 'package:sembast/src/api/query_ref.dart';
+// v2.4
+export 'package:sembast/src/sembast_codec.dart'
+    show sembastCodecDefault, sembastCodecWithAdapters;
+export 'package:sembast/src/type_adapter_impl.dart'
+    show sembastDefaultTypeAdapters;

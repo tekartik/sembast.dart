@@ -1,8 +1,7 @@
 library sembast.type_adapter_test;
 
-import 'dart:convert';
-
 import 'package:sembast/blob.dart';
+import 'package:sembast/src/sembast_codec.dart';
 import 'package:sembast/src/timestamp_impl.dart';
 import 'package:sembast/src/type_adapter_impl.dart';
 
@@ -56,7 +55,7 @@ void main() {
       expect(Blob.fromList([1, 2, 3]), Blob.fromList([1, 2, 3]));
     });
     test('defaultEncoder', () {
-      var sembastCodec = defaultSembastCodec;
+      var sembastCodec = sembastCodecDefault;
       var decoded = {
         'null': null,
         'int': 1,
@@ -74,11 +73,11 @@ void main() {
         'blob': {'@Blob': 'AQID'}
       };
 
-      expect(jsonDecode(sembastCodec.codec.encode(decoded)), encoded);
-      expect(sembastCodec.codec.decode(jsonEncode(encoded)), decoded);
+      expect(sembastCodec.jsonEncodableCodec.encode(decoded), encoded);
+      expect(sembastCodec.jsonEncodableCodec.decode(encoded), decoded);
     });
-    test('toSerializeMap', () {
-      var sembastCodec = defaultSembastCodec;
+    test('custom type', () {
+      var sembastCodec = sembastCodecDefault;
       var decoded = {
         'timestamp': Timestamp.fromMicrosecondsSinceEpoch(1),
       };
@@ -86,8 +85,8 @@ void main() {
         'timestamp': {'@Timestamp': '1970-01-01T00:00:00.000001Z'},
       };
 
-      expect(sembastCodec.toSerializable(decoded), encoded);
-      expect(sembastCodec.fromSerializable(encoded), decoded);
+      expect(sembastCodec.jsonEncodableCodec.encode(decoded), encoded);
+      expect(sembastCodec.jsonEncodableCodec.decode(encoded), decoded);
     });
     test('allAdapters', () {
       var sembastCodec = sembastCodecWithAdapters([
@@ -105,7 +104,8 @@ void main() {
         'blob': Blob.fromList([1, 2, 3]),
         'looksLikeDateTime': {'@DateTime': '1970-01-01T00:00:00.001Z'},
         'looksLikeTimestamp': {'@Timestamp': '1970-01-01T00:00:00.000001Z'},
-        'looksLikeBlob': {'@Blob': 'AQID'}
+        'looksLikeBlob': {'@Blob': 'AQID'},
+        'looksLikeDummy': {'@': null}
       };
       var encoded = {
         'null': null,
@@ -115,20 +115,22 @@ void main() {
         'dateTime': {'@DateTime': '1970-01-01T00:00:00.001Z'},
         'timestamp': {'@Timestamp': '1970-01-01T00:00:00.000001Z'},
         'blob': {'@Blob': 'AQID'},
-        'looksLikeDateTime': {'@DateTime': '1970-01-01T00:00:00.001Z'},
-        'looksLikeTimestamp': {'@Timestamp': '1970-01-01T00:00:00.000001Z'},
-        'looksLikeBlob': {'@Blob': 'AQID'}
+        'looksLikeDateTime': {
+          '@': {'@DateTime': '1970-01-01T00:00:00.001Z'}
+        },
+        'looksLikeTimestamp': {
+          '@': {'@Timestamp': '1970-01-01T00:00:00.000001Z'}
+        },
+        'looksLikeBlob': {
+          '@': {'@Blob': 'AQID'}
+        },
+        'looksLikeDummy': {
+          '@': {'@': null}
+        }
       };
 
-      var fakedEncoded = Map.from(decoded)
-        ..['looksLikeDateTime'] =
-            DateTime.fromMillisecondsSinceEpoch(1, isUtc: true)
-        ..['looksLikeTimestamp'] = Timestamp.fromMicrosecondsSinceEpoch(1)
-        ..['looksLikeBlob'] = Blob.fromList([1, 2, 3]);
-      expect(sembastCodec.toSerializable(decoded), encoded);
-      expect(sembastCodec.fromSerializable(encoded), fakedEncoded);
-      expect(jsonDecode(sembastCodec.codec.encode(decoded)), encoded);
-      expect(sembastCodec.codec.decode(jsonEncode(encoded)), fakedEncoded);
+      expect(sembastCodec.jsonEncodableCodec.encode(decoded), encoded);
+      expect(sembastCodec.jsonEncodableCodec.decode(encoded), decoded);
 
       // Empty blob
       decoded = {
@@ -137,8 +139,8 @@ void main() {
       encoded = {
         'blob': {'@Blob': ''}
       };
-      expect(jsonDecode(sembastCodec.codec.encode(decoded)), encoded);
-      expect(sembastCodec.codec.decode(jsonEncode(encoded)), decoded);
+      expect(sembastCodec.jsonEncodableCodec.encode(decoded), encoded);
+      expect(sembastCodec.jsonEncodableCodec.decode(encoded), decoded);
 
       // Bad format
       encoded = {
@@ -146,7 +148,7 @@ void main() {
         'blob': {'@Blob': 'dummy'}
       };
 
-      expect(sembastCodec.codec.decode(jsonEncode(encoded)), {
+      expect(sembastCodec.jsonEncodableCodec.decode(encoded), {
         'dateTime': {'@DateTime': 'dummy'},
         'blob': {'@Blob': 'dummy'}
       });
@@ -157,7 +159,7 @@ void main() {
         'blob': {'@Blob': 1}
       };
 
-      expect(sembastCodec.codec.decode(jsonEncode(encoded)), {
+      expect(sembastCodec.jsonEncodableCodec.decode(encoded), {
         'dateTime': {'@DateTime': 1},
         'blob': {'@Blob': 1}
       });
@@ -168,7 +170,7 @@ void main() {
         'blob': {'@Blob': null}
       };
 
-      expect(sembastCodec.codec.decode(jsonEncode(encoded)), {
+      expect(sembastCodec.jsonEncodableCodec.decode(encoded), {
         'dateTime': {'@DateTime': null},
         'blob': {'@Blob': null}
       });
@@ -182,7 +184,7 @@ void main() {
         }
       };
 
-      expect(sembastCodec.codec.decode(jsonEncode(encoded)), {
+      expect(sembastCodec.jsonEncodableCodec.decode(encoded), {
         'dateTime': {
           '@DateTime': {
             'blob': Blob.fromList([1, 2, 3])

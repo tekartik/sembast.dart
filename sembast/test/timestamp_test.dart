@@ -41,13 +41,12 @@ void main() {
     });
     test('epoch', () {
       var timestamp = Timestamp(0, 0);
-      expect(timestamp.toIso8601String(), timestamp.toString());
+      expect('Timestamp(${timestamp.toIso8601String()})', timestamp.toString());
       expect(timestamp.toIso8601String(), '1970-01-01T00:00:00.000Z');
       expect(timestamp.millisecondsSinceEpoch, 0);
       expect(timestamp.microsecondsSinceEpoch, 0);
 
       timestamp = Timestamp(0, 1);
-      expect(timestamp.toIso8601String(), timestamp.toString());
       expect(timestamp.toIso8601String(), '1970-01-01T00:00:00.000000001Z');
       expect(timestamp.millisecondsSinceEpoch, 0);
       expect(timestamp.microsecondsSinceEpoch, 0);
@@ -73,7 +72,7 @@ void main() {
       expect(timestamp.microsecondsSinceEpoch, 1000);
 
       timestamp = Timestamp(1, 0);
-      expect(timestamp.toIso8601String(), timestamp.toString());
+      expect('Timestamp(${timestamp.toIso8601String()})', timestamp.toString());
       expect(timestamp.toIso8601String(), '1970-01-01T00:00:01.000Z');
       expect(timestamp.millisecondsSinceEpoch, 1000);
       expect(timestamp.microsecondsSinceEpoch, 1000000);

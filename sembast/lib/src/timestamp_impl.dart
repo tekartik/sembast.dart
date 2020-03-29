@@ -190,7 +190,7 @@ class Timestamp implements Comparable<Timestamp> {
   }
 
   @override
-  String toString() => toIso8601String();
+  String toString() => 'Timestamp(${toIso8601String()})';
 
   @override
   int compareTo(Timestamp other) {
