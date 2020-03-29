@@ -93,6 +93,60 @@ void defineTests(DatabaseTestContext ctx) {
       });
     });
 
+    test('three_stores', () async {
+      final db =
+          await setupForTest(ctx, 'compat/import_export/three_stores.db');
+      var store2 = StoreRef<int, String>('store2');
+      var store3 = StoreRef<int, String>('store3');
+      // Put 3 first to test order
+      await store3.record(1).put(db, 'hi');
+      await store.record(1).put(db, 'hi');
+      await store2.record(1).put(db, 'hi');
+
+      await _checkExportImport(db, {
+        'sembast_export': 1,
+        'version': 1,
+        'stores': [
+          {
+            'name': '_main',
+            'keys': [1],
+            'values': ['hi']
+          },
+          {
+            'name': 'store2',
+            'keys': [1],
+            'values': ['hi']
+          },
+          {
+            'name': 'store3',
+            'keys': [1],
+            'values': ['hi']
+          }
+        ]
+      });
+    });
+
+    test('three_records', () async {
+      final db =
+          await setupForTest(ctx, 'compat/import_export/three_records.db');
+      // Put 3 first to test order
+      await store.record(3).put(db, 'ho');
+      await store.record(1).put(db, 'hu');
+      await store.record(2).put(db, 'ha');
+
+      await _checkExportImport(db, {
+        'sembast_export': 1,
+        'version': 1,
+        'stores': [
+          {
+            'name': '_main',
+            'keys': [1, 2, 3],
+            'values': ['hu', 'ha', 'ho']
+          }
+        ]
+      });
+    });
+
     test('1_map_record', () async {
       final db =
           await setupForTest(ctx, 'compat/import_export/1_map_record.db');

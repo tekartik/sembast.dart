@@ -35,7 +35,8 @@ Future<Map<String, dynamic>> exportDatabase(v2.Database db) {
 
     // Make it safe to iterate in an async way
     var sembastDatabase = (txn as SembastTransaction).database;
-    var stores = List<SembastStore>.from(sembastDatabase.getCurrentStores());
+    var stores = List<SembastStore>.from(sembastDatabase.getCurrentStores())
+      ..sort((store1, store2) => store1.name.compareTo(store2.name));
     for (var store in stores) {
       final keys = [];
       final values = [];
