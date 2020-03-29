@@ -8,8 +8,8 @@ import 'package:sembast_web/sembast_web.dart';
 import 'package:sembast_web/src/sembast_import.dart';
 import 'package:test/test.dart';
 
-import '../idb_jdb_all.dart';
 import '../multiplatform/idb_jdb_test.dart' as idb_jdb_test;
+import '../multiplatform/idb_jdb_test.dart';
 
 var testPath = '.dart_tool/sembast_web/databases';
 

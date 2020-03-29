@@ -1,4 +1,3 @@
-import 'package:idb_shim/idb.dart' show IdbFactory;
 import 'package:idb_shim/idb_client_memory.dart';
 import 'package:idb_shim/utils/idb_import_export.dart';
 import 'package:sembast/sembast.dart';
@@ -7,10 +6,16 @@ import 'package:sembast_web/src/jdb_factory_idb.dart'
 import 'package:sembast_web/src/jdb_import.dart';
 import 'package:test/test.dart';
 
-JdbFactoryIdb asIdbJactoryJdb(IdbFactory factory) => factory as JdbFactoryIdb;
+DatabaseFactoryJdb asDatabaseFactoryIdb(DatabaseFactory databaseFactory) =>
+    databaseFactory as DatabaseFactoryJdb;
+
+JdbFactoryIdb asJdbJactoryIdb(JdbFactory factory) => factory as JdbFactoryIdb;
+
 SembastDatabase asSembastDatabase(Database db) => db as SembastDatabase;
+
 SembastStorageJdb asSembastStorateJdb(StorageJdb storageJdb) =>
     storageJdb as SembastStorageJdb;
+
 JdbDatabaseIdb asJsbDatabaseIdb(JdbDatabase database) =>
     database as JdbDatabaseIdb;
 
@@ -46,8 +51,15 @@ void defineTests(JdbFactoryIdb jdbFactoryIdb) {
                 ]
               },
               {'name': 'info'},
-              ['info', 'entry'],
+              ['entry', 'info'],
               2
+            ]
+          },
+          {
+            'name': 'entry',
+            'keys': [1],
+            'values': [
+              {'store': '_main', 'key': 'key', 'value': 'value'}
             ]
           },
           {
@@ -58,13 +70,6 @@ void defineTests(JdbFactoryIdb jdbFactoryIdb) {
               1
             ]
           },
-          {
-            'name': 'entry',
-            'keys': [1],
-            'values': [
-              {'store': '_main', 'key': 'key', 'value': 'value'}
-            ]
-          }
         ]
       };
 
@@ -81,22 +86,29 @@ void defineTests(JdbFactoryIdb jdbFactoryIdb) {
 
         db = await factory.openDatabase('test');
         expect(await record.get(db), 'value');
+        expect(await dbAsJsbDatabaseIdb(db).sdbExportDatabase(), export);
         await record.put(db, 'value2');
         expect(await record.get(db), 'value2');
         await db.close();
       });
-      test('import', () async {
+
+      test('import/close open', () async {
+        var dbName = 'test_import.db';
         var store = StoreRef<String, String>.main();
         var record = store.record('key');
-        await factory.deleteDatabase('test');
-        await sdbImportDatabase(export, jdbFactoryIdb.idbFactory, 'test');
+        await factory.deleteDatabase(dbName);
 
-        var db = await factory.openDatabase('test');
+        var sdb =
+            await sdbImportDatabase(export, jdbFactoryIdb.idbFactory, dbName);
+
+        sdb.close();
+
+        var db = await factory.openDatabase(dbName);
         expect(await record.get(db), 'value');
         await record.put(db, 'value');
         expect(await record.get(db), 'value');
         await db.close();
-      });
+      }, skip: true);
     });
   });
 }

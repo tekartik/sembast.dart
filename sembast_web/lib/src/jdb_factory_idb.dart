@@ -145,10 +145,15 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
 
   jdb.JdbReadEntry _entryFromCursor(CursorWithValue cwv) {
     var map = cwv.value as Map;
+
+    /// Deserialize unsupported types (Blob, Timestamp
+    var decodedValue =
+        jdb.defaultSembastCodec.fromSerializable(map[_valuePath]);
+
     var entry = jdb.JdbReadEntry()
       ..id = cwv.key as int
       ..record = StoreRef(map[_storePath] as String).record(map[_keyPath])
-      ..value = map[_valuePath]
+      ..value = decodedValue
       // Deleted is an int
       ..deleted = map[_deletedPath] == 1;
     return entry;
@@ -278,12 +283,14 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
         await objectStore.delete(idbKey);
       }
 
+      // Serialize value
+      var value = jdb.defaultSembastCodec.toSerializable(jdbWriteEntry.value);
       lastEntryId = (await objectStore.add(<String, dynamic>{
         _storePath: store,
         _keyPath: key,
         // _valuePath: defaultSembastCodec.codec.encode(jdbWriteEntry.value),
         // TODO serialize
-        _valuePath: jdbWriteEntry.value,
+        _valuePath: value,
         if (jdbWriteEntry.deleted ?? false)
           _deletedPath: 1
       })) as int;
