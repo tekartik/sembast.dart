@@ -77,6 +77,18 @@ void main() {
       expect(jsonDecode(sembastCodec.codec.encode(decoded)), encoded);
       expect(sembastCodec.codec.decode(jsonEncode(encoded)), decoded);
     });
+    test('toSerializeMap', () {
+      var sembastCodec = defaultSembastCodec;
+      var decoded = {
+        'timestamp': Timestamp.fromMicrosecondsSinceEpoch(1),
+      };
+      var encoded = {
+        'timestamp': {'@Timestamp': '1970-01-01T00:00:00.000001Z'},
+      };
+
+      expect(sembastCodec.toSerializable(decoded), encoded);
+      expect(sembastCodec.fromSerializable(encoded), decoded);
+    });
     test('allAdapters', () {
       var sembastCodec = sembastCodecWithAdapters([
         sembastDateTimeAdapter,
@@ -108,14 +120,15 @@ void main() {
         'looksLikeBlob': {'@Blob': 'AQID'}
       };
 
+      var fakedEncoded = Map.from(decoded)
+        ..['looksLikeDateTime'] =
+            DateTime.fromMillisecondsSinceEpoch(1, isUtc: true)
+        ..['looksLikeTimestamp'] = Timestamp.fromMicrosecondsSinceEpoch(1)
+        ..['looksLikeBlob'] = Blob.fromList([1, 2, 3]);
+      expect(sembastCodec.toSerializable(decoded), encoded);
+      expect(sembastCodec.fromSerializable(encoded), fakedEncoded);
       expect(jsonDecode(sembastCodec.codec.encode(decoded)), encoded);
-      expect(
-          sembastCodec.codec.decode(jsonEncode(encoded)),
-          decoded
-            ..['looksLikeDateTime'] =
-                DateTime.fromMillisecondsSinceEpoch(1, isUtc: true)
-            ..['looksLikeTimestamp'] = Timestamp.fromMicrosecondsSinceEpoch(1)
-            ..['looksLikeBlob'] = Blob.fromList([1, 2, 3]));
+      expect(sembastCodec.codec.decode(jsonEncode(encoded)), fakedEncoded);
 
       // Empty blob
       decoded = {

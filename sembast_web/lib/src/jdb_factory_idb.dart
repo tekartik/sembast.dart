@@ -1,5 +1,5 @@
 import 'dart:async';
-
+import 'package:idb_shim/utils/idb_import_export.dart' as import_export;
 import 'package:idb_shim/idb_client_memory.dart';
 import 'package:idb_shim/idb_shim.dart';
 import 'package:idb_shim/idb_shim.dart' as idb;
@@ -281,8 +281,11 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
       lastEntryId = (await objectStore.add(<String, dynamic>{
         _storePath: store,
         _keyPath: key,
+        // _valuePath: defaultSembastCodec.codec.encode(jdbWriteEntry.value),
+        // TODO serialize
         _valuePath: jdbWriteEntry.value,
-        if (jdbWriteEntry.deleted ?? false) _deletedPath: 1
+        if (jdbWriteEntry.deleted ?? false)
+          _deletedPath: 1
       })) as int;
       // Save the revision in memory!
       jdbWriteEntry?.txnRecord?.record?.revision = lastEntryId;
@@ -497,6 +500,10 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
     await txn.objectStore(_entryStore).clear();
     await txn.completed;
   }
+
+  /// Export the database using sdb format
+  Future<Map> sdbExportDatabase() async =>
+      import_export.sdbExportDatabase(_idbDatabase);
 }
 
 JdbFactoryIdb _jdbFactoryIdbMemory = JdbFactoryIdb(idbFactoryMemory);

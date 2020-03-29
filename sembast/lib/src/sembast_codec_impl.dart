@@ -8,7 +8,7 @@ class SembastCodecImpl implements SembastCodec {
   @override
   final String signature;
   @override
-  final Codec<Map<String, dynamic>, String> codec;
+  final Codec<dynamic, String> codec;
 
   /// Sembast codec implementation.
   SembastCodecImpl({@required this.signature, @required this.codec});
@@ -38,7 +38,10 @@ Map<String, dynamic> getCodecDecodedSignature(
     SembastCodec codec, String encodedSignature) {
   if (codec != null && encodedSignature != null) {
     try {
-      return codec.codec?.decode(encodedSignature);
+      var result = codec.codec?.decode(encodedSignature);
+      if (result is Map) {
+        return result.cast<String, dynamic>();
+      }
     } catch (_) {}
   }
   return null;

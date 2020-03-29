@@ -6,6 +6,7 @@ import 'package:sembast/sembast.dart';
 import 'package:sembast/src/sembast_jdb.dart';
 import 'package:sembast_web/src/jdb_factory_idb.dart';
 import 'package:test/test.dart';
+import 'multiplatform/idb_jdb_test.dart' as idb_jdb_test;
 
 var testPath = '.dart_tool/sembast_web/databases';
 
@@ -29,5 +30,7 @@ Future main() async {
       expect(await record.get(db), 'value');
       await db.close();
     });
+
+    idb_jdb_test.defineTests(jdbFactory);
   });
 }

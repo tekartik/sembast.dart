@@ -14,11 +14,11 @@ abstract class SembastCodec {
   String get signature;
 
   /// The actual codec used
-  Codec<Map<String, dynamic>, String> get codec;
+  Codec<dynamic, String> get codec;
 
   /// [codec] must convert between a map and a single line string
   factory SembastCodec(
           {@required String signature,
-          @required Codec<Map<String, dynamic>, String> codec}) =>
+          @required Codec<dynamic, String> codec}) =>
       SembastCodecImpl(signature: signature, codec: codec);
 }

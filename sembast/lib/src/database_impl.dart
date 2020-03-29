@@ -219,12 +219,12 @@ class SembastDatabase extends Object
   }
 
   /// Decode a text.
-  Map<String, dynamic> decodeString(String text) {
-    if (openOptions.codec != null) {
-      return openOptions.codec.codec.decode(text);
-    } else {
-      return (json.decode(text) as Map)?.cast<String, dynamic>();
+  Map<String, dynamic> decodeRecordLineString(String text) {
+    var result = openOptions.codec.codec.decode(text);
+    if (result is Map) {
+      return result?.cast<String, dynamic>();
     }
+    return null;
   }
 
   /// Get the list of current store that can be safely iterate even
@@ -589,7 +589,7 @@ class SembastDatabase extends Object
     // Check codec
     if (options.codec != null) {
       if (options.codec.signature == null) {
-        if (!(options.codec.codec is DefaultSembastCodec)) {
+        if (!(options.codec is DefaultSembastCodec)) {
           throw DatabaseException.invalidCodec(
               'Codec signature cannot be null');
         }
@@ -750,7 +750,7 @@ class SembastDatabase extends Object
 
               try {
                 // decode record
-                map = decodeString(line);
+                map = decodeRecordLineString(line);
               } on Exception catch (_) {
                 // We can have meta here
                 try {
