@@ -1,6 +1,6 @@
 name: sembast_test
 description: Test helpers for sembast and sembast_web
-version: '0.1.0'
+version: 0.1.1
 publish_to: none
 
 environment:
