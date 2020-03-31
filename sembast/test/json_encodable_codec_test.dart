@@ -145,5 +145,63 @@ void main() {
       };
       expect(codec.encode(decoded), encoded);
     });
+
+    test('modified', () {
+      var map = {};
+      expect(identical(map, map), isTrue);
+
+      var codec = JsonEncodableCodec(adapters: [sembastTimestampAdapter]);
+      var identicals = [
+        <String, dynamic>{},
+        1,
+        2.5,
+        'text',
+        true,
+        null,
+        //<dynamic, dynamic>{},
+        [],
+        [
+          {
+            'test': [
+              1,
+              true,
+              [4.5]
+            ]
+          }
+        ],
+        <String, dynamic>{
+          'test': [
+            1,
+            true,
+            [4.5]
+          ]
+        }
+      ];
+      for (var value in identicals) {
+        var encoded = value;
+        encoded = codec.encode(value);
+        expect(codec.decode(encoded), value);
+        expect(identical(encoded, value), isTrue,
+            reason:
+                '$value ${identityHashCode(value)} vs ${identityHashCode(encoded)}');
+      }
+      var notIdenticals = [
+        <dynamic, dynamic>{}, // being cast
+        Timestamp(1, 2),
+        [Timestamp(1, 2)],
+        <String, dynamic>{'test': Timestamp(1, 2)},
+        <String, dynamic>{
+          'test': [Timestamp(1, 2)]
+        }
+      ];
+      for (var value in notIdenticals) {
+        var encoded = value;
+        encoded = codec.encode(value);
+        expect(codec.decode(encoded), value);
+        expect(!identical(encoded, value), isTrue,
+            reason:
+                '$value ${identityHashCode(value)} vs ${identityHashCode(encoded)}');
+      }
+    });
   });
 }
