@@ -1,3 +1,7 @@
+## 2.4.1
+
+* Allow importing a database export using a codec
+
 ## 2.4.0
 
 * Add Blob and Timestamp support
