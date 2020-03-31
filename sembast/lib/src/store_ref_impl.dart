@@ -182,7 +182,7 @@ mixin StoreRefMixin<K, V> implements StoreRef<K, V> {
   @override
   Future<int> update(DatabaseClient databaseClient, V value, {Finder finder}) {
     final client = getClient(databaseClient);
-    value = client.sembastDatabase.sanitizeInputValue<V>(value);
+    value = client.sembastDatabase.sanitizeInputValue<V>(value, update: true);
     return client.inTransaction((txn) async {
       return (await client
               .getSembastStore(this)

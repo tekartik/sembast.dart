@@ -26,7 +26,7 @@ mixin RecordRefMixin<K, V> implements RecordRef<K, V> {
   @override
   Future<V> update(DatabaseClient databaseClient, V value) async {
     var client = getClient(databaseClient);
-    value = client.sembastDatabase.sanitizeInputValue<V>(value);
+    value = client.sembastDatabase.sanitizeInputValue<V>(value, update: true);
     return await client.inTransaction((txn) {
       return client.getSembastStore(store).txnUpdate(txn, value, key);
     }) as V;
@@ -38,7 +38,7 @@ mixin RecordRefMixin<K, V> implements RecordRef<K, V> {
   @override
   Future<V> put(DatabaseClient databaseClient, V value, {bool merge}) async {
     var client = getClient(databaseClient);
-    value = client.sembastDatabase.sanitizeInputValue<V>(value);
+    value = client.sembastDatabase.sanitizeInputValue<V>(value, update: merge);
     return await client.inTransaction((txn) {
       return client
           .getSembastStore(store)

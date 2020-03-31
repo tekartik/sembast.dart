@@ -276,10 +276,18 @@ dynamic sanitizeValueIfMap(dynamic value) {
 }
 
 /// True for null, num, String, bool
-bool isBasicTypeFieldValueOrNull(dynamic value) {
+bool isBasicTypeOrNull(dynamic value) {
   if (value == null) {
     return true;
   } else if (value is num || value is String || value is bool) {
+    return true;
+  }
+  return false;
+}
+
+/// True for null, num, String, bool or FieldValue
+bool isBasicTypeFieldValueOrNull(dynamic value) {
+  if (isBasicTypeOrNull(value)) {
     return true;
   } else if (value is FieldValue) {
     return true;

@@ -108,6 +108,10 @@ void defineTests(DatabaseTestContext ctx) {
       await _check();
       db = await reOpen(db);
       await _check();
+      await record.update(db, Timestamp(1, 3));
+      expect(await record.get(db), Timestamp(1, 3));
+      db = await reOpen(db);
+      expect(await record.get(db), Timestamp(1, 3));
     });
 
     test('Blob', () async {
@@ -122,6 +126,58 @@ void defineTests(DatabaseTestContext ctx) {
       await _check();
       db = await reOpen(db);
       await _check();
+    });
+
+    test('FieldValue.delete', () async {
+      // Merge a non existing record
+      expect(await record.exists(db), isFalse);
+      await record.put(db, {'test': FieldValue.delete}, merge: true);
+      Future _check() async {
+        final value = await record.get(db);
+        expect(await record.exists(db), isTrue);
+        expect(value, {});
+      }
+
+      await _check();
+      db = await reOpen(db);
+      await _check();
+
+      try {
+        await record.put(db, FieldValue.delete);
+        fail('should fail');
+      } on ArgumentError catch (_) {}
+      try {
+        await record.add(db, FieldValue.delete);
+        fail('should fail');
+      } on ArgumentError catch (_) {}
+      try {
+        await record.update(db, FieldValue.delete);
+        fail('should fail');
+      } on ArgumentError catch (_) {}
+      try {
+        await record.put(db, {'test': FieldValue.delete});
+        fail('should fail');
+      } on ArgumentError catch (_) {}
+      try {
+        await record.add(db, {'test': FieldValue.delete});
+        fail('should fail');
+      } on ArgumentError catch (_) {}
+      try {
+        await store.add(db, FieldValue.delete);
+        fail('should fail');
+      } on ArgumentError catch (_) {}
+      try {
+        await store.add(db, {'test': FieldValue.delete});
+        fail('should fail');
+      } on ArgumentError catch (_) {}
+      try {
+        await store.update(db, FieldValue.delete);
+        fail('should fail');
+      } on ArgumentError catch (_) {}
+
+      // Allowed!
+      await record.update(db, {'test': FieldValue.delete});
+      await store.update(db, {'test': FieldValue.delete});
     });
 
     test('Map', () async {

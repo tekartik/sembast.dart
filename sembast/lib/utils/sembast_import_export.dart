@@ -3,6 +3,7 @@ library sembast.utils.sembast_import_export;
 // ignore_for_file: deprecated_member_use_from_same_package
 import 'dart:async';
 
+import 'package:sembast/src/api/protected/database.dart';
 import 'package:sembast/src/api/sembast.dart';
 import 'package:sembast/src/api/v2/sembast.dart' as v2;
 import 'package:sembast/src/store_impl.dart';
@@ -49,7 +50,7 @@ Future<Map<String, dynamic>> exportDatabase(v2.Database db) {
 
       for (var record in store.currentRecords) {
         keys.add(record.key);
-        values.add(record.value);
+        values.add(sembastDatabase.toJsonEncodable(record.value));
         await sembastDatabase.cooperator?.cooperate();
       }
 
@@ -83,7 +84,7 @@ Future<v2.Database> importDatabase(
 
   final db = await dstFactory.openDatabase(dstPath,
       version: version, mode: DatabaseMode.empty, codec: codec);
-
+  var sembastDatabase = db as SembastDatabase;
   await db.transaction((txn) async {
     final storesExport =
         (srcData[_stores] as Iterable)?.toList(growable: false)?.cast<Map>();
@@ -98,7 +99,8 @@ Future<v2.Database> importDatabase(
         var store =
             (txn as SembastTransaction).getSembastStore(StoreRef(storeName));
         for (var i = 0; i < keys.length; i++) {
-          await store.txnPut(txn as SembastTransaction, values[i], keys[i]);
+          await store.txnPut(txn as SembastTransaction,
+              sembastDatabase.fromJsonEncodable(values[i]), keys[i]);
         }
       }
     }
