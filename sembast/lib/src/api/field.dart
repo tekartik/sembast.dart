@@ -15,10 +15,14 @@ class Field {
 /// Update values
 ///
 class FieldValue {
-  const FieldValue._();
+  final String _label;
+  const FieldValue._(this._label);
 
   /// delete sentinel value
-  static FieldValue delete = const FieldValue._();
+  static FieldValue delete = const FieldValue._('delete');
+
+  @override
+  String toString() => 'FieldValue.$_label';
 }
 
 ///

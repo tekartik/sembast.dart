@@ -1,4 +1,4 @@
-library sembast.type_adapter_test;
+library sembast.json_encodable_codec_test;
 
 import 'package:sembast/blob.dart';
 import 'package:sembast/src/json_encodable_codec.dart';
@@ -198,6 +198,142 @@ void main() {
         var encoded = value;
         encoded = codec.encode(value);
         expect(codec.decode(encoded), value);
+        expect(!identical(encoded, value), isTrue,
+            reason:
+                '$value ${identityHashCode(value)} vs ${identityHashCode(encoded)}');
+      }
+    });
+  });
+  group('json_encodable', () {
+    var adapters = sembastDefaultTypeAdapters;
+    var adaptersMap = sembastTypeAdaptersToMap(adapters);
+    test('timestamp', () {
+      expect(toJsonEncodable(Timestamp(1, 2), adapters),
+          {'@Timestamp': '1970-01-01T00:00:01.000000002Z'});
+    });
+    test('dateTime', () {
+      try {
+        expect(
+            toJsonEncodable(DateTime.fromMillisecondsSinceEpoch(1), adapters),
+            {'@Timestamp': '1970-01-01T00:00:01.000000002Z'});
+        fail('should fail');
+      } on ArgumentError catch (_) {}
+    });
+
+    test('FieldValue', () {
+      try {
+        expect(toJsonEncodable(FieldValue.delete, adapters),
+            {'@Timestamp': '1970-01-01T00:00:01.000000002Z'});
+        fail('should fail');
+      } on ArgumentError catch (_) {}
+    });
+
+    test('Dummy', () {
+      expect(fromJsonEncodable({'@Dummy': 'test'}, adaptersMap),
+          {'@Dummy': 'test'});
+      expect(toJsonEncodable({'@Dummy': 'test'}, adapters), {
+        '@': {'@Dummy': 'test'}
+      });
+      expect(toJsonEncodable({'@Dummy': 'test', 'other': 1}, adapters),
+          {'@Dummy': 'test', 'other': 1});
+    });
+
+    test('allAdapters', () {
+      var decoded = {
+        'null': null,
+        'bool': true,
+        'int': 1,
+        'list': [1, 2, 3],
+        'map': {
+          'sub': [1, 2, 3]
+        },
+        'string': 'text',
+        'timestamp': Timestamp(1, 2),
+        'blob': Blob.fromList([1, 2, 3]),
+        '@Dummy': 'test',
+        'dummy': {'@Dummy': 'test'},
+        'dummyMap': {'@': 'test'}
+      };
+      var encoded = {
+        'null': null,
+        'bool': true,
+        'int': 1,
+        'list': [1, 2, 3],
+        'map': {
+          'sub': [1, 2, 3]
+        },
+        'string': 'text',
+        'timestamp': {'@Timestamp': '1970-01-01T00:00:01.000000002Z'},
+        'blob': {'@Blob': 'AQID'},
+        '@Dummy': 'test',
+        'dummy': {
+          '@': {'@Dummy': 'test'}
+        },
+        'dummyMap': {
+          '@': {'@': 'test'}
+        }
+      };
+      expect(toJsonEncodable(decoded, adapters), encoded);
+      expect(fromJsonEncodable(encoded, adaptersMap), decoded);
+    });
+
+    test('modified', () {
+      var identicals = [
+        <String, dynamic>{},
+        1,
+        2.5,
+        'text',
+        true,
+        null,
+        //<dynamic, dynamic>{},
+        [],
+        [
+          {
+            'test': [
+              1,
+              true,
+              [4.5]
+            ]
+          }
+        ],
+        <String, dynamic>{
+          'test': [
+            1,
+            true,
+            [4.5]
+          ]
+        }
+      ];
+      for (var value in identicals) {
+        var encoded = toJsonEncodable(value, adapters);
+
+        expect(identical(encoded, value), isTrue,
+            reason:
+                '$value ${identityHashCode(value)} vs ${identityHashCode(encoded)}');
+        value = fromJsonEncodable(value, adaptersMap);
+        expect(identical(encoded, value), isTrue,
+            reason:
+                '$value ${identityHashCode(value)} vs ${identityHashCode(encoded)}');
+      }
+      var notIdenticals = [
+        <dynamic, dynamic>{}, // being cast
+        Blob.fromList([1, 2, 3]),
+        Timestamp(1, 2),
+        [Timestamp(1, 2)],
+        <String, dynamic>{'test': Timestamp(1, 2)},
+        <String, dynamic>{
+          'test': [Timestamp(1, 2)]
+        },
+        [
+          {'test': Timestamp(1, 2)}
+        ],
+        {'@Dummy': 'test'}
+      ];
+      for (var value in notIdenticals) {
+        var encoded = value;
+        encoded = toJsonEncodable(value, adapters);
+
+        expect(fromJsonEncodable(encoded, adaptersMap), value);
         expect(!identical(encoded, value), isTrue,
             reason:
                 '$value ${identityHashCode(value)} vs ${identityHashCode(encoded)}');

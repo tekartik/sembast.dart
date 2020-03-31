@@ -219,14 +219,14 @@ Supported key types are:
 #### Values
 
 Supported value types are:
-- String.
-- num (int and double)
-- Map (`Map<String, dynamic>`)
-- List (`List<dynamic>`)
-- bool
-- `null`
-- Blob (custom type)
-- Timestamp (custom type)
+- `String`
+- `num` (`int` and `double`)
+- `Map` (`Map<String, dynamic>`)
+- `List` (`List<dynamic>`)
+- `bool`
+- `null` (value)
+- `Blob` (custom type)
+- `Timestamp` (custom type)
 
 ### Resources
 

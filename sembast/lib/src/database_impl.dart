@@ -211,8 +211,7 @@ class SembastDatabase extends Object
   }
 
   /// Encode a map before writing it to disk
-  String encodeMap(Map map) =>
-      _jsonCodec.encode(_jsonEncodableCodec.encode(map));
+  String encodeRecordMap(Map map) => _jsonCodec.encode(toJsonEncodable(map));
 
   /// Decode a text.
   Map<String, dynamic> decodeRecordLineString(String text) {
@@ -278,7 +277,7 @@ class SembastDatabase extends Object
       Future _addLine(Map<String, dynamic> map) async {
         String encoded;
         try {
-          encoded = encodeMap(map);
+          encoded = encodeRecordMap(map);
           await _addStringLine(encoded);
         } catch (e, st) {
           // useful for debugging...
@@ -412,7 +411,7 @@ class SembastDatabase extends Object
           var map = record.record.toDatabaseRowMap();
           String encoded;
           try {
-            encoded = encodeMap(map);
+            encoded = encodeRecordMap(map);
             if (_debugStorage) {
               print('add: $encoded');
             }
@@ -1391,32 +1390,48 @@ class SembastDatabase extends Object
   JsonEncodableCodec get _jsonEncodableCodec =>
       openOptions.codec?.jsonEncodableCodec ?? sembastDefaultJsonEncodableCodec;
 
-  /// Sanitize a value.
-  void _check(value) {
-    if (!isBasicTypeFieldValueOrNull(value)) {
-      if (value is List) {
-        for (var item in value) {
-          _check(item);
-        }
-        return;
-      } else if (value is Map) {
-        for (var item in value.values) {
-          _check(item);
-        }
-        return;
-      }
-      if (_jsonEncodableCodec.supportsType(value)) {
-        return;
-      }
+  /// Convert a value to a json encodable format
+  dynamic toJsonEncodable(dynamic value) => _jsonEncodableCodec.encode(value);
 
-      throw ArgumentError.value(
-          value, null, 'type ${value.runtimeType} not supported');
+  /// Convert a value from a json encodable format
+  dynamic fromJsonEncodable(dynamic value) => _jsonEncodableCodec.decode(value);
+
+  /// Sanitize a value.
+  void _check(dynamic value, bool update) {
+    if (update) {
+      if (isBasicTypeFieldValueOrNull(value)) {
+        return;
+      }
+    } else if (isBasicTypeOrNull(value)) {
+      return;
     }
+
+    if (value is List) {
+      for (var item in value) {
+        _check(item, update);
+      }
+      return;
+    } else if (value is Map) {
+      for (var item in value.values) {
+        _check(item, update);
+      }
+      return;
+    }
+    if (_jsonEncodableCodec.supportsType(value)) {
+      return;
+    }
+
+    throw ArgumentError.value(
+        value, null, 'type ${value.runtimeType} not supported');
   }
 
   /// Sanitized an input value for the store
-  V sanitizeInputValue<V>(dynamic value) {
-    _check(value);
+  V sanitizeInputValue<V>(dynamic value, {bool update}) {
+    update ??= false;
+    if (update && (value is FieldValue)) {
+      throw ArgumentError.value(value, '$value not supported at root');
+    }
+    _check(value, update);
     if (value is List) {
       try {
         return value.cast<dynamic>() as V;
