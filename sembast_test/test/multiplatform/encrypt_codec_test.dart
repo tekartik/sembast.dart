@@ -1,10 +1,8 @@
-library sembast.key_test;
+library sembast_test.encrypt_codec_test;
 
-// basically same as the io runner but with extra output
-import 'package:sembast/src/api/v2/sembast.dart';
-
-import 'encrypt_codec.dart';
-import 'test_common.dart';
+import 'package:sembast/sembast.dart';
+import 'package:sembast_test/encrypt_codec.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('encrypt_codec', () {

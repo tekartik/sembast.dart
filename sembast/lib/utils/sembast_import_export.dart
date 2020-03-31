@@ -70,7 +70,8 @@ Future<Map<String, dynamic>> exportDatabase(v2.Database db) {
 /// Import the exported data into a new database
 ///
 Future<v2.Database> importDatabase(
-    Map srcData, v2.DatabaseFactory dstFactory, String dstPath) async {
+    Map srcData, v2.DatabaseFactory dstFactory, String dstPath,
+    {SembastCodec codec}) async {
   await dstFactory.deleteDatabase(dstPath);
 
   // check signature
@@ -81,7 +82,7 @@ Future<v2.Database> importDatabase(
   final version = srcData[_dbVersion] as int;
 
   final db = await dstFactory.openDatabase(dstPath,
-      version: version, mode: DatabaseMode.empty);
+      version: version, mode: DatabaseMode.empty, codec: codec);
 
   await db.transaction((txn) async {
     final storesExport =
