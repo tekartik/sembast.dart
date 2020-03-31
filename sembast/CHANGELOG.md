@@ -1,6 +1,7 @@
-## 2.4.1
+## 2.4.1+1
 
 * Allow importing a database export using a codec
+* Fix export for custom types
 
 ## 2.4.0
 
