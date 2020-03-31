@@ -166,3 +166,27 @@ expect(await getProductMaps(), [
   }
 ]);
 ```
+
+## Migrate to/from an encrypted database
+
+This is a different migration mechanism as here the storage format will change. Basically it means
+using a different codec (or null for non-encrypted database).
+
+Since the codec has to be specified at creation time, you cannot change your codec later.
+
+One solution is export the existing database and import it in a new database. Below is a simple
+example converting a non-encrypted database to an encrypted one.
+
+```dart
+// Open my existing database and close it
+db = await factory.openDatabase('my_existing.db');
+var exportMap = await exportDatabase(db);
+await db.close();
+
+// Import the existing export in a newly created database using encryption
+db = await importDatabase(exportMap, factory, 'my_encrypted.db',
+    codec: codec);
+
+// The new database is now encrypted, you can deleted the old one and you must
+// always use the same codec to open the new one.
+```
