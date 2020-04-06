@@ -1,3 +1,7 @@
+## 2.4.2
+
+* Fix finder start end of list issue
+
 ## 2.4.1+1
 
 * Allow importing a database export using a codec
