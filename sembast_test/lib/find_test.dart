@@ -629,6 +629,14 @@ void defineTests(DatabaseTestContext ctx) {
           // After the lamp the more expensive one is the Table
           expect(snapshot['name'], 'Table');
 
+          // Next is null
+          finder = Finder(
+              sortOrders: [SortOrder('price'), SortOrder('name')],
+              start: Boundary(record: snapshot));
+          snapshot = await store.findFirst(db, finder: finder);
+          // After the Table, no more result
+          expect(snapshot, isNull);
+
           // after the lamp by price is the chair
           // if not ordered by name
           finder = Finder(
@@ -638,6 +646,59 @@ void defineTests(DatabaseTestContext ctx) {
           // After the lamp the more expensive one (actually same price
           // but next id) is the Chair
           expect(snapshot['name'], 'Chair');
+        }
+
+        await db.close();
+      });
+
+      test('multi_sort_order_with_key', () async {
+        final db = await setupForTest(ctx, 'find/multi_sort_order_with_key.db');
+
+        var store = intMapStoreFactory.store();
+
+        // Insert in a different order
+        await store.records([2, 3, 4, 1]).put(db, [
+          {'name': 'Lamp', 'price': 10},
+          {'name': 'Chair', 'price': 10},
+          {'name': 'Deco', 'price': 5},
+          {'name': 'Table', 'price': 35}
+        ]);
+
+        {
+          Finder finder;
+          RecordSnapshot snapshot;
+
+          // Next is null
+          finder = Finder(
+              sortOrders: [SortOrder('price'), SortOrder(Field.key)],
+              start: Boundary(values: [35, 1]));
+          snapshot = await store.findFirst(db, finder: finder);
+          // After the lamp the more expensive one is the Table
+          expect(snapshot, isNull);
+
+          // Look for object after Chair 10 (ordered by price then name) so
+          // should the the Lamp
+          finder = Finder(
+              sortOrders: [SortOrder('price'), SortOrder(Field.key)],
+              start: Boundary(values: [10, 2]));
+          snapshot = await store.findFirst(db, finder: finder);
+          expect(snapshot['name'], 'Chair');
+
+          // You can also specify to look after a given record
+          finder = Finder(
+              sortOrders: [SortOrder('price'), SortOrder(Field.key)],
+              start: Boundary(record: snapshot));
+          snapshot = await store.findFirst(db, finder: finder);
+          // After the lamp the more expensive one is the Table
+          expect(snapshot['name'], 'Table');
+
+          // Next is null
+          finder = Finder(
+              sortOrders: [SortOrder('price'), SortOrder(Field.key)],
+              start: Boundary(record: snapshot));
+          snapshot = await store.findFirst(db, finder: finder);
+          // After the lamp the more expensive one is the Table
+          expect(snapshot, isNull);
         }
 
         await db.close();

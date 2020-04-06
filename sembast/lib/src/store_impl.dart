@@ -2,6 +2,7 @@ import 'dart:collection';
 import 'dart:math';
 
 import 'package:sembast/sembast.dart';
+import 'package:sembast/src/cooperator.dart';
 import 'package:sembast/src/filter_impl.dart';
 import 'package:sembast/src/finder_impl.dart';
 import 'package:sembast/src/key_utils.dart';
@@ -291,43 +292,13 @@ class SembastStore {
 
   /// Filter start boundary.
   Future<List<ImmutableSembastRecord>> filterStart(
-      SembastFinder finder, List<ImmutableSembastRecord> results) async {
-    var startIndex = 0;
-    for (var i = 0; i < results.length; i++) {
-      if (needCooperate) {
-        await cooperate();
-      }
-      if (finder.starts(results[i], finder.start)) {
-        startIndex = i;
-        break;
-      }
-    }
-    if (startIndex != 0) {
-      return results.sublist(startIndex);
-    }
-    return results;
-  }
+          SembastFinder finder, List<ImmutableSembastRecord> results) =>
+      finderFilterStart(finder, results, cooperator: _cooperator);
 
   /// Filter end boundary.
   Future<List<ImmutableSembastRecord>> filterEnd(
-      SembastFinder finder, List<ImmutableSembastRecord> results) async {
-    var endIndex = 0;
-    for (var i = results.length - 1; i >= 0; i--) {
-      if (needCooperate) {
-        await cooperate();
-      }
-      if (finder.ends(results[i], finder.end)) {
-        // continue
-      } else {
-        endIndex = i + 1;
-        break;
-      }
-    }
-    if (endIndex != results.length) {
-      return results.sublist(0, endIndex);
-    }
-    return results;
-  }
+          SembastFinder finder, List<ImmutableSembastRecord> results) =>
+      finderFilterEnd(finder, results, cooperator: _cooperator);
 
   /// Find records in a transaction.
   Future<List<ImmutableSembastRecord>> txnFindRecords(
@@ -716,6 +687,50 @@ class SembastStore {
   /// true if cooperation is activated.
   bool get cooperateOn => database.cooperateOn;
 
+  Cooperator get _cooperator => database.cooperator;
+
   /// Cooperate if needed.
   FutureOr cooperate() => database.cooperate();
+}
+
+/// Filter start boundary, assume ordered result
+Future<List<T>> finderFilterStart<T extends SembastRecord>(
+    SembastFinder finder, List<T> results,
+    {Cooperator cooperator}) async {
+  var startIndex = results.length;
+  for (var i = 0; i < results.length; i++) {
+    if (cooperator?.needCooperate ?? false) {
+      await cooperator.cooperate();
+    }
+    if (finder.starts(results[i], finder.start)) {
+      startIndex = i;
+      break;
+    }
+  }
+  if (startIndex != 0) {
+    return results.sublist(startIndex);
+  }
+  return results;
+}
+
+/// Filter end boundary, assume ordered result
+Future<List<T>> finderFilterEnd<T extends SembastRecord>(
+    SembastFinder finder, List<T> results,
+    {Cooperator cooperator}) async {
+  var endIndex = 0;
+  for (var i = results.length - 1; i >= 0; i--) {
+    if (cooperator?.needCooperate ?? false) {
+      await cooperator.cooperate();
+    }
+    if (finder.ends(results[i], finder.end)) {
+      // continue
+    } else {
+      endIndex = i + 1;
+      break;
+    }
+  }
+  if (endIndex != results.length) {
+    return results.sublist(0, endIndex);
+  }
+  return results;
 }
