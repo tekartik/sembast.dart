@@ -19,6 +19,7 @@ void main() {
       var record1 = SembastRecordSnapshot(null, {'my.field': 1});
       var record2 = SembastRecordSnapshot(null, {'my.field': 2});
       expect(sortOrder.compareAscending(record1, record2), -1);
+      expect(sortOrder.compareAscending(record2, record1), 1);
     });
 
     test('sub.field', () {
