@@ -31,8 +31,7 @@ import 'package:synchronized/synchronized.dart';
 final bool _debugStorage = false; // devWarning(true);
 
 /// Get implementation.
-SembastDatabase getDatabase(v2.Database database) =>
-    database as SembastDatabase;
+SembastDatabase getDatabase(Database database) => database as SembastDatabase;
 
 /// Commit entries in a transaction.
 class CommitEntries {
