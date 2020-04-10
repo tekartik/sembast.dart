@@ -5,7 +5,6 @@ import 'dart:async';
 
 import 'package:sembast/src/api/protected/database.dart';
 import 'package:sembast/src/api/sembast.dart';
-import 'package:sembast/src/api/v2/sembast.dart' as v2;
 import 'package:sembast/src/store_impl.dart';
 import 'package:sembast/src/transaction_impl.dart';
 
@@ -21,7 +20,7 @@ const int _exportSignatureVersion = 1;
 ///
 /// Return the data in an exported format that (can be JSONified).
 ///
-Future<Map<String, dynamic>> exportDatabase(v2.Database db) {
+Future<Map<String, dynamic>> exportDatabase(Database db) {
   return db.transaction((txn) async {
     var export = <String, dynamic>{
       // our export signature
@@ -70,8 +69,8 @@ Future<Map<String, dynamic>> exportDatabase(v2.Database db) {
 ///
 /// Import the exported data into a new database
 ///
-Future<v2.Database> importDatabase(
-    Map srcData, v2.DatabaseFactory dstFactory, String dstPath,
+Future<Database> importDatabase(
+    Map srcData, DatabaseFactory dstFactory, String dstPath,
     {SembastCodec codec}) async {
   await dstFactory.deleteDatabase(dstPath);
 

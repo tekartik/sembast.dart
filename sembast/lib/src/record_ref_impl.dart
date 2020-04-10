@@ -3,7 +3,6 @@ import 'package:sembast/src/api/record_ref.dart';
 import 'package:sembast/src/api/record_snapshot.dart';
 import 'package:sembast/src/api/sembast.dart';
 import 'package:sembast/src/api/store_ref.dart';
-import 'package:sembast/src/api/v2/sembast.dart' as v2;
 import 'package:sembast/src/common_import.dart';
 import 'package:sembast/src/database_client_impl.dart';
 import 'package:sembast/src/database_impl.dart';
@@ -16,109 +15,6 @@ mixin RecordRefMixin<K, V> implements RecordRef<K, V> {
   StoreRef<K, V> store;
   @override
   K key;
-
-  @override
-  RecordSnapshot<K, V> snapshot(V value) => SembastRecordSnapshot(this, value);
-
-  /// Update record
-  ///
-  /// value is sanitized first
-  @override
-  Future<V> update(DatabaseClient databaseClient, V value) async {
-    var client = getClient(databaseClient);
-    value = client.sembastDatabase.sanitizeInputValue<V>(value, update: true);
-    return await client.inTransaction((txn) {
-      return client.getSembastStore(store).txnUpdate(txn, value, key);
-    }) as V;
-  }
-
-  /// Put record
-  ///
-  /// value is sanitized first
-  @override
-  Future<V> put(DatabaseClient databaseClient, V value, {bool merge}) async {
-    var client = getClient(databaseClient);
-    value = client.sembastDatabase.sanitizeInputValue<V>(value, update: merge);
-    return await client.inTransaction((txn) {
-      return client
-          .getSembastStore(store)
-          .txnPut(txn, value, key, merge: merge);
-    }) as V;
-  }
-
-  /// Add a record
-  ///
-  /// value is sanitized first
-  @override
-  Future<K> add(DatabaseClient databaseClient, V value) async {
-    var client = getClient(databaseClient);
-    value = client.sembastDatabase.sanitizeInputValue<V>(value);
-    return await client.inTransaction((txn) {
-      return client.getSembastStore(store).txnAdd(txn, value, key);
-    });
-  }
-
-  /// Delete record
-  @override
-  Future delete(DatabaseClient databaseClient) {
-    var client = getClient(databaseClient);
-    return client.inTransaction((txn) {
-      return client.getSembastStore(store).txnDelete(txn, key);
-    });
-  }
-
-  /// Get record value
-  @override
-  Future<V> get(DatabaseClient databaseClient) async =>
-      (await getSnapshot(databaseClient))?.value;
-
-  /// Get record
-  @override
-  Future<RecordSnapshot<K, V>> getSnapshot(
-      DatabaseClient databaseClient) async {
-    var client = getClient(databaseClient);
-
-    var record = await client
-        .getSembastStore(store)
-        .txnGetRecord(client.sembastTransaction, key);
-    return record?.cast<K, V>();
-  }
-
-  ///
-  /// Stream of record snapshot
-  ///
-  @override
-  Stream<RecordSnapshot<K, V>> onSnapshot(v2.Database database) {
-    var db = getDatabase(database);
-    RecordListenerController<K, V> ctlr;
-    ctlr = db.listener.addRecord(this, onListen: () {
-      // Read right away
-      () async {
-        await db.notificationLock.synchronized(() async {
-          // Don't crash here, the database might have been closed
-          try {
-            // Add the existing snapshot
-            var snapshot = await getSnapshot(database);
-            if (debugListener) {
-              print('matching $ctlr: $snapshot on $this');
-            }
-            ctlr.add(snapshot);
-          } catch (error, stackTrace) {
-            ctlr.addError(error, stackTrace);
-          }
-        });
-      }();
-    });
-    return ctlr.stream;
-  }
-
-  @override
-  Future<bool> exists(DatabaseClient databaseClient) {
-    var client = getClient(databaseClient);
-    return client
-        .getSembastStore(store)
-        .txnRecordExists(client.sembastTransaction, key);
-  }
 
   @override
   String toString() => 'Record(${store?.name}, $key)';
@@ -150,5 +46,112 @@ class SembastRecordRef<K, V> with RecordRefMixin<K, V> {
   SembastRecordRef(StoreRef<K, V> store, K key) {
     this.store = store;
     this.key = key;
+  }
+}
+
+/// Record ref sembast public extension.
+///
+/// Provides access helper to data on the store using a given [DatabaseClient].
+extension SembastRecordRefExtension<K, V> on RecordRef<K, V> {
+  /// Create a snapshot of a record with a given value.
+  RecordSnapshot<K, V> snapshot(V value) => SembastRecordSnapshot(this, value);
+
+  /// Create the record if it does not exist.
+  ///
+  /// Returns the key if inserted, null otherwise.
+  Future<K> add(DatabaseClient databaseClient, V value) async {
+    var client = getClient(databaseClient);
+    value = client.sembastDatabase.sanitizeInputValue<V>(value);
+    return await client.inTransaction((txn) {
+      return client.getSembastStore(store).txnAdd(txn, value, key);
+    });
+  }
+
+  /// Save a record, create if needed.
+  ///
+  /// if [merge] is true and the field exists, data is merged
+  ///
+  /// Returns the updated value.
+  Future<V> put(DatabaseClient databaseClient, V value, {bool merge}) async {
+    var client = getClient(databaseClient);
+    value = client.sembastDatabase.sanitizeInputValue<V>(value, update: merge);
+    return await client.inTransaction((txn) {
+      return client
+          .getSembastStore(store)
+          .txnPut(txn, value, key, merge: merge);
+    }) as V;
+  }
+
+  /// Update a record.
+  ///
+  /// If it does not exist, return null. if value is a map, keys with dot values
+  /// refer to a path in the map, unless the key is specifically escaped
+  ///
+  /// Returns the updated value.
+  Future<V> update(DatabaseClient databaseClient, V value) async {
+    var client = getClient(databaseClient);
+    value = client.sembastDatabase.sanitizeInputValue<V>(value, update: true);
+    return await client.inTransaction((txn) {
+      return client.getSembastStore(store).txnUpdate(txn, value, key);
+    }) as V;
+  }
+
+  /// Get a record value from the database.
+  Future<V> get(DatabaseClient databaseClient) async =>
+      (await getSnapshot(databaseClient))?.value;
+
+  /// Get a record snapshot from the database.
+  Future<RecordSnapshot<K, V>> getSnapshot(
+      DatabaseClient databaseClient) async {
+    var client = getClient(databaseClient);
+
+    var record = await client
+        .getSembastStore(store)
+        .txnGetRecord(client.sembastTransaction, key);
+    return record?.cast<K, V>();
+  }
+
+  /// Get a stream of a record snapshot from the database.
+  ///
+  /// It allows listening to a single instance of a record.
+
+  Stream<RecordSnapshot<K, V>> onSnapshot(Database database) {
+    var db = getDatabase(database);
+    RecordListenerController<K, V> ctlr;
+    ctlr = db.listener.addRecord(this, onListen: () {
+      // Read right away
+      () async {
+        await db.notificationLock.synchronized(() async {
+          // Don't crash here, the database might have been closed
+          try {
+            // Add the existing snapshot
+            var snapshot = await getSnapshot(database);
+            if (debugListener) {
+              print('matching $ctlr: $snapshot on $this');
+            }
+            ctlr.add(snapshot);
+          } catch (error, stackTrace) {
+            ctlr.addError(error, stackTrace);
+          }
+        });
+      }();
+    });
+    return ctlr.stream;
+  }
+
+  /// Return true if the record exists.
+  Future<bool> exists(DatabaseClient databaseClient) {
+    var client = getClient(databaseClient);
+    return client
+        .getSembastStore(store)
+        .txnRecordExists(client.sembastTransaction, key);
+  }
+
+  /// Delete the record.
+  Future delete(DatabaseClient databaseClient) {
+    var client = getClient(databaseClient);
+    return client.inTransaction((txn) {
+      return client.getSembastStore(store).txnDelete(txn, key);
+    });
   }
 }

@@ -2,7 +2,6 @@ import 'package:sembast/sembast.dart';
 import 'package:sembast/src/api/finder.dart';
 import 'package:sembast/src/api/query_ref.dart';
 import 'package:sembast/src/api/store_ref.dart';
-import 'package:sembast/src/api/v2/sembast.dart' as v2;
 import 'package:sembast/src/common_import.dart';
 import 'package:sembast/src/database_impl.dart';
 import 'package:sembast/src/debug_utils.dart';
@@ -33,7 +32,7 @@ class SembastQueryRef<K, V> implements QueryRef<K, V> {
   String toString() => '$store $finder)';
 
   @override
-  Stream<List<RecordSnapshot<K, V>>> onSnapshots(v2.Database database) {
+  Stream<List<RecordSnapshot<K, V>>> onSnapshots(Database database) {
     var db = getDatabase(database);
     // Create the query but don't add it until first result is set
     QueryListenerController<K, V> ctlr;

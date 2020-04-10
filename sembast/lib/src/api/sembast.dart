@@ -19,3 +19,7 @@ export 'package:sembast/src/sembast_codec.dart'
     show sembastCodecDefault, sembastCodecWithAdapters;
 export 'package:sembast/src/type_adapter_impl.dart'
     show sembastDefaultTypeAdapters;
+// v2.4.3
+export 'package:sembast/src/record_ref_impl.dart'
+    show SembastRecordRefExtension;
+export 'package:sembast/src/store_ref_impl.dart' show SembastStoreRefExtension;
