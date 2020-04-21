@@ -1,21 +1,26 @@
 import 'dart:async';
 
-/// Simple cooperate that checks every 4ms
+import 'package:meta/meta.dart';
+
+/// Simple cooperate that checks every 4ms and wait for 100 microseconds.
+///
+/// While it degrades the performance (about 2%), it prevents heavy sort
+/// algorithm from blocking the main isolate.
 class Cooperator {
   /// True if activated.
   final bool cooperateOn = true;
 
   /// Timer.
-  var cooperateStopWatch = Stopwatch()..start();
+  final _cooperateStopWatch = Stopwatch()..start();
 
   /// Need to cooperate every 16 milliseconds.
   bool get needCooperate =>
-      cooperateOn && cooperateStopWatch.elapsedMilliseconds > 4;
+      cooperateOn && _cooperateStopWatch.elapsedMilliseconds > 4;
 
   /// Cooperate if needed.
   FutureOr cooperate() {
     if (needCooperate) {
-      cooperateStopWatch
+      _cooperateStopWatch
         ..stop()
         ..reset()
         ..start();
@@ -28,8 +33,46 @@ class Cooperator {
     // await Future.value();
     //print('breath');
   }
+
+  /// Stop the cooperator.
+  void stop() {
+    _cooperateStopWatch
+      ..stop()
+      ..reset();
+  }
+
+  /// Restart the cooperator
+  void restart() {
+    _cooperateStopWatch
+      ..stop()
+      ..reset()
+      ..start();
+  }
 }
 
 /// Check if cooperate is needed
 bool cooperateNeeded(Cooperator cooperator) =>
     cooperator?.needCooperate ?? false;
+
+/// Global cooperator.
+final globalCooperator = Cooperator();
+
+/// True if cooperator is disabled.
+bool cooperatorDisabled = false;
+
+/// Disable sembast cooperator.
+///
+/// Disable sembast cooperator that prevents heavy algorithms blocking the UI
+/// thread. Should be called before any other call.
+@visibleForTesting
+void disableSembastCooperator() {
+  globalCooperator?.stop();
+  cooperatorDisabled = true;
+}
+
+/// Re-enable sembast cooperator.
+@visibleForTesting
+void enableSembastCooperator() {
+  cooperatorDisabled = false;
+  globalCooperator.restart();
+}

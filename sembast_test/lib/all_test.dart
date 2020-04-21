@@ -3,6 +3,7 @@ library sembast.test_runner;
 import 'crud_impl_test.dart' as crud_impl_test;
 import 'crud_test.dart' as crud_test;
 import 'database_test.dart' as database_test;
+import 'database_impl_test.dart' as database_impl_test;
 import 'doc_test.dart' as doc_test;
 import 'query_test.dart' as query_test;
 import 'exception_test.dart' as exception_test;
@@ -26,6 +27,7 @@ void defineTests(DatabaseTestContext ctx) {
   crud_test.defineTests(ctx);
   crud_impl_test.defineTests(ctx);
   database_test.defineTests(ctx);
+  database_impl_test.defineTests(ctx);
   store_test.defineTests(ctx);
   find_test.defineTests(ctx);
   transaction_test.defineTests(ctx);
