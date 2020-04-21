@@ -36,6 +36,7 @@ void defineTests(DatabaseTestContext ctx) {
       var list = [3, 1, 2];
       await sort.sort(list, _intCmp);
       expect(list, [1, 2, 3]);
+      cooperator.stop();
     });
   });
 }

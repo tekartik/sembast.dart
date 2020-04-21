@@ -1213,7 +1213,7 @@ class SembastDatabase extends Object
   }
 
   /// Our cooperator.
-  var cooperator = Cooperator();
+  var cooperator = cooperatorDisabled ? null : globalCooperator;
 
   /// True if activated.
   bool get cooperateOn => cooperator?.cooperateOn ?? false;

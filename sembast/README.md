@@ -17,8 +17,8 @@ Supports encryption using user-defined codec.
 
 Web support (including Flutter Web) through [`sembast_web`](https://pub.dev/packages/sembast_web).
 
-[notepad_sembast](https://github.com/alextekartik/flutter_app_example/tree/master/notepad_sembast): Simple flutter notepad working on all platforms (web/mobile/mac)
-  ([online demo](https://alextekartik.github.io/flutter_app_example/notepad_sembast/))
+Usage example: [notepad_sembast](https://github.com/alextekartik/flutter_app_example/tree/master/notepad_sembast): Simple flutter notepad working on all platforms (web/mobile/mac)
+ ([online demo](https://alextekartik.github.io/flutter_app_example/notepad_sembast/))
 
 
 ## Usage

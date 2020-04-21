@@ -114,7 +114,6 @@ extension SembastRecordRefExtension<K, V> on RecordRef<K, V> {
   /// Get a stream of a record snapshot from the database.
   ///
   /// It allows listening to a single instance of a record.
-
   Stream<RecordSnapshot<K, V>> onSnapshot(Database database) {
     var db = getDatabase(database);
     RecordListenerController<K, V> ctlr;
