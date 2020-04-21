@@ -1,3 +1,7 @@
+## 2.4.3-dev.1
+
+* Export `disableSembastCooperator()` for unit tests.
+
 ## 2.4.2
 
 * Fix finder start end of list issue
