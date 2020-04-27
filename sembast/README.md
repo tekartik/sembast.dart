@@ -173,6 +173,12 @@ expect(records[0]['name'], 'dog');
 expect(records[1]['name'], 'fish');
 ```
 
+### Listen to changes
+
+Similarly to firestore, you can listen to record, store or query changes.
+
+More information [here](https://github.com/tekartik/sembast.dart/blob/master/sembast/doc/new_api.md#listen-to-changes)
+
 ### Codec and encryption
 
 Sembast supports using a user-defined codec to encode/decode data when read/written to disk.
