@@ -72,8 +72,16 @@ class JsonEncodableCodec extends Codec<dynamic, dynamic> {
 }
 
 // Look like custom?
-bool _looksLikeCustomType(Map map) =>
-    (map.length == 1 && (map.keys.first as String).startsWith('@'));
+bool _looksLikeCustomType(Map map) {
+  if (map.length == 1) {
+    var key = map.keys.first;
+    if (key is String) {
+      return key.startsWith('@');
+    }
+    throw ArgumentError.value(key);
+  }
+  return false;
+}
 
 dynamic _toJsonEncodable(dynamic value, Iterable<SembastTypeAdapter> adapters) {
   if (isBasicTypeOrNull(value)) {
@@ -93,6 +101,9 @@ dynamic _toJsonEncodable(dynamic value, Iterable<SembastTypeAdapter> adapters) {
     }
     var clone;
     map.forEach((key, item) {
+      if (!(key is String)) {
+        throw ArgumentError.value(key);
+      }
       var converted = _toJsonEncodable(item, adapters);
       if (!identical(converted, item)) {
         clone ??= Map<String, dynamic>.from(map);
