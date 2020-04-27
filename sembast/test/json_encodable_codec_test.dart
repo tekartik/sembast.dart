@@ -7,6 +7,8 @@ import 'package:sembast/src/type_adapter_impl.dart';
 
 import 'test_common.dart';
 
+class _Dummy {}
+
 void main() {
   group('json_encodable_codec', () {
     var codec = JsonEncodableCodec(adapters: [sembastTimestampAdapter]);
@@ -218,6 +220,29 @@ void main() {
             {'@Timestamp': '1970-01-01T00:00:01.000000002Z'});
         fail('should fail');
       } on ArgumentError catch (_) {}
+    });
+
+    test('dummy type', () {
+      // Make sure it talks about the field and the type
+      try {
+        toJsonEncodable({'dummy': _Dummy()}, adapters);
+        fail('should fail');
+      } on ArgumentError catch (e) {
+        expect(e.toString(), contains('_Dummy'));
+        expect(e.toString(), contains('dummy'));
+      }
+      try {
+        toJsonEncodable(_Dummy(), adapters);
+        fail('should fail');
+      } on ArgumentError catch (e) {
+        expect(e.toString(), contains('_Dummy'));
+      }
+      try {
+        toJsonEncodable([_Dummy()], adapters);
+        fail('should fail');
+      } on ArgumentError catch (e) {
+        expect(e.toString(), contains('_Dummy'));
+      }
     });
 
     test('FieldValue', () {
