@@ -31,6 +31,8 @@ void main() {
           DateTime.fromMillisecondsSinceEpoch(1, isUtc: true));
     });
     test('timestamp', () {
+      expect(sembastTimestampAdapter.encode(Timestamp(1234, 5678)),
+          '1970-01-01T00:20:34.000005678Z');
       expect(
           sembastTimestampAdapter
               .encode(Timestamp.fromMillisecondsSinceEpoch(1)),
@@ -41,10 +43,12 @@ void main() {
               .encode(Timestamp.fromMicrosecondsSinceEpoch(1)),
           '1970-01-01T00:00:00.000001Z');
 
-      expect(sembastDateTimeAdapter.decode('1970-01-01T00:00:00.000001Z'),
-          DateTime.fromMicrosecondsSinceEpoch(1, isUtc: true));
-      expect(sembastDateTimeAdapter.decode('1970-01-01T00:00:00.001Z'),
-          DateTime.fromMillisecondsSinceEpoch(1, isUtc: true));
+      expect(sembastTimestampAdapter.decode('1970-01-01T00:00:00.000001Z'),
+          Timestamp.fromMicrosecondsSinceEpoch(1));
+      expect(sembastTimestampAdapter.decode('1970-01-01T00:00:00.001Z'),
+          Timestamp.fromMillisecondsSinceEpoch(1));
+      expect(sembastTimestampAdapter.decode('1970-01-01T00:20:34.000005678Z'),
+          Timestamp(1234, 5678));
     });
     test('blob', () {
       expect(sembastBlobAdapter.encode(Blob.fromList([1, 2, 3])), 'AQID');
