@@ -1,6 +1,7 @@
-## 2.4.3-dev.1
+## 2.4.3
 
 * Export `disableSembastCooperator()` for unit tests.
+* Store and record database access now implemented as extensions.
 
 ## 2.4.2
 
