@@ -238,6 +238,10 @@ Supported value types are:
 
 Third party examples and tutorials available are listed [here](https://github.com/tekartik/sembast.dart/blob/master/sembast/doc/resources.md).
 
+### Issue
+
+* [Troubleshooting](https://github.com/tekartik/sembast.dart/blob/master/sembast/doc/troubleshooting.md).
+
 ## Build status
 
 Travis: [![Build Status](https://travis-ci.org/tekartik/sembast.dart.svg?branch=master)](https://travis-ci.org/tekartik/sembast.dart)
