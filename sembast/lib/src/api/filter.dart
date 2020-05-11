@@ -66,9 +66,13 @@ abstract class Filter {
   }
 
   /// Record must match any of the given [filters].
+  ///
+  /// If you only have two filters, you can also write `filter1 | filter2`.
   factory Filter.or(List<Filter> filters) => SembastCompositeFilter.or(filters);
 
   /// Record must match all of the given [filters].
+  ///
+  /// If you only have two filters, you can also write `filter1 & filter2`.
   factory Filter.and(List<Filter> filters) =>
       SembastCompositeFilter.and(filters);
 
@@ -81,4 +85,17 @@ abstract class Filter {
   /// provides a raw access to the record internal value for efficiency.
   factory Filter.custom(bool Function(RecordSnapshot record) matches) =>
       SembastCustomFilter(matches);
+}
+
+/// Provides convenience methods for combining multiple [Filter]s.
+extension FilterCombination on Filter {
+  /// Record must match this or [other] filter.
+  ///
+  /// Use [Filter.or] to combine more than two filters.
+  Filter operator |(Filter other) => SembastCompositeFilter.or([this, other]);
+
+  /// Record must match this and [other] filter.
+  ///
+  /// Use [Filter.and] to combine more than two filters.
+  Filter operator &(Filter other) => SembastCompositeFilter.and([this, other]);
 }
