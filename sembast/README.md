@@ -45,10 +45,10 @@ More information [here](https://github.com/tekartik/sembast.dart/blob/master/sem
 Simple example of writing and reading records
 
 ```dart
-// unsounded store
+// dynamically typed store
 var store = StoreRef.main();
 // Easy to put/get simple values or map
-// A key can be of type int or String and the value can be anything as long is it can
+// A key can be of type int or String and the value can be anything as long as it can
 // be properly JSON encoded/decoded
 await store.record('title').put(db, 'Simple application');
 await store.record('version').put(db, 10);
@@ -66,7 +66,7 @@ await store.record('version').delete(db);
 ### Store
 
 The store has some similarities with IndexedDB store and DataStore entities. The database always has a main store for easy access (like in the example aboves or typically to save singletons) and allows
-for an infinite number of stores where a developer would store entity specific data (such as list of record of the same 'type')
+for an infinite number of stores where a developer would store entity specific data (such as a list of records of the same 'type')
 
 ```dart
  // Use the animals store using Map records with int keys
@@ -83,7 +83,7 @@ await db.transaction((txn) async {
 
 ```
 
-The API takes advantage of strong mode to make database access less error prone.
+The API takes advantage of Dart strong mode to make database access less error prone.
 
 ```dart
 // Use the main store for storing key values as String
@@ -100,7 +100,7 @@ var username = await store.record('username').get(db);
 
 More info on the store API [here](https://github.com/tekartik/sembast.dart/blob/master/sembast/doc/new_api.md)
 
-When record value are Map, record fields can be reference using a dot (.) unless escaped.
+When record values are of type Map, record fields can be referenced using a dot (.) unless escaped.
 
 ```dart
 var store = intMapStoreFactory.store();
@@ -113,7 +113,7 @@ var value2 = record[FieldKey.escape('with.dots')];
 // value2 = 'my_other_value'
 ```
 
-Follow the links with more informatin on how to [write](https://github.com/tekartik/sembast.dart/blob/master/sembast/doc/writes.md)
+Follow the links for more information on how to [write](https://github.com/tekartik/sembast.dart/blob/master/sembast/doc/writes.md)
 or [read](https://github.com/tekartik/sembast.dart/blob/master/sembast/doc/queries.md) data
 
 ### Auto increment
@@ -130,7 +130,7 @@ var key2 = await store.add(db, 'value2');
 
 ### Transaction
 
-Actions can be group in transaction for consistency and optimization (single write on the file system). 
+Actions can be grouped into transactions for consistency and optimization (single write on the file system). 
 If an error is thrown, the transaction is cancelled and the changes reverted.
 
 To prevent deadlock, never use an existing Database or Store object.
