@@ -103,6 +103,46 @@ void main() {
       expect(_match(filter, {'test': 3}), isFalse);
     });
 
+    final alwaysMatchFilter = Filter.custom((_) => true);
+    final neverMatchFilter = Filter.custom((_) => false);
+
+    test('operator | and &', () {
+      expect(_match(alwaysMatchFilter | alwaysMatchFilter, null), isTrue);
+      expect(_match(alwaysMatchFilter & alwaysMatchFilter, null), isTrue);
+      expect(_match(alwaysMatchFilter | neverMatchFilter, null), isTrue);
+      expect(_match(neverMatchFilter | alwaysMatchFilter, null), isTrue);
+      expect(_match(alwaysMatchFilter & neverMatchFilter, null), isFalse);
+      expect(_match(neverMatchFilter & alwaysMatchFilter, null), isFalse);
+      // precedence
+      // Dart's precedence rules specify & to have higher precedence than |
+      expect(
+          _match(
+              neverMatchFilter | alwaysMatchFilter & alwaysMatchFilter, null),
+          isTrue);
+      expect(
+          _match(alwaysMatchFilter | neverMatchFilter & neverMatchFilter, null),
+          isTrue);
+      expect(
+          _match(neverMatchFilter | alwaysMatchFilter & neverMatchFilter, null),
+          isFalse);
+      expect(
+          _match(neverMatchFilter | neverMatchFilter & alwaysMatchFilter, null),
+          isFalse);
+      expect(
+          _match(
+              neverMatchFilter & alwaysMatchFilter | alwaysMatchFilter, null),
+          isTrue);
+      expect(
+          _match(neverMatchFilter & neverMatchFilter | alwaysMatchFilter, null),
+          isTrue);
+      expect(
+          _match(neverMatchFilter & alwaysMatchFilter | neverMatchFilter, null),
+          isFalse);
+      expect(
+          _match(alwaysMatchFilter & neverMatchFilter | neverMatchFilter, null),
+          isFalse);
+    });
+
     test('and', () {
       var filter =
           Filter.and([Filter.equals('test1', 1), Filter.equals('test2', 2)]);
