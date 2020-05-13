@@ -245,6 +245,40 @@ void main() {
       }
     });
 
+    test('null key', () {
+      try {
+        toJsonEncodable({null: 1}, adapters);
+        fail('should fail');
+      } on ArgumentError catch (e) {
+        // Invalid argument (Null in {null: 1}): not supported: null
+        expect(e.toString(), contains('Null'));
+      }
+      try {
+        toJsonEncodable({'test': 2, null: 1}, adapters);
+        fail('should fail');
+      } on ArgumentError catch (e) {
+        // Invalid argument (Null in {test: 2, null: 1}): not supported: null
+        expect(e.toString(), contains('Null'));
+      }
+    });
+
+    test('invalid key', () {
+      try {
+        toJsonEncodable({1: 1}, adapters);
+        fail('should fail');
+      } on ArgumentError catch (e) {
+        // Invalid argument (int in {1: 1}): not supported: 1
+        expect(e.toString(), contains('int'));
+      }
+      try {
+        toJsonEncodable({'test': 2, 1: 1}, adapters);
+        fail('should fail');
+      } on ArgumentError catch (e) {
+        // Invalid argument (int in {test: 2, 1: 1}): not supported: 1
+        expect(e.toString(), contains('int'));
+      }
+    });
+
     test('FieldValue', () {
       try {
         expect(toJsonEncodable(FieldValue.delete, adapters),

@@ -17,7 +17,7 @@ await db.transaction((txn) async {
 You can get a record by key
 
 ```dart
-   // Read by key
+// Read by key
 expect(await store.record(key1).get(db), {'name': 'fish'});
 
 // Read 2 records by key

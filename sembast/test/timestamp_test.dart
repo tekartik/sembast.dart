@@ -275,5 +275,20 @@ void main() {
       _test(Timestamp(0, 999000), testMicros: true);
       _test(Timestamp(0, 1000000), testMillis: true);
     });
+
+    test('fromDateTime', () {
+      var now = DateTime.now();
+      expect(Timestamp.fromDateTime(now), Timestamp.fromDateTime(now.toUtc()));
+    });
+
+    test('toDateTime', () {
+      var timestamp = Timestamp(1, 2);
+      var dateTime = timestamp.toDateTime();
+      var dateTimeUtc = timestamp.toDateTime(isUtc: true);
+      expect(dateTime.isUtc, isFalse);
+      expect(dateTimeUtc.isUtc, isTrue);
+      expect(dateTimeUtc.toIso8601String(), '1970-01-01T00:00:01.000Z');
+      expect(dateTime.toUtc(), dateTimeUtc);
+    });
   });
 }

@@ -1,10 +1,5 @@
-import 'test_common.dart';
-
-final storeFactory = intMapStoreFactory;
-final otherStoreFactory = stringMapStoreFactory;
-final testStore = storeFactory.store('test');
-final otherStore = StoreRef<String, Map<String, dynamic>>('other');
-final keyValueStore = StoreRef<String, String>('keyValue');
+import 'package:sembast/sembast.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('store_api', () {
@@ -50,6 +45,16 @@ void main() {
       sembastCodecDefault;
       // ignore: unnecessary_statements
       sembastCodecWithAdapters;
+
+      // ignore: unnecessary_statements
+      var store = StoreRef.main();
+
+      // ignore: unnecessary_statements
+      store.query;
+
+      var record = store.record(1);
+      // ignore: unnecessary_statements
+      record.get;
     });
 
     test('null_store', () {
