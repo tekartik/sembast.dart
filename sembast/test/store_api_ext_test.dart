@@ -15,10 +15,15 @@ void main() {
 
       // ignore: unnecessary_statements
       store.query;
+      // ignore: unnecessary_statements
+      store.find;
 
       var record = store.record(1);
       // ignore: unnecessary_statements
       record.get;
+
+      // ignore: unnecessary_statements
+      record.onSnapshot;
     });
   });
 }

@@ -94,7 +94,20 @@ class Timestamp implements Comparable<Timestamp> {
     return null;
   }
 
-  /// Creates a new [Timestamp] instance from the given date
+  /// Creates a new [Timestamp] instance from the given date.
+  ///
+  /// Timestamp has no timezone/offset to UTC information so you don't need
+  /// to convert dateTime to UTC.
+  ///
+  /// i.e.
+  /// ```
+  /// Timestamp.fromDateTime(dateTime);
+  /// ```
+  /// and
+  /// ```
+  /// Timestamp.fromDateTime(dateTime.toUtc());
+  /// ```
+  /// gives the same result.
   factory Timestamp.fromDateTime(DateTime dateTime) {
     final seconds = (dateTime.millisecondsSinceEpoch / 1000).floor();
     final nanoseconds = (dateTime.microsecondsSinceEpoch % 1000000) * 1000;
@@ -117,7 +130,11 @@ class Timestamp implements Comparable<Timestamp> {
     return Timestamp(seconds, nanoseconds);
   }
 
-  /// Constructs a [Timestamp] instance with current date and time
+  /// Constructs a [Timestamp] instance with current date and time.
+  ///
+  /// Timestamp has no timezone/offset to UTC information. This could
+  /// have been written this way with the same result.
+  /// `Timestamp.fromDateTime(DateTime.now().toUtc())`
   factory Timestamp.now() => Timestamp.fromDateTime(DateTime.now());
 
   @override
