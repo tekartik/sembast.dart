@@ -1,11 +1,14 @@
-import 'package:sembast/sembast.dart' show StoreRef;
+import 'package:sembast/sembast.dart' show Filter, RecordRef, StoreRef;
 import 'package:sembast/sembast.dart'
-    show SembastStoreRefExtension, SembastRecordRefExtension;
+    show
+        SembastStoreRefExtension,
+        SembastRecordRefExtension,
+        SembastFilterCombination;
 import 'package:test/test.dart';
 
 void main() {
   group('store_api', () {
-    test('public', () {
+    test('store', () {
       // What we want public
       // ignore: unnecessary_statements
       StoreRef;
@@ -17,6 +20,12 @@ void main() {
       store.query;
       // ignore: unnecessary_statements
       store.find;
+    });
+    test('record', () {
+      // ignore: unnecessary_statements
+      RecordRef;
+      // ignore: unnecessary_statements
+      var store = StoreRef.main();
 
       var record = store.record(1);
       // ignore: unnecessary_statements
@@ -24,6 +33,13 @@ void main() {
 
       // ignore: unnecessary_statements
       record.onSnapshot;
+    });
+    test('filter', () {
+      var filter = Filter.custom((record) => false);
+      // ignore: unnecessary_statements
+      SembastFilterCombination(filter) | filter;
+      // ignore: unnecessary_statements
+      SembastFilterCombination(filter) & filter;
     });
   });
 }
