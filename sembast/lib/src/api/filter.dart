@@ -88,7 +88,7 @@ abstract class Filter {
 }
 
 /// Provides convenience methods for combining multiple [Filter]s.
-extension FilterCombination on Filter {
+extension SembastFilterCombination on Filter {
   /// Record must match this or [other] filter.
   ///
   /// Use [Filter.or] to combine more than two filters.
