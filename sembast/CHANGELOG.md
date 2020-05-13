@@ -1,3 +1,7 @@
+## 2.4.4
+
+* Add support for filter operator & and |
+
 ## 2.4.3
 
 * Export `disableSembastCooperator()` for unit tests.
