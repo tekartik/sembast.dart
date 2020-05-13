@@ -25,7 +25,7 @@ var records = await store.records([key2, key3]).get(db);
 expect(records[0], {'name': 'cat'});
 expect(records[1], {'name': 'dog'});
 ```
- 
+
 
 ## Modify a read result
 
@@ -56,7 +56,7 @@ map['name'] = 'nice fish';
 Filtering and sorting can be done on any field
 
 ```dart
- // Look for any animal "greater than" (alphabetically) 'cat'
+// Look for any animal "greater than" (alphabetically) 'cat'
 // ordered by name
 var finder = Finder(
   filter: Filter.greaterThan('name', 'cat'),
@@ -139,14 +139,25 @@ var finder = Finder(filter: Filter.equals('product.code', 'AF8'));
 
 ### Composite filter
 
-You can combine multiple filters using `Filter.or` or `Filter.and`
+You can combine multiple filters using the operators `&` and `|`:
 
 ```dart
-filter = Filter.and([
+var filterAnd = Filter.greaterThan(Field.value, "hi") &
+    Filter.lessThan(Field.value, "hum");
+var filterOr = Filter.lessThan(Field.value, "hi") |
+    Filter.greaterThan(Field.value, "hum");
+```
+
+
+If you have more than two filters, you can also use `Filter.or` and `Filter.and`:
+```dart
+var filter = Filter.and([
   Filter.greaterThan(Field.value, "hi"),
-  Filter.lessThan(Field.value, "hum")
+  Filter.lessThan(Field.value, "hum"),
+  Filter.notEquals(Field.value, "ho"),
 ]);
 ```
+
 ### Using boundaries for paging
 
 `start` and `end` can specify a start and end boundary, similar to firestore
