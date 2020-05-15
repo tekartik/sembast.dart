@@ -1,5 +1,8 @@
 # Queries
 
+You can either query the database at a given time or [listen to changes](change_listener.md) for display update or
+data manipulation.
+
 Let's consider the following data
 
 ```dart

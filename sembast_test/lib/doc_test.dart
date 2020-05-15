@@ -413,6 +413,35 @@ void defineTests(DatabaseTestContext ctx) {
       }
     });
 
+    test('Write data', () async {
+      db = await setupForTest(ctx, 'doc/write_data.db');
+      {
+        // Our product store.
+        var store = intMapStoreFactory.store('product');
+
+        int lampKey;
+        int chairKey;
+        await db.transaction((txn) async {
+          // Add 2 records
+          lampKey = await store.add(txn, {'name': 'Lamp', 'price': 10});
+          chairKey = await store.add(txn, {'name': 'Chair', 'price': 15});
+        });
+
+        expect(
+            await store.record(lampKey).get(db), {'name': 'Lamp', 'price': 10});
+
+        // update the price of the lamp record
+        await store.record(lampKey).update(db, {'price': 12});
+
+        var tableKey = 1000578;
+        // Update or create the table product with key 1000578
+        await store.record(tableKey).put(db, {'name': 'Table', 'price': 120});
+
+        // Avoid unused warning that make the code easier-to read
+        expect(chairKey, 2);
+      }
+    });
+
     test('Preload data', () async {
       var path = dbPathFromName('doc/preload_data.db');
       await factory.deleteDatabase(path);
