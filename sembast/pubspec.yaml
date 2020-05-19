@@ -1,5 +1,5 @@
 name: sembast
-version: 2.4.4
+version: 2.4.4+1
 description: NoSQL persistent embedded file system document-based database for Dart VM and Flutter with encryption support.
 homepage: https://github.com/tekartik/sembast.dart/tree/master/sembast
 

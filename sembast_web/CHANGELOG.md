@@ -1,6 +1,7 @@
-## 1.1.0
+## 1.1.0+1
 
 - Add Blob and Timestamp support
+- Allow importing `sembast_web.dart` in non-web app.
 
 ## 1.0.0
 
