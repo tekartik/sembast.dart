@@ -15,11 +15,14 @@ Works on Dart VM and Flutter (no plugin needed, 100% Dart so works on all platfo
 
 Supports encryption using user-defined codec.
 
-Web support (including Flutter Web) through [`sembast_web`](https://pub.dev/packages/sembast_web).
+* Pure dart single file IO VM/Flutter storage supported.
+* Web support (including Flutter Web) through [`sembast_web`](https://pub.dev/packages/sembast_web).
+* Can work on top of sqflite through [`sembast_sqflite`](https://pub.dev/packages/sembast_sqflite).
 
 Usage example: [notepad_sembast](https://github.com/alextekartik/flutter_app_example/tree/master/notepad_sembast): Simple flutter notepad working on all platforms (web/mobile/mac)
  ([online demo](https://alextekartik.github.io/flutter_app_example/notepad_sembast/))
 
+Follow the [guide](https://github.com/tekartik/sembast.dart/blob/master/sembast/doc/guide.md).
 
 ## Usage
 

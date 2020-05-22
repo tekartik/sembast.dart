@@ -5,7 +5,7 @@ Future main() async {
 
   await shell.run('''
 
-  pub run build_runner test -- -p chrome -j 1 test/web test/multiplatform
+  pub run test -p chrome test/multiplatform/sembast_io_api_test.dart test/multiplatform/sembast_web_api_test.dart
 
 ''');
 }

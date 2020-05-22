@@ -1,6 +1,7 @@
-## 2.4.4
+## 2.4.4+1
 
 * Add support for filter operator & and |
+* Allow importing `sembast_io.dart` in non-io app.
 
 ## 2.4.3
 

@@ -14,7 +14,6 @@ await db.transaction((txn) async {
   key2 = await store.add(txn, {'name': 'cat'});
   key3 = await store.add(txn, {'name': 'dog'});
 });
-
 ```
 
 Example on how to find and update in a transaction
