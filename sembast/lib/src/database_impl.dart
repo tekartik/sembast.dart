@@ -26,8 +26,6 @@ import 'package:sembast/src/transaction_impl.dart';
 import 'package:sembast/src/utils.dart';
 import 'package:synchronized/synchronized.dart';
 
-
-
 final bool _debugStorage = false; // devWarning(true);
 
 /// Get implementation.
