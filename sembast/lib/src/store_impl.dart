@@ -568,10 +568,20 @@ class SembastStore {
   /// Count records in a transaction.
   Future<int> txnCount(SembastTransaction txn, Filter filter) async {
     var count = 0;
-    await forEachRecords(txn, filter, (record) {
-      count++;
-      return true;
-    });
+    // no filter optimization
+    if (filter == null) {
+      // handle record in transaction first
+      if (_hasTransactionRecords(txn)) {
+        count += txnRecords.length;
+      }
+      count += recordMap.length;
+    } else {
+      // There is a filter, count manually
+      await forEachRecords(txn, filter, (record) {
+        count++;
+        return true;
+      });
+    }
     return count;
   }
 

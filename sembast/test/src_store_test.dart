@@ -52,5 +52,23 @@ void defineTests(DatabaseTestContext ctx) {
       expect(await store.findKey(db, finder: Finder(limit: 1)), 1);
       expect(await store.findKey(db, finder: Finder(offset: 1, limit: 1)), 2);
     });
+
+    test('count_optimization', () async {
+      // Simple code to debug
+      var store = StoreRef('test');
+      var record = store.record(1);
+      await record.put(db, 'test');
+      expect(await store.count(db), 1);
+      try {
+        await db.transaction((txn) async {
+          expect(await store.count(txn), 1);
+          var record2 = store.record(2);
+          await record2.put(txn, 'test');
+          expect(await store.count(txn), 2);
+          throw 'cancel';
+        });
+      } catch (_) {}
+      expect(await store.count(db), 1);
+    });
   });
 }
