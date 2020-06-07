@@ -570,11 +570,24 @@ class SembastStore {
     var count = 0;
     // no filter optimization
     if (filter == null) {
-      // handle record in transaction first
-      if (_hasTransactionRecords(txn)) {
-        count += txnRecords.length;
-      }
+      // Use the current record list
       count += recordMap.length;
+
+      // Apply any transaction change
+      if (_hasTransactionRecords(txn)) {
+        txnRecords.forEach((key, value) {
+          var deleted = value.deleted ?? false;
+          if (recordMap.containsKey(key)) {
+            if (deleted) {
+              count--;
+            }
+          } else {
+            if (!deleted) {
+              count++;
+            }
+          }
+        });
+      }
     } else {
       // There is a filter, count manually
       await forEachRecords(txn, filter, (record) {
