@@ -1,8 +1,8 @@
 # Migrating to 1.15.0
 
 As of 1.15.0, there is a new API available to manipulate data in the database. 
-Previous API had too many `dynamic` types. Switching to the new API (for now the existing API remains) make it less
-error-prone.
+Previous API had too many `dynamic` types. Switching to the new API makes it less
+error-prone. The old API is available up to v2.3.0 if you want to perform a smooth migration to the new API.
 
 The new `Store` API allows you to enforce the type of keys and values:
 

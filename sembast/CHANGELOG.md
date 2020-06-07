@@ -1,7 +1,9 @@
-## 2.4.4+1
+## 2.4.4+3
 
 * Add support for filter operator & and |
 * Allow importing `sembast_io.dart` in non-io app.
+* Optimize query without sort orders.
+* Optimize count without sort filter.
 
 ## 2.4.3
 

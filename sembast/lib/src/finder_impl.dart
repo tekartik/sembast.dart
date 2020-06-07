@@ -8,8 +8,6 @@ import 'package:sembast/src/sort.dart';
 import 'package:sembast/src/sort_order_impl.dart';
 import 'package:sembast/src/utils.dart';
 
-// ignore_for_file: deprecated_member_use_from_same_package
-
 /// Sort and limit a list.
 Future<List<ImmutableSembastRecord>> sortAndLimit(
     List<ImmutableSembastRecord> results,
@@ -186,7 +184,7 @@ class SembastFinder implements Finder {
     return result;
   }
 
-  /// True if we are atstart  boundary.
+  /// True if we are at start  boundary.
   bool starts(SembastRecord record, Boundary boundary) {
     final result = compareToBoundary(record, boundary);
     if (result == 0 && boundary.include) {
@@ -219,6 +217,13 @@ class SembastFinder implements Finder {
 
   @override
   String toString() {
-    return 'filter: ${filter}, sort: ${sortOrders}';
+    return 'Finder(${{
+      if (filter != null) 'filter': filter,
+      if (offset != null) 'offset': offset,
+      if (limit != null) 'limit': limit,
+      if (start != null) 'start': start,
+      if (end != null) 'limit': end,
+      if (sortOrders != null) 'sort': sortOrders
+    }})';
   }
 }
