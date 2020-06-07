@@ -15,8 +15,6 @@ import 'package:sembast/src/utils.dart';
 import 'common_import.dart';
 import 'database_impl.dart';
 
-// ignore_for_file: deprecated_member_use_from_same_package
-
 /// Store implementation.
 class SembastStore {
   /// The database.
@@ -308,9 +306,12 @@ class SembastStore {
     SplayTreeMap<dynamic, ImmutableSembastRecord> preOrderedResults;
 
     // Use pre-ordered or not
+    // Pre-ordered means we have no sort and don't need to go though all
+    // the records.
     var sembastFinder = finder as SembastFinder;
     var hasSortOrder = sembastFinder?.sortOrders?.isNotEmpty ?? false;
     var usePreordered = !hasSortOrder;
+    int preorderedCurrentOffset;
     if (usePreordered) {
       // Preordered by key
       preOrderedResults =
@@ -321,6 +322,21 @@ class SembastStore {
 
     bool addRecord(ImmutableSembastRecord record) {
       if (usePreordered) {
+        // We can handle offset and limit directly too
+        if (sembastFinder?.offset != null) {
+          preorderedCurrentOffset ??= 0;
+          if (preorderedCurrentOffset++ < sembastFinder.offset) {
+            // Next!
+            return true;
+          }
+        }
+        if (sembastFinder?.limit != null) {
+          if (preOrderedResults.length >= sembastFinder.limit - 1) {
+            // Add an stop
+            preOrderedResults[record.key] = record;
+            return false;
+          }
+        }
         preOrderedResults[record.key] = record;
       } else {
         results.add(record);
@@ -346,32 +362,33 @@ class SembastStore {
           results.sort((record1, record2) =>
               sembastFinder.compareThenKey(record1, record2));
         }
-      }
 
-      try {
-        // handle start
-        if (sembastFinder.start != null) {
-          results = await filterStart(sembastFinder, results);
+        try {
+          // handle start
+          if (sembastFinder.start != null) {
+            results = await filterStart(sembastFinder, results);
+          }
+          // handle end
+          if (sembastFinder.end != null) {
+            results = await filterEnd(sembastFinder, results);
+          }
+        } catch (e) {
+          print('Make sure you are comparing boundaries with a proper type');
+          rethrow;
         }
-        // handle end
-        if (sembastFinder.end != null) {
-          results = await filterEnd(sembastFinder, results);
-        }
-      } catch (e) {
-        print('Make sure you are comparing boundaries with a proper type');
-        rethrow;
-      }
 
-      // offset
-      if (sembastFinder.offset != null) {
-        results = results.sublist(min(sembastFinder.offset, results.length));
-      }
-      // limit
-      if (sembastFinder.limit != null) {
-        results = results.sublist(0, min(sembastFinder.limit, results.length));
+        // offset
+        if (sembastFinder.offset != null) {
+          results = results.sublist(min(sembastFinder.offset, results.length));
+        }
+        // limit
+        if (sembastFinder.limit != null) {
+          results =
+              results.sublist(0, min(sembastFinder.limit, results.length));
+        }
       }
     } else {
-      // Already sorted by SplayTreeMap
+      // Already sorted by SplayTreeMap and offset and limit handled
     }
     return results;
   }
