@@ -15,6 +15,6 @@ dev_dependencies:
     git:
       url: git://github.com/tekartik/chrome_travis.dart
       ref: dart2
-    version: '>=0.1.4'
+    version: '>=0.2.2'
 
 
