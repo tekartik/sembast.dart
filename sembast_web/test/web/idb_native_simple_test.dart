@@ -1,5 +1,5 @@
 @TestOn('browser')
-library sembast_web.test.idb_io_simple_test;
+library sembast_web.test.web.idb_native_simple_test;
 
 import 'dart:html';
 
