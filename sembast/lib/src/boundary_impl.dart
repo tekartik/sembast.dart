@@ -18,7 +18,7 @@ class SembastBoundary implements Boundary {
       : include = include == true,
         snapshot = makeImmutableRecordSnapshot(record);
 
-  Map<String, dynamic> get _toDebugMap {
+  Map<String, dynamic> _toDebugMap() {
     final debugMap = <String, dynamic>{};
     if (values != null) {
       debugMap['values'] = values.toString();
@@ -31,8 +31,7 @@ class SembastBoundary implements Boundary {
 
   @override
   String toString() {
-    // ignore: deprecated_member_use
-    return _toDebugMap.toString();
+    return _toDebugMap().toString();
   }
 
   @override

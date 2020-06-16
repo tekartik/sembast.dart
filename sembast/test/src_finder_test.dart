@@ -7,15 +7,15 @@ import 'package:sembast/src/store_impl.dart';
 import 'test_common.dart';
 
 void main() {
-  group('store_impl', () {
-    var store = StoreRef<int, int>.main();
+  group('finder', () {
+    group('boundary', () {
+      var store = StoreRef<int, int>.main();
 
-    group('filter', () {
       var record1 = ImmutableSembastRecord(store.record(1), 1000);
       var record2 = ImmutableSembastRecord(store.record(2), 1001);
       var record3 = ImmutableSembastRecord(store.record(3), 1001);
 
-      test('filterStart', () async {
+      test('boundaryStart', () async {
         var finder = SembastFinder(
             sortOrders: [SortOrder(Field.value)],
             start: Boundary(values: [1001]));
@@ -33,7 +33,7 @@ void main() {
         expect(await finderFilterStart(finder, [record1, record2, record3]),
             [record1, record2, record3]);
       });
-      test('filterEnd', () async {
+      test('boundaryEnd', () async {
         var finder = SembastFinder(
             sortOrders: [SortOrder(Field.value)],
             end: Boundary(values: [1001]));
@@ -54,6 +54,12 @@ void main() {
         expect(await finderFilterEnd(finder, [record1, record2, record3]),
             [record1, record2, record3]);
       });
+    });
+    test('toString()', () {
+      var finder =
+          Finder(sortOrders: [SortOrder('test')], start: Boundary(values: [1]));
+      expect(finder.toString(),
+          'Finder({sort: [{test: asc}], start: {values: [1], include: false}})');
     });
   });
 }
