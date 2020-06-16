@@ -95,7 +95,6 @@ class SembastSortOrder implements SortOrder {
 
   @override
   String toString() {
-    // ignore: deprecated_member_use
-    return _toDebugMap.toString();
+    return _toDebugMap().toString();
   }
 }
