@@ -1,5 +1,9 @@
 library sembast.open_test;
 
+import 'dart:async';
+
+import 'package:path/path.dart';
+
 import 'test_common.dart';
 
 void main() {
@@ -95,6 +99,54 @@ void defineTests(DatabaseTestContext ctx) {
       await db.close();
 
       db = await openDatabase(path, 2);
+      await db.close();
+    });
+
+    test('on_change_version_error', () async {
+      final path = dbPathFromName(join('open', 'on_change_version_error.db'));
+
+      Future<Database> openDatabase(String path) => factory.openDatabase(path);
+
+      Future<Database> openDatabaseV1(String path) =>
+          factory.openDatabase(path, version: 1);
+
+      FutureOr changeFrom1To2(Database db, int oldVersion, int newVersion) {
+        if (oldVersion == 1) {
+          throw UnimplementedError();
+        }
+      }
+
+      Future<Database> openDatabaseV2(String path) => factory.openDatabase(path,
+          version: 2, onVersionChanged: changeFrom1To2);
+
+      Database db;
+
+      await factory.deleteDatabase(path);
+
+      // open v1
+      db = await openDatabaseV1(path);
+      expect(db.version, 1); // true
+      await db.close();
+
+      db = null;
+      try {
+        // open v1 and update to v2, contains throw UnimplementedError();
+        db = await openDatabaseV2(path);
+        fail('should fail');
+      } on UnimplementedError catch (e) {
+        print(e);
+        //expect(db.version, 1); //  true
+      }
+      expect(db, isNull);
+
+      // open without version
+      db = await openDatabase(path);
+      expect(db.version, 1); // true
+      await db.close();
+
+      // open  without version now
+      db = await openDatabase(path);
+      expect(db.version, 1); // false - Why?
       await db.close();
     });
   });

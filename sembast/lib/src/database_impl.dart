@@ -140,7 +140,7 @@ class SembastDatabase extends Object
   void _clearTxnData() {
     _txnDroppedStores.clear();
 
-// remove temp data in all store
+    // remove temp data in all store
     for (var store in stores) {
       store.rollback();
     }
@@ -1058,7 +1058,8 @@ class SembastDatabase extends Object
     }
     CommitData commitData;
 
-    final upgrading = _upgrading;
+    /// Can be true during open only when version changes.
+    var upgrading = _upgrading;
 
     /// For jdb only
     var reloadData = false;
@@ -1076,6 +1077,8 @@ class SembastDatabase extends Object
         // To handle dropped stores
 
         void _transactionCleanUp() {
+          upgrading = false;
+
           _clearTxnData();
           // Mark transaction complete, ignore error
           _transaction?.completer?.complete();
