@@ -133,10 +133,7 @@ void defineTests(DatabaseTestContext ctx) {
         // open v1 and update to v2, contains throw UnimplementedError();
         db = await openDatabaseV2(path);
         fail('should fail');
-      } on UnimplementedError catch (e) {
-        print(e);
-        //expect(db.version, 1); //  true
-      }
+      } on UnimplementedError catch (_) {}
       expect(db, isNull);
 
       // open without version
