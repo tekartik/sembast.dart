@@ -86,16 +86,15 @@ class SembastSortOrder implements SortOrder {
   }
 
   Map<String, dynamic> _toDebugMap() {
-    final map = <String, dynamic>{field: ascending ? 'asc' : 'desc'};
-    if (nullLast == true) {
-      map['nullLast'] = true;
-    }
+    final map = <String, dynamic>{
+      field: ascending ? 'asc' : 'desc',
+      if (nullLast == true) 'nullLast': true
+    };
     return map;
   }
 
   @override
   String toString() {
-    // ignore: deprecated_member_use
-    return _toDebugMap.toString();
+    return _toDebugMap().toString();
   }
 }

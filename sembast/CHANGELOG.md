@@ -1,4 +1,8 @@
-## 2.4.4+3
+## 2.4.5
+
+* Fix version handling when an error is thrown during open.
+
+## 2.4.4+4
 
 * Add support for filter operator & and |
 * Allow importing `sembast_io.dart` in non-io app.

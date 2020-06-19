@@ -219,11 +219,11 @@ class SembastFinder implements Finder {
   String toString() {
     return 'Finder(${{
       if (filter != null) 'filter': filter,
+      if (sortOrders != null) 'sort': sortOrders,
       if (offset != null) 'offset': offset,
       if (limit != null) 'limit': limit,
       if (start != null) 'start': start,
       if (end != null) 'limit': end,
-      if (sortOrders != null) 'sort': sortOrders
     }})';
   }
 }
