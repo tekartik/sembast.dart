@@ -853,12 +853,8 @@ class SembastDatabase extends Object
     }
   }
 
-  /// Delta import. Must not be in a transaction
-  Future jdbDeltaImport(int revision) async {
-    var result = await transaction((txn) async {
-      return await txnJdbDeltaImport(revision);
-    });
-
+  /// notify imported result
+  void _notifyJdbImportResult(JdbImportResult result) {
     if (listener.isNotEmpty) {
       if (result.delta && (result.content.isNotEmpty)) {
         /// Prepare listener
@@ -889,6 +885,14 @@ class SembastDatabase extends Object
         }
       }
     }
+  }
+
+  /// Delta import. Must not be in a transaction
+  Future jdbDeltaImport(int revision) async {
+    var result = await transaction((txn) async {
+      return await txnJdbDeltaImport(revision);
+    });
+    _notifyJdbImportResult(result);
   }
 
   /// Delta import. Must be in a transaction
@@ -1068,7 +1072,13 @@ class SembastDatabase extends Object
     do {
       if (reloadData) {
         await transactionLock.synchronized(() async {
-          await txnJdbDeltaImport(jdbIncrementRevisionStatus.revision);
+          var result =
+              await txnJdbDeltaImport(jdbIncrementRevisionStatus.revision);
+
+          /// Make sure that listener listen to imported value anyway
+          lazyListenerOperations.add(() async {
+            _notifyJdbImportResult(result);
+          });
         });
         reloadData = false;
       }
@@ -1582,6 +1592,15 @@ class DatabaseContent {
 
   @override
   String toString() => '$stores';
+
+  /// Get the list of all records
+  List<ImmutableSembastRecord> get records {
+    var records = <ImmutableSembastRecord>[];
+    for (var store in stores) {
+      records.addAll(store.records);
+    }
+    return records;
+  }
 }
 
 /// Import result.
