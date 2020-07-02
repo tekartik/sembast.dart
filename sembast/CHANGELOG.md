@@ -1,3 +1,7 @@
+[s## 2.4.6
+
+* Optimize cooperator delay for the web and allow custom values for delay and pause.
+
 ## 2.4.5
 
 * Fix version handling when an error is thrown during open.

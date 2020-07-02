@@ -1,6 +1,35 @@
 import 'dart:async';
 
 import 'package:meta/meta.dart';
+import 'package:sembast/src/env_utils.dart';
+
+/// Device optimized delay
+const _cooperatorIoDelayMicrosecondsDefault = 4000;
+
+/// Device optimized pause
+const _cooperatorIoPauseMicrosecondsDefault = 100;
+
+/// Web optimized delay
+const _cooperatorWebDelayMicrosecondsDefault = 24000;
+
+/// Web optimized pause
+const _cooperatorWebPauseMicrosecondsDefault = 1;
+
+/// Default delay
+const _cooperatorDelayMicrosecondsDefault = isRunningAsJavascript
+    ? _cooperatorWebDelayMicrosecondsDefault
+    : _cooperatorIoDelayMicrosecondsDefault;
+
+/// Default pause
+const _cooperatorPauseMicrosecondsDefault = isRunningAsJavascript
+    ? _cooperatorWebPauseMicrosecondsDefault
+    : _cooperatorIoPauseMicrosecondsDefault;
+
+/// Cooperator delay
+var cooperatorDelayMicroseconds = _cooperatorDelayMicrosecondsDefault;
+
+/// Cooperator pause
+var cooperatorPauseMicroseconds = _cooperatorPauseMicrosecondsDefault;
 
 /// Simple cooperate that checks every 4ms and wait for 100 microseconds.
 ///
@@ -15,23 +44,25 @@ class Cooperator {
 
   /// Need to cooperate every 16 milliseconds.
   bool get needCooperate =>
-      cooperateOn && _cooperateStopWatch.elapsedMilliseconds > 4;
+      cooperateOn &&
+      _cooperateStopWatch.elapsedMicroseconds > cooperatorDelayMicroseconds;
 
   /// Cooperate if needed.
   FutureOr cooperate() {
     if (needCooperate) {
-      _cooperateStopWatch
-        ..stop()
-        ..reset()
-        ..start();
       // Just don't make it 0, tested for best performance using Flutter
       // on a (non-recent) Nexus 5
-      return Future.delayed(const Duration(microseconds: 100));
+      return Future.delayed(Duration(microseconds: cooperatorPauseMicroseconds))
+          .then((_) {
+        // restart after the pause
+        _cooperateStopWatch
+          ..stop()
+          ..reset()
+          ..start();
+      });
     } else {
       return null;
     }
-    // await Future.value();
-    //print('breath');
   }
 
   /// Stop the cooperator.
@@ -70,9 +101,16 @@ void disableSembastCooperator() {
   cooperatorDisabled = true;
 }
 
-/// Re-enable sembast cooperator.
+/// Re-enable sembast cooperator or change default pause and delay
+///
+/// [delayMicroseconds] specifies at which frequency an heavy algorithm is paused.
+/// [pauseMicroseconds] specifies the duration of the pauseat which frequency an heavy algorithm is paused.
 @visibleForTesting
-void enableSembastCooperator() {
+void enableSembastCooperator({int delayMicroseconds, int pauseMicroseconds}) {
   cooperatorDisabled = false;
+  cooperatorDelayMicroseconds =
+      delayMicroseconds ?? _cooperatorDelayMicrosecondsDefault;
+  cooperatorPauseMicroseconds =
+      pauseMicroseconds ?? _cooperatorPauseMicrosecondsDefault;
   globalCooperator.restart();
 }

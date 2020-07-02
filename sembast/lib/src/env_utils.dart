@@ -20,5 +20,4 @@ bool get isRelease {
 bool get isDebug => !isRelease;
 
 /// Special runtime trick to known whether we are in the javascript world
-bool get isRunningAsJavascript => _isRunningAsJavascript ?? identical(1, 1.0);
-bool _isRunningAsJavascript;
+const isRunningAsJavascript = identical(0, 0.0);
