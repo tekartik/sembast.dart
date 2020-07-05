@@ -2,6 +2,7 @@ library sembast.fs;
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:path/path.dart';
 import 'package:sembast/sembast.dart';
@@ -10,15 +11,25 @@ import 'package:sembast/src/database_factory_mixin.dart';
 import 'package:sembast/src/database_impl.dart';
 import 'package:sembast/src/storage.dart';
 
+import 'common_import.dart';
 import 'file_system.dart';
 
-class _FsDatabaseStorage extends DatabaseStorage {
+/// File system storage.
+class FsDatabaseStorage extends DatabaseStorage {
+  /// File system
   final FileSystem fs;
+
+  /// File
   final File file;
+
+  /// Whether it is a temp file
   bool isTmp;
+
+  /// log level
   final bool logV = databaseStorageLogLevel == SembastLogLevel.verbose;
 
-  _FsDatabaseStorage(this.fs, String path) : file = fs.file(path);
+  /// File system storage constructor.
+  FsDatabaseStorage(this.fs, String path) : file = fs.file(path);
 
   @override
   bool get supported => true;
@@ -65,11 +76,12 @@ class _FsDatabaseStorage extends DatabaseStorage {
     }
   }
 
+  /// Temp path
   String get tmpPath => join(dirname(path), '~${basename(path)}');
 
   @override
   DatabaseStorage get tmpStorage {
-    return _FsDatabaseStorage(fs, tmpPath)..isTmp = true;
+    return FsDatabaseStorage(fs, tmpPath)..isTmp = true;
   }
 
   @override
@@ -101,6 +113,67 @@ class _FsDatabaseStorage extends DatabaseStorage {
   @override
   Stream<String> readLines() {
     return utf8.decoder.bind(file.openRead()).transform(const LineSplitter());
+  }
+
+  @override
+  Stream<String> readSafeLines() {
+    StreamSubscription subscription;
+    Uint8List currentLine;
+    const endOfLine = 10;
+    const lineFeed = 13;
+    StreamController<String> ctlr;
+    ctlr = StreamController<String>(onListen: () {
+      void addCurrentLine() {
+        if (currentLine?.isNotEmpty ?? false) {
+          try {
+            ctlr.add(utf8.decode(currentLine));
+          } catch (_) {
+            // Ignore non utf8 lines
+          }
+        }
+        currentLine = null;
+      }
+
+      void addToCurrentLine(Uint8List data) {
+        if (currentLine == null) {
+          currentLine = data;
+        } else {
+          var newCurrentLine = Uint8List(currentLine.length + data.length);
+          newCurrentLine.setAll(0, currentLine);
+          newCurrentLine.setAll(currentLine.length, data);
+          currentLine = newCurrentLine;
+        }
+      }
+
+      subscription = file.openRead().listen((data) {
+        // devPrint('read $data');
+        // look for \n (10)
+        var start = 0;
+        for (var i = 0; i < data.length; i++) {
+          var byte = data[i];
+          if (byte == endOfLine || byte == lineFeed) {
+            addToCurrentLine(data.sublist(start, i));
+            addCurrentLine();
+            // Skip it
+            start = i + 1;
+          }
+        }
+        // Store last current line
+        if (data.length > start) {
+          addToCurrentLine(data.sublist(start, data.length));
+        }
+      }, onDone: () {
+        // Last one
+        if (currentLine != null) {
+          addCurrentLine();
+        }
+        ctlr.close();
+      });
+    }, onCancel: () {
+      subscription?.cancel();
+    });
+
+    return ctlr.stream;
   }
 
   @override
@@ -137,11 +210,11 @@ class DatabaseFactoryFs extends SembastDatabaseFactory
 
   @override
   SembastDatabase newDatabase(DatabaseOpenHelper openHelper) =>
-      SembastDatabase(openHelper, _FsDatabaseStorage(fs, openHelper.path));
+      SembastDatabase(openHelper, FsDatabaseStorage(fs, openHelper.path));
 
   @override
   Future doDeleteDatabase(String path) async {
-    return _FsDatabaseStorage(fs, path).delete();
+    return FsDatabaseStorage(fs, path).delete();
   }
 
   @override

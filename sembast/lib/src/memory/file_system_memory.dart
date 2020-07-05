@@ -11,7 +11,11 @@ import 'file_system_memory_impl.dart';
 final FileSystemMemory _fs = FileSystemMemory();
 
 /// In memory file system.
-FileSystemMemory get memoryFileSystem => _fs;
+FileSystemMemory get fileSystemMemory => _fs;
+
+/// In memory file system. (obsolete)
+@Deprecated('since 2.4.7 2020/07/05')
+FileSystemMemory get memoryFileSystem => fileSystemMemory;
 
 /// In memory file system.
 class FileSystemMemory implements fs.FileSystem {

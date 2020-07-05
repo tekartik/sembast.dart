@@ -29,7 +29,7 @@ class FileSystemTestContext {
 }
 
 FileSystemTestContext get memoryFileSystemContext =>
-    FileSystemTestContext()..fs = memoryFileSystem;
+    FileSystemTestContext()..fs = fileSystemMemory;
 
 String dbPathFromName(String name) =>
     join('.dart_tool', 'sembast', 'test', name);
