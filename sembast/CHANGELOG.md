@@ -1,4 +1,4 @@
-## 2.4.7-dev.1
+## 2.4.7-dev.2
 
 * Handle corrupted utf8 lines in sembast io
 
