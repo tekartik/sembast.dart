@@ -1,3 +1,7 @@
+## 2.4.7-dev.1
+
+* Handle corrupted utf8 lines in sembast io
+
 ## 2.4.6+1
 
 * Optimize cooperator delay for the web and allow custom values for delay and pause.
