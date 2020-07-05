@@ -2,7 +2,7 @@
 
 ## Unit test
 
-Easiest is to use the `databaseFactoryInMemory` to develop and test your database API.
+Easiest is to use the `databaseFactoryMemory` to develop and test your database API.
 
 Simple unit test:
 ```dart
@@ -34,6 +34,35 @@ void main() {
   });
 }
 ```
+
+## Flutter test testWidgets()
+
+It seems File io write access is not possible in write mode during testWidgets without changes (try to create a directory, it won't work neither).
+                                                     
+What you could do during unittest is to use a different factory: `databaseFactoryMemory`
+
+```dart
+import 'package:flutter_test/flutter_test.dart';
+import 'package:sembast/sembast_memory.dart';
+
+Future main() async {
+  testWidgets('database', (tester) async {
+    var db = await databaseFactoryMemory.openDatabase('database');
+    expect(db, isNotNull);
+    await db.close();
+  });
+}
+```
+
+## Isolates
+
+Sembast io database (single file in json format) should be used from the main isolate only.
+
+* Sembast io (`databaseFactoryIo`) is not cross-isolate safe. Dataloss and corruption possible.
+* Sembast io is not cross-process safe.
+* [sembast_sqflite](https://pub.dev/packages/sembast_sqflite) factory is cross-process safe (more tests to be done regarding some locked access but data is not corrupted). sqflite itself should not be used from another isolage.
+* [sembast_web](https://pub.dev/packages/sembast_web) factory is cross-tab safe. Relying on indexed DB, it should be cross-worker safe (no tests done in web workers yet)
+
 ## Get the list of stores
 
 Response: **you cannot**
