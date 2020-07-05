@@ -695,8 +695,9 @@ class SembastDatabase extends Object
 
         await _findOrCreate();
         if (_storageBase.supported) {
-          void _clear() {
+          void _clearBeforeImport() {
             // empty stores and meta
+            _exportStat = DatabaseExportStat();
             _meta = null;
             _mainStore = null;
             _stores.clear();
@@ -707,9 +708,8 @@ class SembastDatabase extends Object
             var corrupted = false;
 
             Future import(Stream<String> lines, {bool safeMode}) async {
-              _clear();
+              _clearBeforeImport();
               var firstLineRead = false;
-              _exportStat = DatabaseExportStat();
 
               await for (var line in lines) {
                 _exportStat.lineCount++;
@@ -818,7 +818,7 @@ class SembastDatabase extends Object
               }
             }
           } else if (_storageJdb?.supported ?? false) {
-            _clear();
+            _clearBeforeImport();
             var map = await _storageJdb.readMeta();
 
             if (Meta.isMapMeta(map)) {
