@@ -37,6 +37,9 @@ abstract class DatabaseStorage extends StorageBase {
   /// Read all lines.
   Stream<String> readLines();
 
+  /// Read safe lines, in case of corrupted data
+  Stream<String> readSafeLines();
+
   /// Append multiple lines.
   Future appendLines(List<String> lines);
 

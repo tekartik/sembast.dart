@@ -455,7 +455,7 @@ void defineTests(FileSystemTestContext ctx) {
         expect(lines, ['test']);
       });
 
-      test('depp_create_write_then_create', () async {
+      test('deep_create_write_then_create', () async {
         await clearOutFolder();
         var file = nameFile(join('test', 'sub', 'yet another'));
         file = await createFile(file);

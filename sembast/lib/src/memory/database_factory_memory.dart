@@ -106,12 +106,17 @@ class DatabaseStorageMemory extends DatabaseStorage {
 
   @override
   Future tmpRecover() => null;
+
+  @override
+  Stream<String> readSafeLines() {
+    throw UnimplementedError();
+  }
 }
 
 /// The simulated fs factory class
 class DatabaseFactoryMemoryFs extends DatabaseFactoryFs {
   /// In memory fs.
-  DatabaseFactoryMemoryFs() : super(memoryFileSystem);
+  DatabaseFactoryMemoryFs() : super(fileSystemMemory);
 }
 
 /// The simulated jdb factory class

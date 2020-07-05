@@ -1,6 +1,11 @@
-[s## 2.4.6
+## 2.4.7-dev.2
+
+* Handle corrupted utf8 lines in sembast io
+
+## 2.4.6+1
 
 * Optimize cooperator delay for the web and allow custom values for delay and pause.
+* Fix listener for imported data during transaction (sembast_web and sembast_sqflite)
 
 ## 2.4.5
 

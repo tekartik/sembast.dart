@@ -13,6 +13,7 @@ import 'test_common.dart';
 
 void main() {
   defineTests(memoryFileSystemContext);
+  defineTestsWithCodec(memoryFileSystemContext);
 }
 
 Map mapWithoutCodec(Map map) {
@@ -26,7 +27,36 @@ bool _hasRandomIv(SembastCodec codec) {
       (codec?.signature == 'encrypt');
 }
 
-void defineTests(FileSystemTestContext ctx, {SembastCodec codec}) {
+void defineTests(FileSystemTestContext ctx) {
+  final fs = ctx.fs;
+  DatabaseFactory factory = DatabaseFactoryFs(fs);
+  //String getDbPath() => ctx.outPath + '.db';
+  String dbPath;
+
+  Future<String> prepareForDb() async {
+    dbPath = dbPathFromName('compat/database_format.db');
+    await factory.deleteDatabase(dbPath);
+    return dbPath;
+  }
+
+  test('corrupted non-utf8', () async {
+    await prepareForDb();
+    await writeContent(fs, dbPath, [
+      '{"version":2,"sembast":1}',
+      '{"key":1,"store":"test","value":1}',
+      String.fromCharCodes([195, 9]),
+      '{"key":3,"store":"test","value":3}'
+    ]);
+    var store = StoreRef<int, int>('test');
+    final db = await factory.openDatabase(dbPath);
+    expect(db.version, 2);
+    print(await store.find(db));
+    expect(await store.count(db), 2);
+    await db.close();
+  });
+}
+
+void defineTestsWithCodec(FileSystemTestContext ctx, {SembastCodec codec}) {
   final fs = ctx.fs;
   DatabaseFactory factory = DatabaseFactoryFs(fs);
   //String getDbPath() => ctx.outPath + '.db';

@@ -82,7 +82,7 @@ void defineTests(FileSystemTestContext ctx) {
     group('json_codec', () {
       var codec = SembastCodec(signature: 'json', codec: MyJsonCodec());
       var codecAlt = SembastCodec(signature: 'json_alt', codec: MyJsonCodec());
-      database_format_test.defineTests(ctx, codec: codec);
+      database_format_test.defineTestsWithCodec(ctx, codec: codec);
       _commonTests(codec);
 
       test('one_record', () async {
@@ -111,13 +111,13 @@ void defineTests(FileSystemTestContext ctx) {
     group('base64_random_codec', () {
       var codec = SembastCodec(
           signature: 'base64_random', codec: MyCustomRandomCodec());
-      database_format_test.defineTests(ctx, codec: codec);
+      database_format_test.defineTestsWithCodec(ctx, codec: codec);
       _commonTests(codec);
     });
 
     group('base64_codec', () {
       var codec = SembastCodec(signature: 'base64', codec: MyCustomCodec());
-      database_format_test.defineTests(ctx, codec: codec);
+      database_format_test.defineTestsWithCodec(ctx, codec: codec);
       _commonTests(codec);
 
       test('one_record', () async {
@@ -160,7 +160,7 @@ void defineTests(FileSystemTestContext ctx) {
 
     group('encrypt_codec', () {
       var codec = getEncryptSembastCodec(password: 'user_password');
-      database_format_test.defineTests(ctx, codec: codec);
+      database_format_test.defineTestsWithCodec(ctx, codec: codec);
       _commonTests(codec);
 
       test('read existing', () async {

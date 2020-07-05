@@ -693,49 +693,98 @@ class SembastDatabase extends Object
           }
         }
 
-        // create _exportStat
-        if (_storageBase?.supported ?? false) {
-          _exportStat = DatabaseExportStat();
-        }
         await _findOrCreate();
         if (_storageBase.supported) {
-          // empty stores and meta
-          _meta = null;
-          _mainStore = null;
-          _stores.clear();
-          _checkMainStore();
+          void _clearBeforeImport() {
+            // empty stores and meta
+            _exportStat = DatabaseExportStat();
+            _meta = null;
+            _mainStore = null;
+            _stores.clear();
+            _checkMainStore();
+          }
 
           if (_storage?.supported ?? false) {
-            //bool needCompact = false;
             var corrupted = false;
 
-            var firstLineRead = false;
+            Future import(Stream<String> lines, {bool safeMode}) async {
+              _clearBeforeImport();
+              var firstLineRead = false;
 
-            await for (var line in _storage.readLines()) {
-              _exportStat.lineCount++;
+              await for (var line in lines) {
+                _exportStat.lineCount++;
 
-              Map<String, dynamic> map;
+                Map<String, dynamic> map;
 
-              // Until meta is read, we assume it is json
-              if (!firstLineRead) {
-                // Read the meta first
-                // The first line is always json
+                // Until meta is read, we assume it is json
+                if (!firstLineRead) {
+                  // Read the meta first
+                  // The first line is always json
+                  try {
+                    map = (json.decode(line) as Map)?.cast<String, dynamic>();
+                  } on Exception catch (_) {}
+                  if (Meta.isMapMeta(map)) {
+                    // meta?
+                    meta = Meta.fromMap(map);
+
+                    // Check codec signature if any
+                    checkCodecEncodedSignature(
+                        options.codec, meta.codecSignature);
+                    firstLineRead = true;
+                    continue;
+                  } else {
+                    // If a codec is used, we fail
+                    if (_openMode == DatabaseMode.neverFails &&
+                        options.codec?.signature == null) {
+                      corrupted = true;
+                      break;
+                    } else {
+                      throw const FormatException('Invalid database format');
+                    }
+                  }
+                }
+
                 try {
-                  map = (json.decode(line) as Map)?.cast<String, dynamic>();
-                } on Exception catch (_) {}
-                if (Meta.isMapMeta(map)) {
+                  // decode record
+                  map = decodeRecordLineString(line);
+                } on Exception catch (_) {
+                  // We can have meta here
+                  try {
+                    map = (json.decode(line) as Map)?.cast<String, dynamic>();
+                  } on Exception catch (_) {
+                    if (_openMode == DatabaseMode.neverFails) {
+                      corrupted = true;
+                      if (safeMode ?? false) {
+                        // safe mode ignore
+                        continue;
+                      } else {
+                        rethrow;
+                      }
+                    } else {
+                      rethrow;
+                    }
+                  }
+                }
+
+                if (isMapRecord(map)) {
+                  // record?
+                  final record =
+                      ImmutableSembastRecord.fromDatabaseRowMap(this, map);
+                  if (_noTxnHasRecord(record)) {
+                    _exportStat.obsoleteLineCount++;
+                  }
+                  loadRecord(record);
+                } else if (Meta.isMapMeta(map)) {
                   // meta?
                   meta = Meta.fromMap(map);
 
                   // Check codec signature if any
                   checkCodecEncodedSignature(
                       options.codec, meta.codecSignature);
-                  firstLineRead = true;
-                  continue;
                 } else {
                   // If a codec is used, we fail
                   if (_openMode == DatabaseMode.neverFails &&
-                      options.codec?.signature == null) {
+                      options.codec == null) {
                     corrupted = true;
                     break;
                   } else {
@@ -743,48 +792,15 @@ class SembastDatabase extends Object
                   }
                 }
               }
+            }
 
-              try {
-                // decode record
-                map = decodeRecordLineString(line);
-              } on Exception catch (_) {
-                // We can have meta here
-                try {
-                  map = (json.decode(line) as Map)?.cast<String, dynamic>();
-                } on Exception catch (_) {
-                  if (_openMode == DatabaseMode.neverFails) {
-                    corrupted = true;
-                    break;
-                  } else {
-                    rethrow;
-                  }
-                }
-              }
-
-              if (isMapRecord(map)) {
-                // record?
-                final record =
-                    ImmutableSembastRecord.fromDatabaseRowMap(this, map);
-                if (_noTxnHasRecord(record)) {
-                  _exportStat.obsoleteLineCount++;
-                }
-                loadRecord(record);
-              } else if (Meta.isMapMeta(map)) {
-                // meta?
-                meta = Meta.fromMap(map);
-
-                // Check codec signature if any
-                checkCodecEncodedSignature(options.codec, meta.codecSignature);
-              } else {
-                // If a codec is used, we fail
-                if (_openMode == DatabaseMode.neverFails &&
-                    options.codec == null) {
-                  corrupted = true;
-                  break;
-                } else {
-                  throw const FormatException('Invalid database format');
-                }
-              }
+            try {
+              await import(_storage.readLines(), safeMode: true);
+            } catch (e) {
+              // devPrint('error normal read $e');
+              corrupted = true;
+              // reading lines normally failed, try safe mode
+              await import(_storage.readSafeLines());
             }
             // if corrupted and not even meta
             // delete it
@@ -802,6 +818,7 @@ class SembastDatabase extends Object
               }
             }
           } else if (_storageJdb?.supported ?? false) {
+            _clearBeforeImport();
             var map = await _storageJdb.readMeta();
 
             if (Meta.isMapMeta(map)) {
@@ -853,12 +870,8 @@ class SembastDatabase extends Object
     }
   }
 
-  /// Delta import. Must not be in a transaction
-  Future jdbDeltaImport(int revision) async {
-    var result = await transaction((txn) async {
-      return await txnJdbDeltaImport(revision);
-    });
-
+  /// notify imported result
+  void _notifyJdbImportResult(JdbImportResult result) {
     if (listener.isNotEmpty) {
       if (result.delta && (result.content.isNotEmpty)) {
         /// Prepare listener
@@ -889,6 +902,14 @@ class SembastDatabase extends Object
         }
       }
     }
+  }
+
+  /// Delta import. Must not be in a transaction
+  Future jdbDeltaImport(int revision) async {
+    var result = await transaction((txn) async {
+      return await txnJdbDeltaImport(revision);
+    });
+    _notifyJdbImportResult(result);
   }
 
   /// Delta import. Must be in a transaction
@@ -1068,7 +1089,13 @@ class SembastDatabase extends Object
     do {
       if (reloadData) {
         await transactionLock.synchronized(() async {
-          await txnJdbDeltaImport(jdbIncrementRevisionStatus.revision);
+          var result =
+              await txnJdbDeltaImport(jdbIncrementRevisionStatus.revision);
+
+          /// Make sure that listener listen to imported value anyway
+          lazyListenerOperations.add(() async {
+            _notifyJdbImportResult(result);
+          });
         });
         reloadData = false;
       }
@@ -1582,6 +1609,15 @@ class DatabaseContent {
 
   @override
   String toString() => '$stores';
+
+  /// Get the list of all records
+  List<ImmutableSembastRecord> get records {
+    var records = <ImmutableSembastRecord>[];
+    for (var store in stores) {
+      records.addAll(store.records);
+    }
+    return records;
+  }
 }
 
 /// Import result.
