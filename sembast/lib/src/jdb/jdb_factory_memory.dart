@@ -10,6 +10,7 @@ import 'package:sembast/src/jdb.dart' as jdb;
 import 'package:sembast/src/key_utils.dart';
 import 'package:sembast/src/record_impl.dart';
 import 'package:sembast/src/sembast_impl.dart';
+import 'package:sembast/src/storage.dart';
 
 /// In memory jdb.
 class JdbFactoryMemory implements jdb.JdbFactory {
@@ -194,9 +195,7 @@ class JdbDatabaseMemory implements jdb.JdbDatabase {
     return _lastEntryId;
   }
 
-  String _storeLastIdKey(String store) {
-    return '${store}_store_last_id';
-  }
+  String _storeLastIdKey(String store) => jdbStoreLastIdKey(store);
 
   @override
   Future<List<int>> generateUniqueIntKeys(String store, int count) async {
