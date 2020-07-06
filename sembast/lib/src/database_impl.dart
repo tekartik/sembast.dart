@@ -125,10 +125,6 @@ class SembastDatabase extends Object
   /// To optimize auto increment int key generation in a transaction
   final _txnStoreLastIntKeys = <String, int>{};
 
-  /// Once we optimize key generation, we need to update the last id at the end
-  /// of the transaction.
-  final _txnStoreNeedLastIntKeyUpdate = <String, bool>{};
-
   /// Current in memory stores
   Iterable<SembastStore> get stores => _stores.values;
 
@@ -147,7 +143,6 @@ class SembastDatabase extends Object
   void _clearTxnData() {
     _txnDroppedStores.clear();
     _txnStoreLastIntKeys.clear();
-    _txnStoreNeedLastIntKeyUpdate.clear();
 
     // remove temp data in all store
     for (var store in stores) {
@@ -250,8 +245,6 @@ class SembastDatabase extends Object
       } else {
         // increment previous read value
         lastIntKey++;
-        // and mark for update
-        _txnStoreNeedLastIntKeyUpdate[store] = true;
       }
       // Save for laters insert in the same transaction
       _txnStoreLastIntKeys[store] = lastIntKey;
@@ -1157,10 +1150,9 @@ class SembastDatabase extends Object
               final infoEntries = <JdbInfoEntry>[
                 if (upgrading) getMetaInfoEntry(commitEntries.upgradingMeta)
               ];
-              for (var store in _txnStoreNeedLastIntKeyUpdate.keys) {
-                infoEntries.add(getStoreLastIntKeyInfoEntry(
-                    store, _txnStoreLastIntKeys[store]));
-              }
+              _txnStoreLastIntKeys.forEach((store, lastId) {
+                infoEntries.add(getStoreLastIntKeyInfoEntry(store, lastId));
+              });
               var query = StorageJdbWriteQuery(
                   revision: commitEntries.revision,
                   entries: entries,
@@ -1314,40 +1306,6 @@ class SembastDatabase extends Object
           if (debugListener) {
             print('full import listeners none');
           }
-          /*
-          // records, synchronous
-          var store = operation.store;
-          var keys = operation.listener.recordKeys;
-          for (var key in keys) {
-            var record = store.record(key);
-            var ctlrs = operation.listener.getRecordControllers(record);
-            for (var ctlr in ctlrs) {
-              ctlr.add(operation.content.record(key));
-            }
-          }
-          // store, async
-          // Fix existing queries
-          for (var query in List<QueryListenerController>.from(
-              operation.listener.getQuery())) {
-            Future _updateQuery() async {
-              if (debugListener) {
-                print('updating $query: with ${operation.content.records}');
-              }
-              await query.update(operation.content.records, cooperator);
-            }
-
-            if (query.hasInitialData) {
-              await _updateQuery();
-            } else {
-              // postpone
-              // ignore: unawaited_futures
-              notificationLock.synchronized(() async {
-                await _updateQuery();
-              });
-            }
-          }
-           */
-
         } else {
           for (var record in operation.content.records) {
             var ctlrs = operation.listener.getRecordControllers(record.ref);
