@@ -13,7 +13,7 @@ Future<List<ImmutableSembastRecord>> sortAndLimit(
     List<ImmutableSembastRecord> results,
     SembastFinder finder,
     Cooperator cooperator) async {
-  final cooperateOn = cooperator.cooperateOn == true;
+  final cooperateOn = cooperator?.cooperateOn == true;
   if (finder != null) {
     // sort
     if (cooperateOn) {
