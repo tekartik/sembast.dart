@@ -68,8 +68,15 @@ void defineTests(DatabaseTestContext ctx) {
       } else {
         expect(key, 1);
       }
+      // test in transaction
+      await db.transaction((txn) async {
+        key = await store.add(txn, 'test');
+        expect(key, 4);
+        key = await store.add(txn, 'test');
+        expect(key, 5);
+      });
       key = await store.add(db, 'test');
-      expect(key, 4);
+      expect(key, 6);
     });
 
     test('string', () async {

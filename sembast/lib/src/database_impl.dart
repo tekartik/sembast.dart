@@ -119,8 +119,15 @@ class SembastDatabase extends Object
   SembastStore get mainStore => _mainStore;
 
   SembastStore _mainStore;
-  final Map<String, SembastStore> _stores = {};
-  final List<String> _txnDroppedStores = [];
+  final _stores = <String, SembastStore>{};
+  final _txnDroppedStores = <String>[];
+
+  /// To optimize auto increment int key generation in a transaction
+  final _txnStoreLastIntKeys = <String, int>{};
+
+  /// Once we optimize key generation, we need to update the last id at the end
+  /// of the transaction.
+  final _txnStoreNeedLastIntKeyUpdate = <String, bool>{};
 
   /// Current in memory stores
   Iterable<SembastStore> get stores => _stores.values;
@@ -139,6 +146,8 @@ class SembastDatabase extends Object
 
   void _clearTxnData() {
     _txnDroppedStores.clear();
+    _txnStoreLastIntKeys.clear();
+    _txnStoreNeedLastIntKeyUpdate.clear();
 
     // remove temp data in all store
     for (var store in stores) {
@@ -232,9 +241,22 @@ class SembastDatabase extends Object
       store.currentRecords;
 
   /// For jdb only
-  Future<int> generateUniqueIntKey(String store) {
+  Future<int> generateUniqueIntKey(String store) async {
     if (_storageJdb != null) {
-      return _storageJdb.generateUniqueIntKey(store);
+      // Get any previous generated int key
+      var lastIntKey = _txnStoreLastIntKeys[store];
+      if (lastIntKey == null) {
+        lastIntKey = await _storageJdb.generateUniqueIntKey(store);
+      } else {
+        // increment previous read value
+        lastIntKey++;
+        // and mark for update
+        _txnStoreNeedLastIntKeyUpdate[store] = true;
+      }
+      // Save for laters insert in the same transaction
+      _txnStoreLastIntKeys[store] = lastIntKey;
+
+      return lastIntKey;
     }
     return null;
   }
@@ -1132,12 +1154,17 @@ class SembastDatabase extends Object
                 var entry = JdbWriteEntry()..txnRecord = record;
                 entries.add(entry);
               }
+              final infoEntries = <JdbInfoEntry>[
+                if (upgrading) getMetaInfoEntry(commitEntries.upgradingMeta)
+              ];
+              for (var store in _txnStoreNeedLastIntKeyUpdate.keys) {
+                infoEntries.add(getStoreLastIntKeyInfoEntry(
+                    store, _txnStoreLastIntKeys[store]));
+              }
               var query = StorageJdbWriteQuery(
                   revision: commitEntries.revision,
                   entries: entries,
-                  infoEntries: upgrading
-                      ? [getMetaInfoEntry(commitEntries.upgradingMeta)]
-                      : null);
+                  infoEntries: infoEntries);
 
               /// Commit to storage now
               var status = await storageJdb.writeIfRevision(query);
@@ -1267,19 +1294,6 @@ class SembastDatabase extends Object
   Future<T> inTransaction<T>(
           FutureOr<T> Function(SembastTransaction transaction) action) =>
       transaction((txn) => action(txn as SembastTransaction));
-
-  /// records must not changed
-  Future forEachRecords(List<ImmutableSembastRecord> records,
-      void Function(ImmutableSembastRecord record) action) async {
-    // handle record in transaction first
-    for (var record in records) {
-      // then the regular unless already in transaction
-      if (needCooperate) {
-        await cooperate();
-      }
-      action(record);
-    }
-  }
 
   // Only set during open
   @override

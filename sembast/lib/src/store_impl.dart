@@ -67,10 +67,10 @@ class SembastStore {
   }
 
   /// Generate a new int key
-  Future<int> generateUniqueIntKey(SembastTransaction txn) async {
+  Future<int> txnGenerateUniqueIntKey(SembastTransaction txn) async {
     int key;
     do {
-      // Use a generator if any
+      // Use a generator if any, but only once per store
       key = await database.generateUniqueIntKey(name);
       key ??= ++lastIntKey;
     } while (await txnRecordExists(txn, key));
@@ -78,7 +78,7 @@ class SembastStore {
   }
 
   /// Generate a new String key
-  Future<String> generateUniqueStringKey(SembastTransaction txn) async {
+  Future<String> txnGenerateUniqueStringKey(SembastTransaction txn) async {
     String key;
     do {
       // Use a generator if any
@@ -99,9 +99,9 @@ class SembastStore {
       // We make sure the key is unique
 
       if (K == String) {
-        key = await generateUniqueStringKey(txn) as K;
+        key = await txnGenerateUniqueStringKey(txn) as K;
       } else {
-        var intKey = await generateUniqueIntKey(txn);
+        var intKey = await txnGenerateUniqueIntKey(txn);
         try {
           key = intKey as K;
         } catch (e) {
