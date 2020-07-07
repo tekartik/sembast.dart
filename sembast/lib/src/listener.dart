@@ -144,7 +144,9 @@ class QueryListenerController<K, V> extends _ControllerBase {
         allMatching.add(txnRecord);
       }
 
-      await cooperator?.cooperate();
+      if (cooperator?.needCooperate ?? false) {
+        await cooperator.cooperate();
+      }
     }
     if (isClosed) {
       return;

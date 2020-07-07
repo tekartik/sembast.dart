@@ -79,6 +79,17 @@ class StorageJdbIncrementRevisionStatus {
       'original $originalRevision read $readRevision success $success';
 }
 
+/// Store last int key
+String jdbStoreLastIdKey(String store) {
+  return '${store}_store_last_id';
+}
+
+/// Create store last key info entry.
+JdbInfoEntry getStoreLastIntKeyInfoEntry(String store, int lastIntKey) =>
+    JdbInfoEntry()
+      ..id = jdbStoreLastIdKey(store)
+      ..value = lastIntKey;
+
 /// Create meta info entry.
 JdbInfoEntry getMetaInfoEntry(Meta meta) => JdbInfoEntry()
   ..id = metaKey

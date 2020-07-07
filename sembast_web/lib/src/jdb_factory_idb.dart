@@ -4,7 +4,7 @@ import 'package:idb_shim/idb_client_memory.dart';
 import 'package:idb_shim/idb_shim.dart';
 import 'package:idb_shim/idb_shim.dart' as idb;
 import 'package:sembast/sembast.dart';
-//import 'package:sembast/src/storage.dart';
+import 'package:sembast/src/storage.dart'; // ignore: implementation_imports
 import 'package:sembast_web/src/constant_import.dart';
 import 'package:sembast_web/src/jdb_import.dart' as jdb;
 import 'package:sembast_web/src/jdb_import.dart';
@@ -326,52 +326,28 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
   @override
   String toString() => 'JdbDatabaseIdb($_id, $_path)';
 
-  String _storeLastIdKey(String store) {
-    return '${store}_store_last_id';
-  }
+  String _storeLastIdKey(String store) => jdbStoreLastIdKey(store);
 
   @override
   Future<List<int>> generateUniqueIntKeys(String store, int count) async {
     var keys = <int>[];
     var txn =
-        _idbDatabase.transaction([_entryStore, _infoStore], idbModeReadWrite);
+        _idbDatabase.transaction([_entryStore, _infoStore], idbModeReadOnly);
     var infoStore = txn.objectStore(_infoStore);
-    var entryStore = txn.objectStore(_entryStore);
-    var recordIndex = entryStore.index(_recordIndex);
     var infoKey = _storeLastIdKey(store);
     var lastId = (await infoStore.getObject(infoKey) as int) ?? 0;
+
     for (var i = 0; i < count; i++) {
-      while (true) {
-        lastId++;
-        if (await recordIndex.getKey([store, lastId]) == null) {
-          break;
-        }
-      }
+      lastId++;
       keys.add(lastId);
     }
-    await infoStore.put(lastId, infoKey);
     await txn.completed;
     return keys;
   }
 
   @override
   Future<List<String>> generateUniqueStringKeys(String store, int count) async {
-    var keys = <String>[];
-    var txn = _idbDatabase.transaction([_entryStore], idbModeReadWrite);
-    var entryStore = txn.objectStore(_entryStore);
-    var recordIndex = entryStore.index(_recordIndex);
-    for (var i = 0; i < count; i++) {
-      String key;
-      while (true) {
-        key = generateStringKey();
-        if (await recordIndex.getKey([store, key]) == null) {
-          break;
-        }
-      }
-      keys.add(key);
-    }
-    await txn.completed;
-    return keys;
+    return List.generate(count, (index) => generateStringKey()).toList();
   }
 
   @override

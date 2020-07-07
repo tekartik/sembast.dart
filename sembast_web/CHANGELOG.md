@@ -1,3 +1,8 @@
+## 1.2.0
+
+- Bump sembast dependency
+- Improve int key generation (through sembast update)
+
 ## 1.1.0+1
 
 - Add Blob and Timestamp support
