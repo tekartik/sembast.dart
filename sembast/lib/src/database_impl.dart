@@ -14,7 +14,7 @@ import 'package:sembast/src/debug_utils.dart';
 import 'package:sembast/src/jdb.dart';
 import 'package:sembast/src/json_encodable_codec.dart';
 import 'package:sembast/src/listener.dart';
-import 'package:sembast/src/listener_content.dart';
+import 'package:sembast/src/database_content.dart';
 import 'package:sembast/src/meta.dart';
 import 'package:sembast/src/record_impl.dart';
 import 'package:sembast/src/sembast_codec_impl.dart';
@@ -345,7 +345,7 @@ class SembastDatabase extends Object
     for (var store in stores) {
       var records = store.currentTxnRecords;
       if (records?.isNotEmpty ?? false) {
-        content.addStoreRecords(store.ref, records);
+        content.addTxnStoreRecords(store.ref, records);
       }
     }
     return content;
@@ -362,11 +362,11 @@ class SembastDatabase extends Object
   ///
   /// and commit on storage later...
   CommitData commitInMemory() {
-    final txnRecords = <TxnRecord>[];
+    //final txnRecords = <TxnRecord>[];
 
     var content = _getTxnDatabaseContent();
 
-    txnRecords.addAll(content._records);
+    var txnRecords = content.txnRecords;
 
     var commitData = CommitData()..txnRecords = txnRecords;
     // Not record, no commit
@@ -924,8 +924,6 @@ class SembastDatabase extends Object
   ///
   /// Also feed content listener
   Future<JdbImportResult> txnJdbDeltaImport(int revision) async {
-    // All modifications
-    var content = TxnDatabaseContent();
     bool delta;
     var minRevision = _jdbRevision ?? 0;
     var deltaMinRevision = await _storageJdb.getDeltaMinRevision();
@@ -943,7 +941,6 @@ class SembastDatabase extends Object
 
             if (jdbDeltaLoadRecord(record)) {
               // Ignore already added/old record
-              content.add(record);
               _addRecordToPendingListenerContent(record);
             }
           }
@@ -963,8 +960,6 @@ class SembastDatabase extends Object
           _exportStat.obsoleteLineCount++;
         }
         records.add(record);
-        // Always add
-        content.add(record);
       }
 
       // Synchronous reload
@@ -975,7 +970,7 @@ class SembastDatabase extends Object
         loadRecord(record);
       }
     }
-    return JdbImportResult(delta: delta, content: content);
+    return JdbImportResult(delta: delta);
   }
 
   /// To call when in a databaseLock
@@ -1473,110 +1468,11 @@ class DatabaseExportStat {
   String toString() => toJson().toString();
 }
 
-/// Store content.
-class StoreContent {
-  /// Store ref.
-  final StoreRef store;
-
-  /// Record with key.
-  final _map = <dynamic, ImmutableSembastRecord>{};
-
-  /// Store content.
-  StoreContent(this.store);
-
-  /// All records.
-  Iterable<ImmutableSembastRecord> get records => _map.values;
-
-  /// Add all records.
-  void addAll(Iterable<ImmutableSembastRecord> records) {
-    for (var record in records) {
-      add(record);
-    }
-  }
-
-  /// Add a single record.
-  void add(ImmutableSembastRecord record) {
-    _map[record.key] = record;
-  }
-
-  /// Get a single record.
-  ImmutableSembastRecord record(key) => _map[key];
-
-  @override
-  String toString() => '${store.name} ${records.length}';
-}
-
-/// Database content in a transaction.
-class TxnDatabaseContent extends DatabaseContent {
-  final _records = <TxnRecord>[];
-
-  /// Add a transaction record.
-  void addRecord(TxnRecord record) {
-    _records.add(record);
-    add(record.record);
-  }
-
-  /// Add transaction records for a give store
-  void addStoreRecords(StoreRef store, Iterable<TxnRecord> records) {
-    addStore(store).addAll(records.map((record) => record.record));
-    _records.addAll(records);
-  }
-}
-
-/// Database content.
-class DatabaseContent {
-  final _map = <StoreRef, StoreContent>{};
-
-  /// true if at least one store.
-  bool get isNotEmpty => _map.isNotEmpty;
-
-  /// All stores.
-  Iterable<StoreContent> get stores => _map.values;
-
-  /// Add all records.
-  void addAll(Iterable<ImmutableSembastRecord> records) {
-    for (var record in records) {
-      add(record);
-    }
-  }
-
-  /// Add a single record.
-  void add(ImmutableSembastRecord record) {
-    var store = record.ref.store;
-    var content = addStore(store);
-    content.add(record);
-  }
-
-  /// Add a store.
-  StoreContent addStore(StoreRef store) {
-    var content = _map[store] ??= StoreContent(store);
-    return content;
-  }
-
-  /// A given existing store.
-  StoreContent store(StoreRef store) => _map[store];
-
-  @override
-  String toString() => '$stores';
-
-  /// Get the list of all records
-  List<ImmutableSembastRecord> get records {
-    var records = <ImmutableSembastRecord>[];
-    for (var store in stores) {
-      records.addAll(store.records);
-    }
-    return records;
-  }
-}
-
 /// Import result.
 class JdbImportResult {
   /// True if delta import.
   final bool delta;
 
-  /// Only for delta import.
-  final TxnDatabaseContent content;
-
   /// Import result.
-  JdbImportResult({@required this.delta, this.content});
+  JdbImportResult({@required this.delta});
 }

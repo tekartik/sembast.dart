@@ -1,5 +1,5 @@
 // basically same as the io runner but with extra output
-import 'package:sembast/src/listener_content.dart';
+import 'package:sembast/src/database_content.dart';
 import 'package:sembast/src/record_impl.dart';
 
 import 'test_common.dart';
