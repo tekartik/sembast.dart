@@ -1,7 +1,8 @@
-## 2.4.7+3
+## 2.4.7+4
 
 * Handle corrupted utf8 lines in sembast io
 * Improve int/string key generation during a transaction for jdb (i.e. for sembast_web)
+* Improve listeners
 
 ## 2.4.6+1
 

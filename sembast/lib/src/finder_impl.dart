@@ -8,25 +8,12 @@ import 'package:sembast/src/sort.dart';
 import 'package:sembast/src/sort_order_impl.dart';
 import 'package:sembast/src/utils.dart';
 
-/// Sort and limit a list.
-Future<List<ImmutableSembastRecord>> sortAndLimit(
+/// Limit a sorted list
+Future<List<ImmutableSembastRecord>> recordsLimit(
     List<ImmutableSembastRecord> results,
     SembastFinder finder,
     Cooperator cooperator) async {
-  final cooperateOn = cooperator?.cooperateOn == true;
   if (finder != null) {
-    // sort
-    if (cooperateOn) {
-      var sort = Sort(cooperator);
-      await sort.sort(
-          results,
-          (SembastRecord record1, SembastRecord record2) =>
-              finder.compareThenKey(record1, record2));
-    } else {
-      results
-          .sort((record1, record2) => finder.compareThenKey(record1, record2));
-    }
-
     Future<List<ImmutableSembastRecord>> filterStart(
         List<ImmutableSembastRecord> results) async {
       var startIndex = 0;
@@ -87,6 +74,30 @@ Future<List<ImmutableSembastRecord>> sortAndLimit(
     if (finder.limit != null) {
       results = results.sublist(0, min(finder.limit, results.length));
     }
+  }
+  return results;
+}
+
+/// Sort and limit a list.
+Future<List<ImmutableSembastRecord>> recordsSortAndLimit(
+    List<ImmutableSembastRecord> results,
+    SembastFinder finder,
+    Cooperator cooperator) async {
+  final cooperateOn = cooperator?.cooperateOn == true;
+  if (finder != null) {
+    // sort
+    if (cooperateOn) {
+      var sort = Sort(cooperator);
+      await sort.sort(
+          results,
+          (SembastRecord record1, SembastRecord record2) =>
+              finder.compareThenKey(record1, record2));
+    } else {
+      results
+          .sort((record1, record2) => finder.compareThenKey(record1, record2));
+    }
+
+    await recordsLimit(results, finder, cooperator);
   } else {
     if (cooperateOn) {
       var sort = Sort(cooperator);

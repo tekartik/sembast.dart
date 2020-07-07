@@ -4,12 +4,13 @@ import 'package:sembast/src/api/query_ref.dart';
 import 'package:sembast/src/api/record_ref.dart';
 import 'package:sembast/src/common_import.dart';
 import 'package:sembast/src/cooperator.dart';
-import 'package:sembast/src/database_impl.dart';
 import 'package:sembast/src/debug_utils.dart';
 import 'package:sembast/src/filter_impl.dart';
 import 'package:sembast/src/finder_impl.dart';
 import 'package:sembast/src/query_ref_impl.dart';
 import 'package:sembast/src/record_impl.dart';
+import 'package:sembast/src/sort.dart';
+import 'package:sembast/src/utils.dart';
 
 class _ControllerBase {
   static var _lastId = 0;
@@ -79,7 +80,7 @@ class QueryListenerController<K, V> extends _ControllerBase {
 
   bool get _shouldAdd => !isClosed && _streamController.hasListener;
 
-  /// Add data to stream.
+  /// Add data to stream, allMatching is already sorted
   Future add(
       List<ImmutableSembastRecord> allMatching, Cooperator cooperator) async {
     if (!_shouldAdd) {
@@ -88,7 +89,7 @@ class QueryListenerController<K, V> extends _ControllerBase {
 
     // Filter only
     _allMatching = allMatching;
-    var list = await sortAndLimit(_allMatching, finder, cooperator);
+    var list = await recordsLimit(_allMatching, finder, cooperator);
 
     if (!_shouldAdd) {
       return;
@@ -114,25 +115,29 @@ class QueryListenerController<K, V> extends _ControllerBase {
     if (!_shouldAdd) {
       return;
     }
+
+    var hasChanges = false;
+
     // Restart from the base we have for efficiency
     var allMatching = List<ImmutableSembastRecord>.from(_allMatching);
-    var hasChanges = false;
+
+    var keys = Set.from(records.map((record) => record.key));
+    // Remove all matching
+    bool _where(snapshot) {
+      if (keys.contains(snapshot.key)) {
+        hasChanges = true;
+        return true;
+      }
+      return false;
+    }
+
+    // Remove and reinsert if needed
+    allMatching.removeWhere(_where);
+
     for (var txnRecord in records) {
       if (!_shouldAdd) {
         return;
       }
-      var ref = txnRecord.ref;
-
-      bool _where(snapshot) {
-        if (snapshot.ref == ref) {
-          hasChanges = true;
-          return true;
-        }
-        return false;
-      }
-
-      // Remove and reinsert if needed
-      allMatching.removeWhere(_where);
 
       // By default matches if non-deleted
       var matches =
@@ -140,8 +145,11 @@ class QueryListenerController<K, V> extends _ControllerBase {
 
       if (matches) {
         hasChanges = true;
-        // re-add
-        allMatching.add(txnRecord);
+        // insert at the proper location
+        allMatching.insert(
+            findSortedIndex(allMatching, txnRecord,
+                finder?.compareThenKey ?? compareRecordKey),
+            txnRecord);
       }
 
       if (cooperator?.needCooperate ?? false) {
@@ -172,6 +180,9 @@ class QueryListenerController<K, V> extends _ControllerBase {
 
 /// Record listener controller.
 class RecordListenerController<K, V> extends _ControllerBase {
+  /// The record ref.
+  final RecordRef<K, V> recordRef;
+
   /// Start or restart
   void Function() onListen;
 
@@ -188,14 +199,14 @@ class RecordListenerController<K, V> extends _ControllerBase {
   bool get isClosed => _streamController.isClosed;
 
   /// Record listener controller.
-  RecordListenerController(DatabaseListener listener, RecordRef<K, V> recordRef,
+  RecordListenerController(DatabaseListener listener, this.recordRef,
       {@required this.onListen}) {
     _streamController = StreamController<RecordSnapshot<K, V>>(onCancel: () {
       if (debugListener) {
         print('onCancel $this');
       }
       // Auto remove
-      listener.removeRecord(recordRef, this);
+      listener.removeRecord(this);
       close();
     }, onListen: () {
       if (debugListener) {
@@ -279,9 +290,9 @@ class StoreListener {
   }
 
   /// Remove a record.
-  void removeRecord(RecordRef recordRef, RecordListenerController ctlr) {
+  void removeRecord(RecordListenerController ctlr) {
     ctlr.close();
-    var key = recordRef.key;
+    var key = ctlr.recordRef.key;
     var list = _records[key];
     if (list != null) {
       list.remove(ctlr);
@@ -300,8 +311,18 @@ class StoreListener {
     return _records[recordRef.key]?.cast<RecordListenerController<K, V>>();
   }
 
+  /// True if record has a listener.
+  bool keyHasRecordListener(dynamic key) => _records.containsKey(key);
+
+  /// True if record has a listener.
+  bool keyHasAnyListener(dynamic key) =>
+      hasQueryListener || keyHasRecordListener(key);
+
+  /// True if there is a query listener
+  bool get hasQueryListener => _queries.isNotEmpty;
+
   /// Get list of query listeners, never null
-  List<QueryListenerController<K, V>> getQuery<K, V>() {
+  List<QueryListenerController<K, V>> getQueryListenerControllers<K, V>() {
     return _queries.cast<QueryListenerController<K, V>>();
   }
 
@@ -373,12 +394,13 @@ class DatabaseListener {
   }
 
   /// Remove a record controller.
-  void removeRecord(RecordRef recordRef, RecordListenerController ctlr) {
+  void removeRecord(RecordListenerController ctlr) {
     ctlr.close();
+    var recordRef = ctlr.recordRef;
     var storeRef = recordRef.store;
     var store = _stores[storeRef];
     if (store != null) {
-      store.removeRecord(recordRef, ctlr);
+      store.removeRecord(ctlr);
       if (store.isEmpty) {
         _stores.remove(storeRef);
       }
@@ -412,7 +434,7 @@ class DatabaseListener {
   /// All store listeners.
   Iterable<StoreRef> get stores => _stores.keys;
 
-  /// Closed.
+  /// Close and clear listeners.
   void close() {
     _stores.values.forEach((storeListener) {
       storeListener._queries.forEach((queryListener) {
@@ -422,20 +444,10 @@ class DatabaseListener {
         recordListeners.forEach((recordListener) => recordListener.close());
       });
     });
+    _stores.clear();
   }
-}
 
-/// Store listener operation.
-class StoreListenerOperation {
-  /// Store listener.
-  final StoreListener listener;
-
-  /// records changes.
-  final StoreContent content;
-
-  /// Store listener operation.
-  StoreListenerOperation(this.listener, this.content);
-
-  /// Our store.
-  StoreRef get store => listener.store;
+  /// True if the record as a listener
+  bool recordHasAnyListener(RecordRef record) =>
+      getStore(record.store)?.keyHasAnyListener(record.key) ?? false;
 }

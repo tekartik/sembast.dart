@@ -237,17 +237,6 @@ Supported value types are:
 - `Blob` (custom type)
 - `Timestamp` (custom type)
 
-### Limitations
-
-Due to its design, sembast is suitable for small to medium databases and will significantly degrade in performance for 
-big databases (especially load time, a 500K records database could take a minute to open).
-There are no hard limits but here are opinionated suggestions:
-- sembast io: <100K records, <100Mb
-- sembast_web: <30K records, size limited by any indexedDB limitation (depending on the browser)
-
-While binary data is supported you should avoid storing big records and consider saving images and big blob in
-separate files and only keeping a reference in the database.
-
 ### Resources
 
 Third party examples and tutorials available are listed [here](https://github.com/tekartik/sembast.dart/blob/master/sembast/doc/resources.md).

@@ -23,7 +23,7 @@ abstract class StorageBase {
 }
 
 ///
-/// Storage implementation
+/// Storage io implementation
 ///
 /// where the database is read/written to if needed
 ///

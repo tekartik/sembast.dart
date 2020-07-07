@@ -237,13 +237,12 @@ void defineTests(DatabaseTestContextJdb ctx) {
       var db = await factory.openDatabase(dbPath);
       try {
         await store.record(1).put(db, 'hi');
-        var storeEmptyFuture =
-            store.query().onSnapshots(db).where((event) => event.isEmpty).first;
         var recordDeleteFuture = store
             .record(1)
             .onSnapshot(db)
             .where((snapshot) => snapshot == null)
             .first;
+
         await dbImportFromMap(db, {
           'entries': [],
           'infos': [
@@ -257,6 +256,7 @@ void defineTests(DatabaseTestContextJdb ctx) {
         });
         // A full import will be performed
         await deltaImport(db, 2);
+
         expect(await getJdbDatabase(db).exportToMap(), {
           'entries': [],
           'infos': [
@@ -268,8 +268,9 @@ void defineTests(DatabaseTestContextJdb ctx) {
             {'id': 'revision', 'value': 2}
           ]
         });
-        await storeEmptyFuture;
+
         await recordDeleteFuture;
+        //print(1);
       } finally {
         await db.close();
       }

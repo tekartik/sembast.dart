@@ -5,6 +5,7 @@
 // Copied and modified from dart_sdk
 // ignore_for_file: non_constant_identifier_names
 
+import 'package:sembast/src/common_import.dart';
 import 'package:sembast/src/cooperator.dart';
 
 /// Dual-Pivot Quicksort algorithm.
@@ -413,4 +414,41 @@ class Sort {
       await _doSort(a, less, great, compare);
     }
   }
+}
+
+/// Find the sorted index of an item
+int findSortedIndex<T>(List<T> list, T item, int Function(T a, T b) compare) {
+  var start = 0;
+  var end = list.length;
+
+  while (start < end) {
+    var pivot = start + ((end - start) ~/ 2);
+    var value = list[pivot];
+    var cmp = compare(value, item);
+    if (cmp < 0) {
+      start = pivot + 1;
+    } else {
+      end = pivot;
+    }
+  }
+  return start;
+  /*
+  if (start == end) {
+    return start;
+  }
+  var pivot = start + ((end - start) ~/ 2);
+  var value = list[pivot];
+  var cmp = compare(value, item);
+  devPrint('pivot $pivot value $value cmp $cmp');
+  if (cmp == 0) {
+    return pivot;
+  } else if (end - start <= 1) {
+    return cmp > 0 ? pivot - 1 : pivot;
+  } else if (cmp < 0) {
+    return findSortedIndex(list, item, pivot, end, compare);
+  } else {
+    return findSortedIndex(list, item, start, pivot, compare);
+  }
+
+   */
 }
