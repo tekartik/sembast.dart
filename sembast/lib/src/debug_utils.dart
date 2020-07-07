@@ -1,2 +1,2 @@
 /// Debug listeners boolean
-final debugListener = false; // devWarning(true); // false
+const debugListener = false; // devWarning(true); // false

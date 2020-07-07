@@ -5,6 +5,7 @@ import 'package:sembast/src/common_import.dart';
 import 'package:sembast/src/database_impl.dart';
 
 import 'test_common.dart';
+import 'package:meta/meta.dart';
 
 void main() {
   defineTests(memoryDatabaseContext);
@@ -37,6 +38,62 @@ void defineTests(DatabaseTestContext ctx) {
       expect(database.listener.isEmpty, isTrue);
     });
 
+    test('Record.onSnapshot.listen', () async {
+      var store = StoreRef<int, String>.main();
+      var record = store.record(1);
+
+      var done = Completer();
+      var sub = record.onSnapshot(db).listen((snapshot) {
+        // devPrint('onSnapshot: $snapshot');
+        if (snapshot?.value == 'test2') {
+          done.complete();
+        }
+      });
+      unawaited(record.add(db, 'test1'));
+      unawaited(record.delete(db));
+      unawaited(record.add(db, 'test2'));
+      await done.future;
+      await sub.cancel();
+    });
+
+    test('Store.onSnapshots.listen', () async {
+      var store = StoreRef<int, String>.main();
+      var record = store.record(1);
+
+      var done = Completer();
+      var sub = store.query().onSnapshots(db).listen((snapshots) {
+        // devPrint('onSnapshots: $snapshots');
+        if (snapshots.isNotEmpty && snapshots.first.value == 'test2') {
+          done.complete();
+        }
+      });
+      unawaited(record.add(db, 'test1'));
+      unawaited(record.delete(db));
+      unawaited(record.add(db, 'test2'));
+      await done.future;
+      await sub.cancel();
+    });
+
+    test('Query.onSnapshots.listen', () async {
+      var store = StoreRef<int, String>.main();
+
+      var done = Completer();
+      var sub = store
+          .query(finder: Finder(sortOrders: [SortOrder(Field.value)]))
+          .onSnapshots(db)
+          .listen((snapshots) {
+        if (snapshots.length == 3) {
+          expect(snapshots.map((e) => e.key), [1, 3, 2]);
+          done.complete();
+        }
+      });
+      unawaited(store.add(db, 'test1'));
+      unawaited(store.add(db, 'test3'));
+      unawaited(store.add(db, 'test2'));
+      await done.future;
+      await sub.cancel();
+    });
+
     test('Record.onSnapshotDbClose', () async {
       var database = getDatabase(db);
       var store = StoreRef<int, String>.main();
@@ -55,7 +112,7 @@ void defineTests(DatabaseTestContext ctx) {
       await completer.future;
     });
 
-    test('Query.onSnapshot', () async {
+    test('Query.onSnapshots', () async {
       var database = getDatabase(db);
       var store = StoreRef<int, String>.main();
       var query = store.query();
@@ -87,7 +144,7 @@ void defineTests(DatabaseTestContext ctx) {
       await completer.future;
     });
 
-    test('Query.onSnapshotDone', () async {
+    test('Query.onSnapshotsDone', () async {
       var database = getDatabase(db);
       var store = StoreRef<int, String>.main();
       var record = store.record(1);
@@ -103,7 +160,8 @@ void defineTests(DatabaseTestContext ctx) {
         completer.complete();
       });
       expect(database.listener.isNotEmpty, isTrue);
-      var ctlr = database.listener.getStore(store).getQuery().first;
+      var ctlr =
+          database.listener.getStore(store).getQueryListenerControllers().first;
       ctlr.close();
 
       await completer.future;

@@ -1,5 +1,6 @@
 # How-to
 
+See some [Usage recommendations](usage_recommendations.md).
 ## Unit test
 
 Easiest is to use the `databaseFactoryMemory` to develop and test your database API.
