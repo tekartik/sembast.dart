@@ -8,7 +8,7 @@ environment:
 
 dependencies:
   sembast: '>=2.4.7+2 <3.0.0'
-  idb_shim: '>=1.11.0 <2.0.0'
+  idb_shim: '>=1.11.1 <2.0.0'
 
 dev_dependencies:
   pedantic: '>=1.8.0'
