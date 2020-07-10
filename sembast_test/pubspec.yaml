@@ -1,6 +1,6 @@
 name: sembast_test
 description: Test helpers for sembast and sembast_web
-version: 0.1.3
+version: 0.1.4
 publish_to: none
 
 environment:
@@ -13,9 +13,9 @@ dependencies:
   # Dependencies for encryption example
   encrypt: '>=3.1.0'
   crypto: '>=2.0.6'
+  pedantic:
 
 dev_dependencies:
-  pedantic: '>=1.9.0'
   http: '>=0.11.0'
   process_run: '>=0.10.2'
   build_runner: '>=0.9.0'
@@ -29,6 +29,7 @@ dev_dependencies:
   pub_semver:
 
 dependency_overrides:
+  pedantic: '>=1.9.0'
   sembast:
     path: ../sembast
   sembast_web:

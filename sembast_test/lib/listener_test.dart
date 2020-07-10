@@ -1,11 +1,10 @@
-library sembast.store_test;
+library sembast_test.listener_test;
 
 // basically same as the io runner but with extra output
 import 'package:sembast/src/common_import.dart';
 import 'package:sembast/src/database_impl.dart';
-
+import 'package:pedantic/pedantic.dart';
 import 'test_common.dart';
-import 'package:meta/meta.dart';
 
 void main() {
   defineTests(memoryDatabaseContext);
