@@ -9,6 +9,10 @@ There are no hard limits but here are opinionated suggestions:
 While binary data is supported you should avoid storing big records and consider saving images and big blob in
 separate files and only keeping a reference in the database.
 
+## Keep your records small
+
+It is better to have 10 000 records of 1 KB than a 10 MB record! Big records might imply more UI janks.
+
 ## Use transactions
 
 For performance reason it is important to use transactions as soon as you have more than one write to perform.

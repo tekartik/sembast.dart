@@ -1,6 +1,7 @@
 @TestOn('vm || browser')
 library sembast_web.test.sembast_io_api_test;
 
+import 'package:sembast/src/env_utils.dart' show isRunningAsJavascript;
 import 'package:sembast/sembast_io.dart';
 import 'package:test/test.dart';
 
@@ -11,13 +12,15 @@ Future main() async {
     test('open', () async {
       try {
         databaseFactoryIo;
+        expect(isRunningAsJavascript, isFalse);
       } on UnimplementedError catch (_) {
         // Web: UnimplementedError: databaseFactoryIo not supported on the web. use `sembast_web`
       }
     });
     test('open', () async {
       try {
-        createDatabaseFactoryIo;
+        createDatabaseFactoryIo();
+        expect(isRunningAsJavascript, isFalse);
       } on UnimplementedError catch (_) {
         // Web: UnimplementedError: databaseFactoryIo not supported on the web. use `sembast_web`
       }
