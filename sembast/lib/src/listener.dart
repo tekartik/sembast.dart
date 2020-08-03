@@ -10,7 +10,6 @@ import 'package:sembast/src/finder_impl.dart';
 import 'package:sembast/src/query_ref_impl.dart';
 import 'package:sembast/src/record_impl.dart';
 import 'package:sembast/src/sort.dart';
-import 'package:sembast/src/store_impl.dart';
 import 'package:sembast/src/utils.dart';
 
 class _ControllerBase {
@@ -90,7 +89,7 @@ class QueryListenerController<K, V> extends _ControllerBase {
 
     // Filter only
     _allMatching = allMatching;
-    var list = await recordsLimit(_allMatching, finder, cooperator);
+    var list = recordsLimit(_allMatching, finder);
 
     if (!_shouldAdd) {
       return;
@@ -143,9 +142,7 @@ class QueryListenerController<K, V> extends _ControllerBase {
       // By default matches if non-deleted
       var matches = !txnRecord.deleted &&
           // Matching boundaries
-          finderRecordMatchBoundaries(finder, txnRecord) &&
-          // Matching filter
-          filterMatchesRecord(filter, txnRecord);
+          finderMatchesFilterAndBoundaries(finder, txnRecord);
 
       if (matches) {
         hasChanges = true;

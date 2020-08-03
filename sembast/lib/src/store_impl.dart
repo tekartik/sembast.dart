@@ -1,9 +1,6 @@
 import 'dart:collection';
-import 'dart:math';
 
 import 'package:sembast/sembast.dart';
-import 'package:sembast/src/cooperator.dart';
-import 'package:sembast/src/filter_impl.dart';
 import 'package:sembast/src/finder_impl.dart';
 import 'package:sembast/src/key_utils.dart';
 import 'package:sembast/src/record_impl.dart';
@@ -188,7 +185,7 @@ class SembastStore {
       SembastTransaction transaction, Filter filter) {
     StreamController<RecordSnapshot<K, V>> ctlr;
     ctlr = StreamController<RecordSnapshot<K, V>>(onListen: () {
-      forEachRecords(transaction, filter, (record) {
+      forEachRecords(transaction, Finder(filter: filter), (record) {
         if (ctlr.isClosed) {
           return false;
         }
@@ -220,13 +217,16 @@ class SembastStore {
       : List<TxnRecord>.from(txnRecords.values, growable: false);
 
   /// Cancel if false is returned
-  Future forEachRecords(SembastTransaction txn, Filter filter,
+  ///
+  /// Matchin filter and boundaries
+  Future forEachRecords(SembastTransaction txn, Finder finder,
       bool Function(ImmutableSembastRecord record) action) async {
-    bool _filterMatchRecord(Filter filter, ImmutableSembastRecord record) {
+    bool _finderMatchesRecord(Finder finder, ImmutableSembastRecord record) {
       if (record.deleted) {
         return false;
       }
-      return filterMatchesRecord(filter as SembastFilterBase, record);
+      var sembastFinder = finder as SembastFinder;
+      return finderMatchesFilterAndBoundaries(sembastFinder, record);
     }
 
     // handle record in transaction first
@@ -238,7 +238,7 @@ class SembastStore {
           await cooperate();
         }
 
-        if (_filterMatchRecord(filter, record)) {
+        if (_finderMatchesRecord(finder, record)) {
           if (action(record) == false) {
             return;
           }
@@ -259,7 +259,7 @@ class SembastStore {
           continue;
         }
       }
-      if (_filterMatchRecord(filter, record)) {
+      if (_finderMatchesRecord(finder, record)) {
         if (action(record) == false) {
           return;
         }
@@ -287,16 +287,6 @@ class SembastStore {
     }
     return null;
   }
-
-  /// Filter start boundary.
-  Future<List<ImmutableSembastRecord>> filterStart(
-          SembastFinder finder, List<ImmutableSembastRecord> results) =>
-      finderFilterStart(finder, results, cooperator: _cooperator);
-
-  /// Filter end boundary.
-  Future<List<ImmutableSembastRecord>> filterEnd(
-          SembastFinder finder, List<ImmutableSembastRecord> results) =>
-      finderFilterEnd(finder, results, cooperator: _cooperator);
 
   /// Find records in a transaction.
   Future<List<ImmutableSembastRecord>> txnFindRecords(
@@ -344,7 +334,7 @@ class SembastStore {
       return true;
     }
 
-    await forEachRecords(txn, sembastFinder?.filter, addRecord);
+    await forEachRecords(txn, sembastFinder, addRecord);
     if (usePreordered) {
       results = preOrderedResults.values.toList(growable: false);
     }
@@ -363,29 +353,8 @@ class SembastStore {
               sembastFinder.compareThenKey(record1, record2));
         }
 
-        try {
-          // handle start
-          if (sembastFinder.start != null) {
-            results = await filterStart(sembastFinder, results);
-          }
-          // handle end
-          if (sembastFinder.end != null) {
-            results = await filterEnd(sembastFinder, results);
-          }
-        } catch (e) {
-          print('Make sure you are comparing boundaries with a proper type');
-          rethrow;
-        }
-
-        // offset
-        if (sembastFinder.offset != null) {
-          results = results.sublist(min(sembastFinder.offset, results.length));
-        }
-        // limit
-        if (sembastFinder.limit != null) {
-          results =
-              results.sublist(0, min(sembastFinder.limit, results.length));
-        }
+        // Apply limits
+        results = recordsLimit(results, sembastFinder);
       }
     } else {
       // Already sorted by SplayTreeMap and offset and limit handled
@@ -590,7 +559,7 @@ class SembastStore {
       }
     } else {
       // There is a filter, count manually
-      await forEachRecords(txn, filter, (record) {
+      await forEachRecords(txn, Finder(filter: filter), (record) {
         count++;
         return true;
       });
@@ -727,15 +696,12 @@ class SembastStore {
   /// true if cooperation is activated.
   bool get cooperateOn => database.cooperateOn;
 
-  Cooperator get _cooperator => database.cooperator;
-
   /// Cooperate if needed.
   FutureOr cooperate() => database.cooperate();
 }
 
 /// Filter start boundary, assume ordered result
-bool finderRecordMatchBoundaries<T extends SembastRecord>(
-    SembastFinder finder, T result) {
+bool finderRecordMatchBoundaries(SembastFinder finder, RecordSnapshot result) {
   if (finder?.start != null) {
     if (!finder.starts(result, finder.start)) {
       return false;
@@ -747,46 +713,4 @@ bool finderRecordMatchBoundaries<T extends SembastRecord>(
     }
   }
   return true;
-}
-
-/// Filter start boundary, assume ordered result
-Future<List<T>> finderFilterStart<T extends SembastRecord>(
-    SembastFinder finder, List<T> results,
-    {Cooperator cooperator}) async {
-  var startIndex = results.length;
-  for (var i = 0; i < results.length; i++) {
-    if (cooperator?.needCooperate ?? false) {
-      await cooperator.cooperate();
-    }
-    if (finder.starts(results[i], finder.start)) {
-      startIndex = i;
-      break;
-    }
-  }
-  if (startIndex != 0) {
-    return results.sublist(startIndex);
-  }
-  return results;
-}
-
-/// Filter end boundary, assume ordered result
-Future<List<T>> finderFilterEnd<T extends SembastRecord>(
-    SembastFinder finder, List<T> results,
-    {Cooperator cooperator}) async {
-  var endIndex = 0;
-  for (var i = results.length - 1; i >= 0; i--) {
-    if (cooperator?.needCooperate ?? false) {
-      await cooperator.cooperate();
-    }
-    if (!finder.ends(results[i], finder.end)) {
-      // continue
-    } else {
-      endIndex = i + 1;
-      break;
-    }
-  }
-  if (endIndex != results.length) {
-    return results.sublist(0, endIndex);
-  }
-  return results;
 }

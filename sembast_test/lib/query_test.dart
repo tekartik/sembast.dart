@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'package:sembast/src/common_import.dart';
 import 'package:sembast/src/json_encodable_codec.dart' show JsonEncodableCodec;
 import 'package:sembast/src/type_adapter_impl.dart' show sembastDateTimeAdapter;
+import 'package:sembast/timestamp.dart';
 
 import 'test_common.dart';
 
@@ -578,6 +579,73 @@ void defineTests(DatabaseTestContext ctx) {
         [1],
       ]);
 
+      await subscription.cancel();
+    });
+
+    test('onSnapshots all', () async {
+      List<RecordSnapshot> results;
+      var store = intMapStoreFactory.store();
+      var record1 = store.record(1);
+      var record2 = store.record(2);
+      var record3 = store.record(3);
+      var record4 = store.record(4);
+      var finder = Finder(
+          sortOrders: [SortOrder('dateTime', false)],
+          start: Boundary(
+              values: [Timestamp.fromDateTime(DateTime.utc(2020))],
+              include: false),
+          end: Boundary(
+              values: [Timestamp.fromDateTime(DateTime.utc(2010))],
+              include: true),
+          limit: 2,
+          offset: 1,
+          filter: Filter.custom((record) =>
+              (record['dateTime'] as Timestamp).toDateTime(isUtc: true).month ==
+              DateTime.january));
+      var results1 = <List<RecordSnapshot>>[];
+      var subscription =
+          store.query(finder: finder).onSnapshots(db).listen((event) {
+        results1.add(event);
+      });
+      await db.transaction((txn) async {
+        await record1.put(txn, <String, dynamic>{
+          'dateTime': Timestamp.fromDateTime(DateTime.utc(2020))
+        });
+        await record2.put(txn, <String, dynamic>{
+          'dateTime': Timestamp.fromDateTime(DateTime.utc(2018))
+        });
+        await record3.put(txn, <String, dynamic>{
+          'dateTime': Timestamp.fromDateTime(DateTime.utc(2016))
+        });
+        await record4.put(txn, <String, dynamic>{
+          'dateTime': Timestamp.fromDateTime(DateTime.utc(2009))
+        });
+      });
+      results = await store.query(finder: finder).onSnapshots(db).first;
+      expect(results.map((e) => e.key), [3]);
+      await db.transaction((txn) async {
+        await record1.put(txn, <String, dynamic>{
+          'dateTime': Timestamp.fromDateTime(DateTime.utc(2010))
+        });
+        await record2.put(txn, <String, dynamic>{
+          'dateTime': Timestamp.fromDateTime(DateTime.utc(2018, 2))
+        });
+        await record4.put(txn, <String, dynamic>{
+          'dateTime': Timestamp.fromDateTime(DateTime.utc(2014))
+        });
+      });
+      results = await store.query(finder: finder).onSnapshots(db).first;
+      expect(results.map((e) => e.key), [4, 1]);
+      await record2
+          .put(db, {'dateTime': Timestamp.fromDateTime(DateTime.utc(2017))});
+      results = await store.query(finder: finder).onSnapshots(db).first;
+      expect(results.map((e) => e.key), [3, 4]);
+      expect(results1.map((e) => e.map((e) => e.key).toList()).toList(), [
+        [],
+        [3],
+        [4, 1],
+        [3, 4],
+      ]);
       await subscription.cancel();
     });
   });

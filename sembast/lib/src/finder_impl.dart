@@ -2,17 +2,30 @@ import 'dart:math';
 
 import 'package:sembast/sembast.dart';
 import 'package:sembast/src/boundary_impl.dart';
-import 'package:sembast/src/cooperator.dart';
+import 'package:sembast/src/filter_impl.dart';
 import 'package:sembast/src/record_impl.dart';
 import 'package:sembast/src/sort_order_impl.dart';
 import 'package:sembast/src/store_impl.dart';
 import 'package:sembast/src/utils.dart';
 
+/// Check filter and start/end boundaries, not the deleted flags
+bool finderMatchesFilterAndBoundaries(
+    SembastFinder finder, RecordSnapshot record) {
+  if (finder == null) {
+    return true;
+  }
+  if (!finderRecordMatchBoundaries(finder, record)) {
+    return false;
+  }
+  if (!filterMatchesRecord(finder.filter, record)) {
+    return false;
+  }
+  return true;
+}
+
 /// Limit a sorted list
-Future<List<ImmutableSembastRecord>> recordsLimit(
-    List<ImmutableSembastRecord> results,
-    SembastFinder finder,
-    Cooperator cooperator) async {
+List<ImmutableSembastRecord> recordsLimit(
+    List<ImmutableSembastRecord> results, SembastFinder finder) {
   if (finder != null) {
     // offset
     if (finder.offset != null) {
@@ -21,31 +34,6 @@ Future<List<ImmutableSembastRecord>> recordsLimit(
     // limit
     if (finder.limit != null) {
       results = results.sublist(0, min(finder.limit, results.length));
-    }
-  }
-  return results;
-}
-
-/// Limit a sorted list
-Future<List<ImmutableSembastRecord>> recordsFilterStartEnd(
-    List<ImmutableSembastRecord> results,
-    SembastFinder finder,
-    Cooperator cooperator) async {
-  if (finder != null) {
-    try {
-      // handle start
-      if (finder.start != null) {
-        results =
-            await finderFilterStart(finder, results, cooperator: cooperator);
-      }
-      // handle end
-      if (finder.end != null) {
-        results =
-            await finderFilterEnd(finder, results, cooperator: cooperator);
-      }
-    } catch (e) {
-      print('Make sure you are comparing boundaries with a proper type');
-      rethrow;
     }
   }
   return results;
@@ -112,7 +100,7 @@ class SembastFinder implements Finder {
   /// Compare to boundary.
   ///
   /// Used in search, record is the record checked from the db
-  int compareToBoundary(SembastRecord record, Boundary boundary) {
+  int compareToBoundary(RecordSnapshot record, Boundary boundary) {
     var result = 0;
     if (sortOrders != null) {
       for (var i = 0; i < sortOrders.length; i++) {
@@ -138,7 +126,7 @@ class SembastFinder implements Finder {
   }
 
   /// True if we match the start boundary.
-  bool starts(SembastRecord record, Boundary boundary) {
+  bool starts(RecordSnapshot record, Boundary boundary) {
     final result = compareToBoundary(record, boundary);
     if (result == 0 && boundary.include) {
       return true;
@@ -147,7 +135,7 @@ class SembastFinder implements Finder {
   }
 
   /// True if we don't match boundaries.
-  bool ends(SembastRecord record, Boundary boundary) {
+  bool ends(RecordSnapshot record, Boundary boundary) {
     final result = compareToBoundary(record, boundary);
     if (result == 0 && boundary.include) {
       return true;
