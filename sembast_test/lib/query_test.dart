@@ -5,10 +5,10 @@ library sembast_test.query_test;
 import 'dart:convert';
 
 import 'package:sembast/src/common_import.dart';
-
-import 'test_common.dart';
 import 'package:sembast/src/json_encodable_codec.dart' show JsonEncodableCodec;
 import 'package:sembast/src/type_adapter_impl.dart' show sembastDateTimeAdapter;
+
+import 'test_common.dart';
 
 void main() {
   defineTests(memoryDatabaseContext);
@@ -414,46 +414,171 @@ void defineTests(DatabaseTestContext ctx) {
       var record1 = store.record(1);
       var record2 = store.record(2);
       var finder = Finder(sortOrders: [SortOrder(Field.value)]);
-      var future1 = store.query(finder: finder).onSnapshots(db).first;
+      var results1 = <List<RecordSnapshot>>[];
+      var subscription =
+          store.query(finder: finder).onSnapshots(db).listen((event) {
+        results1.add(event);
+      });
       await db.transaction((txn) async {
         await record1.put(txn, 'test2');
         await record2.put(txn, 'test1');
       });
       var future2 = store.query(finder: finder).onSnapshots(db).first;
-      expect(await future1, isEmpty);
+
       expect((await future2)[0].key, record2.key);
       expect((await future2)[1].key, record1.key);
+      expect(results1.map((e) => e.map((e) => e.key)), [
+        [],
+        [2, 1]
+      ]);
+      await subscription.cancel();
     });
 
-    test('onSnapshots 2 records sort order different types', () async {
-      var store = StoreRef<int, dynamic>.main();
-      var record1 = store.record(1);
-      var record2 = store.record(2);
-      var finder = Finder(sortOrders: [SortOrder(Field.value)]);
-      var future1 = store.query(finder: finder).onSnapshots(db).first;
-      await db.transaction((txn) async {
-        await record1.put(txn, 'test1');
-        await record2.put(txn, 2);
-      });
-      var future2 = store.query(finder: finder).onSnapshots(db).first;
-      expect(await future1, isEmpty);
-      expect((await future2)[0].key, record2.key);
-      expect((await future2)[1].key, record1.key);
-    });
-
-    test('onSnapshots 2 records offset', () async {
+    test('onSnapshots 2 records sort order start', () async {
+      List<RecordSnapshot> results;
       var store = StoreRef<int, String>.main();
       var record1 = store.record(1);
       var record2 = store.record(2);
-      var finder = Finder(offset: 1);
-      var future1 = store.query(finder: finder).onSnapshots(db).first;
+      var finder = Finder(
+          sortOrders: [SortOrder(Field.value)],
+          start: Boundary(include: true, values: ['test2']));
+      var results1 = <List<RecordSnapshot>>[];
+      var subscription =
+          store.query(finder: finder).onSnapshots(db).listen((event) {
+        results1.add(event);
+      });
+      // var future1 = store.query(finder: finder).onSnapshots(db).first;
       await db.transaction((txn) async {
         await record1.put(txn, 'test1');
         await record2.put(txn, 'test2');
       });
-      var future2 = store.query(finder: finder).onSnapshots(db).first;
-      expect(await future1, isEmpty);
-      expect((await future2)[0].value, 'test2');
+      results = await store.query(finder: finder).onSnapshots(db).first;
+      expect(results.map((e) => e.key), [2]);
+      await record1.put(db, 'test3');
+      results = await store.query(finder: finder).onSnapshots(db).first;
+      expect(results.map((e) => e.key), [2, 1]);
+      await record2.put(db, 'test0');
+      results = await store.query(finder: finder).onSnapshots(db).first;
+      expect(results.map((e) => e.key), [1]);
+      expect(results1.map((e) => e.map((e) => e.key).toList()).toList(), [
+        [],
+        [2],
+        [2, 1],
+        [1]
+      ]);
+
+      await subscription.cancel();
+    });
+
+    test('onSnapshots 2 records sort order end', () async {
+      List<RecordSnapshot> results;
+
+      var store = StoreRef<int, String>.main();
+      var record1 = store.record(1);
+      var record2 = store.record(2);
+      var finder = Finder(
+          sortOrders: [SortOrder(Field.value)],
+          end: Boundary(include: false, values: ['test2']));
+      var results1 = <List<RecordSnapshot>>[];
+      var subscription =
+          store.query(finder: finder).onSnapshots(db).listen((event) {
+        results1.add(event);
+      });
+      await db.transaction((txn) async {
+        await record1.put(txn, 'test2');
+        await record2.put(txn, 'test1');
+      });
+      results = await store.query(finder: finder).onSnapshots(db).first;
+      // expect(await future1, isEmpty);
+      expect(results.map((e) => e.key), [2]);
+      expect(results1.map((e) => e.map((e) => e.key).toList()).toList(), [
+        [],
+        [2]
+      ]);
+      await subscription.cancel();
+    });
+
+    test('onSnapshots 2 records sort order different types', () async {
+      List<RecordSnapshot> results;
+      var store = StoreRef<int, dynamic>.main();
+      var record1 = store.record(1);
+      var record2 = store.record(2);
+      var finder = Finder(sortOrders: [SortOrder(Field.value)]);
+      var results1 = <List<RecordSnapshot>>[];
+      var subscription =
+          store.query(finder: finder).onSnapshots(db).listen((event) {
+        results1.add(event);
+      });
+      await db.transaction((txn) async {
+        await record1.put(txn, 'test1');
+        await record2.put(txn, 2);
+      });
+      results = await store.query(finder: finder).onSnapshots(db).first;
+      expect(results.map((e) => e.key), [2, 1]);
+      expect(results1.map((e) => e.map((e) => e.key).toList()).toList(), [
+        [],
+        [2, 1]
+      ]);
+
+      await subscription.cancel();
+    });
+
+    test('onSnapshots 2 records offset', () async {
+      List<RecordSnapshot> results;
+      var store = StoreRef<int, String>.main();
+      var record1 = store.record(1);
+      var record2 = store.record(2);
+      var finder = Finder(offset: 1);
+      var results1 = <List<RecordSnapshot>>[];
+      var subscription =
+          store.query(finder: finder).onSnapshots(db).listen((event) {
+        results1.add(event);
+      });
+      await db.transaction((txn) async {
+        await record1.put(txn, 'test1');
+        await record2.put(txn, 'test2');
+      });
+      results = await store.query(finder: finder).onSnapshots(db).first;
+      expect(results.map((e) => e.key), [2]);
+      expect(results1.map((e) => e.map((e) => e.key).toList()).toList(), [
+        [],
+        [2]
+      ]);
+
+      await subscription.cancel();
+    });
+    test('onSnapshots 2 records limit', () async {
+      List<RecordSnapshot> results;
+      var store = StoreRef<int, String>.main();
+      var record1 = store.record(1);
+      var record2 = store.record(2);
+      var finder = Finder(limit: 1);
+      var results1 = <List<RecordSnapshot>>[];
+      var subscription =
+          store.query(finder: finder).onSnapshots(db).listen((event) {
+        results1.add(event);
+      });
+      await db.transaction((txn) async {
+        await record1.put(txn, 'test1');
+        await record2.put(txn, 'test2');
+      });
+      results = await store.query(finder: finder).onSnapshots(db).first;
+      expect(results.map((e) => e.key), [1]);
+      await record1.delete(db);
+      results = await store.query(finder: finder).onSnapshots(db).first;
+      expect(results.map((e) => e.key), [2]);
+
+      await record1.put(db, 'test1');
+      results = await store.query(finder: finder).onSnapshots(db).first;
+      expect(results.map((e) => e.key), [1]);
+      expect(results1.map((e) => e.map((e) => e.key).toList()).toList(), [
+        [],
+        [1],
+        [2],
+        [1],
+      ]);
+
+      await subscription.cancel();
     });
   });
 }

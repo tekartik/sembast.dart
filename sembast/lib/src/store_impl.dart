@@ -734,6 +734,22 @@ class SembastStore {
 }
 
 /// Filter start boundary, assume ordered result
+bool finderRecordMatchBoundaries<T extends SembastRecord>(
+    SembastFinder finder, T result) {
+  if (finder?.start != null) {
+    if (!finder.starts(result, finder.start)) {
+      return false;
+    }
+  }
+  if (finder?.end != null) {
+    if (!finder.ends(result, finder.end)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+/// Filter start boundary, assume ordered result
 Future<List<T>> finderFilterStart<T extends SembastRecord>(
     SembastFinder finder, List<T> results,
     {Cooperator cooperator}) async {
@@ -762,7 +778,7 @@ Future<List<T>> finderFilterEnd<T extends SembastRecord>(
     if (cooperator?.needCooperate ?? false) {
       await cooperator.cooperate();
     }
-    if (finder.ends(results[i], finder.end)) {
+    if (!finder.ends(results[i], finder.end)) {
       // continue
     } else {
       endIndex = i + 1;
