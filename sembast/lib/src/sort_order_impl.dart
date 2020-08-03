@@ -2,6 +2,7 @@ import 'package:sembast/sembast.dart';
 import 'package:sembast/src/api/boundary.dart';
 import 'package:sembast/src/api/sort_order.dart';
 import 'package:sembast/src/boundary_impl.dart';
+import 'package:sembast/src/utils.dart';
 
 /// Sort order implementation.
 class SembastSortOrder implements SortOrder {
@@ -79,10 +80,7 @@ class SembastSortOrder implements SortOrder {
         return 1;
       }
     }
-    if (value1 is Comparable) {
-      return value1.compareTo(value2);
-    }
-    return 0;
+    return compareValue(value1, value2);
   }
 
   Map<String, dynamic> _toDebugMap() {

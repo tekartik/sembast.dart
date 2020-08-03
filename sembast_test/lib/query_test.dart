@@ -2,9 +2,13 @@ library sembast_test.query_test;
 
 // basically same as the io runner but with extra output
 
+import 'dart:convert';
+
 import 'package:sembast/src/common_import.dart';
 
 import 'test_common.dart';
+import 'package:sembast/src/json_encodable_codec.dart' show JsonEncodableCodec;
+import 'package:sembast/src/type_adapter_impl.dart' show sembastDateTimeAdapter;
 
 void main() {
   defineTests(memoryDatabaseContext);
@@ -292,6 +296,10 @@ void defineTests(DatabaseTestContext ctx) {
       var record = store.record(1);
       await record.put(db, 'test');
       expect((await store.query().onSnapshots(db).first).first.value, 'test');
+      // with offset
+      expect(
+          (await store.query(finder: Finder(offset: 1)).onSnapshots(db).first),
+          isEmpty);
     });
 
     test('onSnapshotsBeforeCreationAndUpdate', () async {
@@ -375,6 +383,77 @@ void defineTests(DatabaseTestContext ctx) {
       expect(await future1, isEmpty);
       expect((await future2)[0].value, 'test1');
       expect((await future2)[1].value, 'test2');
+    });
+
+    test('onSnapshots order custom type records', () async {
+      await db.close();
+      await ctx.factory.deleteDatabase(db.path);
+      var codec = SembastCodec(
+          signature: 'datetime',
+          codec: json,
+          jsonEncodableCodec:
+              JsonEncodableCodec(adapters: [sembastDateTimeAdapter]));
+      db = await ctx.factory.openDatabase(db.path, codec: codec);
+      var store = intMapStoreFactory.store();
+      var record1 = store.record(1);
+      var record2 = store.record(2);
+      var finder = Finder(sortOrders: [SortOrder('dateTime')]);
+      var future1 = store.query(finder: finder).onSnapshots(db).first;
+      await db.transaction((txn) async {
+        await record1.put(txn, <String, dynamic>{'dateTime': DateTime(2020)});
+        await record2.put(txn, <String, dynamic>{'dateTime': DateTime(2019)});
+      });
+      var future2 = store.query(finder: finder).onSnapshots(db).first;
+      expect(await future1, isEmpty);
+      expect((await future2)[0].key, record2.key);
+      expect((await future2)[1].key, record1.key);
+    });
+
+    test('onSnapshots 2 records sort order', () async {
+      var store = StoreRef<int, String>.main();
+      var record1 = store.record(1);
+      var record2 = store.record(2);
+      var finder = Finder(sortOrders: [SortOrder(Field.value)]);
+      var future1 = store.query(finder: finder).onSnapshots(db).first;
+      await db.transaction((txn) async {
+        await record1.put(txn, 'test2');
+        await record2.put(txn, 'test1');
+      });
+      var future2 = store.query(finder: finder).onSnapshots(db).first;
+      expect(await future1, isEmpty);
+      expect((await future2)[0].key, record2.key);
+      expect((await future2)[1].key, record1.key);
+    });
+
+    test('onSnapshots 2 records sort order different types', () async {
+      var store = StoreRef<int, dynamic>.main();
+      var record1 = store.record(1);
+      var record2 = store.record(2);
+      var finder = Finder(sortOrders: [SortOrder(Field.value)]);
+      var future1 = store.query(finder: finder).onSnapshots(db).first;
+      await db.transaction((txn) async {
+        await record1.put(txn, 'test1');
+        await record2.put(txn, 2);
+      });
+      var future2 = store.query(finder: finder).onSnapshots(db).first;
+      expect(await future1, isEmpty);
+      expect((await future2)[0].key, record2.key);
+      expect((await future2)[1].key, record1.key);
+    });
+
+    test('onSnapshots 2 records offset', () async {
+      var store = StoreRef<int, String>.main();
+      var record1 = store.record(1);
+      var record2 = store.record(2);
+      var finder = Finder(offset: 1);
+      var future1 = store.query(finder: finder).onSnapshots(db).first;
+      await db.transaction((txn) async {
+        await record1.put(txn, 'test1');
+        await record2.put(txn, 'test2');
+      });
+      var future2 = store.query(finder: finder).onSnapshots(db).first;
+      expect(await future1, isEmpty);
+      expect((await future2)[0].value, 'test2');
     });
   });
 }

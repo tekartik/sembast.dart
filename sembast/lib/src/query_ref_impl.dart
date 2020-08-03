@@ -44,10 +44,14 @@ class SembastQueryRef<K, V> implements QueryRef<K, V> {
       // Just filter
       try {
         await db.notificationLock.synchronized(() async {
+          // Find all matching, ignoring offset/limit but order them
           var allMatching = await (store as SembastStoreRef<K, V>)
               .findImmutableRecords(database,
-                  finder:
-                      finder == null ? null : Finder(filter: finder.filter));
+                  finder: finder == null
+                      ? null
+                      : Finder(
+                          filter: finder.filter,
+                          sortOrders: finder.sortOrders));
           // ignore: unawaited_futures
 
           // Get the result at query time first
