@@ -27,6 +27,25 @@ void defineTests(DatabaseTestContext ctx) {
       return db.close();
     });
 
+    Future expectQueryAndFirstSnapshotKeys(
+        Finder finder, List<int> keys) async {
+      var store = StoreRef<int, dynamic>.main();
+      var results = await store.query(finder: finder).onSnapshots(db).first;
+      expect(results.map((e) => e.key), keys);
+      results = await store.query(finder: finder).getSnapshots(db);
+      expect(results.map((e) => e.key), keys);
+      results = await store.find(db, finder: finder);
+      expect(results.map((e) => e.key), keys);
+      var result = await store.findFirst(db, finder: finder);
+      var queryResult = await store.query(finder: finder).getSnapshot(db);
+      expect(result?.key, queryResult?.key);
+      if (keys.isEmpty) {
+        expect(result, isNull);
+      } else {
+        expect(result.key, keys.first);
+      }
+    }
+
     test('put/query timing', () async {
       // No random timing
       setDatabaseCooperator(db, null);
@@ -56,13 +75,16 @@ void defineTests(DatabaseTestContext ctx) {
       expect((await query.getSnapshots(db)).map((snapshot) => snapshot.key),
           [1, 2]);
       expect((await query.getSnapshot(db)).key, 1);
-      query = store.query(
-          finder: Finder(filter: Filter.equals(Field.value, 'test2')));
+      await expectQueryAndFirstSnapshotKeys(null, [1, 2]);
+      var finder = Finder(filter: Filter.equals(Field.value, 'test2'));
+      query = store.query(finder: finder);
+      await expectQueryAndFirstSnapshotKeys(finder, [2]);
       expect(
           (await query.getSnapshots(db)).map((snapshot) => snapshot.key), [2]);
       expect((await query.getSnapshot(db)).key, 2);
-      query = store.query(
-          finder: Finder(filter: Filter.equals(Field.value, 'test3')));
+      finder = Finder(filter: Filter.equals(Field.value, 'test3'));
+      query = store.query(finder: finder);
+      await expectQueryAndFirstSnapshotKeys(finder, []);
       expect(
           (await query.getSnapshots(db)).map((snapshot) => snapshot.key), []);
       expect((await query.getSnapshot(db)), isNull);
@@ -428,6 +450,7 @@ void defineTests(DatabaseTestContext ctx) {
 
       expect((await future2)[0].key, record2.key);
       expect((await future2)[1].key, record1.key);
+      await expectQueryAndFirstSnapshotKeys(finder, [2, 1]);
       expect(results1.map((e) => e.map((e) => e.key)), [
         [],
         [2, 1]
@@ -436,7 +459,6 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     test('onSnapshots 2 records sort order start', () async {
-      List<RecordSnapshot> results;
       var store = StoreRef<int, String>.main();
       var record1 = store.record(1);
       var record2 = store.record(2);
@@ -453,14 +475,12 @@ void defineTests(DatabaseTestContext ctx) {
         await record1.put(txn, 'test1');
         await record2.put(txn, 'test2');
       });
-      results = await store.query(finder: finder).onSnapshots(db).first;
-      expect(results.map((e) => e.key), [2]);
+      await expectQueryAndFirstSnapshotKeys(finder, [2]);
       await record1.put(db, 'test3');
-      results = await store.query(finder: finder).onSnapshots(db).first;
-      expect(results.map((e) => e.key), [2, 1]);
+      await expectQueryAndFirstSnapshotKeys(finder, [2, 1]);
+
       await record2.put(db, 'test0');
-      results = await store.query(finder: finder).onSnapshots(db).first;
-      expect(results.map((e) => e.key), [1]);
+      await expectQueryAndFirstSnapshotKeys(finder, [1]);
       expect(results1.map((e) => e.map((e) => e.key).toList()).toList(), [
         [],
         [2],
@@ -472,8 +492,6 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     test('onSnapshots 2 records sort order end', () async {
-      List<RecordSnapshot> results;
-
       var store = StoreRef<int, String>.main();
       var record1 = store.record(1);
       var record2 = store.record(2);
@@ -489,9 +507,7 @@ void defineTests(DatabaseTestContext ctx) {
         await record1.put(txn, 'test2');
         await record2.put(txn, 'test1');
       });
-      results = await store.query(finder: finder).onSnapshots(db).first;
-      // expect(await future1, isEmpty);
-      expect(results.map((e) => e.key), [2]);
+      await expectQueryAndFirstSnapshotKeys(finder, [2]);
       expect(results1.map((e) => e.map((e) => e.key).toList()).toList(), [
         [],
         [2]
@@ -582,8 +598,78 @@ void defineTests(DatabaseTestContext ctx) {
       await subscription.cancel();
     });
 
-    test('onSnapshots all', () async {
-      List<RecordSnapshot> results;
+    test('onSnapshots all ascending', () async {
+      var store = intMapStoreFactory.store();
+      var record1 = store.record(1);
+      var record2 = store.record(2);
+      var record3 = store.record(3);
+      var record4 = store.record(4);
+      var finder = Finder(
+          sortOrders: [SortOrder('dateTime', true)],
+          end: Boundary(
+              values: [Timestamp.fromDateTime(DateTime.utc(2020))],
+              include: false),
+          start: Boundary(
+              values: [Timestamp.fromDateTime(DateTime.utc(2010))],
+              include: true),
+          limit: 2,
+          offset: 1,
+          filter: Filter.custom((record) =>
+              (record['dateTime'] as Timestamp).toDateTime(isUtc: true).month ==
+              DateTime.january));
+      var results1 = <List<RecordSnapshot>>[];
+      var subscription =
+          store.query(finder: finder).onSnapshots(db).listen((event) {
+        results1.add(event);
+      });
+      await db.transaction((txn) async {
+        await record1.put(txn, <String, dynamic>{
+          'dateTime': Timestamp.fromDateTime(DateTime.utc(2020))
+        });
+        await record2.put(txn, <String, dynamic>{
+          'dateTime': Timestamp.fromDateTime(DateTime.utc(2018))
+        });
+        await record3.put(txn, <String, dynamic>{
+          'dateTime': Timestamp.fromDateTime(DateTime.utc(2016))
+        });
+        await record4.put(txn, <String, dynamic>{
+          'dateTime': Timestamp.fromDateTime(DateTime.utc(2009))
+        });
+      });
+      await expectQueryAndFirstSnapshotKeys(finder, [2]);
+
+      await db.transaction((txn) async {
+        await record1.put(txn, <String, dynamic>{
+          'dateTime': Timestamp.fromDateTime(DateTime.utc(2010))
+        });
+        await record2.put(txn, <String, dynamic>{
+          'dateTime': Timestamp.fromDateTime(DateTime.utc(2018, 2))
+        });
+        await record4.put(txn, <String, dynamic>{
+          'dateTime': Timestamp.fromDateTime(DateTime.utc(2014))
+        });
+      });
+      await expectQueryAndFirstSnapshotKeys(finder, [4, 3]);
+      await record2
+          .put(db, {'dateTime': Timestamp.fromDateTime(DateTime.utc(2017))});
+      await expectQueryAndFirstSnapshotKeys(finder, [4, 3]);
+
+      await db.transaction((txn) async {
+        await record1.delete(txn);
+        await record3.delete(txn);
+      });
+      await expectQueryAndFirstSnapshotKeys(finder, [2]);
+      expect(results1.map((e) => e.map((e) => e.key).toList()).toList(), [
+        [],
+        [2],
+        [4, 3],
+        [4, 3],
+        [2]
+      ]);
+      await subscription.cancel();
+    });
+
+    test('onSnapshots all reverse', () async {
       var store = intMapStoreFactory.store();
       var record1 = store.record(1);
       var record2 = store.record(2);
@@ -621,8 +707,8 @@ void defineTests(DatabaseTestContext ctx) {
           'dateTime': Timestamp.fromDateTime(DateTime.utc(2009))
         });
       });
-      results = await store.query(finder: finder).onSnapshots(db).first;
-      expect(results.map((e) => e.key), [3]);
+      await expectQueryAndFirstSnapshotKeys(finder, [3]);
+
       await db.transaction((txn) async {
         await record1.put(txn, <String, dynamic>{
           'dateTime': Timestamp.fromDateTime(DateTime.utc(2010))
@@ -634,17 +720,22 @@ void defineTests(DatabaseTestContext ctx) {
           'dateTime': Timestamp.fromDateTime(DateTime.utc(2014))
         });
       });
-      results = await store.query(finder: finder).onSnapshots(db).first;
-      expect(results.map((e) => e.key), [4, 1]);
+      await expectQueryAndFirstSnapshotKeys(finder, [4, 1]);
       await record2
           .put(db, {'dateTime': Timestamp.fromDateTime(DateTime.utc(2017))});
-      results = await store.query(finder: finder).onSnapshots(db).first;
-      expect(results.map((e) => e.key), [3, 4]);
+      await expectQueryAndFirstSnapshotKeys(finder, [3, 4]);
+
+      await db.transaction((txn) async {
+        await record1.delete(txn);
+        await record3.delete(txn);
+      });
+      await expectQueryAndFirstSnapshotKeys(finder, [4]);
       expect(results1.map((e) => e.map((e) => e.key).toList()).toList(), [
         [],
         [3],
         [4, 1],
         [3, 4],
+        [4],
       ]);
       await subscription.cancel();
     });
