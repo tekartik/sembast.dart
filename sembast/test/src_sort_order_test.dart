@@ -33,5 +33,13 @@ void main() {
       });
       expect(sortOrder.compareAscending(record1, record2), -1);
     });
+
+    test('different type.field', () {
+      var field = 'field';
+      var sortOrder = SembastSortOrder(field);
+      var record1 = SembastRecordSnapshot(null, {'field': 1});
+      var record2 = SembastRecordSnapshot(null, {'field': '2'});
+      expect(sortOrder.compareAscending(record1, record2), -1);
+    });
   });
 }

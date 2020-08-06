@@ -89,7 +89,7 @@ class QueryListenerController<K, V> extends _ControllerBase {
 
     // Filter only
     _allMatching = allMatching;
-    var list = await recordsLimit(_allMatching, finder, cooperator);
+    var list = recordsLimit(_allMatching, finder);
 
     if (!_shouldAdd) {
       return;
@@ -140,8 +140,9 @@ class QueryListenerController<K, V> extends _ControllerBase {
       }
 
       // By default matches if non-deleted
-      var matches =
-          !txnRecord.deleted && filterMatchesRecord(filter, txnRecord);
+      var matches = !txnRecord.deleted &&
+          // Matching boundaries
+          finderMatchesFilterAndBoundaries(finder, txnRecord);
 
       if (matches) {
         hasChanges = true;

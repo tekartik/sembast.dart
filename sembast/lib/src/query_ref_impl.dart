@@ -1,5 +1,4 @@
 import 'package:sembast/sembast.dart';
-import 'package:sembast/src/api/finder.dart';
 import 'package:sembast/src/api/query_ref.dart';
 import 'package:sembast/src/api/store_ref.dart';
 import 'package:sembast/src/common_import.dart';
@@ -44,10 +43,10 @@ class SembastQueryRef<K, V> implements QueryRef<K, V> {
       // Just filter
       try {
         await db.notificationLock.synchronized(() async {
+          // Find all matching, ignoring offset/limit but order them
           var allMatching = await (store as SembastStoreRef<K, V>)
               .findImmutableRecords(database,
-                  finder:
-                      finder == null ? null : Finder(filter: finder.filter));
+                  finder: finder?.cloneWithoutLimits());
           // ignore: unawaited_futures
 
           // Get the result at query time first

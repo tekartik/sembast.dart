@@ -11,14 +11,14 @@ Supported key types are:
 ## Values
 
 Supported value types are:
-- String.
-- num (int and double)
-- Map
-- List
-- bool
+- `String`
+- `num` (`int` and `double`)
+- `Map<String, dynamic>`
+- `List<dynamic>`
+- `bool`
 - `null`
-- Blob (custom type)
-- Timestamp (custom type)
+- `Blob` (custom type)
+- `Timestamp` (custom type)
 
 Using the Store API, Map must be of type `Map<String, dynamic>`.
 
@@ -39,10 +39,11 @@ value = record[FieldKey.escape('path.sub')];
 
 ## DateTime
 
-`DateTime` is not a supported type. Personally I store them as 
-int (millisSinceEpoch) for easy sorting and queries or string (iso8601)
+`DateTime` is not a supported type. Similarly to firestore, it should be stored as a `Timestamp` object.
+
+Timestamp can easily be convert `toDateTime()` and `fromDateTime(dateTime)`.
 
 ## Blob
 
-`Uint8List` is not a supported type. It will be stored as `List<int>`. You can also encode it as base64 and save it
-as a `String`. Big blob could also be stored in a dedicated file.
+`Uint8List` is not a supported type. It will be stored as `List<int>`. You should wrap your bytes in a `Blob` object. 
+Big blob should/could also be stored in a dedicated file (and only keep a reference to it in sembast).
