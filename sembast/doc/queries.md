@@ -243,3 +243,23 @@ will match if one item in the list matches the criteria.
 var finder = Finder(filter: Filter.matches('categories', '^f', anyInList: true));
 var record = await store.findFirst(db, finder: finder);
 ```
+
+### Aggregate functions
+
+There is no now convenient `sum` or `average` functions. 
+However, data being in memory getting all the records and performing operation on the results does not cost much. example below to compute the sum and average of the fied `age`:
+
+```dart
+var store = intMapStoreFactory.store();
+await store.addAll(db, [
+  {'name': 'cat', 'age': 13},
+  {'name': 'dog', 'age': 12},
+  {'name': 'rabbit', 'age': 8}
+]);
+var ages = (await store.find(db)).map((snapshot) => snapshot['age']);
+
+// Compute sum
+var sum = ages.reduce((value, element) => value + element);
+// Compute average
+var average = sum / ages.length;
+```
