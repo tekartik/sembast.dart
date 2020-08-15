@@ -81,7 +81,7 @@ await db.transaction((txn) async {
   await store.add(txn, {'name': 'cat'});
   
   // You can specify a key
-  await store.record(10).put({'name': 'dog'});
+  await store.record(10).put(txn, {'name': 'dog'});
 });
 
 ```
