@@ -44,24 +44,27 @@ class SembastCustomFilter extends SembastFilterBase {
   }
 }
 
-mixin AnyInListMixin implements SembastFilterBase {
+/// Any in list mixin.
+mixin FilterAnyInListMixin implements SembastFilterBase {
   /// True if it should match any in a list.
   bool anyInList;
 }
 
+/// Value mixin.
 mixin FilterValueMixin implements SembastFilterBase {
   /// The value.
   dynamic value;
 }
 
-mixin FieldFieldMixin implements SembastFilterBase {
+/// Field information (name) mixin
+mixin FilterFieldMixin implements SembastFilterBase {
   /// The field.
   String field;
 }
 
 /// Equals filter.
 class SembastEqualsFilter extends SembastFilterBase
-    with AnyInListMixin, FilterValueMixin, FieldFieldMixin {
+    with FilterAnyInListMixin, FilterValueMixin, FilterFieldMixin {
   /// Equals filter.
   SembastEqualsFilter(String field, dynamic value, bool anyInList) {
     this.field = field;
@@ -97,7 +100,7 @@ class SembastEqualsFilter extends SembastFilterBase
 
 /// Matches filter.
 class SembastMatchesFilter extends SembastFilterBase
-    with AnyInListMixin, FieldFieldMixin {
+    with FilterAnyInListMixin, FilterFieldMixin {
   /// The regular expression.
   final RegExp regExp;
 
@@ -183,7 +186,7 @@ class SembastCompositeFilter extends SembastFilterBase {
 
 /// Filter predicate implementation.
 class SembastFilterPredicate extends SembastFilterBase
-    with FilterValueMixin, FieldFieldMixin {
+    with FilterValueMixin, FilterFieldMixin {
   /// The operation.
   FilterOperation operation;
 

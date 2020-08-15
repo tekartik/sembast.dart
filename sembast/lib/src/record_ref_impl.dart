@@ -10,6 +10,7 @@ import 'package:sembast/src/debug_utils.dart';
 import 'package:sembast/src/listener.dart';
 import 'package:sembast/src/record_snapshot_impl.dart';
 
+/// Record ref mixin.
 mixin RecordRefMixin<K, V> implements RecordRef<K, V> {
   @override
   StoreRef<K, V> store;
