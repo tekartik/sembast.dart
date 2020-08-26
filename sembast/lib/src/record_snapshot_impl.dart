@@ -4,6 +4,7 @@ import 'package:sembast/src/api/sembast.dart';
 import 'package:sembast/src/record_impl.dart';
 import 'package:sembast/src/utils.dart';
 
+/// Record snapshot mixin.
 mixin RecordSnapshotMixin<K, V>
     implements RecordSnapshot<K, V>, SembastRecordValue<V> {
   /// Record revision.

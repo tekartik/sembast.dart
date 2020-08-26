@@ -112,10 +112,12 @@ abstract class SembastDatabaseFactory implements DatabaseFactory {
   void removeDatabaseOpenHelper(String path);
 }
 
+/// Database factory mixin.
 mixin DatabaseFactoryMixin implements SembastDatabaseFactory {
   // for single instances only
   final _databaseOpenHelpers = <String, DatabaseOpenHelper>{};
 
+  /// Open a database with a given set of options.
   Future<Database> openDatabaseWithOptions(
       String path, DatabaseOpenOptions options) {
     // Always specify the default codec
@@ -138,6 +140,7 @@ mixin DatabaseFactoryMixin implements SembastDatabaseFactory {
             codec: codec));
   }
 
+  /// Get or create the open helper for a given path.
   DatabaseOpenHelper getDatabaseOpenHelper(
       String path, DatabaseOpenOptions options) {
     var helper = getExistingDatabaseOpenHelper(path);
@@ -148,6 +151,7 @@ mixin DatabaseFactoryMixin implements SembastDatabaseFactory {
     return helper;
   }
 
+  /// Get existing open helper for a given path.
   DatabaseOpenHelper getExistingDatabaseOpenHelper(String path) {
     if (path != null) {
       return _databaseOpenHelpers[path];
@@ -187,7 +191,7 @@ mixin DatabaseFactoryMixin implements SembastDatabaseFactory {
     return doDeleteDatabase(path);
   }
 
-  // Flush all opened databases
+  /// Flush all opened databases
   Future flush() async {
     var helpers = List<DatabaseOpenHelper>.from(_databaseOpenHelpers.values,
         growable: false);

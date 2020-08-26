@@ -5,6 +5,7 @@ import 'package:sembast/src/api/sembast.dart';
 import 'package:sembast/src/api/store_ref.dart';
 import 'package:sembast/src/database_client_impl.dart';
 
+/// Records ref mixin.
 mixin RecordsRefMixin<K, V> implements RecordsRef<K, V> {
   @override
   StoreRef<K, V> store;

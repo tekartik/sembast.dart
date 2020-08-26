@@ -15,6 +15,7 @@ abstract class SembastRecord extends RecordSnapshot<dynamic, dynamic> {
   bool get deleted;
 }
 
+/// Sembast record helper mixin.
 mixin SembastRecordHelperMixin implements SembastRecord {
   ///
   /// Copy a record.
@@ -47,7 +48,7 @@ mixin SembastRecordHelperMixin implements SembastRecord {
     return map;
   }
 
-  // The actual map written to disk
+  /// The actual map written to disk
   Map<String, dynamic> toDatabaseRowMap() {
     var map = _toBaseMap();
     // Don't write the value for deleted
@@ -76,6 +77,7 @@ abstract class SembastRecordValue<V> {
   V rawValue;
 }
 
+/// Sembast record mixin.
 mixin SembastRecordMixin implements SembastRecord, SembastRecordValue {
   bool _deleted;
 

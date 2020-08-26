@@ -23,6 +23,7 @@ class SembastStoreRef<K, V> with StoreRefMixin<K, V> {
   }
 }
 
+/// Store ref mixin.
 mixin StoreRefMixin<K, V> implements StoreRef<K, V> {
   @override
   String name;
@@ -231,6 +232,7 @@ extension SembastStoreRefExtension<K, V> on StoreRef<K, V> {
   }
 }
 
+/// Store factory mixin.
 mixin StoreFactoryMixin<K, V> implements StoreFactory<K, V> {
   @override
   StoreRef<K, V> store([String name]) {
