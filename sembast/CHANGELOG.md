@@ -1,9 +1,10 @@
-## 2.4.7+6
+## 2.4.7+7
 
 * Handle corrupted utf8 lines in sembast io
 * Improve int/string key generation during a transaction for jdb (i.e. for sembast_web)
 * Improve listeners
 * Fix `QueryRef.onSnapshots` initial order
+* Add `newDatabaseFactoryMemory()` function to create a blank factory (for unit tests) 
 
 ## 2.4.6+1
 
