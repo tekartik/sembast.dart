@@ -10,7 +10,7 @@ import 'package:sembast/src/sembast_jdb.dart';
 import 'package:sembast/src/storage.dart';
 
 /// The pure memory factory
-final DatabaseFactoryMemory databaseFactoryMemory = DatabaseFactoryMemory._();
+final DatabaseFactoryMemory databaseFactoryMemory = DatabaseFactoryMemory();
 
 /// The memory with a simulated file system factory
 final DatabaseFactoryMemoryFs databaseFactoryMemoryFs =
@@ -23,9 +23,6 @@ final DatabaseFactoryMemoryJdb databaseFactoryMemoryJdb =
 /// In memory implementation
 class DatabaseFactoryMemory extends SembastDatabaseFactory
     with DatabaseFactoryMixin {
-  // make it private
-  DatabaseFactoryMemory._();
-
   @override
   Future doDeleteDatabase(String path) async {
     if (path != null) {
