@@ -9,3 +9,6 @@ DatabaseFactory get databaseFactoryMemory => impl.databaseFactoryMemory;
 
 /// The memory with a simulated file system factory.
 DatabaseFactory get databaseFactoryMemoryFs => impl.databaseFactoryMemoryFs;
+
+/// Create a new empty factory
+DatabaseFactory newDatabaseFactoryMemory() => impl.DatabaseFactoryMemory();
