@@ -432,23 +432,4 @@ int findSortedIndex<T>(List<T> list, T item, int Function(T a, T b) compare) {
     }
   }
   return start;
-  /*
-  if (start == end) {
-    return start;
-  }
-  var pivot = start + ((end - start) ~/ 2);
-  var value = list[pivot];
-  var cmp = compare(value, item);
-  devPrint('pivot $pivot value $value cmp $cmp');
-  if (cmp == 0) {
-    return pivot;
-  } else if (end - start <= 1) {
-    return cmp > 0 ? pivot - 1 : pivot;
-  } else if (cmp < 0) {
-    return findSortedIndex(list, item, pivot, end, compare);
-  } else {
-    return findSortedIndex(list, item, start, pivot, compare);
-  }
-
-   */
 }

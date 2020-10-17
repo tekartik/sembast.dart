@@ -14,7 +14,7 @@ Supported value types are:
 - `String`
 - `num` (`int` and `double`)
 - `Map<String, dynamic>`
-- `List<dynamic>`
+- `List<dynamic>` (`Iterable` is not a supported types, use to `List()` to convert any iterable)
 - `bool`
 - `null`
 - `Blob` (custom type)

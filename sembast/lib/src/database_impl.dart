@@ -107,7 +107,7 @@ class SembastDatabase extends Object
   bool _closed = false;
 
   /// The open options.
-  DatabaseOpenOptions get openOptions => openHelper.options;
+  DatabaseOpenOptions get openOptions => openHelper?.options;
 
   // DatabaseMode _openMode;
   // Only set during open (used during onVersionChanged
@@ -1355,11 +1355,12 @@ class SembastDatabase extends Object
   }
 
   /// Use the one defined or the default one
-  Codec<dynamic, String> get _jsonCodec => openOptions.codec?.codec ?? json;
+  Codec<dynamic, String> get _jsonCodec => openOptions?.codec?.codec ?? json;
 
   /// Use the one defined or the default one
   JsonEncodableCodec get _jsonEncodableCodec =>
-      openOptions.codec?.jsonEncodableCodec ?? sembastDefaultJsonEncodableCodec;
+      openOptions?.codec?.jsonEncodableCodec ??
+      sembastDefaultJsonEncodableCodec;
 
   /// Convert a value to a json encodable format
   dynamic toJsonEncodable(dynamic value) => _jsonEncodableCodec.encode(value);
