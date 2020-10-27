@@ -2,7 +2,10 @@ library sembast.database_import_export_test;
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:typed_data';
 
+import 'package:sembast/blob.dart';
+import 'package:sembast/timestamp.dart';
 import 'package:sembast/utils/sembast_import_export.dart';
 
 import 'test_common.dart';
@@ -163,6 +166,64 @@ void defineTests(DatabaseTestContext ctx) {
             'keys': [1],
             'values': [
               {'test': 2}
+            ]
+          }
+        ]
+      });
+    });
+
+    test('1_map_record_with_all_types', () async {
+      final db = await setupForTest(
+          ctx, 'compat/import_export/1_map_record_with_all_types.db');
+
+      var store = stringMapStoreFactory.store();
+      await store.record('my_key').put(db, {
+        'my_bool': true,
+        'my_date': Timestamp(123456789012, 567891000),
+        'my_int': 1,
+        'my_double': 1.5,
+        'my_blob': Blob(Uint8List.fromList([1, 2, 3])),
+        'my_string': 'some text',
+        'my_list': [4, 5, 6],
+        'my_map': {'sub': 73},
+        'my_complex': [
+          {
+            'sub': [
+              {
+                'inner': [7, 8, 9]
+              }
+            ]
+          }
+        ],
+      });
+
+      await _checkExportImport(db, {
+        'sembast_export': 1,
+        'version': 1,
+        'stores': [
+          {
+            'name': '_main',
+            'keys': ['my_key'],
+            'values': [
+              {
+                'my_bool': true,
+                'my_date': {'@Timestamp': '5882-03-11T00:30:12.567891Z'},
+                'my_int': 1,
+                'my_double': 1.5,
+                'my_blob': {'@Blob': 'AQID'},
+                'my_string': 'some text',
+                'my_list': [4, 5, 6],
+                'my_map': {'sub': 73},
+                'my_complex': [
+                  {
+                    'sub': [
+                      {
+                        'inner': [7, 8, 9]
+                      }
+                    ]
+                  }
+                ]
+              }
             ]
           }
         ]
