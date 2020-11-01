@@ -1,5 +1,6 @@
-## 2.4.7+7
+## 2.4.8
 
+* Clear mode existing/empty flag upon open to handle re-open.
 * Handle corrupted utf8 lines in sembast io
 * Improve int/string key generation during a transaction for jdb (i.e. for sembast_web)
 * Improve listeners

@@ -1,3 +1,4 @@
+@TestOn('vm')
 library sembast.test.database_codec_test;
 
 import 'dart:async';

@@ -1,4 +1,5 @@
-library sembast.key_test;
+@TestOn('vm')
+library sembast.test.encrypt_codec_test;
 
 // basically same as the io runner but with extra output
 import 'package:sembast/src/api/v2/sembast.dart';

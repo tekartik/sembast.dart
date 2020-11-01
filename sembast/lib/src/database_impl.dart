@@ -479,6 +479,10 @@ class SembastDatabase extends Object
   /// reload
   //
   Future<Database> reOpen([DatabaseOpenOptions options]) async {
+    /// Fix openMode
+    if (options?.mode != null) {
+      openHelper.openMode = options.mode;
+    }
     options ??= openOptions;
     await close();
     if (_storageJdb != null) {
@@ -600,9 +604,11 @@ class SembastDatabase extends Object
   ///
   Future<Database> open(DatabaseOpenOptions options) async {
     // Default mode
-    var mode = options.mode ?? DatabaseMode.defaultMode;
+    // Open is overriden in openHelper
+    var mode = openHelper?.openMode;
     var version = options.version;
     var _openMode = mode;
+    // devPrint('Opening mode ${mode}');
 
     if (_opened) {
       return this;
@@ -709,9 +715,15 @@ class SembastDatabase extends Object
               throw DatabaseException.databaseNotFound(
                   'Database (open existing only) ${path} not found');
             }
+
+            /// Once used, change the mode to existing to handle any re-open
+            openHelper.openMode = DatabaseMode.defaultMode;
           } else {
             if (mode == DatabaseMode.empty) {
               await _storageBase.delete();
+
+              /// Once used, change the mode to existing to handle any re-open
+              openHelper.openMode = DatabaseMode.defaultMode;
             }
             await _storageBase.findOrCreate();
           }

@@ -51,6 +51,9 @@ class DatabaseOpenHelper {
   /// The path.
   final String path;
 
+  /// The open mode that change overtime (empty to defaults)
+  DatabaseMode openMode;
+
   /// The open options.
   final DatabaseOpenOptions options;
 
@@ -61,7 +64,10 @@ class DatabaseOpenHelper {
   SembastDatabase database;
 
   /// Open helper.
-  DatabaseOpenHelper(this.factory, this.path, this.options);
+  DatabaseOpenHelper(this.factory, this.path, this.options) {
+    /// Always set an open mode
+    openMode ??= options?.mode ?? DatabaseMode.defaultMode;
+  }
 
   /// Create a new database object.
   SembastDatabase newDatabase(String path) => factory.newDatabase(this);

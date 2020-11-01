@@ -1,3 +1,4 @@
+@TestOn('vm') // Temp
 library sembast_test.encrypt_codec_test;
 
 import 'package:sembast/sembast.dart';

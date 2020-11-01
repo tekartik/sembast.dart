@@ -4,6 +4,7 @@ library sembast.test_runner.all_test;
 import 'package:path/path.dart';
 
 import 'all_test.dart';
+import 'all_test_io.dart';
 import 'fs_test_common.dart';
 import 'io_test_common.dart';
 import 'memory_factory_test_.dart';
@@ -16,6 +17,7 @@ void main() {
     defineTests(memoryDatabaseContext);
   });
   group('io', () {
+    ioDefineFileSystemTests(fileSystemContextIo);
     defineFileSystemTests(fileSystemContextIo);
     defineTests(databaseContextIo);
   });

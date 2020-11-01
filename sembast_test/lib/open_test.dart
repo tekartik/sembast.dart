@@ -63,6 +63,32 @@ void defineTests(DatabaseTestContext ctx) {
       await db.close();
     });
 
+    /// Edge case,
+    /// While it fails on native due to not waiting for the transaction
+    /// to complete, it brings a weird behavior on sembase where the old
+    /// open helper option remains.
+    test('initial_empty_re_open', () async {
+      var path = dbPathFromName('open/initial_empty_re_open.db');
+      var store = StoreRef<int, int>.main();
+      await factory.deleteDatabase(path);
+
+      var db = await factory.openDatabase(path,
+          version: 2, mode: DatabaseMode.empty);
+      expect(db.version, 2);
+      await store.record(1).put(db, 2);
+      // ignore: unawaited_futures
+      db.close();
+      try {
+        db = await factory.openDatabase(path);
+      } catch (e) {
+        // Happens on idb, exit
+        return;
+      }
+      expect(db.version, 2);
+      expect(await store.record(1).get(db), 2);
+      await db.close();
+    });
+
     test('compacting during open', () async {
       // Deleting all the records during onVersionChanged could trigger
       // a compact that hangs the database

@@ -33,4 +33,18 @@ class DatabaseMode {
     }
     return false;
   }
+
+  @override
+  String toString() {
+    if (create == this) {
+      return 'DatabaseMode.create';
+    } else if (existing == this) {
+      return 'DatabaseMode.existing';
+    } else if (empty == this) {
+      return 'DatabaseMode.empty';
+    } else if (neverFails == this) {
+      return 'DatabaseMode.neverFails';
+    }
+    return super.toString();
+  }
 }
