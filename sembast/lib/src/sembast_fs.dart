@@ -117,16 +117,16 @@ class FsDatabaseStorage extends DatabaseStorage {
 
   @override
   Stream<String> readSafeLines() {
-    StreamSubscription subscription;
-    Uint8List currentLine;
+    StreamSubscription? subscription;
+    Uint8List? currentLine;
     const endOfLine = 10;
     const lineFeed = 13;
-    StreamController<String> ctlr;
+    late StreamController<String> ctlr;
     ctlr = StreamController<String>(onListen: () {
       void addCurrentLine() {
         if (currentLine?.isNotEmpty ?? false) {
           try {
-            ctlr.add(utf8.decode(currentLine));
+            ctlr.add(utf8.decode(currentLine!));
           } catch (_) {
             // Ignore non utf8 lines
           }
@@ -138,9 +138,9 @@ class FsDatabaseStorage extends DatabaseStorage {
         if (currentLine == null) {
           currentLine = data;
         } else {
-          var newCurrentLine = Uint8List(currentLine.length + data.length);
-          newCurrentLine.setAll(0, currentLine);
-          newCurrentLine.setAll(currentLine.length, data);
+          var newCurrentLine = Uint8List(currentLine!.length + data.length);
+          newCurrentLine.setAll(0, currentLine!);
+          newCurrentLine.setAll(currentLine!.length, data);
           currentLine = newCurrentLine;
         }
       }
@@ -190,7 +190,10 @@ class FsDatabaseStorage extends DatabaseStorage {
 
   @override
   String toString() {
-    final map = <String, dynamic>{'file': file.toString(), 'fs': fs.toString()};
+    final map = <String, Object? >{
+      'file': file.toString(),
+      'fs': fs.toString()
+    };
     if (isTmp == true) {
       map['tmp'] = true;
     }

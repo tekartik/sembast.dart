@@ -35,12 +35,12 @@ abstract class Finder {
   ///
   /// A finder without any info does not filter anything
   factory Finder(
-      {Filter filter,
-      List<SortOrder> sortOrders,
-      int limit,
-      int offset,
-      Boundary start,
-      Boundary end}) {
+      {Filter? filter,
+      List<SortOrder>? sortOrders,
+      int? limit,
+      int? offset,
+      Boundary? start,
+      Boundary? end}) {
     return SembastFinder(
         filter: filter,
         sortOrders: sortOrders,

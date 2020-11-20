@@ -25,7 +25,7 @@ Uint8List _generateEncryptPassword(String password) {
 }
 
 /// Salsa20 based encoder
-class _EncryptEncoder extends Converter<dynamic, String> {
+class _EncryptEncoder extends Converter<Object, String > {
   final Salsa20 salsa20;
 
   _EncryptEncoder(this.salsa20);
@@ -47,7 +47,7 @@ class _EncryptEncoder extends Converter<dynamic, String> {
 }
 
 /// Salsa20 based decoder
-class _EncryptDecoder extends Converter<String, dynamic> {
+class _EncryptDecoder extends Converter<String, Object? > {
   final Salsa20 salsa20;
 
   _EncryptDecoder(this.salsa20);
@@ -64,16 +64,16 @@ class _EncryptDecoder extends Converter<String, dynamic> {
     // Decode the input
     var decoded = json.decode(Encrypter(salsa20).decrypt64(input, iv: IV(iv)));
     if (decoded is Map) {
-      return decoded.cast<String, dynamic>();
+      return decoded.cast<String, Object? >();
     }
     return decoded;
   }
 }
 
 /// Salsa20 based Codec
-class _EncryptCodec extends Codec<dynamic, String> {
-  _EncryptEncoder _encoder;
-  _EncryptDecoder _decoder;
+class _EncryptCodec extends Codec<Object, String > {
+  late _EncryptEncoder _encoder;
+  late _EncryptDecoder _decoder;
 
   _EncryptCodec(Uint8List passwordBytes) {
     var salsa20 = Salsa20(Key(passwordBytes));
@@ -82,10 +82,10 @@ class _EncryptCodec extends Codec<dynamic, String> {
   }
 
   @override
-  Converter<String, dynamic> get decoder => _decoder;
+  Converter<String, Object? > get decoder => _decoder;
 
   @override
-  Converter<dynamic, String> get encoder => _encoder;
+  Converter<Object, String > get encoder => _encoder;
 }
 
 /// Our plain text signature
@@ -112,7 +112,7 @@ const _encryptCodecSignature = 'encrypt';
 ///
 /// // ...your database is ready to use
 /// ```
-SembastCodec getEncryptSembastCodec({@required String password}) =>
+SembastCodec getEncryptSembastCodec({required String password}) =>
     SembastCodec(
         signature: _encryptCodecSignature,
         codec: _EncryptCodec(_generateEncryptPassword(password)));

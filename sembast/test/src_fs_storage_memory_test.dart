@@ -25,7 +25,7 @@ void main() {
           null,
           await storage
               .readSafeLines()
-              .firstWhere((element) => true, orElse: () => null));
+              .firstWhere((element) => true, orElse: (() => null) as String Function()?));
 
       await storage.delete();
       await storage.appendLines([

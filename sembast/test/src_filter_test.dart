@@ -12,7 +12,7 @@ var record = store.record(1);
 
 RecordSnapshot snapshot(dynamic value) => record.snapshot(value);
 
-bool _match(Filter filter, dynamic value) {
+bool _match(Filter? filter, dynamic value) {
   return filterMatchesRecord(filter, snapshot(value));
 }
 

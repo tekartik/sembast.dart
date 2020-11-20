@@ -17,7 +17,7 @@ abstract class JdbException {
 /// Journal entry database.
 class JdbInfoEntry {
   /// Jdb entry id.
-  String id;
+  String? id;
 
   /// Jdb value
   dynamic value;
@@ -26,8 +26,8 @@ class JdbInfoEntry {
   String toString() => '[$id] $value';
 
   /// Debug map.
-  Map<String, dynamic> exportToMap() {
-    var map = <String, dynamic>{
+  Map<String, Object? > exportToMap() {
+    var map = <String, Object? >{
       'id': id,
       'value': value,
     };
@@ -75,23 +75,23 @@ class JdbWriteEntry extends JdbEntry {
   int id;
 
   /// Record
-  TxnRecord txnRecord;
+  TxnRecord? txnRecord;
 
   // Ref.
   @override
-  RecordRef get record => txnRecord.ref;
+  RecordRef get record => txnRecord!.ref;
 
   dynamic _value;
 
   /// value.
   @override
-  dynamic get value => _value ??= txnRecord.record.value;
+  dynamic get value => _value ??= txnRecord!.record.value;
 
   @override
   String toString() => '[$id] $record $value';
 
   @override
-  bool get deleted => txnRecord.deleted;
+  bool get deleted => txnRecord!.deleted;
 }
 
 /// Raw entry.
@@ -104,7 +104,7 @@ class JdbRawWriteEntry extends JdbWriteEntry {
   final RecordRef record;
 
   /// Raw entry.
-  JdbRawWriteEntry({this.value, this.deleted, this.record});
+  JdbRawWriteEntry({this.value, required this.deleted, required this.record});
 }
 
 /// Jdb.
@@ -113,7 +113,7 @@ abstract class JdbDatabase {
   Stream<int> get revisionUpdate;
 
   /// Get info.
-  Future<JdbInfoEntry> getInfoEntry(String id);
+  Future<JdbInfoEntry?> getInfoEntry(String id);
 
   /// Set info.
   Future setInfoEntry(JdbInfoEntry entry);
@@ -143,7 +143,7 @@ abstract class JdbDatabase {
   Future<StorageJdbWriteResult> writeIfRevision(StorageJdbWriteQuery query);
 
   /// Read all context (re-open if needed). Test only.
-  Future<Map<String, dynamic>> exportToMap();
+  Future<Map<String, Object? >> exportToMap();
 
   /// Compact the database
   Future compact();
@@ -158,7 +158,7 @@ abstract class JdbDatabase {
 /// Jdb implementation.
 abstract class JdbFactory {
   /// Open the database.
-  Future<JdbDatabase> open(String path, {DatabaseOpenOptions options});
+  Future<JdbDatabase> open(String path, {DatabaseOpenOptions? options});
 
   /// Delete a database
   Future delete(String path);

@@ -132,11 +132,11 @@ void defineTests(FileSystemTestContext ctx) {
           return fs.isFile(namePath('test')).then((bool isFile) {
             expect(isFile, false);
           });
-        }).then((_) {
+        } as FutureOr<_> Function(Null)).then((_) {
           return fs.isDirectory(namePath('test')).then((bool isFile) {
             expect(isFile, false);
           });
-        });
+        } as FutureOr<_> Function(dynamic));
       });
     });
 

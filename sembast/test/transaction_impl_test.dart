@@ -13,7 +13,7 @@ void main() {
 
 void defineTests(DatabaseTestContext ctx) {
   group('transaction_impl', () {
-    SembastDatabase db;
+    late SembastDatabase db;
 
     setUp(() async {
       db = await setupForTest(ctx, 'compat/transaction_impl.db')
@@ -36,48 +36,48 @@ void defineTests(DatabaseTestContext ctx) {
       futures.add(record.get(db).then((value) {
         //expect(db.currentTransaction, isNull);
         expect(value, null);
-      }));
+      } as FutureOr<dynamic> Function(String?)));
       return Future.wait(futures);
     });
 
     var transactionIdAfterOpen = 1;
     test('one currentTransaction', () {
       db.transaction((txn) {
-        expect(db.currentTransaction.id, transactionIdAfterOpen + 1);
+        expect(db.currentTransaction!.id, transactionIdAfterOpen + 1);
         return Future.value().then((_) {
-          expect(db.currentTransaction.id, transactionIdAfterOpen + 1);
+          expect(db.currentTransaction!.id, transactionIdAfterOpen + 1);
         }).then((_) {
-          expect(db.currentTransaction.id, transactionIdAfterOpen + 1);
-        });
+          expect(db.currentTransaction!.id, transactionIdAfterOpen + 1);
+        } as FutureOr<_> Function(Null));
       }).then((_) {
         expect(db.currentTransaction, null);
-      });
+      } as FutureOr<_> Function(Null));
     });
 
     test('two currentTransaction', () {
       db.transaction((txn) {
-        expect(db.currentTransaction.id, transactionIdAfterOpen + 1);
+        expect(db.currentTransaction!.id, transactionIdAfterOpen + 1);
       }).then((_) {
         // expect(db.currentTransaction, null);
-      });
+      } as FutureOr<_> Function(Null));
       return db.transaction((txn) {
-        expect(db.currentTransaction.id, transactionIdAfterOpen + 2);
+        expect(db.currentTransaction!.id, transactionIdAfterOpen + 2);
       }).then((_) {
         // expect(db.currentTransaction, null);
-      });
+      } as FutureOr<_> Function(Null));
     });
 
     test('two currentTransaction follow', () {
       db.transaction((txn) {
-        expect(db.currentTransaction.id, transactionIdAfterOpen + 1);
+        expect(db.currentTransaction!.id, transactionIdAfterOpen + 1);
       }).then((_) {
         expect(db.currentTransaction, null);
         return db.transaction((txn) {
-          expect(db.currentTransaction.id, transactionIdAfterOpen + 2);
+          expect(db.currentTransaction!.id, transactionIdAfterOpen + 2);
         }).then((_) {
           expect(db.currentTransaction, null);
-        });
-      });
+        } as FutureOr<_> Function(Null));
+      } as FutureOr<_> Function(Null));
     });
   });
 }

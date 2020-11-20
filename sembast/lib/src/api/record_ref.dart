@@ -7,7 +7,7 @@ abstract class RecordRef<K, V> {
   /// Store reference.
   StoreRef<K, V> get store;
 
-  /// Record key, null for new record.
+  /// Record key, never null.
   K get key;
 
   /// Cast if needed.

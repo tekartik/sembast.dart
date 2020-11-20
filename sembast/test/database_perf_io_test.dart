@@ -13,10 +13,10 @@ import 'test_common.dart';
 void main() {
   test('perf', () async {
     Future perf(int recordCount, int times,
-        {int recordSize,
-        bool bigRecord,
-        int transactionCount,
-        bool inTransaction}) async {
+        {int? recordSize,
+        bool? bigRecord,
+        int? transactionCount,
+        bool? inTransaction}) async {
       inTransaction ??= transactionCount != null && transactionCount > 0;
       transactionCount ??= inTransaction ? 1 : 0;
       final _recordContent = bigRecord == true

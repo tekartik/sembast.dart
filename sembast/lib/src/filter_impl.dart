@@ -4,11 +4,11 @@ import 'package:sembast/src/api/record_snapshot.dart';
 import 'package:sembast/src/record_snapshot_impl.dart';
 
 /// We can match if record is a map or if we are accessing the key or value
-bool canMatch(String field, dynamic recordValue) =>
+bool canMatch(String? field, dynamic recordValue) =>
     (recordValue is Map) || (field == Field.value) || (field == Field.key);
 
 /// Check if a [record] match a [filter]
-bool filterMatchesRecord(Filter filter, RecordSnapshot record) {
+bool filterMatchesRecord(Filter? filter, RecordSnapshot record) {
   if (filter == null) {
     return true;
   }
@@ -47,7 +47,7 @@ class SembastCustomFilter extends SembastFilterBase {
 /// Any in list mixin.
 mixin FilterAnyInListMixin implements SembastFilterBase {
   /// True if it should match any in a list.
-  bool anyInList;
+  bool? anyInList;
 }
 
 /// Value mixin.
@@ -59,14 +59,14 @@ mixin FilterValueMixin implements SembastFilterBase {
 /// Field information (name) mixin
 mixin FilterFieldMixin implements SembastFilterBase {
   /// The field.
-  String field;
+  String? field;
 }
 
 /// Equals filter.
 class SembastEqualsFilter extends SembastFilterBase
     with FilterAnyInListMixin, FilterValueMixin, FilterFieldMixin {
   /// Equals filter.
-  SembastEqualsFilter(String field, dynamic value, bool anyInList) {
+  SembastEqualsFilter(String field, dynamic value, bool? anyInList) {
     this.field = field;
     this.value = value;
     this.anyInList = anyInList;
@@ -105,7 +105,7 @@ class SembastMatchesFilter extends SembastFilterBase
   final RegExp regExp;
 
   /// Matches filter.
-  SembastMatchesFilter(String field, this.regExp, bool anyInList) {
+  SembastMatchesFilter(String field, this.regExp, bool? anyInList) {
     this.field = field;
     this.anyInList = anyInList;
   }
@@ -198,7 +198,7 @@ class SembastFilterPredicate extends SembastFilterBase
 
   @override
   bool matchesRecord(RecordSnapshot record) {
-    int _safeCompare(dynamic value1, dynamic value2) {
+    int? _safeCompare(dynamic value1, dynamic value2) {
       try {
         if (value1 is Comparable && value2 is Comparable) {
           return Comparable.compare(value1, value2);

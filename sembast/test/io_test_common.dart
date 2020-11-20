@@ -10,7 +10,7 @@ import 'test_common.dart';
 DatabaseTestContextIo get databaseContextIo =>
     DatabaseTestContextIo()..factory = databaseFactoryIo;
 
-DatabaseTestContextIo createDatabaseContextIo({String rootPath}) =>
+DatabaseTestContextIo createDatabaseContextIo({String? rootPath}) =>
     DatabaseTestContextIo()
       ..factory = createDatabaseFactoryIo(rootPath: rootPath);
 
@@ -19,7 +19,7 @@ class DatabaseTestContextIo extends DatabaseTestContextFs {}
 FileSystemTestContextIo get fileSystemContextIo =>
     FileSystemTestContextIo()..fs = FileSystemIo();
 
-FileSystemTestContextIo createFileSystemContextIo({String rootPath}) =>
+FileSystemTestContextIo createFileSystemContextIo({String? rootPath}) =>
     FileSystemTestContextIo()..fs = FileSystemIo(rootPath: rootPath);
 
 class FileSystemTestContextIo extends FileSystemTestContext {}

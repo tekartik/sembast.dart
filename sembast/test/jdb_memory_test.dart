@@ -15,14 +15,14 @@ class JdbWriteEntryMock extends JdbWriteEntry {
   @override
   RecordRef record;
   dynamic _value;
-  bool _deleted;
+  bool? _deleted;
 
   JdbWriteEntryMock(
-      {int id,
-      String store,
-      @required dynamic key,
+      {required int id,
+      String? store,
+      required dynamic key,
       dynamic value,
-      bool deleted}) {
+      bool? deleted}) {
     record = (store == null ? StoreRef.main() : StoreRef(store)).record(key);
     _value = value;
     _deleted = deleted;
@@ -33,7 +33,7 @@ class JdbWriteEntryMock extends JdbWriteEntry {
   dynamic get value => _value;
 
   @override
-  bool get deleted => _deleted;
+  bool get deleted => _deleted!;
 }
 
 void main() {
@@ -166,7 +166,7 @@ void main() {
 
       //TODO
       ////devPrint('2 ${await record1.onSnapshot(db).first}');
-      await record1.onSnapshot(db).where((snapshot) => snapshot != null).first;
+      await record1.onSnapshot(db).where(((snapshot) => snapshot != null) as bool Function(RecordSnapshot<int, String>?)).first;
       expect(await store.record(1).get(db), isNotNull);
 
       await db.close();

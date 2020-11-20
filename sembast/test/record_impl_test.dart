@@ -13,7 +13,7 @@ void main() {
 void defineTests(DatabaseTestContext ctx) {
   group('record_impl', () {
     group('db', () {
-      Database db;
+      late Database db;
 
       setUp(() async {
         db = await setupForTest(ctx, 'record_impl.db');

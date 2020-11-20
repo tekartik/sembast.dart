@@ -10,7 +10,7 @@ import 'package:sembast/src/utils.dart';
 
 /// Check filter and start/end boundaries, not the deleted flags
 bool finderMatchesFilterAndBoundaries(
-    SembastFinder finder, RecordSnapshot record) {
+    SembastFinder? finder, RecordSnapshot record) {
   if (finder == null) {
     return true;
   }
@@ -24,16 +24,16 @@ bool finderMatchesFilterAndBoundaries(
 }
 
 /// Limit a sorted list
-List<ImmutableSembastRecord> recordsLimit(
-    List<ImmutableSembastRecord> results, SembastFinder finder) {
+List<ImmutableSembastRecord>? recordsLimit(
+    List<ImmutableSembastRecord>? results, SembastFinder? finder) {
   if (finder != null) {
     // offset
     if (finder.offset != null) {
-      results = results.sublist(min(finder.offset, results.length));
+      results = results!.sublist(min(finder.offset!, results.length));
     }
     // limit
     if (finder.limit != null) {
-      results = results.sublist(0, min(finder.limit, results.length));
+      results = results!.sublist(0, min(finder.limit!, results.length));
     }
   }
   return results;
@@ -42,13 +42,13 @@ List<ImmutableSembastRecord> recordsLimit(
 /// Finder implementation.
 class SembastFinder implements Finder {
   /// Filter.
-  Filter filter;
+  Filter? filter;
 
   /// Offset.
-  int offset;
+  int? offset;
 
   /// Limit.
-  int limit;
+  int? limit;
 
   /// Builder.
   SembastFinder(
@@ -60,13 +60,13 @@ class SembastFinder implements Finder {
       this.end});
 
   /// Start boundary.
-  Boundary start;
+  Boundary? start;
 
   /// End boundary.
-  Boundary end;
+  Boundary? end;
 
   /// Sort orders
-  List<SortOrder> sortOrders = [];
+  List<SortOrder>? sortOrders = [];
 
   @override
   set sortOrder(SortOrder sortOrder) {
@@ -77,7 +77,7 @@ class SembastFinder implements Finder {
   int compare(SembastRecord record1, SembastRecord record2) {
     var result = 0;
     if (sortOrders != null) {
-      for (var order in sortOrders) {
+      for (var order in sortOrders!) {
         result = (order as SembastSortOrder).compare(record1, record2);
         // stop as soon as they differ
         if (result != 0) {
@@ -100,13 +100,13 @@ class SembastFinder implements Finder {
   /// Compare to boundary.
   ///
   /// Used in search, record is the record checked from the db
-  int compareToBoundary(RecordSnapshot record, Boundary boundary) {
+  int compareToBoundary(RecordSnapshot record, Boundary? boundary) {
     var result = 0;
     if (sortOrders != null) {
-      for (var i = 0; i < sortOrders.length; i++) {
-        final order = sortOrders[i];
+      for (var i = 0; i < sortOrders!.length; i++) {
+        final order = sortOrders![i];
         result =
-            (order as SembastSortOrder).compareToBoundary(record, boundary, i);
+            (order as SembastSortOrder).compareToBoundary(record, boundary!, i);
         // stop as soon as they differ
         if (result != 0) {
           break;
@@ -118,7 +118,7 @@ class SembastFinder implements Finder {
       final sembastBoundary = boundary as SembastBoundary;
       if (sembastBoundary.snapshot?.key != null) {
         // Compare key
-        return compareKey(record.key, sembastBoundary.snapshot.key);
+        return compareKey(record.key, sembastBoundary.snapshot!.key);
       }
     }
 
@@ -126,25 +126,25 @@ class SembastFinder implements Finder {
   }
 
   /// True if we match the start boundary.
-  bool starts(RecordSnapshot record, Boundary boundary) {
+  bool starts(RecordSnapshot record, Boundary? boundary) {
     final result = compareToBoundary(record, boundary);
-    if (result == 0 && boundary.include) {
+    if (result == 0 && boundary!.include) {
       return true;
     }
     return result > 0;
   }
 
   /// True if we don't match boundaries.
-  bool ends(RecordSnapshot record, Boundary boundary) {
+  bool ends(RecordSnapshot record, Boundary? boundary) {
     final result = compareToBoundary(record, boundary);
-    if (result == 0 && boundary.include) {
+    if (result == 0 && boundary!.include) {
       return true;
     }
     return result < 0;
   }
 
   /// Clone a filter with a given limit.
-  Finder clone({int limit}) {
+  Finder clone({int? limit}) {
     return Finder(
         filter: filter,
         sortOrders: sortOrders,

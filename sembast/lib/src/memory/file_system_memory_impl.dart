@@ -32,10 +32,10 @@ class FileSystemExceptionMemory implements fs.FileSystemException {
 
   final String _message;
   @override
-  final OSErrorMemory osError;
+  final OSErrorMemory? osError;
 
   @override
-  String get message => _message ?? osError?.message;
+  String get message => (_message ?? osError?.message)!;
 
   @override
   final String path;
@@ -52,11 +52,11 @@ class DirectoryMemoryImpl extends FileSystemEntityMemoryImpl {
   Map<String, FileSystemEntityMemoryImpl> children = {};
 
   /// Memory implementation.
-  DirectoryMemoryImpl(DirectoryMemoryImpl parent, String segment)
+  DirectoryMemoryImpl(DirectoryMemoryImpl? parent, String segment)
       : super(parent, fs.FileSystemEntityType.directory, segment);
 
   /// get a file system entity.
-  FileSystemEntityMemoryImpl getEntity(List<String> segments) {
+  FileSystemEntityMemoryImpl? getEntity(List<String> segments) {
     if (segments.isEmpty) {
       return this;
     }
@@ -79,7 +79,7 @@ class DirectoryMemoryImpl extends FileSystemEntityMemoryImpl {
 /// In memory file.
 class FileMemoryImpl extends FileSystemEntityMemoryImpl {
   /// Content.
-  List<String> content;
+  List<String>? content;
 
   /// In memory file.
   FileMemoryImpl(DirectoryMemoryImpl parent, String segment)
@@ -87,13 +87,13 @@ class FileMemoryImpl extends FileSystemEntityMemoryImpl {
 
   /// Open for read.
   Stream<Uint8List> openRead() {
-    StreamController<Uint8List> ctlr;
+    late StreamController<Uint8List> ctlr;
     ctlr = StreamController<Uint8List>(
         sync: true,
         onListen: () async {
           openCount++;
           if (content != null) {
-            content.forEach((String line) {
+            content!.forEach((String line) {
               ctlr.add(Uint8List.fromList(line.codeUnits));
               ctlr.add(Uint8List.fromList('\n'.codeUnits));
             });
@@ -143,7 +143,7 @@ class FileMemoryImpl extends FileSystemEntityMemoryImpl {
     if (closed) {
       throw '${this} already closed';
     }
-    content.add(line);
+    content!.add(line);
   }
 
   @override
@@ -155,10 +155,10 @@ class FileMemoryImpl extends FileSystemEntityMemoryImpl {
 /// File system entity.
 abstract class FileSystemEntityMemoryImpl {
   // don't access it
-  final DirectoryMemoryImpl _parent;
+  final DirectoryMemoryImpl? _parent;
 
   /// Parent.
-  DirectoryMemoryImpl get parent => _parent;
+  DirectoryMemoryImpl? get parent => _parent;
 
   /// Type.
   fs.FileSystemEntityType type;
@@ -170,7 +170,7 @@ abstract class FileSystemEntityMemoryImpl {
   String segment;
 
   /// Build path
-  String get path => join(parent.path, segment);
+  String get path => join(parent!.path, segment);
 
   /// open count.
   int openCount = 0;
@@ -182,7 +182,7 @@ abstract class FileSystemEntityMemoryImpl {
   ///
   /// Set in the parent
   void create() {
-    parent.children[segment] = this;
+    parent!.children[segment] = this;
   }
 
   //
@@ -190,7 +190,7 @@ abstract class FileSystemEntityMemoryImpl {
   //
   /// Delete a file.
   void delete() {
-    parent.children.remove(segment);
+    parent!.children.remove(segment);
   }
 
   /// Close a file.
@@ -271,7 +271,7 @@ class FileSystemMemoryImpl {
   }
 
   /// Get an entity at a given path.
-  FileSystemEntityMemoryImpl getEntity(String path) {
+  FileSystemEntityMemoryImpl? getEntity(String path) {
     // Get the segments list
 
     return getEntityBySegment(getSegments(path));
@@ -283,7 +283,7 @@ class FileSystemMemoryImpl {
   }
 
   /// Get by segments.
-  FileSystemEntityMemoryImpl getEntityBySegment(List<String> segments) {
+  FileSystemEntityMemoryImpl? getEntityBySegment(List<String> segments) {
     if (segments.first == rootDir.path) {
       return rootDir.getEntity(segments.sublist(1));
     }
@@ -291,7 +291,7 @@ class FileSystemMemoryImpl {
   }
 
   /// Create a file.
-  FileMemoryImpl createFileBySegments(List<String> segments,
+  FileMemoryImpl? createFileBySegments(List<String> segments,
       {bool recursive = false}) {
     var fileImpl = getEntityBySegment(segments);
     // if it exists we're fine
@@ -318,7 +318,7 @@ class FileSystemMemoryImpl {
   }
 
   /// Create a directory.
-  DirectoryMemoryImpl createDirectoryBySegments(List<String> segments,
+  DirectoryMemoryImpl? createDirectoryBySegments(List<String> segments,
       {bool recursive = false}) {
     var directoryImpl = getEntityBySegment(segments);
     // if it exists we're fine
@@ -346,7 +346,7 @@ class FileSystemMemoryImpl {
 
   /// open for read.
   Stream<Uint8List> openRead(String path) {
-    StreamController<Uint8List> ctlr;
+    late StreamController<Uint8List> ctlr;
     ctlr = StreamController<Uint8List>(
         sync: true,
         onListen: () {
@@ -387,14 +387,14 @@ class FileSystemMemoryImpl {
   }
 
   /// Create a directory.
-  DirectoryMemoryImpl createDirectory(String path, {bool recursive = false}) {
+  DirectoryMemoryImpl? createDirectory(String path, {bool recursive = false}) {
     // Go up one by one
     final segments = getSegments(path);
     return createDirectoryBySegments(segments, recursive: recursive);
   }
 
   /// Create a file.
-  FileMemoryImpl createFile(String path, {bool recursive = false}) {
+  FileMemoryImpl? createFile(String path, {bool recursive = false}) {
     // Go up one by one
     final segments = getSegments(path);
 
@@ -429,7 +429,7 @@ class FileSystemMemoryImpl {
   }
 
   /// rename base implementation
-  FileSystemEntityMemoryImpl rename(String path, String newPath) {
+  FileSystemEntityMemoryImpl? rename(String path, String newPath) {
     final entityImpl = getEntity(path);
     if (entityImpl == null) {
       throw FileSystemExceptionMemory(path, 'Rename failed', _noSuchPathError);

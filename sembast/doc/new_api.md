@@ -82,7 +82,7 @@ Some examples to migrate your code:
 var key = await db.put({'offline': true}) as int;
 Record record = await db.getRecord(key);
 // Cast necessary to manipulate the data
-var value = record.value as Map<String, dynamic>;
+var value = record.value as Map<String, Object/*?*/>;
 
 ```
 
@@ -113,7 +113,7 @@ await store.record(key).put(db, {'offline': true});
 ```dart
 Record record = await db.findRecord(finder);
 // Cast necessary to manipulate the data
-var value = record.value as Map<String, dynamic>;
+var value = record.value as Map<String, Object/*?*/>;
 
 ```
 
@@ -137,7 +137,7 @@ Supported declared key types:
 
 #### Values
 
-Map must be explicitly of type `Map<String, dynamic>`. This is the most commonly used typed for saving a record with
+Map must be explicitly of type `Map<String, Object/*?*/>`. This is the most commonly used typed for saving a record with
 multiple fields.
 
 Supported declared value types are:
@@ -146,7 +146,7 @@ Supported declared value types are:
 - num
 - double
 - bool
-- `Map<String, dynamic>`
+- `Map<String, Object/*?*/>`
 - `List<dynamic>`
 - Blob (custom type)
 - Timestamp (custom type)

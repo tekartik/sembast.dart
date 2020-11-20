@@ -68,8 +68,7 @@ class SembastRecordSnapshot<K, V> with RecordSnapshotMixin<K, V> {
   /// Snapshot from an immutable record.
   SembastRecordSnapshot.fromRecord(ImmutableSembastRecord record) {
     ref = record.ref?.cast<K, V>();
-    rawValue = record.value as V;
-  }
+    rawValue = record.value as V}
 
   /// Snapshot from a value.
   SembastRecordSnapshot(RecordRef<K, V> ref, V value) {
@@ -91,7 +90,7 @@ class SembastRecordRawSnapshot<K, V> implements RecordSnapshot<K, V> {
 
   /// Raw access to data
   @override
-  dynamic operator [](String field) => snapshot.getRawValue(field);
+  dynamic operator [](String? field) => snapshot.getRawValue(field!);
 
   /// Raw access to data
   @override

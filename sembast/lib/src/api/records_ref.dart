@@ -11,22 +11,22 @@ abstract class RecordsRef<K, V> {
   StoreRef<K, V> get store;
 
   /// Record key, null for new record.
-  List<K> get keys;
+  List<K > get keys;
 
   /// Record ref at a given index.
   RecordRef<K, V> operator [](int index);
 
   /// delete them.
-  Future delete(DatabaseClient client);
+  Future<void> delete(DatabaseClient client);
 
   /// Cast if needed.
   RecordsRef<RK, RV> cast<RK, RV>();
 
   /// Get all records values.
-  Future<List<V>> get(DatabaseClient client);
+  Future<List<V?>> get(DatabaseClient client);
 
   /// Get all records snapshot.
-  Future<List<RecordSnapshot<K, V>>> getSnapshots(DatabaseClient client);
+  Future<List<RecordSnapshot<K, V>?>> getSnapshots(DatabaseClient client);
 
   /// Save multiple records, creating the one needed.
   ///
@@ -35,7 +35,7 @@ abstract class RecordsRef<K, V> {
   /// The list of [values] must match the list of keys.
   ///
   /// Returns the updated values.
-  Future<List<V>> put(DatabaseClient client, List<V> values, {bool merge});
+  Future<List<V>> put(DatabaseClient client, List<V> values, {bool? merge});
 
   /// Update multiple records.
   ///

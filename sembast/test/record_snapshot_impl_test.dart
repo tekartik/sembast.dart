@@ -6,8 +6,8 @@ import 'test_common.dart';
 
 final storeFactory = intMapStoreFactory;
 final otherStoreFactory = stringMapStoreFactory;
-final testStore = storeFactory.store('test');
-final otherStore = StoreRef<String, Map<String, dynamic>>('other');
+final StoreRef<int, Map<String, Object?>> testStore = storeFactory.store('test');
+final otherStore = StoreRef<String, Map<String, Object? >>('other');
 final keyValueStore = StoreRef<String, String>('keyValue');
 
 void main() {
@@ -16,18 +16,19 @@ void main() {
 
 void defineTests(DatabaseTestContext ctx) {
   test('factory', () async {
-    var record = storeFactory.store('test').record(1);
-    var snapshot = SembastRecordSnapshot(record, <String, dynamic>{'test': 1});
+    RecordRef<int, Map<String, Object?>> record = storeFactory.store('test').record(1);
+    var snapshot =
+        SembastRecordSnapshot(record, <String, Object? >{'test': 1});
     expect(snapshot.ref.store.name, 'test');
     expect(snapshot.ref.key, 1);
-    expect(snapshot.value, <String, dynamic>{'test': 1});
+    expect(snapshot.value, <String, Object? >{'test': 1});
   });
 
   test('read-only', () async {
-    var record = storeFactory.store('test').record(1);
+    RecordRef<int, Map<String, Object?>> record = storeFactory.store('test').record(1);
     var snapshot = SembastRecordSnapshot(
         record,
-        ImmutableMap(<String, dynamic>{
+        ImmutableMap(<String, Object? >{
           'test': {'sub': 1}
         }));
     try {
@@ -35,7 +36,7 @@ void defineTests(DatabaseTestContext ctx) {
       fail('should fail');
     } on StateError catch (_) {}
 
-    expect(snapshot.value, <String, dynamic>{
+    expect(snapshot.value, <String, Object? >{
       'test': {'sub': 1}
     });
   });

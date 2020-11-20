@@ -16,7 +16,7 @@ abstract class SembastDatabaseClient {
   SembastDatabase get sembastDatabase;
 
   /// The current transaction if any (null for databases
-  SembastTransaction get sembastTransaction;
+  SembastTransaction? get sembastTransaction;
 
   /// Get the store, create if needed.
   SembastStore getSembastStore(StoreRef ref);

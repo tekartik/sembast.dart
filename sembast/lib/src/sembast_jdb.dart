@@ -50,7 +50,10 @@ class SembastStorageJdb extends StorageBase implements StorageJdb {
 
   @override
   String toString() {
-    final map = <String, dynamic>{'path': path, 'jdb': jdbFactory.toString()};
+    final map = <String, Object? >{
+      'path': path,
+      'jdb': jdbFactory.toString()
+    };
     return map.toString();
   }
 
@@ -78,10 +81,10 @@ class SembastStorageJdb extends StorageBase implements StorageJdb {
   }
 
   @override
-  Future<Map<String, dynamic>> readMeta() async {
+  Future<Map<String, Object? >?> readMeta() async {
     var value = (await jdbDatabase.getInfoEntry(metaKey))?.value;
     if (value is Map) {
-      return value?.cast<String, dynamic>();
+      return value?.cast<String, Object? >();
     }
     return null;
   }
@@ -123,7 +126,7 @@ class SembastStorageJdb extends StorageBase implements StorageJdb {
 
   @override
   // TODO: implement updates
-  Stream<StorageJdbStateUpdate> get updates => null;
+  Stream<StorageJdbStateUpdate>? get updates => null;
 
   @override
   Stream<int> get revisionUpdate => jdbDatabase.revisionUpdate;
@@ -136,7 +139,7 @@ class SembastStorageJdb extends StorageBase implements StorageJdb {
       jdbDatabase.writeIfRevision(query);
 
   @override
-  Future<Map<String, dynamic>> toDebugMap() {
+  Future<Map<String, Object? >> toDebugMap() {
     // TODO: implement toDebugMap
     return null;
   }
@@ -181,13 +184,13 @@ class StorageJdbWriteQuery {
   final List<JdbWriteEntry> entries;
 
   /// The expected revision.
-  final int revision;
+  final int? revision;
 
   /// Write query.
   StorageJdbWriteQuery(
-      {@required this.revision,
-      @required this.infoEntries,
-      @required this.entries});
+      {required this.revision,
+      required this.infoEntries,
+      required this.entries});
 }
 
 /// Write result.
@@ -196,13 +199,13 @@ class StorageJdbWriteResult {
   final StorageJdbWriteQuery query;
 
   /// The read revision or the new one on success
-  final int revision;
+  final int? revision;
 
   /// True on success, otherwise should reload data.
-  final bool success;
+  final bool? success;
 
   /// Write result.
-  StorageJdbWriteResult({@required this.query, this.revision, this.success});
+  StorageJdbWriteResult({required this.query, this.revision, this.success});
 
   @override
   String toString() =>

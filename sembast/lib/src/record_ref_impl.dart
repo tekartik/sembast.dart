@@ -60,12 +60,12 @@ extension SembastRecordRefExtension<K, V> on RecordRef<K, V> {
   /// Create the record if it does not exist.
   ///
   /// Returns the key if inserted, null otherwise.
-  Future<K> add(DatabaseClient databaseClient, V value) async {
+  Future<K/*?*/> add(DatabaseClient databaseClient, V value) async {
     var client = getClient(databaseClient);
-    value = client.sembastDatabase.sanitizeInputValue<V>(value);
+    value = client.sembastDatabase.sanitizeInputValue<V>(value)!;
     return await client.inTransaction((txn) {
-      return client.getSembastStore(store).txnAdd(txn, value, key);
-    });
+      return client.getSembastStore(store).txnAdd(txn, value, key) as FutureOr<K>;
+    } as FutureOr<K> Function(SembastTransaction));
   }
 
   /// Save a record, create if needed.
@@ -73,14 +73,14 @@ extension SembastRecordRefExtension<K, V> on RecordRef<K, V> {
   /// if [merge] is true and the field exists, data is merged
   ///
   /// Returns the updated value.
-  Future<V> put(DatabaseClient databaseClient, V value, {bool merge}) async {
+  Future<V> put(DatabaseClient databaseClient, V value, {bool? merge}) async {
     var client = getClient(databaseClient);
-    value = client.sembastDatabase.sanitizeInputValue<V>(value, update: merge);
-    return await client.inTransaction((txn) {
+    value = client.sembastDatabase.sanitizeInputValue<V>(value, update: merge)!;
+    return (await client.inTransaction((txn) {
       return client
           .getSembastStore(store)
           .txnPut(txn, value, key, merge: merge);
-    }) as V;
+    }) as V?)!;
   }
 
   /// Update a record.
@@ -89,35 +89,35 @@ extension SembastRecordRefExtension<K, V> on RecordRef<K, V> {
   /// refer to a path in the map, unless the key is specifically escaped
   ///
   /// Returns the updated value.
-  Future<V> update(DatabaseClient databaseClient, V value) async {
+  Future<V?> update(DatabaseClient databaseClient, V value) async {
     var client = getClient(databaseClient);
-    value = client.sembastDatabase.sanitizeInputValue<V>(value, update: true);
+    value = client.sembastDatabase.sanitizeInputValue<V>(value, update: true)!;
     return await client.inTransaction((txn) {
       return client.getSembastStore(store).txnUpdate(txn, value, key);
-    }) as V;
+    }) as V?;
   }
 
   /// Get a record value from the database.
-  Future<V> get(DatabaseClient databaseClient) async =>
+  Future<V?> get(DatabaseClient databaseClient) async =>
       (await getSnapshot(databaseClient))?.value;
 
   /// Get a record snapshot from the database.
-  Future<RecordSnapshot<K, V>> getSnapshot(
+  Future<RecordSnapshot<K, V>?> getSnapshot(
       DatabaseClient databaseClient) async {
     var client = getClient(databaseClient);
 
     var record = await client
         .getSembastStore(store)
-        .txnGetRecord(client.sembastTransaction, key);
+        .txnGetRecord(client.sembastTransaction!, key);
     return record?.cast<K, V>();
   }
 
   /// Get a stream of a record snapshot from the database.
   ///
   /// It allows listening to a single instance of a record.
-  Stream<RecordSnapshot<K, V>> onSnapshot(Database database) {
+  Stream<RecordSnapshot<K, V>?> onSnapshot(Database database) {
     var db = getDatabase(database);
-    RecordListenerController<K, V> ctlr;
+    late RecordListenerController<K, V> ctlr;
     ctlr = db.listener.addRecord(this, onListen: () {
       // Read right away
       () async {
@@ -144,7 +144,7 @@ extension SembastRecordRefExtension<K, V> on RecordRef<K, V> {
     var client = getClient(databaseClient);
     return client
         .getSembastStore(store)
-        .txnRecordExists(client.sembastTransaction, key);
+        .txnRecordExists(client.sembastTransaction!, key);
   }
 
   /// Delete the record.

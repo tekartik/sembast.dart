@@ -29,7 +29,7 @@ abstract class StorageBase {
 ///
 abstract class DatabaseStorage extends StorageBase {
   /// Tmp storage used.
-  DatabaseStorage get tmpStorage;
+  DatabaseStorage? get tmpStorage;
 
   /// Recover from a temp file.
   Future tmpRecover();
@@ -85,7 +85,7 @@ String jdbStoreLastIdKey(String store) {
 }
 
 /// Create store last key info entry.
-JdbInfoEntry getStoreLastIntKeyInfoEntry(String store, int lastIntKey) =>
+JdbInfoEntry getStoreLastIntKeyInfoEntry(String store, int? lastIntKey) =>
     JdbInfoEntry()
       ..id = jdbStoreLastIdKey(store)
       ..value = lastIntKey;
@@ -101,7 +101,7 @@ abstract class StorageJdb extends StorageBase {
   Stream<JdbEntry> get entries;
 
   /// Revision update to force reading
-  Stream<StorageJdbStateUpdate> get updates;
+  Stream<StorageJdbStateUpdate>? get updates;
 
   /// Revision update to register on open (unregistre on close)
   Stream<int> get revisionUpdate;
@@ -110,7 +110,7 @@ abstract class StorageJdb extends StorageBase {
   Future<List<JdbEntry>> getEntriesAfter(int revision);
 
   /// Read meta map
-  Future<Map<String, dynamic>> readMeta();
+  Future<Map<String, Object? >?> readMeta();
 
   /// Add multiple entries
   Future addEntries(List<JdbWriteEntry> entries);
@@ -131,7 +131,7 @@ abstract class StorageJdb extends StorageBase {
   Future<StorageJdbWriteResult> writeIfRevision(StorageJdbWriteQuery query);
 
   /// Test only.
-  Future<Map<String, dynamic>> toDebugMap();
+  Future<Map<String, Object? >> toDebugMap();
 
   /// Compact the database removing obsolete records
   Future compact();

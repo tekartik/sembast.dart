@@ -23,9 +23,9 @@ class PushIdGenerator {
 
   static final Random _random = Random();
 
-  static int _lastPushTime;
+  static int? _lastPushTime;
 
-  static final List<int> _lastRandChars = List<int>(12);
+  static final List<int?> _lastRandChars = List<int?>(12);
 
   /// Generate a child name.
   static String generatePushChildName() {
@@ -33,7 +33,7 @@ class PushIdGenerator {
     final duplicateTime = (now == _lastPushTime);
     _lastPushTime = now;
 
-    final timeStampChars = List<String>(8);
+    final timeStampChars = List<String?>(8);
     for (var i = 7; i >= 0; i--) {
       timeStampChars[i] = pushChars[now % 64];
       now = (now / 64).floor();
@@ -50,7 +50,7 @@ class PushIdGenerator {
       _incrementArray();
     }
     for (var i = 0; i < 12; i++) {
-      result.write(pushChars[_lastRandChars[i]]);
+      result.write(pushChars[_lastRandChars[i]!]);
     }
     assert(result.length == 20);
     return result.toString();
@@ -59,7 +59,7 @@ class PushIdGenerator {
   static void _incrementArray() {
     for (var i = 11; i >= 0; i--) {
       if (_lastRandChars[i] != 63) {
-        _lastRandChars[i] = _lastRandChars[i] + 1;
+        _lastRandChars[i] = _lastRandChars[i]! + 1;
         return;
       }
       _lastRandChars[i] = 0;

@@ -18,7 +18,7 @@ class SembastSortOrder implements SortOrder {
   /// default is [ascending] = true, [nullLast] = false
   ///
   /// user withParam
-  SembastSortOrder(this.field, [bool ascending, bool nullLast])
+  SembastSortOrder(this.field, [bool? ascending, bool? nullLast])
       : ascending = ascending != false,
         nullLast = nullLast == true;
 
@@ -47,10 +47,10 @@ class SembastSortOrder implements SortOrder {
       RecordSnapshot record, Boundary boundary, int index) {
     final sembastBoundary = boundary as SembastBoundary;
     if (sembastBoundary.values != null) {
-      var value = sembastBoundary.values[index];
+      var value = sembastBoundary.values![index];
       return compareValueAscending(record[field], value);
     } else if (sembastBoundary.snapshot != null) {
-      return compareToSnapshotAscending(record, sembastBoundary.snapshot);
+      return compareToSnapshotAscending(record, sembastBoundary.snapshot!);
     }
     throw ArgumentError('either record or values must be provided');
   }
@@ -83,8 +83,8 @@ class SembastSortOrder implements SortOrder {
     return compareValue(value1, value2);
   }
 
-  Map<String, dynamic> _toDebugMap() {
-    final map = <String, dynamic>{
+  Map<String, Object? > _toDebugMap() {
+    final map = <String, Object? >{
       field: ascending ? 'asc' : 'desc',
       if (nullLast == true) 'nullLast': true
     };

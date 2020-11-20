@@ -15,17 +15,17 @@ class SembastQueryRef<K, V> implements QueryRef<K, V> {
 
   /// The finder.
   // ignore: deprecated_member_use_from_same_package
-  final SembastFinder finder;
+  final SembastFinder? finder;
 
   /// Query ref implementation.
 
   SembastQueryRef(
       this.store,
       // ignore: deprecated_member_use_from_same_package
-      SembastFinder finder)
+      SembastFinder? finder)
       : finder = finder?.clone() as
             // ignore: deprecated_member_use_from_same_package
-            SembastFinder;
+            SembastFinder?;
 
   @override
   String toString() => '$store $finder)';
@@ -34,7 +34,7 @@ class SembastQueryRef<K, V> implements QueryRef<K, V> {
   Stream<List<RecordSnapshot<K, V>>> onSnapshots(Database database) {
     var db = getDatabase(database);
     // Create the query but don't add it until first result is set
-    QueryListenerController<K, V> ctlr;
+    late QueryListenerController<K, V> ctlr;
     ctlr = db.listener.addQuery(this, onListen: () async {
       // Add the existing snapshot
 
@@ -51,7 +51,7 @@ class SembastQueryRef<K, V> implements QueryRef<K, V> {
 
           // Get the result at query time first
           if (debugListener) {
-            print('matching $ctlr: ${allMatching.length} on $this');
+            print('matching $ctlr: ${allMatching!.length} on $this');
           }
 
           await ctlr.add(allMatching, db.cooperator);
@@ -69,5 +69,5 @@ class SembastQueryRef<K, V> implements QueryRef<K, V> {
 
   @override
   Future<RecordSnapshot<K, V>> getSnapshot(DatabaseClient client) =>
-      store.findFirst(client, finder: finder);
+      store.findFirst(client, finder: finder) as Future<RecordSnapshot<K, V>>;
 }

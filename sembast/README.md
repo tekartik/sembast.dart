@@ -230,7 +230,7 @@ Supported key types are:
 Supported value types are:
 - `String`
 - `num` (`int` and `double`)
-- `Map` (`Map<String, dynamic>`)
+- `Map` (`Map<String, Object/*?*/>`)
 - `List` (`List<dynamic>`)
 - `bool`
 - `null` (value)

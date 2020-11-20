@@ -61,10 +61,10 @@ db = await factory.openDatabase(path, version: 1,
 Let's see our content after opening:
 
 ```dart
-Future<List<Map<String, dynamic>>> getProductMaps() async {
+Future<List<Map<String, Object/*?*/>>> getProductMaps() async {
   var results = await store
     .stream(db)
-    .map((snapshot) => Map<String, dynamic>.from(snapshot.value)
+    .map((snapshot) => Map<String, Object/*?*/>.from(snapshot.value)
        ..['id'] = snapshot.key)
     .toList();
   return results;

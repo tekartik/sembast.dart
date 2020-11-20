@@ -36,7 +36,7 @@ class SembastTransaction extends Object
   }
 
   /// Make it an executor.
-  SembastTransactionStore toExecutor(SembastStore store) =>
+  SembastTransactionStore? toExecutor(SembastStore? store) =>
       store != null ? SembastTransactionStore(this, store) : null;
 
   /// Delete a store
@@ -56,7 +56,7 @@ class SembastTransaction extends Object
 
   @override
   SembastStore getSembastStore(StoreRef ref) =>
-      database.txnGetStore(this, ref.name).store;
+      database.txnGetStore(this, ref.name)!.store;
 }
 
 /// Store implementation.

@@ -4,32 +4,32 @@ import 'package:sembast/src/sembast_impl.dart';
 /// Meta information
 class Meta {
   /// the database version.
-  int version;
+  int? version;
 
   /// Our internal version.
-  int sembastVersion = 1;
+  int? sembastVersion = 1;
 
   /// Encoded {'signature': signature'} using the codec itself!
-  String codecSignature;
+  String? codecSignature;
 
   /// Create from json.
   Meta.fromMap(Map map) {
-    version = map[dbVersionKey] as int;
-    sembastVersion = map[dbDembastVersionKey] as int;
-    codecSignature = map[dbDembastCodecSignatureKey] as String;
+    version = map[dbVersionKey] as int?;
+    sembastVersion = map[dbDembastVersionKey] as int?;
+    codecSignature = map[dbDembastCodecSignatureKey] as String?;
   }
 
   /// map matches meta definition?
-  static bool isMapMeta(Map map) {
+  static bool isMapMeta(Map? map) {
     return map != null && map[dbVersionKey] != null;
   }
 
   /// Meta information.
-  Meta({@required this.version, this.codecSignature});
+  Meta({required this.version, this.codecSignature});
 
   /// To json.
-  Map<String, dynamic> toMap() {
-    var map = <String, dynamic>{
+  Map<String, Object? > toMap() {
+    var map = <String, Object? >{
       dbVersionKey: version,
       dbDembastVersionKey: sembastVersion
     };

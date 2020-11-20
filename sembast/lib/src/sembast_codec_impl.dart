@@ -9,16 +9,16 @@ class SembastCodecImpl implements SembastCodec {
   @override
   final String signature;
   @override
-  final Codec<dynamic, String> codec;
+  final Codec<Object, String > codec;
 
   @override
   JsonEncodableCodec jsonEncodableCodec;
 
   /// Sembast codec implementation.
   SembastCodecImpl(
-      {@required this.signature,
-      @required this.codec,
-      @required JsonEncodableCodec jsonEncodableCodec})
+      {required this.signature,
+      required this.codec,
+      required JsonEncodableCodec? jsonEncodableCodec})
       : jsonEncodableCodec =
             jsonEncodableCodec ?? sembastDefaultJsonEncodableCodec;
 
@@ -27,29 +27,29 @@ class SembastCodecImpl implements SembastCodec {
 }
 
 /// Extra the raw signaure as a map.
-Map<String, dynamic> getRawSignatureMap(SembastCodec codec) {
+Map<String, Object? >? getRawSignatureMap(SembastCodec? codec) {
   if (codec != null) {
-    return <String, dynamic>{'signature': codec.signature};
+    return <String, Object? >{'signature': codec.signature};
   }
   return null;
 }
 
 /// The encoded signature is a map {'signature': signature} encoded by itself!
-String getCodecEncodedSignature(SembastCodec codec) {
+String? getCodecEncodedSignature(SembastCodec? codec) {
   if (codec?.signature != null) {
-    return codec.codec?.encode(getRawSignatureMap(codec));
+    return codec!.codec?.encode(getRawSignatureMap(codec)!);
   }
   return null;
 }
 
 /// Get codec signature
-Map<String, dynamic> getCodecDecodedSignature(
-    SembastCodec codec, String encodedSignature) {
+Map<String, Object? >? getCodecDecodedSignature(
+    SembastCodec? codec, String? encodedSignature) {
   if (codec != null && encodedSignature != null) {
     try {
       var result = codec.codec?.decode(encodedSignature);
       if (result is Map) {
-        return result.cast<String, dynamic>();
+        return result.cast<String, Object? >();
       }
     } catch (_) {}
   }
@@ -59,7 +59,7 @@ Map<String, dynamic> getCodecDecodedSignature(
 /// Throw an error if not matching
 ///
 /// We decode the signature to make sure it matches the raw decoded one
-void checkCodecEncodedSignature(SembastCodec codec, String encodedSignature) {
+void checkCodecEncodedSignature(SembastCodec? codec, String? encodedSignature) {
   if (codec?.signature == null && encodedSignature == null) {
     // Ignore if both signature are null
     return null;

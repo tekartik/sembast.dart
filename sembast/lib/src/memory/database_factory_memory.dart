@@ -41,7 +41,7 @@ class DatabaseFactoryMemory extends SembastDatabaseFactory
 
   @override
   SembastDatabase newDatabase(DatabaseOpenHelper openHelper) {
-    SembastDatabase db;
+    SembastDatabase? db;
     var path = openHelper.path;
     // For null path we always create a new database
     if (path != null) {
@@ -99,7 +99,7 @@ class DatabaseStorageMemory extends DatabaseStorage {
   Future appendLines(List<String> lines) => null;
 
   @override
-  DatabaseStorage get tmpStorage => null;
+  DatabaseStorage? get tmpStorage => null;
 
   @override
   Future tmpRecover() => null;

@@ -17,7 +17,7 @@ void defineTests(DatabaseTestContext ctx) {
     dbPath = dbPathFromName('compat/database_impl.db');
 
     group('open', () {
-      Database db;
+      Database? db;
 
       setUp(() {
         return factory.deleteDatabase(dbPath).then((_) {});
@@ -39,7 +39,7 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     group('onVersionChanged', () {
-      Database db;
+      Database? db;
 
       setUp(() {
         return factory.deleteDatabase(dbPath).then((_) {});
@@ -78,8 +78,8 @@ void defineTests(DatabaseTestContext ctx) {
         final db =
             await factory.openDatabase(dbPath, version: 1) as SembastDatabase;
 // save to make sure we've been through
-        int _oldVersion;
-        int _newVersion;
+        int? _oldVersion;
+        int? _newVersion;
         void _onVersionChanged(Database db, int oldVersion, int newVersion) {
           expect(db.version, oldVersion);
           _oldVersion = oldVersion;
@@ -100,7 +100,7 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     group('format', () {
-      Database db;
+      Database? db;
 
       setUp(() {
         return factory.deleteDatabase(dbPath).then((_) {});
@@ -121,7 +121,7 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     group('openHelper', () {
-      Database db;
+      Database? db;
 
       setUp(() {
         return factory.deleteDatabase(dbPath).then((_) {});

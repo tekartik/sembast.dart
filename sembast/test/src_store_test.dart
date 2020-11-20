@@ -10,7 +10,7 @@ void main() {
 
 void defineTests(DatabaseTestContext ctx) {
   group('src_store', () {
-    SembastDatabase db;
+    late SembastDatabase db;
 
     setUp(() async {
       db = await setupForTest(ctx, 'src_store.db') as SembastDatabase;
@@ -61,7 +61,7 @@ void defineTests(DatabaseTestContext ctx) {
       expect(await store.count(db), 1);
       try {
         await db.transaction((txn) async {
-          expect(await store.count(txn), 1);
+          expect(await store.count(txn!), 1);
           var record2 = store.record(2);
           await record2.put(txn, 'test');
           expect(await store.count(txn), 2);

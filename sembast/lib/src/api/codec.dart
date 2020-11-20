@@ -15,16 +15,16 @@ abstract class SembastCodec {
   String get signature;
 
   /// The actual codec used
-  Codec<dynamic, String> get codec;
+  Codec<Object, String > get codec;
 
   /// The codec to handle custom types
   JsonEncodableCodec get jsonEncodableCodec;
 
   /// [codec] must convert between a map and a single line string
   factory SembastCodec(
-          {@required String signature,
-          @required Codec<dynamic, String> codec,
-          JsonEncodableCodec jsonEncodableCodec}) =>
+          {required String signature,
+          required Codec<Object, String > codec,
+          JsonEncodableCodec? jsonEncodableCodec}) =>
       SembastCodecImpl(
           signature: signature,
           codec: codec,

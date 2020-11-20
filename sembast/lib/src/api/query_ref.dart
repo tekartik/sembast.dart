@@ -11,7 +11,8 @@ abstract class QueryRef<K, V> {
   /// Find multiple records.
   ///
   /// Returns an empty array if none found.
-  Future<List<RecordSnapshot<K, V>>> getSnapshots(DatabaseClient client);
+  Future<List<RecordSnapshot<K, V>> > getSnapshots(
+      DatabaseClient client);
 
   /// Find first record matching the query.
   ///

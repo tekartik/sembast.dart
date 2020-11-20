@@ -16,11 +16,11 @@ void main() {
 void defineTests(FileSystemTestContext ctx) {
   final fs = ctx.fs;
   DatabaseFactory factory = DatabaseFactoryFs(fs);
-  String dbPath;
+  String? dbPath;
 
-  Future<String> prepareForDb() async {
+  Future<String?> prepareForDb() async {
     dbPath = dbPathFromName('compat/database_impl_format.db');
-    await factory.deleteDatabase(dbPath);
+    await factory.deleteDatabase(dbPath!);
     // await fs.file(dbPath).delete().catchError((_) {});
     return dbPath;
   }
@@ -34,7 +34,7 @@ void defineTests(FileSystemTestContext ctx) {
     var record = store.record(1);
 
     test('add/put/delete', () async {
-      final db = await factory.openDatabase(dbPath) as SembastDatabase;
+      final db = await factory.openDatabase(dbPath!) as SembastDatabase;
       await record.put(db, 'test1');
 
       var exportStat = getDatabaseExportStat(db);
@@ -65,12 +65,12 @@ void defineTests(FileSystemTestContext ctx) {
 
     test('compact_and_write', () async {
       await prepareForDb();
-      final db = await factory.openDatabase(dbPath) as SembastDatabase;
+      final db = await factory.openDatabase(dbPath!) as SembastDatabase;
       await store.record(1).put(db, 'test1');
       await db.compact();
       await store.record(2).put(db, 'test2');
       await db.close();
-      final lines = await readContent(fs, dbPath);
+      final lines = await readContent(fs, dbPath!);
       expect(lines.length, 3);
       expect(json.decode(lines[1]), {'key': 1, 'value': 'test1'});
       expect(json.decode(lines[2]), {'key': 2, 'value': 'test2'});
@@ -78,13 +78,13 @@ void defineTests(FileSystemTestContext ctx) {
 
     test('compact_and_reopen', () async {
       await prepareForDb();
-      var db = await factory.openDatabase(dbPath) as SembastDatabase;
+      var db = await factory.openDatabase(dbPath!) as SembastDatabase;
       await store.record(1).put(db, 'test1');
       await db.compact();
       db = await db.reOpen() as SembastDatabase;
       await store.record(2).put(db, 'test2');
       await db.close();
-      final lines = await readContent(fs, dbPath);
+      final lines = await readContent(fs, dbPath!);
       expect(lines.length, 3);
       expect(json.decode(lines[1]), {'key': 1, 'value': 'test1'});
       expect(json.decode(lines[2]), {'key': 2, 'value': 'test2'});
@@ -93,12 +93,12 @@ void defineTests(FileSystemTestContext ctx) {
     // tmp
     test('twice same record', () async {
       await prepareForDb();
-      final db = await factory.openDatabase(dbPath) as SembastDatabase;
+      final db = await factory.openDatabase(dbPath!) as SembastDatabase;
       await store.record(1).put(db, 'hi');
       await store.record(1).put(db, 'hi');
       await db.compact();
       await db.flush();
-      var lines = await readContent(fs, dbPath);
+      var lines = await readContent(fs, dbPath!);
       expect(lines.length, 2);
       expect(json.decode(lines[1]), {'key': 1, 'value': 'hi'});
       await db.close();
@@ -111,7 +111,7 @@ void defineTests(FileSystemTestContext ctx) {
       await prepareForDb();
       final line = json.encode({'key': 1, 'value': 2});
       // Compact is needed after 6 times the same record
-      await writeContent(fs, dbPath, [
+      await writeContent(fs, dbPath!, [
         json.encode({'version': 2, 'sembast': 1}),
         line,
         line,
@@ -120,9 +120,9 @@ void defineTests(FileSystemTestContext ctx) {
         line,
         line
       ]);
-      final db = await factory.openDatabase(dbPath) as SembastDatabase;
+      final db = await factory.openDatabase(dbPath!) as SembastDatabase;
       expect(await store.record(1).get(db), 2);
-      final lines = await readContent(fs, dbPath);
+      final lines = await readContent(fs, dbPath!);
       expect(lines.length, 7);
 
       final exportStat = getDatabaseExportStat(db);
@@ -135,7 +135,7 @@ void defineTests(FileSystemTestContext ctx) {
       await prepareForDb();
       final line = json.encode({'key': 1, 'value': 2});
       // Compact is needed after 6 times the same record
-      await writeContent(fs, dbPath, [
+      await writeContent(fs, dbPath!, [
         json.encode({'version': 2, 'sembast': 1}),
         line,
         line,
@@ -145,9 +145,9 @@ void defineTests(FileSystemTestContext ctx) {
         line,
         line
       ]);
-      final db = await factory.openDatabase(dbPath) as SembastDatabase;
+      final db = await factory.openDatabase(dbPath!) as SembastDatabase;
       expect(await store.record(1).get(db), 2);
-      final lines = await readContent(fs, dbPath);
+      final lines = await readContent(fs, dbPath!);
       expect(lines.length, 2);
 
       //devPrintJson(db.toJson());

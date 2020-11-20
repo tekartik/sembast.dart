@@ -28,7 +28,7 @@ class StoreContent {
   }
 
   /// Get a single record.
-  ImmutableSembastRecord record(key) => _map[key];
+  ImmutableSembastRecord? record(key) => _map[key];
 
   @override
   String toString() => '${store.name} ${records.length}';
@@ -67,7 +67,7 @@ class DatabaseContent {
   }
 
   /// A given existing store.
-  StoreContent store(StoreRef store) => _map[store];
+  StoreContent? store(StoreRef store) => _map[store];
 
   @override
   String toString() => '$stores';
@@ -86,7 +86,7 @@ class DatabaseListenerContent extends DatabaseContent {
   }
 
   /// Get and remove the first store found
-  StoreContent getAndRemoveFirstStore() {
+  StoreContent? getAndRemoveFirstStore() {
     if (isNotEmpty) {
       var storeContent = _map.values.first;
       _map.remove(storeContent.store);

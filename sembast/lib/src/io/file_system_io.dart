@@ -82,7 +82,7 @@ class _IoOSError implements fs.OSError {
 class _IoFileSystemException implements fs.FileSystemException {
   io.FileSystemException ioFse;
 
-  _IoFileSystemException(this.ioFse) : osError = _IoOSError(ioFse.osError);
+  _IoFileSystemException(this.ioFse) : osError = _IoOSError(ioFse.osError!);
 
   @override
   final _IoOSError osError;
@@ -91,7 +91,7 @@ class _IoFileSystemException implements fs.FileSystemException {
   String get message => ioFse.message;
 
   @override
-  String get path => ioFse.path;
+  String? get path => ioFse.path;
 
   @override
   String toString() => ioFse.toString();
@@ -109,7 +109,7 @@ Future<T> _wrap<T>(Future<T> future) {
 /// File system io implementation.
 class FileSystemIo implements fs.FileSystem {
   /// Root path.
-  final String rootPath;
+  final String? rootPath;
 
   /// get a path in absolute format.
   String absolute(String path) {
@@ -125,7 +125,7 @@ class FileSystemIo implements fs.FileSystem {
       throw ArgumentError.notNull(path);
     }
     if (rootPath != null) {
-      return normalize(join(rootPath, path));
+      return normalize(join(rootPath!, path));
     } else {
       return normalize(path);
     }
@@ -209,7 +209,7 @@ abstract class FileSystemEntityIo implements fs.FileSystemEntity {
 /// Directory io implementation.
 class DirectoryIo extends FileSystemEntityIo implements fs.Directory {
   /// native directory.
-  io.Directory get ioDir => ioFileSystemEntity as io.Directory;
+  io.Directory/*!*/ get ioDir => ioFileSystemEntity as io.Directory;
 
   /// Creates a [DirectoryIo] object.
   ///
@@ -261,7 +261,7 @@ class FileIo extends FileSystemEntityIo implements fs.File {
       _wrap(ioFile.create(recursive: recursive)).then((io.File ioFile) => this);
 
   @override
-  Stream<Uint8List> openRead([int start, int end]) //
+  Stream<Uint8List> openRead([int? start, int? end]) //
       =>
       intListStreamToUint8ListStream(ioFile.openRead(start, end));
 

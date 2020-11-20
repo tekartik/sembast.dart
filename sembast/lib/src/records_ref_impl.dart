@@ -27,7 +27,7 @@ mixin RecordsRefMixin<K, V> implements RecordsRef<K, V> {
 
   /// Get record snapshots
   @override
-  Future<List<RecordSnapshot<K, V>>> getSnapshots(
+  Future<List<RecordSnapshot<K, V>?>> getSnapshots(
       DatabaseClient databaseClient) async {
     var client = getClient(databaseClient);
 
@@ -50,7 +50,7 @@ mixin RecordsRefMixin<K, V> implements RecordsRef<K, V> {
 
   @override
   Future<List<V>> put(DatabaseClient databaseClient, List<V> values,
-      {bool merge}) {
+      {bool? merge}) {
     if (values.length != keys.length) {
       throw ArgumentError('the list of values must match the list of keys');
     }
@@ -78,7 +78,7 @@ mixin RecordsRefMixin<K, V> implements RecordsRef<K, V> {
   }
 
   @override
-  Future<List<V>> get(DatabaseClient client) async =>
+  Future<List<V?>> get(DatabaseClient client) async =>
       (await getSnapshots(client))
           .map((snapshot) => snapshot?.value)
           .toList(growable: false);

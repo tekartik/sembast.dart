@@ -28,24 +28,24 @@ void main() {
     final fs = ctx.fs;
 
     group('format', () {
-      String dbPath;
+      String? dbPath;
 
-      Future<String> prepareForDb() async {
+      Future<String?> prepareForDb() async {
         dbPath = dbPathFromName('compat/io/format.db');
         await fs
-            .directory(dirname(dbPath))
+            .directory(dirname(dbPath!))
             .create(recursive: true)
             .catchError((_) {});
-        await fs.file(dbPath).delete().catchError((_) {});
+        await fs.file(dbPath!).delete().catchError((_) {});
         return dbPath;
       }
 
       test('missing new line', () async {
         await prepareForDb();
 
-        await io.File(dbPath)
+        await io.File(dbPath!)
             .writeAsString(json.encode({'version': 2, 'sembast': 1}));
-        var db = await databaseFactoryIo.openDatabase(dbPath);
+        var db = await databaseFactoryIo.openDatabase(dbPath!);
         expect(db.version, 2);
 
         await StoreRef.main().record('key').put(db, 'value');
@@ -67,13 +67,13 @@ void main() {
       test('missing new line after 1 record', () async {
         await prepareForDb();
 
-        await io.File(dbPath).writeAsString(
+        await io.File(dbPath!).writeAsString(
             json.encode({'version': 2, 'sembast': 1}) +
                 '\n' +
                 json.encode({'key': 1, 'value': 'test1'}) +
                 '\n' +
                 json.encode({'key': 2, 'value': 'test2'}));
-        var db = await databaseFactoryIo.openDatabase(dbPath);
+        var db = await databaseFactoryIo.openDatabase(dbPath!);
         expect(db.version, 2);
 
         await StoreRef.main().add(db, 'value3');
@@ -86,7 +86,7 @@ void main() {
         } on FormatException catch (_) {
           db = (await reOpen(db, mode: DatabaseMode.neverFails))
               as SembastDatabase;
-          final lines = await readContent(fs, dbPath);
+          final lines = await readContent(fs, dbPath!);
           // Only the first line remains
           expect(lines.length, 2);
           expect(json.decode(lines[1]), {'key': 1, 'value': 'test1'});

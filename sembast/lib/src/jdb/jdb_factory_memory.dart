@@ -18,7 +18,7 @@ class JdbFactoryMemory implements jdb.JdbFactory {
 
   @override
   Future<jdb.JdbDatabase> open(String path,
-      {DatabaseOpenOptions options}) async {
+      {DatabaseOpenOptions? options}) async {
     var db = _dbs[path];
     if (db == null) {
       db = JdbDatabaseMemory(this, path);
@@ -46,8 +46,8 @@ class JdbFactoryMemory implements jdb.JdbFactory {
 class JdbTransactionEntryMemory extends JdbEntryMemory {
   /// Debug map.
   @override
-  Map<String, dynamic> exportToMap() {
-    var map = <String, dynamic>{
+  Map<String, Object? > exportToMap() {
+    var map = <String, Object? >{
       if (id != null) 'id': id,
       if (deleted ?? false) 'deleted': true
     };
@@ -72,10 +72,10 @@ class JdbEntryMemory implements jdb.JdbReadEntry {
   bool deleted;
 
   /// Debug map.
-  Map<String, dynamic> exportToMap() {
-    var map = <String, dynamic>{
+  Map<String, Object? > exportToMap() {
+    var map = <String, Object? >{
       'id': id,
-      'value': <String, dynamic>{
+      'value': <String, Object? >{
         if (!_isMainStore(record?.store?.name)) 'store': record.store.name,
         'key': record?.key,
         'value': value,
@@ -104,16 +104,16 @@ class JdbDatabaseMemory implements jdb.JdbDatabase {
   // ignore: unused_field
   final String _path;
   final _entries = <JdbEntryMemory>[];
-  final _infoEntries = <String, jdb.JdbInfoEntry>{};
+  final _infoEntries = <String?, jdb.JdbInfoEntry>{};
   final _revisionUpdatesCtrl = StreamController<int>.broadcast();
 
   /// Debug map.
-  Map<String, dynamic> toDebugMap() {
-    var map = <String, dynamic>{
+  Map<String, Object? > toDebugMap() {
+    var map = <String, Object? >{
       'entries':
-          _entries.map((entry) => entry.exportToMap()).toList(growable: false),
+          _entries.map(((entry) => entry.exportToMap()) as _ Function(JdbEntryMemory)).toList(growable: false),
       'infos': (List<jdb.JdbInfoEntry>.from(_infoEntries.values)
-            ..sort((entry1, entry2) => entry1.id.compareTo(entry2.id)))
+            ..sort(((entry1, entry2) => entry1.id!.compareTo(entry2.id!)) as int Function(jdb.JdbInfoEntry, jdb.JdbInfoEntry)?))
           .map((info) => info.exportToMap())
           .toList(growable: false),
     };
@@ -139,11 +139,11 @@ class JdbDatabaseMemory implements jdb.JdbDatabase {
   }
 
   @override
-  Future<jdb.JdbInfoEntry> getInfoEntry(String id) async {
+  Future<jdb.JdbInfoEntry?> getInfoEntry(String id) async {
     return _infoEntries[id];
   }
 
-  jdb.JdbInfoEntry _getInfoEntry(String id) {
+  jdb.JdbInfoEntry? _getInfoEntry(String id) {
     return _infoEntries[id];
   }
 
@@ -189,7 +189,7 @@ class JdbDatabaseMemory implements jdb.JdbDatabase {
       _entries.removeWhere((entry) => entry.record == record);
       var entry = _writeEntryToMemory(jdbWriteEntry);
       _entries.add(entry);
-      (jdbWriteEntry.txnRecord?.record as ImmutableSembastRecordJdb)?.revision =
+      (jdbWriteEntry.txnRecord?.record as ImmutableSembastRecordJdb?)?.revision =
           entry.id;
     }
     return _lastEntryId;
@@ -201,7 +201,7 @@ class JdbDatabaseMemory implements jdb.JdbDatabase {
   Future<List<int>> generateUniqueIntKeys(String store, int count) async {
     var keys = <int>[];
     var infoKey = _storeLastIdKey(store);
-    var lastId = ((await getInfoEntry(infoKey))?.value as int) ?? 0;
+    var lastId = ((await getInfoEntry(infoKey))?.value as int?) ?? 0;
     for (var i = 0; i < count; i++) {
       keys.add(++lastId);
     }
@@ -266,7 +266,7 @@ class JdbDatabaseMemory implements jdb.JdbDatabase {
   }
 
   @override
-  Future<Map<String, dynamic>> exportToMap() async {
+  Future<Map<String, Object? >> exportToMap() async {
     return toDebugMap();
   }
 
@@ -300,9 +300,9 @@ class JdbDatabaseMemory implements jdb.JdbDatabase {
   }
 
   int _getDeltaMinRevision() =>
-      _getInfoEntry(deltaMinRevisionKey)?.value as int ?? 0;
+      _getInfoEntry(deltaMinRevisionKey)?.value as int? ?? 0;
 
-  int _getRevision() => _getInfoEntry(_revisionKey)?.value as int ?? 0;
+  int _getRevision() => _getInfoEntry(_revisionKey)?.value as int? ?? 0;
 
   void _setDeltaMinRevision(int revision) => _setInfoEntry(JdbInfoEntry()
     ..id = deltaMinRevisionKey

@@ -8,16 +8,16 @@ import 'package:synchronized/synchronized.dart';
 /// Open options.
 class DatabaseOpenOptions {
   /// version.
-  final int version;
+  final int? version;
 
   /// open callback.
-  final OnVersionChangedFunction onVersionChanged;
+  final OnVersionChangedFunction? onVersionChanged;
 
   /// open mode.
-  final DatabaseMode mode;
+  final DatabaseMode? mode;
 
   /// codec.
-  final SembastCodec codec;
+  final SembastCodec? codec;
 
   /// Open options.
   DatabaseOpenOptions({
@@ -29,7 +29,7 @@ class DatabaseOpenOptions {
 
   @override
   String toString() {
-    var map = <String, dynamic>{};
+    var map = <String, Object? >{};
     if (version != null) {
       map['version'] = version;
     }
@@ -52,7 +52,7 @@ class DatabaseOpenHelper {
   final String path;
 
   /// The open mode that change overtime (empty to defaults)
-  DatabaseMode openMode;
+  DatabaseMode? openMode;
 
   /// The open options.
   final DatabaseOpenOptions options;
@@ -61,7 +61,7 @@ class DatabaseOpenHelper {
   final lock = Lock();
 
   /// The database.
-  SembastDatabase database;
+  SembastDatabase? database;
 
   /// Open helper.
   DatabaseOpenHelper(this.factory, this.path, this.options) {
@@ -81,14 +81,14 @@ class DatabaseOpenHelper {
         this.database = database;
       }
       // Force helper again in case it was removed by lockedClose
-      database.openHelper = this;
+      database!.openHelper = this;
 
-      await database.open(options);
+      await database!.open(options);
 
       // Force helper again in case it was removed by lockedClose
       factory.setDatabaseOpenHelper(path, this);
-      return database;
-    });
+      return database!;
+    } as FutureOr<Database> Function());
   }
 
   /// Closed the database.
@@ -133,10 +133,10 @@ mixin DatabaseFactoryMixin implements SembastDatabaseFactory {
 
   @override
   Future<Database> openDatabase(String path,
-      {int version,
-      OnVersionChangedFunction onVersionChanged,
-      DatabaseMode mode,
-      SembastCodec codec}) {
+      {int? version,
+      OnVersionChangedFunction? onVersionChanged,
+      DatabaseMode? mode,
+      SembastCodec? codec}) {
     return openDatabaseWithOptions(
         path,
         DatabaseOpenOptions(
@@ -158,7 +158,7 @@ mixin DatabaseFactoryMixin implements SembastDatabaseFactory {
   }
 
   /// Get existing open helper for a given path.
-  DatabaseOpenHelper getExistingDatabaseOpenHelper(String path) {
+  DatabaseOpenHelper? getExistingDatabaseOpenHelper(String path) {
     if (path != null) {
       return _databaseOpenHelpers[path];
     } else {

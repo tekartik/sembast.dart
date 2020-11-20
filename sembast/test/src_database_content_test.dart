@@ -10,11 +10,11 @@ void main() {
       var store = StoreRef<int, String>.main();
       var dbContent = DatabaseListenerContent();
       dbContent.addRecord(ImmutableSembastRecord(store.record(1), 'v1'));
-      var storeContent = dbContent.store(store);
-      expect(storeContent.record(1).value, 'v1');
+      var storeContent = dbContent.store(store)!;
+      expect(storeContent.record(1)!.value, 'v1');
 
       dbContent.addRecord(ImmutableSembastRecord(store.record(1), 'v2'));
-      expect(storeContent.record(1).value, 'v2');
+      expect(storeContent.record(1)!.value, 'v2');
 
       dbContent.removeStore(store);
       expect(dbContent.store(store), isNull);

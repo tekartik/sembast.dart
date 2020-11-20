@@ -39,7 +39,7 @@ class Timestamp implements Comparable<Timestamp> {
   static bool _isDigit(String chr) => (chr.codeUnitAt(0) ^ 0x30) <= 9;
 
   /// [parse] or returns null
-  static Timestamp tryParse(String text) {
+  static Timestamp? tryParse(String text) {
     if (text != null) {
       // 2018-10-20T05:13:45.985343Z
 
@@ -88,7 +88,7 @@ class Timestamp implements Comparable<Timestamp> {
       }
 
       var seconds = (dateTime.millisecondsSinceEpoch / 1000).floor();
-      var nanoseconds = int.tryParse(nanosString.toString());
+      var nanoseconds = int.tryParse(nanosString.toString())!;
       return Timestamp(seconds, nanoseconds);
     }
     return null;
@@ -167,7 +167,7 @@ class Timestamp implements Comparable<Timestamp> {
 
   /// Convert a Timestamp to a [DateTime] object. This conversion
   /// causes a loss of precision and support millisecond precision.
-  DateTime toDateTime({bool isUtc}) {
+  DateTime toDateTime({bool? isUtc}) {
     return DateTime.fromMicrosecondsSinceEpoch(microsecondsSinceEpoch,
         isUtc: isUtc == true);
   }
@@ -235,7 +235,7 @@ class Timestamp implements Comparable<Timestamp> {
 
   /// Try to get a Timestamp from either a DateTime, a Timestamp, a text or
   /// an int (ms since epoch)
-  static Timestamp tryAnyAsTimestamp(dynamic any) {
+  static Timestamp? tryAnyAsTimestamp(dynamic any) {
     if (any is Timestamp) {
       return any;
     } else if (any is DateTime) {
