@@ -152,7 +152,7 @@ void defineTests(DatabaseTestContextJdb ctx) {
           'entries': [
             {
               'id': 2,
-              'value': {'key': 1, 'value': null, 'deleted': true}
+              'value': {'key': 1, 'deleted': true}
             }
           ],
           'infos': [
@@ -214,7 +214,7 @@ void defineTests(DatabaseTestContextJdb ctx) {
           'entries': [
             {
               'id': 2,
-              'value': {'key': 1, 'value': null, 'deleted': true}
+              'value': {'key': 1, 'deleted': true}
             }
           ],
           'infos': [

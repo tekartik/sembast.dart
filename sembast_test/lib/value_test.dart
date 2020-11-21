@@ -26,20 +26,6 @@ void defineTests(DatabaseTestContext ctx) {
       return db.close();
     });
 
-    test('null', () async {
-      expect(await record.exists(db), isFalse);
-      await record.put(db, null);
-
-      Future _check() async {
-        expect(await record.exists(db), isTrue);
-        expect(await record.get(db), isNull);
-      }
-
-      await _check();
-      db = await reOpen(db);
-      await _check();
-    });
-
     test('int', () async {
       expect(await record.exists(db), isFalse);
       await record.put(db, 1234);

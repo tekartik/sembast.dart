@@ -1,5 +1,6 @@
 library sembast.test.memory_factory_test_;
 
+import 'package:sembast/sembast_memory.dart';
 import 'package:sembast/src/memory/database_factory_memory.dart'
     show DatabaseFactoryMemory;
 
@@ -19,9 +20,9 @@ void main() {
 }
 
 void defineMemoryDatabaseTests(DatabaseTestContext ctx) {
-  test('null name', () async {
+  test('in memory name', () async {
     final factory = memoryDatabaseContext.factory;
-    String dbName;
+    var dbName = sembastInMemoryDatabasePath;
 
     final db = await factory.openDatabase(dbName);
     var store = StoreRef.main();

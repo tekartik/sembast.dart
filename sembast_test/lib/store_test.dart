@@ -62,9 +62,9 @@ void defineTests(DatabaseTestContext ctx) {
       expect(await record.get(db), isTrue);
       await record.put(db, false);
       expect(await record.get(db), isFalse);
-      await record.put(db, null);
-      expect(await record.get(db), isNull);
-      expect((await record.getSnapshot(db)).value, isNull);
+      // await record.put(db, null); - no longer supported
+      // expect(await record.get(db), isNull);
+      expect((await record.getSnapshot(db)).value, isFalse);
     });
 
     test('records', () async {
@@ -143,14 +143,14 @@ void defineTests(DatabaseTestContext ctx) {
       var record3 = store.record(3);
       var record4 = store.record(4);
       var record5 = store.record(5);
-      await record3.put(db, null);
-      await record2.put(db, null);
+      await record3.put(db, ''); // nnbd: null no longer supported
+      await record2.put(db, '');
       expect(await store.findKeys(db), [2, 3]);
-      await record4.put(db, null);
+      await record4.put(db, '');
       expect(await store.findKeys(db), [2, 3, 4]);
       await db.transaction((txn) async {
-        await record1.put(txn, null);
-        await record5.put(txn, null);
+        await record1.put(txn, '');
+        await record5.put(txn, '');
         expect(await store.findKeys(txn), [1, 2, 3, 4, 5]);
       });
       expect(await store.findKeys(db), [1, 2, 3, 4, 5]);

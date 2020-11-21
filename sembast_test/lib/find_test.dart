@@ -184,20 +184,12 @@ void defineTests(DatabaseTestContext ctx) {
             finder: Finder(filter: Filter.matches(Field.value, r'a$')));
         expect(snapshotsRefs(snapshots), [record3]);
 
-        // null value
-        var record4 = store.record(4);
-        await record4.put(db, null);
-        snapshots = await store.find(db,
-            finder: Finder(filter: Filter.matches(Field.value, '^hi')));
-        expect(snapshotsRefs(snapshots), [record1]);
-
-        // record 4 cannot be found using matches
         snapshots = await store.find(db,
             finder: Finder(filter: Filter.matches(Field.value, '')));
         expect(snapshotsRefs(snapshots), [record1, record2, record3]);
         snapshots = await store.find(db,
             finder: Finder(filter: Filter.isNull(Field.value)));
-        expect(snapshotsRefs(snapshots), [record4]);
+        expect(snapshotsRefs(snapshots), []);
         snapshots = await store.find(db,
             finder: Finder(filter: Filter.notNull(Field.value)));
         expect(snapshotsRefs(snapshots), [record1, record2, record3]);

@@ -28,7 +28,7 @@ Future jdbDatabaseImportFromMap(JdbDatabase jdb, Map map) async {
     var storeName = valueMap['store'] as String;
     var store = storeName == null ? StoreRef.main() : StoreRef(storeName);
     return JdbRawWriteEntry(
-        deleted: valueMap['deleted'] as bool,
+        deleted: (valueMap['deleted'] as bool) ?? false,
         value: valueMap['value'],
         record: store.record(valueMap['key']))
       ..id = valueMap['id'] as int;
