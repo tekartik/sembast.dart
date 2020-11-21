@@ -17,11 +17,11 @@ mixin RecordSnapshotMixin<K, V>
   K get key => ref.key;
 
   @override
-  V? get value => rawValue;
+  V get value => rawValue;
 
   /// direct access to raw value
   @override
-  late V? rawValue;
+  late V rawValue;
 
   @override
   String toString() => '$ref $rawValue';
@@ -95,7 +95,7 @@ class SembastRecordRawSnapshot<K, V> implements RecordSnapshot<K, V> {
 
   /// Raw access to data
   @override
-  V? get value => snapshot.rawValue;
+  V get value => snapshot.rawValue;
 
   @override
   RecordSnapshot<RK, RV> cast<RK, RV>() =>

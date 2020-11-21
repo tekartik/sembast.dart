@@ -9,7 +9,7 @@ abstract class RecordSnapshot<K, V> {
   K get key;
 
   /// The value
-  V? get value;
+  V get value;
 
   /// Get the value of the specified [field].
   ///

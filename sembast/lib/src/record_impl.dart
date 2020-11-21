@@ -74,7 +74,7 @@ mixin SembastRecordHelperMixin implements SembastRecord {
 /// Used as an interface
 abstract class SembastRecordValue<V> {
   /// Raw value/
-  late V? rawValue;
+  late V rawValue;
 }
 
 /// Sembast record mixin.
