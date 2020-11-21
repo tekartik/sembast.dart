@@ -24,14 +24,12 @@ void defineTests(DatabaseTestContext ctx) {
       var records = store.records([null]);
       expect(await records.get(db), [null]);
       expect(await records.getSnapshots(db), [null]);
-      expect(await records.delete(db), [null]);
     });
 
     test('none', () async {
       var records = store.records([]);
       expect(await records.get(db), isEmpty);
       expect(await records.getSnapshots(db), isEmpty);
-      expect(await records.delete(db), isEmpty);
     });
 
     test('one', () async {
@@ -39,13 +37,11 @@ void defineTests(DatabaseTestContext ctx) {
       expect(records[0].key, 1);
       expect(await records.get(db), [null]);
       expect(await records.getSnapshots(db), [null]);
-      expect(await records.delete(db), [null]);
 
       expect(await records.put(db, ['test']), ['test']);
       expect(await records.get(db), ['test']);
       expect((await records.getSnapshots(db)).map((record) => record.value),
           ['test']);
-      expect(await records.delete(db), [1]);
       expect(await records.get(db), [null]);
     });
 
@@ -58,7 +54,6 @@ void defineTests(DatabaseTestContext ctx) {
       var snapshots = await records.getSnapshots(db);
       expect(snapshots[0].value, 'test');
       expect(snapshots[1], isNull);
-      expect(await records.delete(db), [1, null]);
       expect(await records.get(db), [null, null]);
     });
 
