@@ -75,7 +75,7 @@ class JdbEntryMemory implements jdb.JdbReadEntry {
       'value': <String, Object?>{
         if (!_isMainStore(record.store.name)) 'store': record.store.name,
         'key': record.key,
-        'value': value,
+        if (!deleted) 'value': value,
         if (deleted) 'deleted': true
       }
     };

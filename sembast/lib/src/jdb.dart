@@ -20,7 +20,7 @@ class JdbInfoEntry {
   String? id;
 
   /// Jdb value
-  dynamic value;
+  Object? value;
 
   @override
   String toString() => '[$id] $value';
@@ -29,7 +29,7 @@ class JdbInfoEntry {
   Map<String, Object?> exportToMap() {
     var map = <String, Object?>{
       'id': id,
-      'value': value,
+      if (value != null) 'value': value,
     };
     return map;
   }
@@ -47,10 +47,10 @@ abstract class JdbEntry {
   bool get deleted;
 
   @override
-  String toString() => '[$id] $record $value${deleted ? ' (deleted)' : ''}';
+  String toString() => '[$id] $record ${deleted ? ' (deleted)' : ' $value'}';
 
-  /// Jdb value
-  dynamic get value;
+  /// Jdb value - null if deleted
+  Object? get value;
 }
 
 /// Read entry
@@ -80,7 +80,7 @@ class JdbWriteEntry extends JdbEntry {
   @override
   RecordRef get record => txnRecord!.ref;
 
-  dynamic _value;
+  Object? _value;
 
   /// value.
   @override

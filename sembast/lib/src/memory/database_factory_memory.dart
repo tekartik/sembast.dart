@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:sembast/sembast.dart';
+import 'package:sembast/src/api/v2/sembast_memory.dart';
 import 'package:sembast/src/database_factory_mixin.dart';
 import 'package:sembast/src/database_impl.dart';
 import 'package:sembast/src/jdb/jdb_factory_memory.dart';
@@ -52,16 +53,26 @@ class DatabaseFactoryMemory extends SembastDatabaseFactory
     }
     return db;
   }
-}
 
-/// In memory specialy database name.
-const inMemoryDatabasePath = 'sembast://memory';
+  @override
+  Future<Database> openDatabaseWithOptions(
+      String path, DatabaseOpenOptions options) async {
+    // Handle in memory special db here
+    // Basic implementation: delete it...
+    if (path == sembastInMemoryDatabasePath) {
+      await doDeleteDatabase(path);
+      var helper = DatabaseOpenHelper(this, path, options);
+      return helper.openDatabase();
+    }
+    return super.openDatabaseWithOptions(path, options);
+  }
+}
 
 ///
 /// Open a new database in memory
 ///
 Future<Database> openMemoryDatabase() {
-  return databaseFactoryMemory.openDatabase(inMemoryDatabasePath);
+  return databaseFactoryMemory.openDatabase(sembastInMemoryDatabasePath);
 }
 
 /// In memory storage.

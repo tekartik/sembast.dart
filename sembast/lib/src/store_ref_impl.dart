@@ -127,14 +127,13 @@ extension SembastStoreRefExtension<K, V> on StoreRef<K, V> {
   ///
   /// Returns null if not found.
   ///
-  Future<K /*?*/ > findKey(DatabaseClient databaseClient,
-      {Finder? finder}) async {
+  Future<K?> findKey(DatabaseClient databaseClient, {Finder? finder}) async {
     final client = getClient(databaseClient);
 
     var key = await client
         .getSembastStore(this)
         .txnFindKey(client.sembastTransaction, finder);
-    return (key as K?)!;
+    return (key as K?);
   }
 
   ///

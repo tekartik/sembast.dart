@@ -16,7 +16,7 @@ Supported value types are:
 - `Map<String, Object/*?*/>`
 - `List<dynamic>` (`Iterable` is not a supported types, use to `List()` to convert any iterable)
 - `bool`
-- `null`
+- `null` (the record value itself cannot be null)
 - `Blob` (custom type)
 - `Timestamp` (custom type)
 

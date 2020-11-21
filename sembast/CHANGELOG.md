@@ -1,6 +1,7 @@
-## 3.0.0-nullsafety.2
+## 3.0.0-nullsafety.3
 
 * `nnbd` support, breaking change.
+* No longer supports null record value.
 
 ## 2.4.8
 

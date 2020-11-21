@@ -144,7 +144,7 @@ extension SembastRecordRefExtension<K, V> on RecordRef<K, V> {
     var client = getClient(databaseClient);
     return client
         .getSembastStore(store)
-        .txnRecordExists(client.sembastTransaction!, key);
+        .txnRecordExists(client.sembastTransaction, key);
   }
 
   /// Delete the record.
