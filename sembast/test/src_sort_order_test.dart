@@ -16,8 +16,8 @@ void main() {
     test('with_dot', () {
       var field = FieldKey.escape('my.field');
       var sortOrder = SembastSortOrder(field);
-      var record1 = SembastRecordSnapshot(null, {'my.field': 1});
-      var record2 = SembastRecordSnapshot(null, {'my.field': 2});
+      var record1 = SembastRecordSnapshot(record, {'my.field': 1});
+      var record2 = SembastRecordSnapshot(record, {'my.field': 2});
       expect(sortOrder.compareAscending(record1, record2), -1);
       expect(sortOrder.compareAscending(record2, record1), 1);
     });
@@ -25,10 +25,10 @@ void main() {
     test('sub.field', () {
       var field = 'my.field';
       var sortOrder = SembastSortOrder(field);
-      var record1 = SembastRecordSnapshot(null, {
+      var record1 = SembastRecordSnapshot(record, {
         'my': {'field': 1}
       });
-      var record2 = SembastRecordSnapshot(null, {
+      var record2 = SembastRecordSnapshot(record, {
         'my': {'field': 2}
       });
       expect(sortOrder.compareAscending(record1, record2), -1);
@@ -37,8 +37,8 @@ void main() {
     test('different type.field', () {
       var field = 'field';
       var sortOrder = SembastSortOrder(field);
-      var record1 = SembastRecordSnapshot(null, {'field': 1});
-      var record2 = SembastRecordSnapshot(null, {'field': '2'});
+      var record1 = SembastRecordSnapshot(record, {'field': 1});
+      var record2 = SembastRecordSnapshot(record, {'field': '2'});
       expect(sortOrder.compareAscending(record1, record2), -1);
     });
   });

@@ -82,7 +82,7 @@ void defineTestsWithCodec(FileSystemTestContext ctx, {SembastCodec? codec}) {
       await db.close();
       final lines = await readContent(fs, dbPath!);
       expect(lines.length, 1);
-      var expected = <String, Object? >{'version': 1, 'sembast': 1};
+      var expected = <String, Object?>{'version': 1, 'sembast': 1};
       if (codec != null) {
         expected['codec'] = getCodecEncodedSignature(codec);
         var map = json.decode(lines.first);
@@ -100,7 +100,7 @@ void defineTestsWithCodec(FileSystemTestContext ctx, {SembastCodec? codec}) {
       await factory.openDatabase(dbPath!, version: 2, codec: codec);
       final lines = await readContent(fs, dbPath!);
       expect(lines.length, 1);
-      var expected = <String, Object? >{'version': 2, 'sembast': 1};
+      var expected = <String, Object?>{'version': 2, 'sembast': 1};
       if (codec != null) {
         expected['codec'] = getCodecEncodedSignature(codec);
         var map = json.decode(lines.first);
@@ -114,8 +114,8 @@ void defineTestsWithCodec(FileSystemTestContext ctx, {SembastCodec? codec}) {
 
     List<Map?> linesAsMapList(List<String> lines) {
       return lines
-          ?.map((line) => json.decode(line) as Map?)
-          ?.toList(growable: false);
+          .map((line) => json.decode(line) as Map?)
+          .toList(growable: false);
     }
 
     test('open_version_1_then_2', () async {
@@ -133,7 +133,7 @@ void defineTestsWithCodec(FileSystemTestContext ctx, {SembastCodec? codec}) {
         ]);
       }
 
-      var expected = <String, Object? >{'version': 2, 'sembast': 1};
+      var expected = <String, Object?>{'version': 2, 'sembast': 1};
       if (codec != null) {
         expected['codec'] = getCodecEncodedSignature(codec);
         var map = json.decode(lines.last);
@@ -151,8 +151,8 @@ void defineTestsWithCodec(FileSystemTestContext ctx, {SembastCodec? codec}) {
     });
 
     dynamic decodeRecord(String line) {
-      if (codec != null) {
-        return codec.codec.decode(line);
+      if (codec?.codec != null) {
+        return codec!.codec!.decode(line);
       } else {
         return json.decode(line);
       }
@@ -233,7 +233,7 @@ void defineTestsWithCodec(FileSystemTestContext ctx, {SembastCodec? codec}) {
       await db.close();
       var lines = await readContent(fs, dbPath!);
       expect(lines.length, 2);
-      var expected = <String, Object? >{'version': 2, 'sembast': 1};
+      var expected = <String, Object?>{'version': 2, 'sembast': 1};
       if (codec != null) {
         expected['codec'] = getCodecEncodedSignature(codec);
         var map = json.decode(lines.first);
@@ -257,7 +257,7 @@ void defineTestsWithCodec(FileSystemTestContext ctx, {SembastCodec? codec}) {
       await db.close();
       final lines = await readContent(fs, dbPath!);
       expect(lines.length, 2);
-      var expected = <String, Object? >{'version': 2, 'sembast': 1};
+      var expected = <String, Object?>{'version': 2, 'sembast': 1};
       if (codec != null) {
         expected['codec'] = getCodecEncodedSignature(codec);
         var map = json.decode(lines.first);
@@ -282,7 +282,7 @@ void defineTestsWithCodec(FileSystemTestContext ctx, {SembastCodec? codec}) {
 
       var lines = await readContent(fs, dbPath!);
       expect(lines.length, 4);
-      var expected = <String, Object? >{'version': 1, 'sembast': 1};
+      var expected = <String, Object?>{'version': 1, 'sembast': 1};
       if (codec != null) {
         expected['codec'] = getCodecEncodedSignature(codec);
         var map = json.decode(lines.first);
@@ -293,7 +293,7 @@ void defineTestsWithCodec(FileSystemTestContext ctx, {SembastCodec? codec}) {
         expect(json.decode(lines.first), expected);
       }
 
-      var expectedV2 = <String, Object? >{'version': 2, 'sembast': 1};
+      var expectedV2 = <String, Object?>{'version': 2, 'sembast': 1};
 
       if (codec != null) {
         expectedV2['codec'] = getCodecEncodedSignature(codec);
@@ -333,7 +333,7 @@ void defineTestsWithCodec(FileSystemTestContext ctx, {SembastCodec? codec}) {
 
       await db.close();
 
-      db = await (factory.openDatabase(dbPath!, codec: codec) as FutureOr<SembastDatabase>);
+      db = await factory.openDatabase(dbPath!, codec: codec);
       expect(await record1.get(db), 'test1');
       expect(await record2.get(db), 'test2');
       await db.close();

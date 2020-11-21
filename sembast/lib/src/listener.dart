@@ -1,4 +1,3 @@
-import 'package:meta/meta.dart';
 import 'package:sembast/sembast.dart';
 import 'package:sembast/src/api/query_ref.dart';
 import 'package:sembast/src/api/record_ref.dart';
@@ -100,7 +99,7 @@ class QueryListenerController<K, V> extends _ControllerBase {
   }
 
   /// Add error.
-  void addError(dynamic error, StackTrace stackTrace) {
+  void addError(Object error, StackTrace stackTrace) {
     if (!_shouldAdd) {
       return;
     }
@@ -233,7 +232,7 @@ class RecordListenerController<K, V> extends _ControllerBase {
   }
 
   /// Add an error.
-  void addError(dynamic error, StackTrace stackTrace) {
+  void addError(Object error, StackTrace stackTrace) {
     if (!_shouldAdd) {
       return;
     }

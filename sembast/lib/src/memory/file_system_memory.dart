@@ -73,11 +73,7 @@ abstract class FileSystemEntityMemory implements fs.FileSystemEntity {
   final String path;
 
   /// In memory file entity.
-  FileSystemEntityMemory(this.path) {
-    if (path == null) {
-      throw ArgumentError.notNull('path');
-    }
-  }
+  FileSystemEntityMemory(this.path);
 
   @override
   Future<bool> exists() async => _fs._impl.exists(path);
@@ -129,7 +125,8 @@ class FileMemory extends FileSystemEntityMemory implements fs.File {
 
   // don't care about start end
   @override
-  Stream<Uint8List> openRead([int? start, int? end]) => _fs._impl.openRead(path);
+  Stream<Uint8List> openRead([int? start, int? end]) =>
+      _fs._impl.openRead(path);
 
   // don't care about encoding - assume UTF8
   @override

@@ -1,4 +1,3 @@
-import 'package:meta/meta.dart';
 import 'package:sembast/src/api/protected/jdb.dart';
 import 'package:sembast/src/api/v2/sembast.dart';
 import 'package:sembast/src/database_impl.dart';
@@ -13,19 +12,18 @@ JdbDatabaseMemory getJdbDatabase(Database database) =>
 
 class JdbWriteEntryMock extends JdbWriteEntry {
   @override
-  RecordRef record;
+  late RecordRef record;
   dynamic _value;
-  bool? _deleted;
 
   JdbWriteEntryMock(
       {required int id,
       String? store,
       required dynamic key,
       dynamic value,
-      bool? deleted}) {
+      this.deleted = false}) {
     record = (store == null ? StoreRef.main() : StoreRef(store)).record(key);
     _value = value;
-    _deleted = deleted;
+
     this.id = id;
   }
 
@@ -33,7 +31,7 @@ class JdbWriteEntryMock extends JdbWriteEntry {
   dynamic get value => _value;
 
   @override
-  bool get deleted => _deleted!;
+  final bool deleted;
 }
 
 void main() {
@@ -166,7 +164,7 @@ void main() {
 
       //TODO
       ////devPrint('2 ${await record1.onSnapshot(db).first}');
-      await record1.onSnapshot(db).where(((snapshot) => snapshot != null) as bool Function(RecordSnapshot<int, String>?)).first;
+      await record1.onSnapshot(db).where((snapshot) => snapshot != null).first;
       expect(await store.record(1).get(db), isNotNull);
 
       await db.close();

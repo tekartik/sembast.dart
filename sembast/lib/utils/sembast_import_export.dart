@@ -19,16 +19,16 @@ const int _exportSignatureVersion = 1;
 ///
 /// Return the data in an exported format that (can be JSONified).
 ///
-Future<Map<String, Object? >> exportDatabase(Database db) {
+Future<Map<String, Object?>> exportDatabase(Database db) {
   return db.transaction((txn) async {
-    var export = <String, Object? >{
+    var export = <String, Object?>{
       // our export signature
       _exportSignatureKey: _exportSignatureVersion,
       // the db version
       _dbVersion: db.version
     };
 
-    final storesExport = <Map<String, Object? >>[];
+    final storesExport = <Map<String, Object?>>[];
 
     // export all records from each store
 
@@ -40,7 +40,7 @@ Future<Map<String, Object? >> exportDatabase(Database db) {
       final keys = [];
       final values = [];
 
-      final storeExport = <String, Object? >{
+      final storeExport = <String, Object?>{
         _name: store.name,
         _keys: keys,
         _values: values
@@ -48,7 +48,7 @@ Future<Map<String, Object? >> exportDatabase(Database db) {
 
       for (var record in store.currentRecords) {
         keys.add(record.key);
-        values.add(sembastDatabase.toJsonEncodable(record.value));
+        values.add(sembastDatabase.toJsonEncodable(record.value!));
         if (sembastDatabase.cooperator!.needCooperate) {
           await sembastDatabase.cooperator!.cooperate();
         }
@@ -87,23 +87,22 @@ Future<Database> importDatabase(
   var sembastDatabase = db as SembastDatabase;
   await db.transaction((txn) async {
     final storesExport =
-        (srcData[_stores] as Iterable?)?.toList(growable: false)?.cast<Map>();
+        (srcData[_stores] as Iterable?)?.toList(growable: false).cast<Map>();
     if (storesExport != null) {
       for (var storeExport in storesExport) {
         final storeName = storeExport[_name] as String;
 
-        final List<dynamic> keys = (storeExport[_keys] as Iterable?)?.toList(growable: false);
-        final values =
-            (storeExport[_values] as Iterable?)?.toList(growable: false);
+        final keys = (storeExport[_keys] as Iterable).toList(growable: false);
+        final values = List<Object>.from(storeExport[_values] as Iterable);
 
         var store =
             (txn as SembastTransaction).getSembastStore(StoreRef(storeName));
         for (var i = 0; i < keys.length; i++) {
-          await store.txnPut(txn,
-              sembastDatabase.fromJsonEncodable(values![i]), keys[i]);
+          await store.txnPut(
+              txn, sembastDatabase.fromJsonEncodable(values[i]), keys[i]);
         }
       }
     }
-  } as FutureOr<_> Function(Transaction?));
+  });
   return db;
 }

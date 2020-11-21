@@ -32,5 +32,5 @@ class FieldKey {
   const FieldKey._();
 
   /// To use if you want to have dot in your field for update and filtering
-  static String escape(String field) => escapeKey(field);
+  static String escape(String field) => escapeKey(field)!;
 }

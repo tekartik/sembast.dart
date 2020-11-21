@@ -24,7 +24,7 @@ abstract class DatabaseFactory {
   /// A custom [codec] can be used to load/save a record, allowing for user encryption.
   ///
   /// Custom [settings] can be specified.
-  Future<Database > openDatabase(String path,
+  Future<Database> openDatabase(String path,
       {int? version,
       OnVersionChangedFunction? onVersionChanged,
       DatabaseMode? mode,

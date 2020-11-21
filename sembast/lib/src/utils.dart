@@ -101,13 +101,8 @@ int compareValue(dynamic value1, dynamic value2) {
   }
   // Compare value type
   var cmp = compareValueType(value1, value2);
-  if (cmp == null) {
-    /// Convert to string in the worst case
-    if (!(value1 is String) || !(value2 is String)) {
-      return compareValue(value1?.toString(), value2?.toString());
-    }
-  }
-  return cmp ?? 0;
+
+  return cmp;
 }
 
 /// Compare 2 boolean: fase < null
@@ -124,7 +119,6 @@ int compareBool(bool value1, bool value2) {
 /// Compare 2 value types.
 ///
 /// return <0 if value1 < value2 or >0 if greater
-/// returns null if cannot be compared (typically custom types)
 ///
 /// Follows firestore ordering:
 /// https://firebase.google.com/docs/firestore/manage-data/data-types
@@ -213,11 +207,13 @@ int compareValueType(dynamic value1, dynamic value2) {
   } else if (value2 is Map) {
     return 1;
   }
-  return null;
+
+  /// Convert to string in the worst case
+  return compareValue(value1.toString(), value2.toString());
 }
 
-Map<String, Object? > _fixMap(Map map) {
-  var fixedMap = <String, Object? >{};
+Map<String, Object?> _fixMap(Map map) {
+  var fixedMap = <String, Object?>{};
   map.forEach((key, value) {
     if (value != FieldValue.delete) {
       fixedMap[key as String] = _fixValue(value);
@@ -245,7 +241,7 @@ K cloneKey<K>(K key) {
     return key;
   }
   throw DatabaseException.badParam(
-      'key ${key} not supported${key != null ? ' type:${key.runtimeType}' : ''}');
+      'key ${key} not supported ${key.runtimeType}');
 }
 
 /// True if the value is an array or map.
@@ -256,7 +252,7 @@ bool isValueMutable(dynamic value) {
 /// Clone a value.
 dynamic cloneValue(dynamic value) {
   if (value is Map) {
-    return value.map<String, Object? >(
+    return value.map<String, Object?>(
         (key, value) => MapEntry(key as String, cloneValue(value)));
   }
   if (value is Iterable) {
@@ -268,8 +264,8 @@ dynamic cloneValue(dynamic value) {
 /// Sanitize Map type for root value
 dynamic sanitizeValueIfMap(dynamic value) {
   if (value is Map) {
-    if (!(value is Map<String, Object? >)) {
-      return value?.cast<String, Object? >();
+    if (!(value is Map<String, Object?>)) {
+      return value.cast<String, Object?>();
     }
   }
   return value;
@@ -296,9 +292,9 @@ bool isBasicTypeFieldValueOrNull(dynamic value) {
 }
 
 /// Make a value immutable.
-dynamic immutableValue(dynamic value) {
+Object? immutableValue(Object? value) {
   if (value is Map) {
-    return ImmutableMap<String, Object? >(value);
+    return ImmutableMap<String, Object?>(value);
   } else if (value is Iterable) {
     return ImmutableList(value);
   }
@@ -306,7 +302,7 @@ dynamic immutableValue(dynamic value) {
 }
 
 /// Immutable list.
-class ImmutableList<E> extends ListBase<E?> {
+class ImmutableList<E> extends ListBase<E> {
   final List<E> _list;
 
   @override
@@ -316,7 +312,7 @@ class ImmutableList<E> extends ListBase<E?> {
   ImmutableList(Iterable<E> list) : _list = list.toList(growable: false);
 
   @override
-  E? operator [](int index) => immutableValue(_list[index]) as E?;
+  E operator [](int index) => immutableValue(_list[index]) as E;
 
   @override
   void operator []=(int index, value) => throw StateError('read only');
@@ -387,7 +383,7 @@ void setPartsMapValue<T>(Map map, List<String> parts, T value) {
     final part = parts[i];
     dynamic sub = map[part];
     if (!(sub is Map)) {
-      sub = <String, Object? >{};
+      sub = <String, Object?>{};
       map[part] = sub;
     }
     map = sub;
@@ -397,7 +393,7 @@ void setPartsMapValue<T>(Map map, List<String> parts, T value) {
 
 /// Check if a trick is enclosed by backticks
 bool isBacktickEnclosed(String field) {
-  final length = field?.length ?? 0;
+  final length = field.length;
   if (length < 2) {
     return false;
   }
@@ -408,7 +404,7 @@ bool isBacktickEnclosed(String field) {
 String _escapeKey(String field) => '`$field`';
 
 /// Escape a key.
-String escapeKey(String field) {
+String? escapeKey(String? field) {
   if (field == null) {
     return null;
   }
@@ -464,7 +460,7 @@ dynamic mergeValue(dynamic existingValue, dynamic newValue,
     return newValue;
   }
 
-  final mergedMap = cloneValue(existingValue) as Map<String, Object? >?;
+  final mergedMap = cloneValue(existingValue) as Map<String, Object?>?;
   Map? currentMap = mergedMap;
 
   // Here we have the new key and values to merge
@@ -510,7 +506,7 @@ dynamic mergeValue(dynamic existingValue, dynamic newValue,
             map = sub;
           } else {
             // create sub part
-            sub = <String, Object? >{};
+            sub = <String, Object?>{};
             map[part] = sub;
             map = sub;
           }

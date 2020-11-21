@@ -19,18 +19,18 @@ void main() {
 }
 
 void defineMemoryDatabaseTests(DatabaseTestContext ctx) {
-  test('null name', () async {
+  test('empty name', () async {
     final factory = memoryDatabaseContext.factory;
-    String dbName;
+    var dbName = '';
 
     final db = await factory.openDatabase(dbName);
     var store = StoreRef.main();
     var key = await store.add(db, 'hi');
     expect(await store.record(key).get(db), 'hi');
 
-    // open null db again should not match
+    // open same db again should match
     var db2 = await factory.openDatabase(dbName);
-    expect(await store.record(key).get(db2), isNull);
+    expect(await store.record(key).get(db2), 'hi');
 
     await db.close();
     await db2.close();

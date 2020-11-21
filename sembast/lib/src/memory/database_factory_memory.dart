@@ -25,10 +25,8 @@ class DatabaseFactoryMemory extends SembastDatabaseFactory
     with DatabaseFactoryMixin {
   @override
   Future doDeleteDatabase(String path) async {
-    if (path != null) {
-      _databases.remove(path);
-      _exists.remove(path);
-    }
+    _databases.remove(path);
+    _exists.remove(path);
   }
 
   //Database _defaultDatabase;
@@ -44,25 +42,26 @@ class DatabaseFactoryMemory extends SembastDatabaseFactory
     SembastDatabase? db;
     var path = openHelper.path;
     // For null path we always create a new database
-    if (path != null) {
-      db = _databases[path];
-    }
+
+    db = _databases[path];
 
     if (db == null) {
       db = SembastDatabase(openHelper, DatabaseStorageMemory(this, path));
-      if (path != null) {
-        _databases[path] = db;
-      }
+
+      _databases[path] = db;
     }
     return db;
   }
 }
 
+/// In memory specialy database name.
+const inMemoryDatabasePath = 'sembast://memory';
+
 ///
 /// Open a new database in memory
 ///
 Future<Database> openMemoryDatabase() {
-  return databaseFactoryMemory.openDatabase(null);
+  return databaseFactoryMemory.openDatabase(inMemoryDatabasePath);
 }
 
 /// In memory storage.
@@ -81,7 +80,7 @@ class DatabaseStorageMemory extends DatabaseStorage {
   }
 
   @override
-  Future findOrCreate() async {
+  Future<void> findOrCreate() async {
     // Always create
     factory._exists[path] = true;
   }
@@ -90,19 +89,21 @@ class DatabaseStorageMemory extends DatabaseStorage {
   bool get supported => false;
 
   @override
-  Future delete() => null;
+  Future<void> delete() async {
+    // no-op
+  }
 
   @override
-  Stream<String> readLines() => null;
+  Stream<String> readLines() => throw UnimplementedError();
 
   @override
-  Future appendLines(List<String> lines) => null;
+  Future<void> appendLines(List<String> lines) => throw UnimplementedError();
 
   @override
   DatabaseStorage? get tmpStorage => null;
 
   @override
-  Future tmpRecover() => null;
+  Future<void> tmpRecover() => throw UnimplementedError();
 
   @override
   Stream<String> readSafeLines() {

@@ -46,40 +46,37 @@ class JdbFactoryMemory implements jdb.JdbFactory {
 class JdbTransactionEntryMemory extends JdbEntryMemory {
   /// Debug map.
   @override
-  Map<String, Object? > exportToMap() {
-    var map = <String, Object? >{
-      if (id != null) 'id': id,
-      if (deleted ?? false) 'deleted': true
-    };
+  Map<String, Object?> exportToMap() {
+    var map = <String, Object?>{'id': id, if (deleted) 'deleted': true};
     return map;
   }
 }
 
-bool _isMainStore(String name) => name == null || name == dbMainStore;
+bool _isMainStore(String? name) => name == null || name == dbMainStore;
 
 /// In memory entry.
 class JdbEntryMemory implements jdb.JdbReadEntry {
   @override
-  int id;
+  late int id;
 
   @override
-  dynamic value;
+  Object? value;
 
   @override
-  RecordRef record;
+  late RecordRef record;
 
   @override
-  bool deleted;
+  late bool deleted;
 
   /// Debug map.
-  Map<String, Object? > exportToMap() {
-    var map = <String, Object? >{
+  Map<String, Object?> exportToMap() {
+    var map = <String, Object?>{
       'id': id,
-      'value': <String, Object? >{
-        if (!_isMainStore(record?.store?.name)) 'store': record.store.name,
-        'key': record?.key,
+      'value': <String, Object?>{
+        if (!_isMainStore(record.store.name)) 'store': record.store.name,
+        'key': record.key,
         'value': value,
-        if (deleted ?? false) 'deleted': true
+        if (deleted) 'deleted': true
       }
     };
     return map;
@@ -108,19 +105,19 @@ class JdbDatabaseMemory implements jdb.JdbDatabase {
   final _revisionUpdatesCtrl = StreamController<int>.broadcast();
 
   /// Debug map.
-  Map<String, Object? > toDebugMap() {
-    var map = <String, Object? >{
+  Map<String, Object?> toDebugMap() {
+    var map = <String, Object?>{
       'entries':
-          _entries.map(((entry) => entry.exportToMap()) as _ Function(JdbEntryMemory)).toList(growable: false),
+          _entries.map((entry) => entry.exportToMap()).toList(growable: false),
       'infos': (List<jdb.JdbInfoEntry>.from(_infoEntries.values)
-            ..sort(((entry1, entry2) => entry1.id!.compareTo(entry2.id!)) as int Function(jdb.JdbInfoEntry, jdb.JdbInfoEntry)?))
+            ..sort((entry1, entry2) => entry1.id!.compareTo(entry2.id!)))
           .map((info) => info.exportToMap())
           .toList(growable: false),
     };
     return map;
   }
 
-  int _revision;
+  int _revision = 0;
 
   @override
   Stream<jdb.JdbReadEntry> get entries async* {
@@ -174,7 +171,7 @@ class JdbDatabaseMemory implements jdb.JdbDatabase {
   /// trigger a reload if needed, returns true if up to date
   bool _checkUpToDate() {
     var currentRevision = _getRevision();
-    var upToDate = (_revision ?? 0) == currentRevision;
+    var upToDate = _revision == currentRevision;
     if (!upToDate) {
       _revisionUpdatesCtrl.add(currentRevision);
     }
@@ -189,8 +186,8 @@ class JdbDatabaseMemory implements jdb.JdbDatabase {
       _entries.removeWhere((entry) => entry.record == record);
       var entry = _writeEntryToMemory(jdbWriteEntry);
       _entries.add(entry);
-      (jdbWriteEntry.txnRecord?.record as ImmutableSembastRecordJdb?)?.revision =
-          entry.id;
+      (jdbWriteEntry.txnRecord?.record as ImmutableSembastRecordJdb?)
+          ?.revision = entry.id;
     }
     return _lastEntryId;
   }
@@ -219,10 +216,9 @@ class JdbDatabaseMemory implements jdb.JdbDatabase {
 
   @override
   Stream<jdb.JdbEntry> entriesAfterRevision(int revision) async* {
-    revision ??= 0;
     // Copy the list
     for (var entry in _entries.toList(growable: false)) {
-      if ((entry.id ?? 0) > revision) {
+      if ((entry.id) > revision) {
         yield entry;
       }
     }
@@ -247,11 +243,11 @@ class JdbDatabaseMemory implements jdb.JdbDatabase {
 
     if (success) {
       // _entries.add(JdbTransactionEntryMemory()..id = _nextId);
-      if (query.entries?.isNotEmpty ?? false) {
+      if (query.entries.isNotEmpty) {
         _addEntries(query.entries);
       }
       readRevision = _revision = _lastEntryId;
-      if (query.infoEntries?.isNotEmpty ?? false) {
+      if (query.infoEntries.isNotEmpty) {
         for (var infoEntry in query.infoEntries) {
           _setInfoEntry(infoEntry);
         }
@@ -266,7 +262,7 @@ class JdbDatabaseMemory implements jdb.JdbDatabase {
   }
 
   @override
-  Future<Map<String, Object? >> exportToMap() async {
+  Future<Map<String, Object?>> exportToMap() async {
     return toDebugMap();
   }
 

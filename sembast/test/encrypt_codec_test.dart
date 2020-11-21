@@ -1,3 +1,4 @@
+// @dart=2.9
 @TestOn('vm')
 library sembast.test.encrypt_codec_test;
 
@@ -40,7 +41,7 @@ void main() {
         testDecode('Yj6M09ZJZNI=FZ/6SmEhirNYiQ==');
       });
     });
-    test('non_map', () {
+    test('data', () {
       var codec = getEncryptSembastCodec(password: 'test');
       var encrypted = codec.codec.encode(1);
       print(encrypted);

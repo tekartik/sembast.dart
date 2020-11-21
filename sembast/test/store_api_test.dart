@@ -56,20 +56,5 @@ void main() {
       // ignore: unnecessary_statements
       record.get;
     });
-
-    test('null_store', () {
-      try {
-        StoreRef(null);
-        fail('should fail');
-      } on ArgumentError catch (_) {}
-    });
-
-    test('key', () {
-      var store = StoreRef.main();
-      try {
-        store.record(null);
-        fail('should fail');
-      } on ArgumentError catch (_) {}
-    });
   });
 }

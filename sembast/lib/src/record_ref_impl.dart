@@ -13,12 +13,12 @@ import 'package:sembast/src/record_snapshot_impl.dart';
 /// Record ref mixin.
 mixin RecordRefMixin<K, V> implements RecordRef<K, V> {
   @override
-  StoreRef<K, V> store;
+  late StoreRef<K, V> store;
   @override
-  K key;
+  late K key;
 
   @override
-  String toString() => 'Record(${store?.name}, $key)';
+  String toString() => 'Record(${store.name}, $key)';
 
   /// Cast if needed
   @override
@@ -60,12 +60,12 @@ extension SembastRecordRefExtension<K, V> on RecordRef<K, V> {
   /// Create the record if it does not exist.
   ///
   /// Returns the key if inserted, null otherwise.
-  Future<K/*?*/> add(DatabaseClient databaseClient, V value) async {
+  Future<K?> add(DatabaseClient databaseClient, V value) async {
     var client = getClient(databaseClient);
     value = client.sembastDatabase.sanitizeInputValue<V>(value)!;
     return await client.inTransaction((txn) {
-      return client.getSembastStore(store).txnAdd(txn, value, key) as FutureOr<K>;
-    } as FutureOr<K> Function(SembastTransaction));
+      return client.getSembastStore(store).txnAdd(txn, value, key);
+    });
   }
 
   /// Save a record, create if needed.
@@ -108,7 +108,7 @@ extension SembastRecordRefExtension<K, V> on RecordRef<K, V> {
 
     var record = await client
         .getSembastStore(store)
-        .txnGetRecord(client.sembastTransaction!, key);
+        .txnGetRecord(client.sembastTransaction, key);
     return record?.cast<K, V>();
   }
 

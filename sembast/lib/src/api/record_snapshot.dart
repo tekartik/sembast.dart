@@ -9,13 +9,13 @@ abstract class RecordSnapshot<K, V> {
   K get key;
 
   /// The value
-  V get value;
+  V? get value;
 
   /// Get the value of the specified [field].
   ///
   /// Will crash if attempting to access fields different than [Field.key] and
   /// [Field.value] if the value is not a map
-  Object? operator [](String? field);
+  Object? operator [](String field);
 
   /// Cast if needed
   RecordSnapshot<RK, RV> cast<RK, RV>();

@@ -24,9 +24,7 @@ class Timestamp implements Comparable<Timestamp> {
   /// resolution. Negative second values with fractions must still have
   /// non-negative nanoseconds values that count forward in time.
   /// Must be from 0 to 999,999,999 inclusive.
-  Timestamp(int seconds, int nanoseconds)
-      : seconds = seconds ?? 0,
-        nanoseconds = nanoseconds ?? 0 {
+  Timestamp(this.seconds, this.nanoseconds) {
     if (seconds < -62135596800 || seconds > 253402300799) {
       throw ArgumentError('invalid seconds part ${toDateTime(isUtc: true)}');
     }
@@ -39,7 +37,7 @@ class Timestamp implements Comparable<Timestamp> {
   static bool _isDigit(String chr) => (chr.codeUnitAt(0) ^ 0x30) <= 9;
 
   /// [parse] or returns null
-  static Timestamp? tryParse(String text) {
+  static Timestamp? tryParse(String? text) {
     if (text != null) {
       // 2018-10-20T05:13:45.985343Z
 
@@ -151,7 +149,7 @@ class Timestamp implements Comparable<Timestamp> {
   }
 
   @override
-  int get hashCode => (seconds ?? 0) + (nanoseconds ?? 0);
+  int get hashCode => seconds * 17 + nanoseconds;
 
   /// The number of milliseconds since
   /// the 'Unix epoch' 1970-01-01T00:00:00Z (UTC).
@@ -222,15 +220,11 @@ class Timestamp implements Comparable<Timestamp> {
   ///
   /// Compare to [DateTime.parse], it supports nanoseconds resolution
   static Timestamp parse(String text) {
-    if (text == null) {
-      throw ArgumentError.notNull(text);
-    } else {
-      var timestamp = tryParse(text);
-      if (timestamp == null) {
-        throw FormatException('timestamp $text');
-      }
-      return timestamp;
+    var timestamp = tryParse(text);
+    if (timestamp == null) {
+      throw FormatException('timestamp $text');
     }
+    return timestamp;
   }
 
   /// Try to get a Timestamp from either a DateTime, a Timestamp, a text or

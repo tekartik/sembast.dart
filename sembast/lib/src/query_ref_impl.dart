@@ -51,7 +51,7 @@ class SembastQueryRef<K, V> implements QueryRef<K, V> {
 
           // Get the result at query time first
           if (debugListener) {
-            print('matching $ctlr: ${allMatching!.length} on $this');
+            print('matching $ctlr: ${allMatching.length} on $this');
           }
 
           await ctlr.add(allMatching, db.cooperator);

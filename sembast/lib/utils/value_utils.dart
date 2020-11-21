@@ -5,8 +5,8 @@ import 'package:sembast/src/utils.dart' as utils;
 /// Clone a map to make it writable.
 ///
 /// This should be used to create a writable object that can be modified
-Map<String, Object? > cloneMap(Map value) =>
-    cloneValue(value) as Map<String, Object? >;
+Map<String, Object?> cloneMap(Map value) =>
+    cloneValue(value) as Map<String, Object?>;
 
 /// Clone a list to make it writable.
 ///

@@ -1,15 +1,14 @@
 import 'dart:convert';
 
-import 'package:meta/meta.dart';
 import 'package:sembast/sembast.dart';
 import 'package:sembast/src/json_encodable_codec.dart';
 
 /// Sembast codec implementation.
 class SembastCodecImpl implements SembastCodec {
   @override
-  final String signature;
+  final String? signature;
   @override
-  final Codec<Object, String > codec;
+  final Codec<Object?, String>? codec;
 
   @override
   JsonEncodableCodec jsonEncodableCodec;
@@ -27,9 +26,9 @@ class SembastCodecImpl implements SembastCodec {
 }
 
 /// Extra the raw signaure as a map.
-Map<String, Object? >? getRawSignatureMap(SembastCodec? codec) {
+Map<String, Object?>? getRawSignatureMap(SembastCodec? codec) {
   if (codec != null) {
-    return <String, Object? >{'signature': codec.signature};
+    return <String, Object?>{'signature': codec.signature};
   }
   return null;
 }
@@ -43,13 +42,13 @@ String? getCodecEncodedSignature(SembastCodec? codec) {
 }
 
 /// Get codec signature
-Map<String, Object? >? getCodecDecodedSignature(
+Map<String, Object?>? getCodecDecodedSignature(
     SembastCodec? codec, String? encodedSignature) {
   if (codec != null && encodedSignature != null) {
     try {
       var result = codec.codec?.decode(encodedSignature);
       if (result is Map) {
-        return result.cast<String, Object? >();
+        return result.cast<String, Object?>();
       }
     } catch (_) {}
   }

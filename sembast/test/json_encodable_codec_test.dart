@@ -15,9 +15,9 @@ void main() {
     group('encode', () {
       test('map', () {
         expect(codec.encode(<dynamic, dynamic>{'test': Timestamp(1, 2)}),
-            const TypeMatcher<Map<String, Object? >>());
+            const TypeMatcher<Map<String, Object?>>());
         expect(codec.encode(<dynamic, dynamic>{'test': 1}),
-            const TypeMatcher<Map<String, Object? >>());
+            const TypeMatcher<Map<String, Object?>>());
       });
       test('custom', () {
         expect(codec.encode(Timestamp(1, 2)),
@@ -70,7 +70,7 @@ void main() {
     });
     test('all', () {
       var codec = JsonEncodableCodec(adapters: [sembastTimestampAdapter]);
-      void _loop(dynamic decoded) {
+      void _loop(Object decoded) {
         var encoded = codec.encode(decoded);
         try {
           expect(codec.decode(encoded), decoded);
@@ -81,7 +81,7 @@ void main() {
       }
 
       for (var value in [
-        null,
+        // null,
         true,
         1,
         2.0,
@@ -154,12 +154,12 @@ void main() {
 
       var codec = JsonEncodableCodec(adapters: [sembastTimestampAdapter]);
       var identicals = [
-        <String, Object? >{},
+        <String, Object?>{},
         1,
         2.5,
         'text',
         true,
-        null,
+        //null,
         //<dynamic, dynamic>{},
         [],
         [
@@ -171,7 +171,7 @@ void main() {
             ]
           }
         ],
-        <String, Object? >{
+        <String, Object?>{
           'test': [
             1,
             true,
@@ -191,8 +191,8 @@ void main() {
         <dynamic, dynamic>{}, // being cast
         Timestamp(1, 2),
         [Timestamp(1, 2)],
-        <String, Object? >{'test': Timestamp(1, 2)},
-        <String, Object? >{
+        <String, Object?>{'test': Timestamp(1, 2)},
+        <String, Object?>{
           'test': [Timestamp(1, 2)]
         }
       ];
@@ -338,12 +338,12 @@ void main() {
 
     test('modified', () {
       var identicals = [
-        <String, Object? >{},
+        <String, Object?>{},
         1,
         2.5,
         'text',
         true,
-        null,
+        // null,
         //<dynamic, dynamic>{},
         [],
         [
@@ -355,7 +355,7 @@ void main() {
             ]
           }
         ],
-        <String, Object? >{
+        <String, Object?>{
           'test': [
             1,
             true,
@@ -379,8 +379,8 @@ void main() {
         Blob.fromList([1, 2, 3]),
         Timestamp(1, 2),
         [Timestamp(1, 2)],
-        <String, Object? >{'test': Timestamp(1, 2)},
-        <String, Object? >{
+        <String, Object?>{'test': Timestamp(1, 2)},
+        <String, Object?>{
           'test': [Timestamp(1, 2)]
         },
         [

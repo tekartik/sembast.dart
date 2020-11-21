@@ -90,9 +90,9 @@ mixin _TypeAdapterCodecMixin<S, T> implements SembastTypeAdapter<S, T> {
   bool isType(dynamic value) => value is S;
 
   @override
-  Converter<S, T> encoder;
+  late Converter<S, T> encoder;
   @override
-  Converter<T, S> decoder;
+  late Converter<T, S> decoder;
 
   @override
   String toString() => 'TypeAdapter($name)';

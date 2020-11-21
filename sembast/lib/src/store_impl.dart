@@ -31,14 +31,14 @@ class SembastStore {
   /// Record map.
   ///
   /// Use a splay tree to be correctly ordered. To access in a synchronous way.
-  Map<dynamic, ImmutableSembastRecord> recordMap =
-      SplayTreeMap<dynamic, ImmutableSembastRecord>(compareKey);
+  Map<Object, ImmutableSembastRecord> recordMap =
+      SplayTreeMap<Object, ImmutableSembastRecord>(compareKey);
 
   /// Records change during the transaction.
-  Map<dynamic, TxnRecord>? txnRecords;
+  Map<Object, TxnRecord>? txnRecords;
 
-  /// Check a transaction.
-  void checkTransaction(SembastTransaction transaction) =>
+  /// Check a transaction. (can be null)
+  void checkTransaction(SembastTransaction? transaction) =>
       database.checkTransaction(transaction);
 
   // bool get isInTransaction => database.isInTransaction;
@@ -57,14 +57,14 @@ class SembastStore {
   /// put a record in a transaction.
   ///
   /// Return the value added
-  Future<dynamic> txnPut(SembastTransaction txn, var value, var key,
+  Future<dynamic> txnPut(SembastTransaction? txn, var value, var key,
       {bool? merge}) async {
     await cooperate();
     return txnPutSync(txn, value, key, merge: merge);
   }
 
   /// Generate a new int key
-  Future<int> txnGenerateUniqueIntKey(SembastTransaction txn) async {
+  Future<int> txnGenerateUniqueIntKey(SembastTransaction? txn) async {
     int? key;
     do {
       // Use a generator if any, but only once per store
@@ -75,11 +75,11 @@ class SembastStore {
   }
 
   /// Generate a new String key
-  Future<String> txnGenerateUniqueStringKey(SembastTransaction txn) async {
-    String key;
+  Future<String> txnGenerateUniqueStringKey(SembastTransaction? txn) async {
+    String? key;
     do {
       // Use a generator if any
-      key = await database.generateUniqueStringKey(name)!;
+      key = await database.generateUniqueStringKey(name);
       key ??= generateStringKey();
     } while (await txnRecordExists(txn, key));
     return key;
@@ -96,9 +96,9 @@ class SembastStore {
       // We make sure the key is unique
 
       if (K == String) {
-        key = await txnGenerateUniqueStringKey(txn!) as K;
+        key = await txnGenerateUniqueStringKey(txn) as K;
       } else {
-        var intKey = await txnGenerateUniqueIntKey(txn!);
+        var intKey = await txnGenerateUniqueIntKey(txn);
         try {
           key = intKey as K;
         } catch (e) {
@@ -115,7 +115,7 @@ class SembastStore {
   }
 
   /// Returns the value
-  Future<dynamic> txnPutSync(SembastTransaction txn, var value, var key,
+  Future<dynamic> txnPutSync(SembastTransaction? txn, var value, var key,
       {bool? merge}) async {
     ImmutableSembastRecord? record;
     if (merge == true) {
@@ -138,7 +138,7 @@ class SembastStore {
   }
 
   /// Returns the list of values
-  Future<List> txnPutAll(SembastTransaction txn, List values, List keys,
+  Future<List> txnPutAll(SembastTransaction? txn, List values, List keys,
       {bool? merge}) async {
     final resultValues = [];
     for (var i = 0; i < values.length; i++) {
@@ -148,7 +148,8 @@ class SembastStore {
   }
 
   /// Returns the list of keys
-  Future<List> txnAddAll(SembastTransaction txn, List values, List keys) async {
+  Future<List> txnAddAll(
+      SembastTransaction? txn, List values, List keys) async {
     final resultKeys = [];
     for (var i = 0; i < values.length; i++) {
       resultKeys.add(await txnAdd(txn, values[i], keys[i]));
@@ -160,7 +161,7 @@ class SembastStore {
   ///
   /// Return the value updated
   Future<dynamic> txnUpdate(
-      SembastTransaction txn, dynamic value, dynamic key) async {
+      SembastTransaction? txn, dynamic value, dynamic key) async {
     await cooperate();
     // Ignore non-existing record
     var existingRecord = txnGetRecordSync(txn, key);
@@ -202,14 +203,14 @@ class SembastStore {
   /// Get the list of current records that can be safely iterate even
   /// in an async way.
   List<ImmutableSembastRecord> get currentRecords =>
-      recordMap.values?.toList(growable: false);
+      recordMap.values.toList(growable: false);
 
   /// Use only once for loop in a safe way in a transaction record list
   ///
   /// can be null
   List<ImmutableSembastRecord>? get txnCurrentRecords => txnRecords?.values
-      ?.map((txnRecord) => txnRecord.record)
-      ?.toList(growable: false);
+      .map((txnRecord) => txnRecord.record)
+      .toList(growable: false);
 
   /// Can be null
   List<TxnRecord>? get currentTxnRecords => txnRecords == null
@@ -281,7 +282,7 @@ class SembastStore {
     } else {
       finder = SembastFinder(limit: 1);
     }
-    var records = await (txnFindRecords(txn, finder) as FutureOr<List<ImmutableSembastRecord>>);
+    var records = await txnFindRecords(txn, finder);
     if (records.isNotEmpty) {
       return records.first;
     }
@@ -289,7 +290,7 @@ class SembastStore {
   }
 
   /// Find records in a transaction.
-  Future<List<ImmutableSembastRecord>?> txnFindRecords(
+  Future<List<ImmutableSembastRecord>> txnFindRecords(
       SembastTransaction? txn, Finder? finder) async {
     // Two ways of storing data
     List<ImmutableSembastRecord>? results;
@@ -301,7 +302,7 @@ class SembastStore {
     var sembastFinder = finder as SembastFinder?;
     var hasSortOrder = sembastFinder?.sortOrders?.isNotEmpty ?? false;
     var usePreordered = !hasSortOrder;
-    int? preorderedCurrentOffset;
+    var preorderedCurrentOffset = 0;
     if (usePreordered) {
       // Preordered by key
       preOrderedResults =
@@ -314,8 +315,7 @@ class SembastStore {
       if (usePreordered) {
         // We can handle offset and limit directly too
         if (sembastFinder?.offset != null) {
-          preorderedCurrentOffset ??= 0;
-          if (preorderedCurrentOffset++! < sembastFinder!.offset!) {
+          if (preorderedCurrentOffset++ < sembastFinder!.offset!) {
             // Next!
             return true;
           }
@@ -359,12 +359,12 @@ class SembastStore {
     } else {
       // Already sorted by SplayTreeMap and offset and limit handled
     }
-    return results;
+    return results!;
   }
 
   /// Find keys in a transaction.
   Future<List> txnFindKeys(SembastTransaction? txn, Finder? finder) async {
-    var records = await (txnFindRecords(txn, finder) as FutureOr<List<ImmutableSembastRecord>>);
+    var records = await txnFindRecords(txn, finder);
     return records.map((SembastRecord record) => record.key).toList();
   }
 
@@ -377,7 +377,7 @@ class SembastStore {
     if (record.deleted) {
       recordMap.remove(record.key);
     } else {
-      recordMap[record.key] = record;
+      recordMap[record.key as Object] = record;
     }
     return exists;
   }
@@ -396,14 +396,14 @@ class SembastStore {
 
   /// Put a record in a transaction.
   Future<ImmutableSembastRecord> txnPutRecord(
-      SembastTransaction txn, ImmutableSembastRecord record) async {
+      SembastTransaction? txn, ImmutableSembastRecord record) async {
     await cooperate();
     return txnPutRecordSync(txn, record);
   }
 
   /// Put a record in a transaction.
   ImmutableSembastRecord txnPutRecordSync(
-      SembastTransaction txn, ImmutableSembastRecord record) {
+      SembastTransaction? txn, ImmutableSembastRecord record) {
     ImmutableSembastRecord sembastRecord;
     if (database.storageJdb != null) {
       sembastRecord = makeImmutableRecordJdb(record);
@@ -428,9 +428,9 @@ class SembastStore {
     }
     // add to store transaction
     checkTransaction(txn);
-    txnRecords ??= <dynamic, TxnRecord>{};
+    txnRecords ??= <Object, TxnRecord>{};
 
-    txnRecords![sembastRecord.key] = TxnRecord(sembastRecord);
+    txnRecords![sembastRecord.key as Object] = TxnRecord(sembastRecord);
     return sembastRecord;
   }
 
@@ -438,8 +438,8 @@ class SembastStore {
   /// Return the current immutable value
   ///
   /// null if not present. could be a deleted item
-  ImmutableSembastRecord txnGetImmutableRecordSync(
-      SembastTransaction txn, var key) {
+  ImmutableSembastRecord? txnGetImmutableRecordSync(
+      SembastTransaction? txn, var key) {
     ImmutableSembastRecord? record;
 
     // look in current transaction
@@ -453,12 +453,12 @@ class SembastStore {
     if (database.logV) {
       print('${database.currentTransaction} get ${record} key ${key}');
     }
-    return record!;
+    return record;
   }
 
   /// Get a record in a transaction.
   Future<ImmutableSembastRecord?> txnGetRecord(
-      SembastTransaction txn, key) async {
+      SembastTransaction? txn, key) async {
     var record = txnGetRecordSync(txn, key);
     // Cooperate after!
     if (needCooperate) {
@@ -468,7 +468,7 @@ class SembastStore {
   }
 
   /// Check if a record exists in a transaction.
-  Future<bool> txnRecordExists(SembastTransaction txn, key) async {
+  Future<bool> txnRecordExists(SembastTransaction? txn, key) async {
     var record = txnGetImmutableRecordSync(txn, key);
     // Cooperate after!
     if (needCooperate) {
@@ -478,7 +478,7 @@ class SembastStore {
   }
 
   /// Get a record by key in a transaction.
-  ImmutableSembastRecord? txnGetRecordSync(SembastTransaction txn, key) {
+  ImmutableSembastRecord? txnGetRecordSync(SembastTransaction? txn, key) {
     var record = txnGetImmutableRecordSync(txn, key);
     if (record == null || record.deleted) {
       return null;
@@ -488,7 +488,7 @@ class SembastStore {
 
   /// Return records ignoring non found ones and deleted
   Future<List<ImmutableSembastRecord?>> txnGetRecordsCompat(
-      SembastTransaction txn, Iterable keys) async {
+      SembastTransaction? txn, Iterable keys) async {
     final records = <ImmutableSembastRecord?>[];
 
     for (var key in keys) {
@@ -529,7 +529,7 @@ class SembastStore {
   }
 
   /// Get a record by key in a transaction.
-  Future<dynamic> txnGet(SembastTransaction txn, key) async {
+  Future<dynamic> txnGet(SembastTransaction? txn, key) async {
     SembastRecord? record = await txnGetRecord(txn, key);
     return record?.value;
   }
@@ -545,7 +545,7 @@ class SembastStore {
       // Apply any transaction change
       if (_hasTransactionRecords(txn)) {
         txnRecords!.forEach((key, value) {
-          var deleted = value.deleted ?? false;
+          var deleted = value.deleted;
           if (recordMap.containsKey(key)) {
             if (deleted) {
               count--;
@@ -568,7 +568,7 @@ class SembastStore {
   }
 
   /// Delete a record in a transaction.
-  Future<dynamic> txnDelete(SembastTransaction txn, var key) async {
+  Future<dynamic> txnDelete(SembastTransaction? txn, var key) async {
     var record = txnGetImmutableRecordSync(txn, key);
     await cooperate();
     if (record == null) {
@@ -583,7 +583,7 @@ class SembastStore {
   }
 
   /// Delete multiple records in a transaction.
-  Future<List> txnDeleteAll(SembastTransaction txn, Iterable keys) async {
+  Future<List> txnDeleteAll(SembastTransaction? txn, Iterable keys) async {
     final updates = <ImmutableSembastRecord>[];
     final deletedKeys = [];
 
@@ -611,7 +611,7 @@ class SembastStore {
 
   /// Update records in a transaction.
   Future<List> txnUpdateAll(
-      SembastTransaction txn, List values, List keys) async {
+      SembastTransaction? txn, List values, List keys) async {
     final resultValues = [];
     for (var i = 0; i < values.length; i++) {
       resultValues.add(await txnUpdate(txn, values[i], keys[i]));
@@ -643,14 +643,12 @@ class SembastStore {
   ///
   /// debug json
   ///
-  Map<String, Object? > toJson() {
-    var map = <String, Object? >{};
-    if (name != null) {
-      map['name'] = name;
-    }
-    if (recordMap != null) {
-      map['count'] = recordMap.length;
-    }
+  Map<String, Object?> toJson() {
+    var map = <String, Object?>{};
+    map['name'] = name;
+
+    map['count'] = recordMap.length;
+
     return map;
   }
 
@@ -660,7 +658,7 @@ class SembastStore {
   }
 
   /// Clear a store in a transaction.
-  Future<List> txnClear(SembastTransaction txn, {Finder? finder}) async {
+  Future<List> txnClear(SembastTransaction? txn, {Finder? finder}) async {
     if (finder == null) {
       var deletedKeys = [];
       if (_hasTransactionRecords(txn)) {
@@ -678,7 +676,7 @@ class SembastStore {
   }
 
   /// Update records in a transaction.
-  Future<List> txnUpdateWhere(SembastTransaction txn, dynamic value,
+  Future<List> txnUpdateWhere(SembastTransaction? txn, dynamic value,
       {Finder? finder}) async {
     var keys = await txnFindKeys(txn, finder);
     for (var key in keys) {
@@ -702,12 +700,12 @@ class SembastStore {
 
 /// Filter start boundary, assume ordered result
 bool finderRecordMatchBoundaries(SembastFinder finder, RecordSnapshot result) {
-  if (finder?.start != null) {
+  if (finder.start != null) {
     if (!finder.starts(result, finder.start)) {
       return false;
     }
   }
-  if (finder?.end != null) {
+  if (finder.end != null) {
     if (!finder.ends(result, finder.end)) {
       return false;
     }

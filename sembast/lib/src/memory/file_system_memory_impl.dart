@@ -30,12 +30,12 @@ class FileSystemExceptionMemory implements fs.FileSystemException {
   /// Memory exception.
   FileSystemExceptionMemory(this.path, [this._message, this.osError]);
 
-  final String _message;
+  final String? _message;
   @override
   final OSErrorMemory? osError;
 
   @override
-  String get message => (_message ?? osError?.message)!;
+  String get message => _message ?? osError?.message ?? 'error';
 
   @override
   final String path;
@@ -129,7 +129,7 @@ class FileMemoryImpl extends FileSystemEntityMemoryImpl {
       case fs.FileMode.read:
         throw 'mode READ not support for openWrite ${this}';
       default:
-        throw null;
+        throw FileSystemExceptionMemory(path, 'invalid mode $mode');
     }
 
     return sink;
@@ -230,12 +230,12 @@ class RootDirectoryMemoryImpl extends DirectoryMemoryImpl {
 
 class _TmpSink implements fs.IOSink {
   String path;
-  IOSinkMemory real;
+  IOSinkMemory? real;
 
   _TmpSink(this.path, this.real);
 
   @override
-  void writeln([Object obj = '']) => real.writeln(obj);
+  void writeln([Object obj = '']) => real?.writeln(obj);
 
   @override
   Future close() {
@@ -243,7 +243,7 @@ class _TmpSink implements fs.IOSink {
       throw FileSystemExceptionMemory(
           path, 'Cannot open file', _noSuchPathError);
     } else {
-      return real.close();
+      return real!.close();
     }
   }
 }
@@ -253,7 +253,7 @@ class FileSystemMemoryImpl {
   // Must be absolute
   // /current by default which might not exists!
   /// current path.
-  String currentPath;
+  late String currentPath;
 
   /// In memory file system.
   FileSystemMemoryImpl() {
@@ -417,7 +417,7 @@ class FileSystemMemoryImpl {
       throw FileSystemExceptionMemory(
           path, 'Deletion failed', _noSuchPathError);
     }
-    if (entityImpl != null && (!(entityImpl is RootDirectoryMemoryImpl))) {
+    if (!(entityImpl is RootDirectoryMemoryImpl)) {
       if (entityImpl is DirectoryMemoryImpl) {
         if (recursive != true && (entityImpl.children.isNotEmpty)) {
           throw FileSystemExceptionMemory(path, 'Deletion failed',

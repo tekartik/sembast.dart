@@ -29,7 +29,7 @@ class DatabaseOpenOptions {
 
   @override
   String toString() {
-    var map = <String, Object? >{};
+    var map = <String, Object?>{};
     if (version != null) {
       map['version'] = version;
     }
@@ -66,7 +66,7 @@ class DatabaseOpenHelper {
   /// Open helper.
   DatabaseOpenHelper(this.factory, this.path, this.options) {
     /// Always set an open mode
-    openMode ??= options?.mode ?? DatabaseMode.defaultMode;
+    openMode ??= options.mode ?? DatabaseMode.defaultMode;
   }
 
   /// Create a new database object.
@@ -88,7 +88,7 @@ class DatabaseOpenHelper {
       // Force helper again in case it was removed by lockedClose
       factory.setDatabaseOpenHelper(path, this);
       return database!;
-    } as FutureOr<Database> Function());
+    });
   }
 
   /// Closed the database.
@@ -159,29 +159,18 @@ mixin DatabaseFactoryMixin implements SembastDatabaseFactory {
 
   /// Get existing open helper for a given path.
   DatabaseOpenHelper? getExistingDatabaseOpenHelper(String path) {
-    if (path != null) {
-      return _databaseOpenHelpers[path];
-    } else {
-      return null;
-    }
+    return _databaseOpenHelpers[path];
   }
 
   @override
   void removeDatabaseOpenHelper(String path) {
-    if (path != null) {
-      _databaseOpenHelpers.remove(path);
-    }
+    _databaseOpenHelpers.remove(path);
   }
 
   @override
-  void setDatabaseOpenHelper(String path, DatabaseOpenHelper helper) {
-    if (path != null) {
-      if (helper == null) {
-        _databaseOpenHelpers.remove(path);
-      } else {
-        _databaseOpenHelpers[path] = helper;
-      }
-    }
+  void setDatabaseOpenHelper(String path, DatabaseOpenHelper? helper) {
+    _databaseOpenHelpers.remove(path);
+    _databaseOpenHelpers[path] = helper!;
   }
 
   @override

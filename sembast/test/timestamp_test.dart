@@ -212,10 +212,12 @@ void main() {
       // Parse local converted to utc
       expect(Timestamp.tryParse('2018-10-20T05:13:45.985')!.toIso8601String(),
           endsWith('.985Z'));
-      expect(Timestamp.tryParse('2018-10-20T05:13:45.985123')!.toIso8601String(),
+      expect(
+          Timestamp.tryParse('2018-10-20T05:13:45.985123')!.toIso8601String(),
           endsWith('.985123Z'));
       expect(
-          Timestamp.tryParse('2018-10-20T05:13:45.985123100')!.toIso8601String(),
+          Timestamp.tryParse('2018-10-20T05:13:45.985123100')!
+              .toIso8601String(),
           endsWith('.985123100Z'));
 
       // Limit
@@ -243,7 +245,8 @@ void main() {
       expect(Timestamp.tryAnyAsTimestamp(Timestamp(1, 0))!.toIso8601String(),
           '1970-01-01T00:00:01.000Z');
       expect(
-          Timestamp.tryAnyAsTimestamp(DateTime.fromMillisecondsSinceEpoch(1000))!
+          Timestamp.tryAnyAsTimestamp(
+                  DateTime.fromMillisecondsSinceEpoch(1000))!
               .toIso8601String(),
           '1970-01-01T00:00:01.000Z');
       expect(Timestamp.tryAnyAsTimestamp('dummy'), null);

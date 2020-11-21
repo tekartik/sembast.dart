@@ -23,7 +23,7 @@ class TestException implements Exception {
 
 // FileSystem context
 class FileSystemTestContext {
-  FileSystem fs;
+  late FileSystem fs;
 
 //String get outPath => fs.currentDirectory.path;
 }

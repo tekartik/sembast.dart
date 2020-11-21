@@ -110,7 +110,7 @@ abstract class StorageJdb extends StorageBase {
   Future<List<JdbEntry>> getEntriesAfter(int revision);
 
   /// Read meta map
-  Future<Map<String, Object? >?> readMeta();
+  Future<Map<String, Object?>?> readMeta();
 
   /// Add multiple entries
   Future addEntries(List<JdbWriteEntry> entries);
@@ -131,7 +131,7 @@ abstract class StorageJdb extends StorageBase {
   Future<StorageJdbWriteResult> writeIfRevision(StorageJdbWriteQuery query);
 
   /// Test only.
-  Future<Map<String, Object? >> toDebugMap();
+  Map<String, Object?> toDebugMap();
 
   /// Compact the database removing obsolete records
   Future compact();

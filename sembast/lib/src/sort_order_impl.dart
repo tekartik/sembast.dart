@@ -83,8 +83,8 @@ class SembastSortOrder implements SortOrder {
     return compareValue(value1, value2);
   }
 
-  Map<String, Object? > _toDebugMap() {
-    final map = <String, Object? >{
+  Map<String, Object?> _toDebugMap() {
+    final map = <String, Object?>{
       field: ascending ? 'asc' : 'desc',
       if (nullLast == true) 'nullLast': true
     };

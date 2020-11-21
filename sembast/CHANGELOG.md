@@ -1,3 +1,7 @@
+## 3.0.0-nullsafety.0
+
+* `nnbd` support, breaking change.
+
 ## 2.4.8
 
 * Clear mode existing/empty flag upon open to handle re-open.

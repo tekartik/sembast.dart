@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:meta/meta.dart';
 import 'package:sembast/sembast.dart';
 import 'package:sembast/src/api/log_level.dart';
 import 'package:sembast/src/api/protected/jdb.dart';
@@ -9,12 +8,12 @@ import 'package:sembast/src/api/v2/sembast.dart' as v2;
 import 'package:sembast/src/common_import.dart';
 import 'package:sembast/src/cooperator.dart';
 import 'package:sembast/src/database_client_impl.dart';
+import 'package:sembast/src/database_content.dart';
 import 'package:sembast/src/database_factory_mixin.dart';
 import 'package:sembast/src/debug_utils.dart';
 import 'package:sembast/src/jdb.dart';
 import 'package:sembast/src/json_encodable_codec.dart';
 import 'package:sembast/src/listener.dart';
-import 'package:sembast/src/database_content.dart';
 import 'package:sembast/src/meta.dart';
 import 'package:sembast/src/record_impl.dart';
 import 'package:sembast/src/sembast_codec_impl.dart';
@@ -111,7 +110,7 @@ class SembastDatabase extends Object
   bool _closed = false;
 
   /// The open options.
-  DatabaseOpenOptions get openOptions => openHelper?.options;
+  DatabaseOpenOptions get openOptions => openHelper.options;
 
   // DatabaseMode _openMode;
   // Only set during open (used during onVersionChanged
@@ -136,8 +135,10 @@ class SembastDatabase extends Object
   /// Database implementation.
   SembastDatabase(this.openHelper, [this._storageBase]) {
     if (_storageBase is DatabaseStorage) {
-      _storageFs = _storageBase as DatabaseStorage  } else if (_storageBase is StorageJdb) {
-      _storageJdb = _storageBase as StorageJdb  }
+      _storageFs = _storageBase as DatabaseStorage;
+    } else if (_storageBase is StorageJdb) {
+      _storageJdb = _storageBase as StorageJdb;
+    }
   }
 
   void _clearTxnData() {
@@ -153,9 +154,6 @@ class SembastDatabase extends Object
   /// Rollback changed in a transaction.
   void txnRollback(SembastTransaction txn) {
     // only valid in a transaction
-    if (txn == null) {
-      throw Exception('not in transaction');
-    }
     _clearTxnData();
   }
 
@@ -174,7 +172,7 @@ class SembastDatabase extends Object
 
   /// Set in memory.
   bool setRecordInMemory(TxnRecord record) {
-    return _recordStore(record).setRecordInMemory(record?.record);
+    return _recordStore(record).setRecordInMemory(record.record);
   }
 
   /// Load a record if needed (delta).
@@ -184,16 +182,14 @@ class SembastDatabase extends Object
     var store = _recordStore(record);
     dynamic existing = store.txnGetImmutableRecordSync(null, record.key);
     if (existing is ImmutableSembastRecordJdb) {
-      if (existing != null) {
-        // devPrint('existing ${existing?.revision} vs new ${record.revision}');
-        if (existing.revision != null) {
-          if ((record.revision ?? 0) > existing.revision) {
-            loadRecord(record);
-            return true;
-          }
+      // devPrint('existing ${existing?.revision} vs new ${record.revision}');
+      if (existing.revision != null) {
+        if ((record.revision ?? 0) > existing.revision!) {
+          loadRecord(record);
+          return true;
         }
-        return false;
       }
+      return false;
     }
     loadRecord(record);
     return true;
@@ -215,13 +211,13 @@ class SembastDatabase extends Object
   String encodeRecordMap(Map map) => _jsonCodec.encode(toJsonEncodable(map));
 
   /// Decode a text.
-  Map<String, Object? >? decodeRecordLineString(String text) {
-    var result = _jsonEncodableCodec.decode(_jsonCodec.decode(text));
-    if (result is Map<String, Object? >) {
+  Map<String, Object?>? decodeRecordLineString(String text) {
+    var result = _jsonEncodableCodec.decode(_jsonCodec.decode(text)!);
+    if (result is Map<String, Object?>) {
       return result;
     }
     if (result is Map) {
-      return result?.cast<String, Object? >();
+      return result.cast<String, Object?>();
     }
     return null;
   }
@@ -255,7 +251,7 @@ class SembastDatabase extends Object
   }
 
   /// For jdb only
-  Future<String>? generateUniqueStringKey(String store) {
+  Future<String?> generateUniqueStringKey(String store) async {
     if (_storageJdb != null) {
       return _storageJdb!.generateUniqueStringKey(store);
     }
@@ -271,7 +267,7 @@ class SembastDatabase extends Object
       final tmpStorage = _storageFs!.tmpStorage!;
       // new stat with compact + 1
       final exportStat = DatabaseExportStat()
-        ..compactCount = _exportStat!.compactCount! + 1;
+        ..compactCount = _exportStat!.compactCount + 1;
       await tmpStorage.delete();
       await tmpStorage.findOrCreate();
 
@@ -286,7 +282,7 @@ class SembastDatabase extends Object
         lines.add(line);
       }
 
-      Future _addLine(Map<String, Object? > map) async {
+      Future _addLine(Map<String, Object?> map) async {
         String encoded;
         try {
           encoded = encodeRecordMap(map);
@@ -402,7 +398,7 @@ class SembastDatabase extends Object
         var records = storeContent.records;
         var store = storeContent.store;
 
-        if (records?.isNotEmpty == true) {
+        if (records.isNotEmpty == true) {
           // Prepare listener operations
 
           var listener = this.listener.getStore(store);
@@ -456,10 +452,11 @@ class SembastDatabase extends Object
 
   /// Put records in a transaction
   Future<List<ImmutableSembastRecord?>> txnPutRecords(
-      SembastTransaction txn, List<ImmutableSembastRecord> records) async {
+      SembastTransaction? txn, List<ImmutableSembastRecord> records) async {
     // clone for safe loop
     records = List<ImmutableSembastRecord>.from(records);
-    var recordsResult = List<ImmutableSembastRecord?>(records.length);
+    var recordsResult =
+        List<ImmutableSembastRecord?>.generate(records.length, (_) => null);
     for (var i = 0; i < records.length; i++) {
       recordsResult[i] = await txnPutRecord(txn, records[i]);
     }
@@ -468,7 +465,7 @@ class SembastDatabase extends Object
 
   /// Put a record in a transaction.
   Future<ImmutableSembastRecord> txnPutRecord(
-      SembastTransaction txn, ImmutableSembastRecord record) {
+      SembastTransaction? txn, ImmutableSembastRecord record) {
     return _recordStore(record).txnPutRecord(txn, record);
   }
 
@@ -519,11 +516,8 @@ class SembastDatabase extends Object
   ///
   SembastStore? findStore(String storeName) {
     SembastStore? store;
-    if (storeName == null) {
-      store = _mainStore;
-    } else {
-      store = _stores[storeName];
-    }
+    store = _stores[storeName];
+
     return store;
   }
 
@@ -596,7 +590,7 @@ class SembastDatabase extends Object
   /// Flush changes.
   Future flush() async {
     // Wait for pending transaction
-    await transactionLock.synchronized(null);
+    await transactionLock.synchronized(() {});
     // Wait for pending writes
     await databaseOperation(null);
   }
@@ -607,7 +601,7 @@ class SembastDatabase extends Object
   Future<Database> open(DatabaseOpenOptions options) async {
     // Default mode
     // Open is overriden in openHelper
-    var mode = openHelper?.openMode;
+    var mode = openHelper.openMode;
     var version = options.version;
     var _openMode = mode;
     // devPrint('Opening mode ${mode}');
@@ -754,15 +748,14 @@ class SembastDatabase extends Object
               await for (var line in lines) {
                 _exportStat!.lineCount++;
 
-                Map<String, Object? >? map;
+                Map<String, Object?>? map;
 
                 // Until meta is read, we assume it is json
                 if (!firstLineRead) {
                   // Read the meta first
                   // The first line is always json
                   try {
-                    map = (json.decode(line) as Map?)
-                        ?.cast<String, Object? >();
+                    map = (json.decode(line) as Map?)?.cast<String, Object?>();
                   } on Exception catch (_) {}
                   if (Meta.isMapMeta(map)) {
                     // meta?
@@ -791,8 +784,7 @@ class SembastDatabase extends Object
                 } on Exception catch (_) {
                   // We can have meta here
                   try {
-                    map = (json.decode(line) as Map?)
-                        ?.cast<String, Object? >();
+                    map = (json.decode(line) as Map?)?.cast<String, Object?>();
                   } on Exception catch (_) {
                     if (_openMode == DatabaseMode.neverFails) {
                       corrupted = true;
@@ -905,7 +897,7 @@ class SembastDatabase extends Object
           deleted: entry.deleted, revision: entry.id);
       _exportStat!.lineCount++;
       // Make it fast
-      if (entry.deleted ?? false) {
+      if (entry.deleted) {
         _exportStat!.obsoleteLineCount++;
       }
       loadRecord(record);
@@ -946,19 +938,18 @@ class SembastDatabase extends Object
 
     if (minRevision >= deltaMinRevision) {
       delta = true;
-      var entries = await _storageJdb!.getEntriesAfter(minRevision ?? 0);
+      var entries = await _storageJdb!.getEntriesAfter(minRevision);
       // devPrint('delta import $entries $revision');
       if (!_closed) {
         for (var entry in entries) {
           // skip transaction empry record
-          if (entry.record != null) {
-            var record = ImmutableSembastRecordJdb(entry.record, entry.value,
-                deleted: entry.deleted, revision: entry.id);
 
-            if (jdbDeltaLoadRecord(record)) {
-              // Ignore already added/old record
-              _addRecordToPendingListenerContent(record);
-            }
+          var record = ImmutableSembastRecordJdb(entry.record, entry.value,
+              deleted: entry.deleted, revision: entry.id);
+
+          if (jdbDeltaLoadRecord(record)) {
+            // Ignore already added/old record
+            _addRecordToPendingListenerContent(record);
           }
         }
         _jdbRevision = revision;
@@ -972,7 +963,7 @@ class SembastDatabase extends Object
             deleted: entry.deleted, revision: entry.id);
         _exportStat!.lineCount++;
         // Make it fast
-        if (entry.deleted ?? false) {
+        if (entry.deleted) {
           _exportStat!.obsoleteLineCount++;
         }
         records.add(record);
@@ -1018,21 +1009,17 @@ class SembastDatabase extends Object
   }
 
   /// info as json
-  Map<String, Object? > toJson() {
-    var map = <String, Object? >{};
-    if (path != null) {
-      map['path'] = path;
+  Map<String, Object?> toJson() {
+    var map = <String, Object?>{};
+    map['path'] = path;
+    map['version'] = version;
+
+    final stores = <Map<String, Object?>>[];
+    for (var store in _stores.values) {
+      stores.add(store.toJson());
     }
-    if (version != null) {
-      map['version'] = version;
-    }
-    if (_stores != null) {
-      final stores = <Map<String, Object? >>[];
-      for (var store in _stores.values) {
-        stores.add(store.toJson());
-      }
-      map['stores'] = stores;
-    }
+    map['stores'] = stores;
+
     if (_exportStat != null) {
       map['exportStat'] = _exportStat!.toJson();
     }
@@ -1055,8 +1042,8 @@ class SembastDatabase extends Object
   /// * There are 20% of obsolete lines to delete
   bool get _needCompact {
     return (_storageFs != null) &&
-        (_exportStat!.obsoleteLineCount! > 5 &&
-            (_exportStat!.obsoleteLineCount! / _exportStat!.lineCount! > 0.20));
+        (_exportStat!.obsoleteLineCount > 5 &&
+            (_exportStat!.obsoleteLineCount / _exportStat!.lineCount > 0.20));
   }
 
   @override
@@ -1091,10 +1078,10 @@ class SembastDatabase extends Object
 
   @override
   Future<T> transaction<T>(
-      FutureOr<T> Function(Transaction? transaction) action) async {
+      FutureOr<T> Function(Transaction transaction) action) async {
     // during open?
     if (_openTransaction != null) {
-      return await action(_openTransaction);
+      return await action(_openTransaction!);
     }
     CommitData? commitData;
 
@@ -1124,7 +1111,7 @@ class SembastDatabase extends Object
 
           _clearTxnData();
           // Mark transaction complete, ignore error
-          _transaction?.completer?.complete();
+          _transaction?.completer.complete();
 
           // Compatibility remove transaction
           _transaction = null;
@@ -1134,7 +1121,7 @@ class SembastDatabase extends Object
 
         try {
           // devPrint('transaction ${jdbRevision}');
-          actionResult = await Future<T>.sync(() => action(_transaction));
+          actionResult = await Future<T>.sync(() => action(_transaction!));
 
           // Commit directly on jdb to handle transaction changes
           if (storageJdb != null) {
@@ -1249,7 +1236,7 @@ class SembastDatabase extends Object
   FutureOr cooperate() => cooperator?.cooperate();
 
   /// Ensure the transaction is still current
-  void checkTransaction(SembastTransaction transaction) {
+  void checkTransaction(SembastTransaction? transaction) {
     if (transaction != null && transaction != currentTransaction) {
       throw StateError(
           'The transaction is no longer active. Make sure you (a)wait all pending operations in your transaction block');
@@ -1261,8 +1248,8 @@ class SembastDatabase extends Object
 
   @override
   Future<T> inTransaction<T>(
-          FutureOr<T> Function(SembastTransaction? transaction) action) =>
-      transaction((txn) => action(txn as SembastTransaction?));
+          FutureOr<T> Function(SembastTransaction transaction) action) =>
+      transaction((txn) => action(txn as SembastTransaction));
 
   // Only set during open
   @override
@@ -1357,9 +1344,9 @@ class SembastDatabase extends Object
     } else if (value is List) {
       return value;
     } else if (value is Map) {
-      if (!(value is Map<String, Object? >)) {
+      if (!(value is Map<String, Object?>)) {
         // We force the value map type for easy usage
-        return value.cast<String, Object? >();
+        return value.cast<String, Object?>();
       }
       return value;
     }
@@ -1371,19 +1358,17 @@ class SembastDatabase extends Object
   }
 
   /// Use the one defined or the default one
-  Codec<Object, String > get _jsonCodec =>
-      openOptions?.codec?.codec ?? json as Codec<Object, String>;
+  Codec<Object?, String> get _jsonCodec => openOptions.codec?.codec ?? json;
 
   /// Use the one defined or the default one
   JsonEncodableCodec get _jsonEncodableCodec =>
-      openOptions?.codec?.jsonEncodableCodec ??
-      sembastDefaultJsonEncodableCodec;
+      openOptions.codec?.jsonEncodableCodec ?? sembastDefaultJsonEncodableCodec;
 
   /// Convert a value to a json encodable format
-  dynamic toJsonEncodable(dynamic value) => _jsonEncodableCodec.encode(value);
+  Object toJsonEncodable(Object value) => _jsonEncodableCodec.encode(value);
 
   /// Convert a value from a json encodable format
-  dynamic fromJsonEncodable(dynamic value) => _jsonEncodableCodec.decode(value);
+  Object fromJsonEncodable(Object value) => _jsonEncodableCodec.decode(value);
 
   /// Sanitize a value.
   void _check(dynamic value, bool update) {
@@ -1431,7 +1416,7 @@ class SembastDatabase extends Object
     } else if (value is Map) {
       try {
         // We force the value map type for easy usage
-        return value.cast<String, Object? >() as V;
+        return value.cast<String, Object?>() as V;
       } catch (e) {
         throw ArgumentError.value(value, 'type $V not supported',
             'Map must be of type Map<String, Object/*?*/> for type ${value.runtimeType} value $value');
@@ -1444,41 +1429,44 @@ class SembastDatabase extends Object
 /// Export stat.
 class DatabaseExportStat {
   /// number of line in the export
-  int? lineCount = 0;
+  int lineCount = 0;
 
   /// number of lines that are obsolete
-  int? obsoleteLineCount = 0; // line that might have
+  int obsoleteLineCount = 0; // line that might have
   /// Number of time it has been compacted since being opened
-  int? compactCount = 0;
+  int compactCount = 0;
 
   /// Export stat.
   DatabaseExportStat();
 
+  int _mapInt(Map map, String key) {
+    var value = map[key];
+    if (value is int) {
+      return value;
+    }
+    return 0;
+  }
+
   /// From a map.
   DatabaseExportStat.fromJson(Map map) {
     if (map['lineCount'] != null) {
-      lineCount = map['lineCount'] as int?;
+      lineCount = _mapInt(map, 'lineCount');
     }
     if (map['compactCount'] != null) {
-      compactCount = map['compactCount'] as int?;
+      compactCount = _mapInt(map, 'compactCount');
     }
     if (map['obsoleteLineCount'] != null) {
-      obsoleteLineCount = map['obsoleteLineCount'] as int?;
+      obsoleteLineCount = _mapInt(map, 'obsoleteLineCount');
     }
   }
 
   /// To a map.
-  Map<String, Object? > toJson() {
-    var map = <String, Object? >{};
-    if (lineCount != null) {
-      map['lineCount'] = lineCount;
-    }
-    if (obsoleteLineCount != null) {
-      map['obsoleteLineCount'] = obsoleteLineCount;
-    }
-    if (compactCount != null) {
-      map['compactCount'] = compactCount;
-    }
+  Map<String, Object?> toJson() {
+    var map = <String, Object?>{};
+
+    map['lineCount'] = lineCount;
+    map['obsoleteLineCount'] = obsoleteLineCount;
+    map['compactCount'] = compactCount;
     return map;
   }
 

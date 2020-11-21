@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:meta/meta.dart';
 import 'package:sembast/src/json_encodable_codec.dart';
 import 'package:sembast/src/sembast_codec_impl.dart';
 
@@ -12,18 +11,18 @@ import 'package:sembast/src/sembast_codec_impl.dart';
 /// It must have a public [signature], typically a comprehensive ascii name.
 abstract class SembastCodec {
   /// The public signature, can be a constant, a password hash...
-  String get signature;
+  String? get signature;
 
   /// The actual codec used
-  Codec<Object, String > get codec;
+  Codec<Object?, String>? get codec;
 
   /// The codec to handle custom types
   JsonEncodableCodec get jsonEncodableCodec;
 
   /// [codec] must convert between a map and a single line string
   factory SembastCodec(
-          {required String signature,
-          required Codec<Object, String > codec,
+          {required String? signature,
+          required Codec<Object?, String>? codec,
           JsonEncodableCodec? jsonEncodableCodec}) =>
       SembastCodecImpl(
           signature: signature,

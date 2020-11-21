@@ -1,10 +1,10 @@
+// @dart=2.9
 import 'dart:convert';
 import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart';
 import 'package:encrypt/encrypt.dart';
-import 'package:meta/meta.dart';
 import 'package:sembast/src/api/v2/sembast.dart';
 
 var _random = Random.secure();
@@ -25,7 +25,7 @@ Uint8List _generateEncryptPassword(String password) {
 }
 
 /// Salsa20 based encoder
-class _EncryptEncoder extends Converter<Object, String > {
+class _EncryptEncoder extends Converter<Object, String> {
   final Salsa20 salsa20;
 
   _EncryptEncoder(this.salsa20);
@@ -47,13 +47,13 @@ class _EncryptEncoder extends Converter<Object, String > {
 }
 
 /// Salsa20 based decoder
-class _EncryptDecoder extends Converter<String, Object? > {
+class _EncryptDecoder extends Converter<String, Object> {
   final Salsa20 salsa20;
 
   _EncryptDecoder(this.salsa20);
 
   @override
-  dynamic convert(String input) {
+  Object convert(String input) {
     // Read the initial value that was prepended
     assert(input.length >= 12);
     final iv = base64.decode(input.substring(0, 12));
@@ -64,16 +64,16 @@ class _EncryptDecoder extends Converter<String, Object? > {
     // Decode the input
     var decoded = json.decode(Encrypter(salsa20).decrypt64(input, iv: IV(iv)));
     if (decoded is Map) {
-      return decoded.cast<String, Object? >();
+      return decoded.cast<String, Object>();
     }
-    return decoded;
+    return decoded as Object;
   }
 }
 
 /// Salsa20 based Codec
-class _EncryptCodec extends Codec<Object, String > {
-  late _EncryptEncoder _encoder;
-  late _EncryptDecoder _decoder;
+class _EncryptCodec extends Codec<Object, String> {
+  _EncryptEncoder _encoder;
+  _EncryptDecoder _decoder;
 
   _EncryptCodec(Uint8List passwordBytes) {
     var salsa20 = Salsa20(Key(passwordBytes));
@@ -82,10 +82,10 @@ class _EncryptCodec extends Codec<Object, String > {
   }
 
   @override
-  Converter<String, Object? > get decoder => _decoder;
+  Converter<String, Object> get decoder => _decoder;
 
   @override
-  Converter<Object, String > get encoder => _encoder;
+  Converter<Object, String> get encoder => _encoder;
 }
 
 /// Our plain text signature
@@ -112,7 +112,6 @@ const _encryptCodecSignature = 'encrypt';
 ///
 /// // ...your database is ready to use
 /// ```
-SembastCodec getEncryptSembastCodec({required String password}) =>
-    SembastCodec(
-        signature: _encryptCodecSignature,
-        codec: _EncryptCodec(_generateEncryptPassword(password)));
+SembastCodec getEncryptSembastCodec({String password}) => SembastCodec(
+    signature: _encryptCodecSignature,
+    codec: _EncryptCodec(_generateEncryptPassword(password)));

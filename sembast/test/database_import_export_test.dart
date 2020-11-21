@@ -32,7 +32,7 @@ void defineTests(DatabaseTestContext ctx) {
 
       // json round trip and export
       var jsonExport = json.encode(export);
-      export = (json.decode(jsonExport) as Map?)?.cast<String, Object? >();
+      export = (json.decode(jsonExport) as Map).cast<String, Object?>();
       importedDb = await importDatabase(export, ctx.factory, importDbPath);
       expect(await exportDatabase(importedDb), expectedExport);
       await importedDb.close();
@@ -154,7 +154,7 @@ void defineTests(DatabaseTestContext ctx) {
       final db =
           await setupForTest(ctx, 'compat/import_export/1_map_record.db');
 
-      StoreRef<int, Map<String, Object?>> store = intMapStoreFactory.store();
+      var store = intMapStoreFactory.store();
       await store.record(1).put(db, {'test': 2});
 
       await _checkExportImport(db, {
@@ -176,7 +176,7 @@ void defineTests(DatabaseTestContext ctx) {
       final db = await setupForTest(
           ctx, 'compat/import_export/1_map_record_with_all_types.db');
 
-      StoreRef<String, Map<String, Object?>> store = stringMapStoreFactory.store();
+      var store = stringMapStoreFactory.store();
       await store.record('my_key').put(db, {
         'my_bool': true,
         'my_date': Timestamp(123456789012, 567891000),

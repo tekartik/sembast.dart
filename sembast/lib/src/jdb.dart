@@ -26,8 +26,8 @@ class JdbInfoEntry {
   String toString() => '[$id] $value';
 
   /// Debug map.
-  Map<String, Object? > exportToMap() {
-    var map = <String, Object? >{
+  Map<String, Object?> exportToMap() {
+    var map = <String, Object?>{
       'id': id,
       'value': value,
     };
@@ -47,8 +47,7 @@ abstract class JdbEntry {
   bool get deleted;
 
   @override
-  String toString() =>
-      '[$id] $record $value${(deleted ?? false) ? ' (deleted)' : ''}';
+  String toString() => '[$id] $record $value${deleted ? ' (deleted)' : ''}';
 
   /// Jdb value
   dynamic get value;
@@ -57,22 +56,22 @@ abstract class JdbEntry {
 /// Read entry
 class JdbReadEntry extends JdbEntry {
   @override
-  int id;
+  late int id;
 
   @override
-  RecordRef record;
+  late RecordRef record;
 
   @override
-  dynamic value;
+  Object? value;
 
   @override
-  bool deleted;
+  late bool deleted;
 }
 
 /// Write entry.
 class JdbWriteEntry extends JdbEntry {
   @override
-  int id;
+  late int id;
 
   /// Record
   TxnRecord? txnRecord;
@@ -85,7 +84,7 @@ class JdbWriteEntry extends JdbEntry {
 
   /// value.
   @override
-  dynamic get value => _value ??= txnRecord!.record.value;
+  Object? get value => _value ??= txnRecord!.record.value;
 
   @override
   String toString() => '[$id] $record $value';
@@ -97,7 +96,7 @@ class JdbWriteEntry extends JdbEntry {
 /// Raw entry.
 class JdbRawWriteEntry extends JdbWriteEntry {
   @override
-  final dynamic value;
+  final Object? value;
   @override
   final bool deleted;
   @override
@@ -143,7 +142,7 @@ abstract class JdbDatabase {
   Future<StorageJdbWriteResult> writeIfRevision(StorageJdbWriteQuery query);
 
   /// Read all context (re-open if needed). Test only.
-  Future<Map<String, Object? >> exportToMap();
+  Future<Map<String, Object?>> exportToMap();
 
   /// Compact the database
   Future compact();

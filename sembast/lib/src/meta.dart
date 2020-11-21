@@ -1,4 +1,3 @@
-import 'package:meta/meta.dart';
 import 'package:sembast/src/sembast_impl.dart';
 
 /// Meta information
@@ -28,8 +27,8 @@ class Meta {
   Meta({required this.version, this.codecSignature});
 
   /// To json.
-  Map<String, Object? > toMap() {
-    var map = <String, Object? >{
+  Map<String, Object?> toMap() {
+    var map = <String, Object?>{
       dbVersionKey: version,
       dbDembastVersionKey: sembastVersion
     };

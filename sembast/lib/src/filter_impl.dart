@@ -53,13 +53,13 @@ mixin FilterAnyInListMixin implements SembastFilterBase {
 /// Value mixin.
 mixin FilterValueMixin implements SembastFilterBase {
   /// The value.
-  dynamic value;
+  late Object? value;
 }
 
 /// Field information (name) mixin
 mixin FilterFieldMixin implements SembastFilterBase {
   /// The field.
-  String? field;
+  late String field;
 }
 
 /// Equals filter.

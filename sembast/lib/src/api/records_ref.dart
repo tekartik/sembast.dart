@@ -11,7 +11,7 @@ abstract class RecordsRef<K, V> {
   StoreRef<K, V> get store;
 
   /// Record key, null for new record.
-  List<K > get keys;
+  List<K> get keys;
 
   /// Record ref at a given index.
   RecordRef<K, V> operator [](int index);

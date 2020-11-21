@@ -61,7 +61,7 @@ void defineTests(DatabaseTestContext ctx) {
       expect(await store.count(db), 1);
       try {
         await db.transaction((txn) async {
-          expect(await store.count(txn!), 1);
+          expect(await store.count(txn), 1);
           var record2 = store.record(2);
           await record2.put(txn, 'test');
           expect(await store.count(txn), 2);

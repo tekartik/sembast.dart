@@ -17,9 +17,7 @@ class DatabaseFactoryIo extends DatabaseFactoryFs {
   @override
   Future<Database> openDatabaseWithOptions(
       String path, DatabaseOpenOptions options) {
-    if (path != null) {
-      path = fileSystemIo.absolute(path);
-    }
+    path = fileSystemIo.absolute(path);
     return super.openDatabaseWithOptions(path, options);
   }
 }

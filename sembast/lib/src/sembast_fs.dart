@@ -23,7 +23,7 @@ class FsDatabaseStorage extends DatabaseStorage {
   final File file;
 
   /// Whether it is a temp file
-  bool isTmp;
+  var isTmp = false;
 
   /// log level
   final bool logV = databaseStorageLogLevel == SembastLogLevel.verbose;
@@ -56,7 +56,7 @@ class FsDatabaseStorage extends DatabaseStorage {
     if (!(await fs.isFile(path))) {
       bool done;
       // try to recover from tmp file
-      if (isTmp == true) {
+      if (isTmp) {
         done = false;
       } else {
         done = await tmpRecover();
@@ -190,10 +190,7 @@ class FsDatabaseStorage extends DatabaseStorage {
 
   @override
   String toString() {
-    final map = <String, Object? >{
-      'file': file.toString(),
-      'fs': fs.toString()
-    };
+    final map = <String, Object?>{'file': file.toString(), 'fs': fs.toString()};
     if (isTmp == true) {
       map['tmp'] = true;
     }

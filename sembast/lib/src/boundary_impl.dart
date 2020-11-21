@@ -18,8 +18,8 @@ class SembastBoundary implements Boundary {
       : include = include == true,
         snapshot = makeImmutableRecordSnapshot(record);
 
-  Map<String, Object? > _toDebugMap() {
-    final debugMap = <String, Object? >{};
+  Map<String, Object?> _toDebugMap() {
+    final debugMap = <String, Object?>{};
     if (values != null) {
       debugMap['values'] = values.toString();
     } else if (snapshot != null) {

@@ -43,8 +43,8 @@ void main() {
       expect(dir.path, join(fs.currentPath, 'test', 'sub'));
 
       // not recursive not possible
-      dir = fs.createDirectory(join('dummy', 'sub'))!;
-      expect(dir, null);
+      var failedDir = fs.createDirectory(join('dummy', 'sub'));
+      expect(failedDir, null);
     });
 
     test('createDirRecursive', () {
@@ -54,7 +54,8 @@ void main() {
       var dir =
           fs.createDirectory(join(separator, 'test', 'sub'), recursive: true);
 
-      dir = fs.getEntity(join(separator, 'test', 'sub')) as DirectoryMemoryImpl?;
+      dir =
+          fs.getEntity(join(separator, 'test', 'sub')) as DirectoryMemoryImpl?;
       expect(dir!.segment, 'sub');
       expect(dir.path, join(separator, join(separator, 'test', 'sub')));
 
@@ -126,8 +127,8 @@ void main() {
       expect(dir.path, join(separator, 'dir', 'sub'));
 
       // not recursive not possible
-      dir = fs.createFile(join('dummy', 'sub'))!;
-      expect(dir, null);
+      var nullDir = fs.createFile(join('dummy', 'sub'));
+      expect(nullDir, null);
     });
   });
 }

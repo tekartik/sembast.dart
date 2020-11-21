@@ -97,7 +97,7 @@ bool cooperatorDisabled = false;
 /// thread. Should be called before any other call.
 @visibleForTesting
 void disableSembastCooperator() {
-  globalCooperator?.stop();
+  globalCooperator.stop();
   cooperatorDisabled = true;
 }
 
