@@ -36,7 +36,9 @@ void main() {
             .directory(dirname(dbPath!))
             .create(recursive: true)
             .catchError((_) {});
-        await fs.file(dbPath!).delete().catchError((_) {});
+        try {
+          await fs.file(dbPath!).delete();
+        } catch (_) {}
         return dbPath;
       }
 

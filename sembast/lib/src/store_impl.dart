@@ -106,7 +106,7 @@ class SembastStore {
               'Invalid key type $K for generating a key. You should either use String or int or generate the key yourself.');
         }
       }
-    } else if (await txnRecordExists(txn!, key)) {
+    } else if (await txnRecordExists(txn, key)) {
       return null;
     }
 
@@ -515,7 +515,7 @@ class SembastStore {
     final snapshots = <RecordSnapshot<K, V>?>[];
 
     for (var key in refs.keys) {
-      var immutable = txnGetImmutableRecordSync(txn!, key);
+      var immutable = txnGetImmutableRecordSync(txn, key);
       if (immutable != null && (!immutable.deleted)) {
         snapshots.add(SembastRecordSnapshot<K, V>.fromRecord(immutable));
       } else {
