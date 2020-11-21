@@ -13,7 +13,7 @@ Future main() async {
 
   counterRecord.onSnapshot(db).listen((snapshot) {
     write('onCounter: ${snapshot?.value}');
-  } as void Function(RecordSnapshot<String, int>?)?);
+  });
 
   querySelector('#add')!.onClick.listen((_) async {
     await db.transaction((txn) async {

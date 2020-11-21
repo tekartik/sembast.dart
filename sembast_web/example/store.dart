@@ -1,6 +1,5 @@
 import 'dart:html';
 
-import 'package:meta/meta.dart';
 import 'package:sembast_web/sembast_web.dart';
 
 import 'common.dart';
@@ -12,14 +11,16 @@ Future main() async {
   await run(dbName: 'sembast_web_example_store', store: null);
 }
 
-Future run({required String dbName, required String store}) async {
-  var dateStore = StoreRef<int, String>(store);
+Future run({required String dbName, String? store}) async {
+  var dateStore = store == null
+      ? StoreRef<int, String>.main()
+      : StoreRef<int, String>(store);
 
   db = await factory.openDatabase(dbName);
   write('hello');
 
   dateStore.query().onSnapshots(db).listen((snapshots) {
-    write('onSnapshots: ${snapshots?.length} item(s)');
+    write('onSnapshots: ${snapshots.length} item(s)');
     snapshots.forEach((snapshot) {
       write('[${snapshot.key}]: ${snapshot.value}');
     });

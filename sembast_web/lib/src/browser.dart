@@ -57,7 +57,7 @@ void addStorageRevision(StorageRevision storageRevision) {
     print('adding storage revision $storageRevision');
   }
   var key = '$_sembastStorageKeyPrefix${storageRevision.name}';
-  if (storageRevision.revision != null) {
+  if (storageRevision.revision != 0) {
     window.localStorage[key] = storageRevision.revision.toString();
   } else {
     window.localStorage.remove(key);
@@ -71,7 +71,7 @@ Stream<StorageRevision> get storageRevisionStream {
   ctlr = StreamController<StorageRevision>(onListen: () {
     storageEventSubscription = window.onStorage.listen((event) {
       if (debugStorageNotification) {
-        print('getting ${event?.key}: ${event?.newValue}');
+        print('getting ${event.key}: ${event.newValue}');
       }
       if (event.key!.startsWith(_sembastStorageKeyPrefix)) {
         var name = event.key!.substring(_sembastStorageKeyPrefix.length);

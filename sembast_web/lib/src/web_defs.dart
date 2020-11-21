@@ -4,7 +4,7 @@ class StorageRevision {
   final String name;
 
   /// Revision.
-  final int? revision;
+  final int revision;
 
   /// Revision for one storage
   StorageRevision(this.name, this.revision);

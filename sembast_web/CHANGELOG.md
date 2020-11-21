@@ -1,3 +1,7 @@
+## 2.0.0-nullsafety.1
+
+- `nnbd` support, breaking change.
+
 ## 1.2.0
 
 - Bump sembast dependency
