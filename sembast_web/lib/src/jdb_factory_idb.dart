@@ -39,7 +39,7 @@ class JdbFactoryIdb implements jdb.JdbFactory {
 
   @override
   Future<jdb.JdbDatabase> open(String path,
-      {DatabaseOpenOptions options}) async {
+      {DatabaseOpenOptions? options}) async {
     var id = ++_lastId;
     if (_debug) {
       print('[idb-$id] opening $path');
@@ -95,7 +95,7 @@ class JdbFactoryIdb implements jdb.JdbFactory {
 
   @override
   Future<bool> exists(String path) async {
-    idb.Database db;
+    late idb.Database db;
     try {
       db = await idbFactory.open(path);
       var meta = await db
@@ -142,8 +142,8 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
   final idb.Database _idbDatabase;
   final int _id;
   final String _path;
-  final _revisionUpdateController = StreamController<int>();
-  final jdb.DatabaseOpenOptions _options;
+  final _revisionUpdateController = StreamController<int?>();
+  final jdb.DatabaseOpenOptions? _options;
 
   jdb.JdbReadEntry _entryFromCursor(CursorWithValue cwv) {
     var map = cwv.value as Map;
@@ -153,7 +153,7 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
     /// Deserialize unsupported types (Blob, Timestamp)
     ///
     if (_options?.codec?.codec != null && value is String) {
-      value = _options.codec.codec.decode(value as String);
+      value = _options!.codec!.codec!.decode(value);
     }
     var decodedValue = (_options?.codec?.jsonEncodableCodec ??
             jdb.sembastDefaultJsonEncodableCodec)
@@ -175,7 +175,7 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
 
   @override
   Stream<jdb.JdbReadEntry> get entries {
-    StreamController<jdb.JdbReadEntry> ctlr;
+    late StreamController<jdb.JdbReadEntry> ctlr;
     ctlr = StreamController<jdb.JdbReadEntry>(onListen: () async {
       await _idbDatabase
           .transaction(_entryStore, idbModeReadOnly)
@@ -270,17 +270,17 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
     await infoStore.put(revision, jdbDeltaMinRevisionKey);
   }
 
-  Future<int> _txnGetRevision(idb.Transaction txn) async {
+  Future<int?> _txnGetRevision(idb.Transaction txn) async {
     var infoStore = txn.objectStore(_infoStore);
-    return (await infoStore.getObject(_revisionKey)) as int;
+    return (await infoStore.getObject(_revisionKey)) as int?;
   }
 
   // Return the last entryId
-  Future<int> _txnAddEntries(
+  Future<int?> _txnAddEntries(
       idb.Transaction txn, List<jdb.JdbWriteEntry> entries) async {
     var objectStore = txn.objectStore(_entryStore);
     var index = objectStore.index(_recordIndex);
-    int lastEntryId;
+    int? lastEntryId;
     for (var jdbWriteEntry in entries) {
       var store = jdbWriteEntry.record.store.name;
       var key = jdbWriteEntry.record.key;
@@ -297,9 +297,9 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
       ///
       var value = (_options?.codec?.jsonEncodableCodec ??
               sembastDefaultJsonEncodableCodec)
-          .encode(jdbWriteEntry.value);
+          .encode(jdbWriteEntry.value!);
       if (_options?.codec?.codec != null && value != null) {
-        value = _options.codec.codec.encode(value);
+        value = _options!.codec!.codec!.encode(value);
       }
       //if
       lastEntryId = (await objectStore.add(<String, dynamic>{
@@ -335,7 +335,7 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
         _idbDatabase.transaction([_entryStore, _infoStore], idbModeReadOnly);
     var infoStore = txn.objectStore(_infoStore);
     var infoKey = _storeLastIdKey(store);
-    var lastId = (await infoStore.getObject(infoKey) as int) ?? 0;
+    var lastId = (await infoStore.getObject(infoKey) as int?) ?? 0;
 
     for (var i = 0; i < count; i++) {
       lastId++;
@@ -353,7 +353,7 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
   @override
   Stream<jdb.JdbEntry> entriesAfterRevision(int revision) {
     revision ??= 0;
-    StreamController<jdb.JdbEntry> ctlr;
+    late StreamController<jdb.JdbEntry> ctlr;
     ctlr = StreamController<jdb.JdbEntry>(onListen: () async {
       var keyRange = KeyRange.lowerBound(revision, true);
       await _idbDatabase
@@ -374,15 +374,15 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
   }
 
   @override
-  Future<int> getRevision() async {
-    return (await getInfoEntry(_revisionKey))?.value as int;
+  Future<int?> getRevision() async {
+    return (await getInfoEntry(_revisionKey))?.value as int?;
   }
 
   @override
-  Stream<int> get revisionUpdate => _revisionUpdateController.stream;
+  Stream<int?> get revisionUpdate => _revisionUpdateController.stream;
 
   /// Will notify.
-  void addRevision(int revision) {
+  void addRevision(int? revision) {
     _revisionUpdateController.add(revision);
   }
 
@@ -393,11 +393,11 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
         _idbDatabase.transaction([_infoStore, _entryStore], idbModeReadWrite);
 
     var expectedRevision = query.revision ?? 0;
-    var readRevision = (await _txnGetRevision(txn)) ?? 0;
+    int? readRevision = (await _txnGetRevision(txn)) ?? 0;
     var success = (expectedRevision == readRevision);
 
     // Notify for the web
-    int shouldNotifyRevision;
+    int? shouldNotifyRevision;
 
     if (success) {
       if (query.entries?.isNotEmpty ?? false) {
@@ -443,11 +443,11 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
       if (value is Map) {
         // hack to remove the store when testing
         if (value[_storePath] == '_main') {
-          value = Map.from(value as Map)..remove('store');
+          value = Map.from(value)..remove('store');
         }
         // Hack to change deleted from 1 to true
         if (value[_deletedPath] == 1) {
-          value = Map.from(value as Map)..[_deletedPath] = true;
+          value = Map.from(value)..[_deletedPath] = true;
         }
       }
       list.add(<String, dynamic>{'id': cwv.key, 'value': value});
@@ -466,7 +466,7 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
     await deleteIndex.openCursor(autoAdvance: true).listen((cwv) {
       assert(cwv.key is int);
       var revision = cwv.primaryKey as int;
-      if (revision > newDeltaMinRevision && revision <= currentRevision) {
+      if (revision > newDeltaMinRevision && revision <= currentRevision!) {
         newDeltaMinRevision = revision;
         cwv.delete();
       }
@@ -480,12 +480,12 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
 
   @override
   Future<int> getDeltaMinRevision() async {
-    return (await getInfoEntry(jdbDeltaMinRevisionKey))?.value as int ?? 0;
+    return (await getInfoEntry(jdbDeltaMinRevisionKey))?.value as int? ?? 0;
   }
 
   Future<int> _txnGetDeltaMinRevision(idb.Transaction txn) async {
     return (await txn.objectStore(_infoStore).getObject(jdbDeltaMinRevisionKey))
-            as int ??
+            as int? ??
         0;
   }
 

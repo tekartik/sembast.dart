@@ -17,13 +17,13 @@ class JdbFactoryWeb extends JdbFactoryIdb {
   /// Web jdb factory.
   JdbFactoryWeb() : super(idbFactoryNative);
 
-  StreamSubscription _revisionSubscription;
+  StreamSubscription? _revisionSubscription;
 
   @override
   void start() {
     stop();
     _revisionSubscription = storageRevisionStream.listen((storageRevision) {
-      var list = databases[storageRevision.name];
+      var list = databases[storageRevision.name]!;
       for (var jdbDatabase in list) {
         jdbDatabase.addRevision(storageRevision.revision);
       }
@@ -66,17 +66,17 @@ void addStorageRevision(StorageRevision storageRevision) {
 
 /// Storage revision notification from all tabs
 Stream<StorageRevision> get storageRevisionStream {
-  StreamSubscription storageEventSubscription;
-  StreamController<StorageRevision> ctlr;
+  StreamSubscription? storageEventSubscription;
+  late StreamController<StorageRevision> ctlr;
   ctlr = StreamController<StorageRevision>(onListen: () {
     storageEventSubscription = window.onStorage.listen((event) {
       if (debugStorageNotification) {
         print('getting ${event?.key}: ${event?.newValue}');
       }
-      if (event.key.startsWith(_sembastStorageKeyPrefix)) {
-        var name = event.key.substring(_sembastStorageKeyPrefix.length);
+      if (event.key!.startsWith(_sembastStorageKeyPrefix)) {
+        var name = event.key!.substring(_sembastStorageKeyPrefix.length);
         var revision =
-            event.newValue == null ? 0 : (int.tryParse(event.newValue) ?? 0);
+            event.newValue == null ? 0 : (int.tryParse(event.newValue!) ?? 0);
         ctlr.add(StorageRevision(name, revision));
       }
     });

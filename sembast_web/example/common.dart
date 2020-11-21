@@ -2,7 +2,7 @@ import 'dart:html';
 export 'package:sembast/sembast.dart';
 
 class OutBuffer {
-  int _maxLineCount;
+  late int _maxLineCount;
   List<String> lines = [];
 
   OutBuffer(int maxLineCount) {
@@ -21,8 +21,8 @@ class OutBuffer {
 }
 
 OutBuffer _outBuffer = OutBuffer(100);
-Element _output = document.getElementById('output');
-void write([Object message]) {
+Element? _output = document.getElementById('output');
+void write([Object? message]) {
   print(message);
-  _output.text = (_outBuffer..add('$message')).toString();
+  _output!.text = (_outBuffer..add('$message')).toString();
 }

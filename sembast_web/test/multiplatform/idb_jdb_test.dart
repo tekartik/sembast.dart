@@ -15,14 +15,14 @@ JdbFactoryIdb asJdbJactoryIdb(JdbFactory factory) => factory as JdbFactoryIdb;
 
 SembastDatabase asSembastDatabase(Database db) => db as SembastDatabase;
 
-SembastStorageJdb asSembastStorateJdb(StorageJdb storageJdb) =>
-    storageJdb as SembastStorageJdb;
+SembastStorageJdb? asSembastStorateJdb(StorageJdb? storageJdb) =>
+    storageJdb as SembastStorageJdb?;
 
-JdbDatabaseIdb asJsbDatabaseIdb(JdbDatabase database) =>
-    database as JdbDatabaseIdb;
+JdbDatabaseIdb? asJsbDatabaseIdb(JdbDatabase? database) =>
+    database as JdbDatabaseIdb?;
 
-JdbDatabaseIdb dbAsJsbDatabaseIdb(Database db) => asJsbDatabaseIdb(
-    asSembastStorateJdb(asSembastDatabase(db).storageJdb).jdbDatabase);
+JdbDatabaseIdb? dbAsJsbDatabaseIdb(Database db) => asJsbDatabaseIdb(
+    asSembastStorateJdb(asSembastDatabase(db).storageJdb)!.jdbDatabase);
 
 Future main() async {
   var jdbFactoryIdb = JdbFactoryIdb(idbFactoryMemoryFs);
@@ -83,12 +83,12 @@ void defineTests(JdbFactoryIdb jdbFactoryIdb) {
         expect(await record.get(db), isNull);
         await record.put(db, 'value');
         expect(await record.get(db), 'value');
-        expect(await dbAsJsbDatabaseIdb(db).sdbExportDatabase(), export);
+        expect(await dbAsJsbDatabaseIdb(db)!.sdbExportDatabase(), export);
         await db.close();
 
         db = await factory.openDatabase('test');
         expect(await record.get(db), 'value');
-        expect(await dbAsJsbDatabaseIdb(db).sdbExportDatabase(), export);
+        expect(await dbAsJsbDatabaseIdb(db)!.sdbExportDatabase(), export);
         await record.put(db, 'value2');
         expect(await record.get(db), 'value2');
         await db.close();
@@ -170,12 +170,12 @@ void defineTests(JdbFactoryIdb jdbFactoryIdb) {
         expect(await record.get(db), isNull);
         await record.put(db, 'value');
         expect(await record.get(db), 'value');
-        expect(await dbAsJsbDatabaseIdb(db).sdbExportDatabase(), export);
+        expect(await dbAsJsbDatabaseIdb(db)!.sdbExportDatabase(), export);
         await db.close();
 
         db = await factory.openDatabase('test', codec: codec);
         expect(await record.get(db), 'value');
-        expect(await dbAsJsbDatabaseIdb(db).sdbExportDatabase(), export);
+        expect(await dbAsJsbDatabaseIdb(db)!.sdbExportDatabase(), export);
         await record.put(db, 'value2');
         expect(await record.get(db), 'value2');
         await db.close();

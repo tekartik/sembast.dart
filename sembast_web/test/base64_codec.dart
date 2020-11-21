@@ -15,7 +15,7 @@ class SembaseBase64Decoder extends Converter<String, dynamic> {
 /// Simple codec that encode in base 64
 class SembaseBase64Codec extends Codec<dynamic, String> {
   @override
-  final decoder = SembaseBase64Decoder();
+  final Converter<String, dynamic> decoder = SembaseBase64Decoder();
   @override
-  final encoder = SembaseBase64Encoder();
+  final Converter<dynamic, String> encoder = SembaseBase64Encoder();
 }

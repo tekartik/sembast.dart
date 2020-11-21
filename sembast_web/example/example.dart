@@ -14,7 +14,7 @@ Future main() async {
       await store.add(db, <String, dynamic>{'name': 'Table', 'price': 15});
 
   // Read the record
-  var value = await store.record(key).get(db);
+  var value = await (store.record(key).get(db) as FutureOr<Map<String, Object>?>);
 
   // Print the value
   print(value);
