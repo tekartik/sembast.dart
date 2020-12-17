@@ -3,7 +3,7 @@
 * `nnbd` support, breaking change.
 * No longer supports null record value.
 
-## 2.4.8
+## 2.4.8+1
 
 * Clear mode existing/empty flag upon open to handle re-open.
 * Handle corrupted utf8 lines in sembast io
@@ -113,7 +113,7 @@
 
 ## 1.15.3
 
-* Enforce `Map<String, Object/*?*/>` for maps in the store API
+* Enforce `Map<String, dynamic>` for maps in the store API
 * Add `cloneMap` utility to allow modifying a read record
 
 ## 1.15.2

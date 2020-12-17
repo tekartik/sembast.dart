@@ -456,7 +456,7 @@ class SembastDatabase extends Object
     // clone for safe loop
     records = List<ImmutableSembastRecord>.from(records);
     var recordsResult =
-        List<ImmutableSembastRecord?>.generate(records.length, (_) => null);
+        List<ImmutableSembastRecord?>.filled(records.length, null);
     for (var i = 0; i < records.length; i++) {
       recordsResult[i] = await txnPutRecord(txn, records[i]);
     }
