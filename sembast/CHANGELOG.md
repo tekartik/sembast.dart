@@ -1,4 +1,4 @@
-## 2.4.8
+## 2.4.8+1
 
 * Clear mode existing/empty flag upon open to handle re-open.
 * Handle corrupted utf8 lines in sembast io

@@ -25,7 +25,7 @@ class PushIdGenerator {
 
   static int _lastPushTime;
 
-  static final List<int> _lastRandChars = List<int>(12);
+  static final _lastRandChars = List<int>.filled(12, null);
 
   /// Generate a child name.
   static String generatePushChildName() {
@@ -33,7 +33,7 @@ class PushIdGenerator {
     final duplicateTime = (now == _lastPushTime);
     _lastPushTime = now;
 
-    final timeStampChars = List<String>(8);
+    final timeStampChars = List<String>.filled(8, null);
     for (var i = 7; i >= 0; i--) {
       timeStampChars[i] = pushChars[now % 64];
       now = (now / 64).floor();
