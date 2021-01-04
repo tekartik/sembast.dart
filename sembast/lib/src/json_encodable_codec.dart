@@ -138,7 +138,7 @@ Object toJsonEncodable(Object value, Iterable<SembastTypeAdapter> adapters) {
         '${e.invalidValue.runtimeType} in $value', 'not supported');
   }
 
-  /// Ensure root is Map<String, Object/*?*/> if only Map
+  /// Ensure root is Map<String, Object?> if only Map
   if (converted is Map && !(converted is Map<String, Object?>)) {
     converted = converted.cast<String, Object?>();
   }
@@ -204,7 +204,7 @@ Object fromJsonEncodable(
         '${e.invalidValue.runtimeType} in $value', 'not supported');
   }
 
-  /// Ensure root is Map<String, Object/*?*/> if only Map
+  /// Ensure root is Map<String, Object?> if only Map
   if (converted is Map && !(converted is Map<String, Object?>)) {
     converted = converted.cast<String, Object?>();
   }

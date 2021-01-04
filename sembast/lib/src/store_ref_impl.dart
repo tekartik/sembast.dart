@@ -244,8 +244,8 @@ mixin StoreFactoryMixin<K, V> implements StoreFactory<K, V> {
 /// Store factory base.
 class StoreFactoryBase<K, V> with StoreFactoryMixin<K, V> {}
 
-/// common `<int, Map<String, Object/*?*/>>` factory
+/// common `<int, Map<String, Object?>>` factory
 final intMapStoreFactory = StoreFactoryBase<int, Map<String, Object?>>();
 
-/// common `<String, Map<String, Object/*?*/>>` factory
+/// common `<String, Map<String, Object?>>` factory
 final stringMapStoreFactory = StoreFactoryBase<String, Map<String, Object?>>();

@@ -1419,7 +1419,7 @@ class SembastDatabase extends Object
         return value.cast<String, Object?>() as V;
       } catch (e) {
         throw ArgumentError.value(value, 'type $V not supported',
-            'Map must be of type Map<String, Object/*?*/> for type ${value.runtimeType} value $value');
+            'Map must be of type Map<String, Object?> for type ${value.runtimeType} value $value');
       }
     }
     return value as V?;

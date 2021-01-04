@@ -226,7 +226,7 @@ abstract class FileSystemEntityIo implements fs.FileSystemEntity {
 /// Directory io implementation.
 class DirectoryIo extends FileSystemEntityIo implements fs.Directory {
   /// native directory.
-  io.Directory /*!*/ get ioDir => ioFileSystemEntity as io.Directory;
+  io.Directory get ioDir => ioFileSystemEntity as io.Directory;
 
   /// Creates a [DirectoryIo] object.
   ///
