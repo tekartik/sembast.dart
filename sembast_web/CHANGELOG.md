@@ -1,4 +1,4 @@
-## 1.2.0
+## 1.2.0+1
 
 - Bump sembast dependency
 - Improve int key generation (through sembast update)
