@@ -1,5 +1,11 @@
 # Writing data
 
+## add vs update vs put
+
+- `add` adds a new record and generate a new record key
+- `update` update an existing record
+- `put` will either add or update a record
+
 ## Use transactions
 
 Make sure to use transaction as soon as you perform more than 1 writes. It 
