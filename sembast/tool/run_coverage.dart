@@ -13,7 +13,8 @@ pub global activate coverage
 ''');
   }
 
-  Future start = shell.run('''
+  var testShell = Shell();
+  Future start = testShell.run('''
    dart --disable-service-auth-codes --enable-vm-service=$obsPort --pause-isolates-on-exit test/io_factory_test_.dart
 
   ''');
