@@ -9,7 +9,7 @@ import 'package:sembast/utils/sembast_import_export.dart';
 import 'package:sembast/utils/value_utils.dart';
 
 import 'test_common.dart';
-// import 'package:test/test.dart';
+import 'package:sembast/utils/database_utils.dart';
 
 void main() {
   defineTests(memoryDatabaseContext);
@@ -592,6 +592,14 @@ void defineTests(DatabaseTestContext ctx) {
         ]);
         await db.close();
       }
+    });
+    test('database_utils', () async {
+      db = await setupForTest(ctx, 'doc/database_utils.db');
+
+      // Get the list of non-empty store names
+      var names = await getNonEmptyStoreNames(db);
+
+      expect(names, []);
     });
   });
 }
