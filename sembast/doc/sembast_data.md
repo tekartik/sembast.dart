@@ -36,7 +36,7 @@ data.
 
 An element is updated only if it exists.
 
-```
+```dart
 // update the price of the lamp record
 await store.record(lampKey).update(db, {'price': 12});
 ```
