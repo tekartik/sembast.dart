@@ -66,8 +66,6 @@ Sembast io database (single file in json format) should be used from the main is
 
 ## Get the list of stores
 
-Response: **you cannot**
-
 A store only exists when they are records in it 
 (there is no way to create/delete a store). There used to be a `storeNames` method
 but there were some cases where a store could be listed even though it did not 
@@ -76,9 +74,15 @@ in firestore (and you cannot list collections in firestore neither - although th
 
 You might wonder what `StoreRef.drop` does. It only forces deleting the store from memory so that it is not
 used in any further operations (until a record is added in this same store). 
- 
-So there is no safe way to get a list of stores and I would recommend storing a list of store names in a singleton that 
-you track manually.
+
+You can get the list of non-empty store names using `getNonEmptyStoreNames(db)` from `utils/database_utils.dart`.
+
+```dart
+import 'package:sembast/utils/database_utils.dart';
+...
+// Get the list of non-empty store names
+var names = await getNonEmptyStoreNames(db);
+```
 
 ## Convert int keys to String keys
 

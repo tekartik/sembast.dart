@@ -132,6 +132,11 @@ class SembastDatabase extends Object
   /// Current in memory store names
   Iterable<String> get storeNames => _stores.values.map((store) => store.name);
 
+  /// Current non empty store names
+  Iterable<String> get nonEmptyStoreNames => _stores.values
+      .where((store) => store.recordMap.isNotEmpty)
+      .map((store) => store.name);
+
   /// Database implementation.
   SembastDatabase(this.openHelper, [this._storageBase]) {
     if (_storageBase is DatabaseStorage) {

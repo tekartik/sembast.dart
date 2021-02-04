@@ -3,6 +3,10 @@
 * `nnbd` support, breaking change.
 * No longer supports null record value.
 
+## 2.4.9-dev.0
+
+* Add `utils/database_utils.dart`. `getNonEmptyStoreNames(db)` added.
+
 ## 2.4.8+1
 
 * Clear mode existing/empty flag upon open to handle re-open.
