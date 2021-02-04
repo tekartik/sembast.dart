@@ -1,4 +1,4 @@
-## 2.4.9-dev.0
+## 2.4.9
 
 * Add `utils/database_utils.dart`. `getNonEmptyStoreNames(db)` added.
 
