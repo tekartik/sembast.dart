@@ -16,8 +16,8 @@ Future<void> main() async {
       try {
         final dir = await Directory.systemTemp.createTemp('sembast');
         final bashFilePath = join(dir.path, 'codecov.bash');
-        await File(bashFilePath)
-            .writeAsString(await IOClient().read('https://codecov.io/bash'));
+        await File(bashFilePath).writeAsString(
+            await IOClient().read(Uri.parse('https://codecov.io/bash')));
         await shell.run('bash $bashFilePath');
       } catch (e) {
         stderr.writeln('Publishing code coverage failed ($e)');
