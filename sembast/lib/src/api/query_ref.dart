@@ -16,10 +16,10 @@ abstract class QueryRef<K, V> {
   /// Find first record (null if none) and listen for changes.
   ///
   /// Returns a single subscriber stream that must be cancelled.
-  Stream<RecordSnapshot<K, V>> onSnapshot(Database database);
+  Stream<RecordSnapshot<K, V>?> onSnapshot(Database database);
 
   /// Find first record matching the query.
   ///
   /// Returns null if none found.
-  Future<RecordSnapshot<K, V>> getSnapshot(DatabaseClient client);
+  Future<RecordSnapshot<K, V>?> getSnapshot(DatabaseClient client);
 }

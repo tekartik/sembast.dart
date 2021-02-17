@@ -23,9 +23,7 @@ class SembastQueryRef<K, V> implements QueryRef<K, V> {
       this.store,
       // ignore: deprecated_member_use_from_same_package
       SembastFinder? finder)
-      : finder = finder?.clone() as
-            // ignore: deprecated_member_use_from_same_package
-            SembastFinder?;
+      : finder = finder?.clone();
 
   @override
   String toString() => '$store $finder)';
@@ -68,11 +66,11 @@ class SembastQueryRef<K, V> implements QueryRef<K, V> {
       store.find(client, finder: finder);
 
   @override
-  Future<RecordSnapshot<K, V>> getSnapshot(DatabaseClient client) =>
+  Future<RecordSnapshot<K, V>?> getSnapshot(DatabaseClient client) =>
       store.findFirst(client, finder: finder);
 
   @override
-  Stream<RecordSnapshot<K, V>> onSnapshot(Database database) {
+  Stream<RecordSnapshot<K, V>?> onSnapshot(Database database) {
     if (finder?.limit != 1) {
       return SembastQueryRef(store, cloneFinderFindFirst(finder))
           .onSnapshot(database);

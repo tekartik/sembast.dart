@@ -144,8 +144,8 @@ class SembastFinder implements Finder {
   }
 
   /// Clone a filter with a given limit.
-  Finder clone({int? limit}) {
-    return Finder(
+  SembastFinder clone({int? limit}) {
+    return SembastFinder(
         filter: filter,
         sortOrders: sortOrders,
         //
@@ -176,13 +176,15 @@ class SembastFinder implements Finder {
 }
 
 /// Clone a filter to the first item found (i.e. set limit to 1).
-SembastFinder cloneFinderFindFirst(Finder finder) {
+SembastFinder cloneFinderFindFirst(Finder? finder) {
+  late SembastFinder sembastFinder;
   if (finder != null) {
-    if ((finder as SembastFinder).limit != 1) {
-      finder = (finder as SembastFinder).clone(limit: 1);
+    sembastFinder = finder as SembastFinder;
+    if (sembastFinder.limit != 1) {
+      sembastFinder = sembastFinder.clone(limit: 1);
     }
   } else {
-    finder = SembastFinder(limit: 1);
+    sembastFinder = SembastFinder(limit: 1);
   }
-  return finder as SembastFinder;
+  return sembastFinder;
 }
