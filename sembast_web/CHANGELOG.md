@@ -1,4 +1,4 @@
-## 2.0.0-nullsafety.1
+## 2.0.0
 
 - `nnbd` support, breaking change.
 
