@@ -1,23 +1,21 @@
-// @dart=2.9
 @TestOn('vm')
-library sembast.test.database_codec_test;
+library sembast_test.test.encrypt_codec_io_test;
 
 import 'dart:async';
 import 'dart:convert';
 
 import 'package:sembast/src/database_impl.dart';
 import 'package:sembast/src/sembast_fs.dart';
+import 'package:sembast_test/encrypt_codec.dart';
+import 'package:sembast_test/test_common.dart';
 
 import 'database_format_test.dart' as database_format_test;
-import 'encrypt_codec.dart';
-import 'test_codecs.dart';
-import 'test_common.dart';
 
 void main() {
-  defineTests(memoryFileSystemContext);
+  encryptIoGroup(memoryFileSystemContext);
 }
 
-void defineTests(FileSystemTestContext ctx) {
+void encryptIoGroup(FileSystemTestContext ctx) {
   final fs = ctx.fs;
   DatabaseFactory factory = DatabaseFactoryFs(fs);
   // String getDbPath() => ctx.outPath + '.db';
@@ -107,22 +105,5 @@ void defineTests(FileSystemTestContext ctx) {
       expect(await store.record(1).get(db), 'test');
       await db.close();
     });
-  });
-
-  test('invalid_codec', () async {
-    try {
-      await _prepareOneRecordDatabase(
-          codec: SembastCodec(signature: 'test', codec: null));
-      fail('should fail');
-    } on DatabaseException catch (e) {
-      expect(e.code, DatabaseException.errInvalidCodec);
-    }
-    try {
-      await _prepareOneRecordDatabase(
-          codec: SembastCodec(signature: null, codec: MyJsonCodec()));
-      fail('should fail');
-    } on DatabaseException catch (e) {
-      expect(e.code, DatabaseException.errInvalidCodec);
-    }
   });
 }
