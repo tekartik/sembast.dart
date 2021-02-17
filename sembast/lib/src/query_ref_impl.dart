@@ -69,5 +69,15 @@ class SembastQueryRef<K, V> implements QueryRef<K, V> {
 
   @override
   Future<RecordSnapshot<K, V>> getSnapshot(DatabaseClient client) =>
-      store.findFirst(client, finder: finder) as Future<RecordSnapshot<K, V>>;
+      store.findFirst(client, finder: finder);
+
+  @override
+  Stream<RecordSnapshot<K, V>> onSnapshot(Database database) {
+    if (finder?.limit != 1) {
+      return SembastQueryRef(store, cloneFinderFindFirst(finder))
+          .onSnapshot(database);
+    }
+    return onSnapshots(database)
+        .map((list) => list.isNotEmpty ? list.first : null);
+  }
 }

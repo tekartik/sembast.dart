@@ -3,7 +3,11 @@
 * `nnbd` support, breaking change.
 * No longer supports null record value.
 
-## 2.4.9-dev.0
+## 2.4.10
+
+* Add `QueryRef.onSnapshot` to listen for the first matching record
+
+## 2.4.9
 
 * Add `utils/database_utils.dart`. `getNonEmptyStoreNames(db)` added.
 
