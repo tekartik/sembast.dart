@@ -90,7 +90,7 @@ void defineTests(DatabaseTestContext ctx) {
       expect((await query.getSnapshot(db)), isNull);
     });
 
-    test('put/onSnapshots timing', () async {
+    test('store put/onSnapshots timing', () async {
       // No random timing
       setDatabaseCooperator(db, null);
 
@@ -121,7 +121,7 @@ void defineTests(DatabaseTestContext ctx) {
       expect(await future4, isEmpty);
     });
 
-    test('put/onSnapshot timing', () async {
+    test('record put/onSnapshot timing', () async {
       // No random timing
       setDatabaseCooperator(db, null);
 
@@ -178,6 +178,58 @@ void defineTests(DatabaseTestContext ctx) {
           expect(value, 'test2');
         } else if (index == 4) {
           expect(snapshots.length, 1);
+          expect(key, 2);
+          expect(value, 'test3');
+          // expect(snapshots, isEmpty);
+        }
+        if (++index == 5) {
+          completer.complete();
+        }
+      });
+      //await Future.delayed(Duration(milliseconds: 1));
+      // create
+      await record.put(db, 'test');
+
+      // add
+      await store.record(2).put(db, 'test3');
+      expect(await query.getSnapshots(db), hasLength(2));
+
+      // update
+      await record.put(db, 'test2');
+
+      // delete
+      await record.delete(db);
+      await completer.future;
+      await sub.cancel();
+      expect(index, 5);
+    });
+
+    test('StoreRef.onSnapshot', () async {
+      var store = StoreRef<int, String>.main();
+      var record = store.record(1);
+      var index = 0;
+      var completer = Completer();
+
+      // When starting listening the record does not exists yet
+      var query = store.query();
+      var sub = query.onSnapshot(db).listen((snapshot) {
+        // devPrint('$index $snapshots');
+        var first = snapshot;
+        final key = first?.key;
+        final value = first?.value;
+
+        if (index == 0) {
+          expect(snapshot, isNull);
+        } else if (index == 1) {
+          expect(key, 1);
+          expect(value, 'test');
+        } else if (index == 2) {
+          expect(key, 1);
+          expect(value, 'test');
+        } else if (index == 3) {
+          expect(key, 1);
+          expect(value, 'test2');
+        } else if (index == 4) {
           expect(key, 2);
           expect(value, 'test3');
           // expect(snapshots, isEmpty);

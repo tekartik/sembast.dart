@@ -174,3 +174,15 @@ class SembastFinder implements Finder {
     }})';
   }
 }
+
+/// Clone a filter to the first item found (i.e. set limit to 1).
+SembastFinder cloneFinderFindFirst(Finder finder) {
+  if (finder != null) {
+    if ((finder as SembastFinder).limit != 1) {
+      finder = (finder as SembastFinder).clone(limit: 1);
+    }
+  } else {
+    finder = SembastFinder(limit: 1);
+  }
+  return finder as SembastFinder;
+}

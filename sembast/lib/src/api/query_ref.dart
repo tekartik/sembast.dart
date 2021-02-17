@@ -13,6 +13,11 @@ abstract class QueryRef<K, V> {
   /// Returns an empty array if none found.
   Future<List<RecordSnapshot<K, V>>> getSnapshots(DatabaseClient client);
 
+  /// Find first record (null if none) and listen for changes.
+  ///
+  /// Returns a single subscriber stream that must be cancelled.
+  Stream<RecordSnapshot<K, V>> onSnapshot(Database database);
+
   /// Find first record matching the query.
   ///
   /// Returns null if none found.

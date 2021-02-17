@@ -274,13 +274,7 @@ class SembastStore {
   /// Find a record in a transaction.
   Future<ImmutableSembastRecord> txnFindRecord(
       SembastTransaction txn, Finder finder) async {
-    if (finder != null) {
-      if ((finder as SembastFinder).limit != 1) {
-        finder = (finder as SembastFinder).clone(limit: 1);
-      }
-    } else {
-      finder = SembastFinder(limit: 1);
-    }
+    finder = cloneFinderFindFirst(finder);
     var records = await txnFindRecords(txn, finder);
     if (records.isNotEmpty) {
       return records.first;

@@ -1,3 +1,7 @@
+## 2.4.10
+
+* Add `QueryRef.onSnapshot` to listen for the first matching record
+
 ## 2.4.9
 
 * Add `utils/database_utils.dart`. `getNonEmptyStoreNames(db)` added.
