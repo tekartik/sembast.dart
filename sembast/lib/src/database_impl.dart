@@ -600,7 +600,7 @@ class SembastDatabase extends Object
   /// Flush changes.
   Future flush() async {
     // Wait for pending transaction
-    await transactionLock.synchronized(null);
+    await transactionLock.synchronized(() async => null);
     // Wait for pending writes
     await databaseOperation(null);
   }

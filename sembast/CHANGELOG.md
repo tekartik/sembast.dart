@@ -1,4 +1,4 @@
-## 2.4.10+1
+## 2.4.10+2
 
 * Add `QueryRef.onSnapshot` to listen for the first matching record
 
