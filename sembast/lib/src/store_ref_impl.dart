@@ -179,9 +179,7 @@ extension SembastStoreRefExtension<K, V> on StoreRef<K, V> {
     final client = getClient(databaseClient);
     value = client.sembastDatabase.sanitizeInputValue<V>(value)!;
     return await client.inTransaction((txn) async {
-      var key = await client
-          .getSembastStore(this)
-          .txnAdd<K, V>(client.sembastTransaction, value);
+      var key = await client.getSembastStore(this).txnAdd<K, V>(txn, value);
       return key as K;
     });
   }
@@ -197,7 +195,7 @@ extension SembastStoreRefExtension<K, V> on StoreRef<K, V> {
     await client.inTransaction((txn) async {
       var store = client.getSembastStore(this);
       for (var value in sanitizedValues) {
-        keys.add((await store.txnAdd<K, V>(client.sembastTransaction, value))!);
+        keys.add((await store.txnAdd<K, V>(txn, value))!);
       }
     });
     return keys;

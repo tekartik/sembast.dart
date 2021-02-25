@@ -457,7 +457,7 @@ class SembastDatabase extends Object
 
   /// Put records in a transaction
   Future<List<ImmutableSembastRecord?>> txnPutRecords(
-      SembastTransaction? txn, List<ImmutableSembastRecord> records) async {
+      SembastTransaction txn, List<ImmutableSembastRecord> records) async {
     // clone for safe loop
     records = List<ImmutableSembastRecord>.from(records);
     var recordsResult =
@@ -470,7 +470,7 @@ class SembastDatabase extends Object
 
   /// Put a record in a transaction.
   Future<ImmutableSembastRecord> txnPutRecord(
-      SembastTransaction? txn, ImmutableSembastRecord record) {
+      SembastTransaction txn, ImmutableSembastRecord record) {
     return _recordStore(record).txnPutRecord(txn, record);
   }
 
