@@ -425,6 +425,10 @@ class SembastStore {
     txnRecords ??= <dynamic, TxnRecord>{};
 
     txnRecords[sembastRecord.key] = TxnRecord(sembastRecord);
+
+    // Remove the store from the dropped store list if needed
+    database.txnUndeleteStore(txn, sembastRecord.ref.store.name);
+
     return sembastRecord;
   }
 

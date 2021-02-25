@@ -70,5 +70,23 @@ void defineTests(DatabaseTestContext ctx) {
       } catch (_) {}
       expect(await store.count(db), 1);
     });
+
+    test('drop_and_add_in_transaction', () async {
+      var store = StoreRef('test');
+      var record = store.record(1);
+
+      // Drop non existing store
+      await db.transaction((txn) async {
+        await store.drop(txn);
+        await record.put(txn, 'test1');
+      });
+      expect(await record.get(db), 'test1');
+
+      await db.transaction((txn) async {
+        await store.drop(txn);
+        await record.put(txn, 'test2');
+      });
+      expect(await record.get(db), 'test2');
+    });
   });
 }
