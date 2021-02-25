@@ -1,4 +1,4 @@
-## 3.0.0
+## 3.0.0+1
 
 * `nnbd` support, breaking change.
 * No longer supports null record value.
