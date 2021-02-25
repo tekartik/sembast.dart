@@ -1,6 +1,7 @@
-## 2.4.10+2
+## 2.4.10+3
 
 * Add `QueryRef.onSnapshot` to listen for the first matching record
+* Fix dropped store issue in a transaction
 
 ## 2.4.9
 
