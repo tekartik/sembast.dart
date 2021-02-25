@@ -592,6 +592,11 @@ class SembastDatabase extends Object
     }
   }
 
+  /// Undelete a store in a transaction
+  void txnUndeleteStore(SembastTransaction txn, String storeName) {
+    _txnDroppedStores.remove(storeName);
+  }
+
   /// Flush changes.
   Future flush() async {
     // Wait for pending transaction
