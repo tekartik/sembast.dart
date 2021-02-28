@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:io/io.dart';
 import 'package:process_run/shell.dart';
 import 'package:yaml/yaml.dart';
 import 'package:pub_semver/pub_semver.dart';
