@@ -88,7 +88,7 @@ class FsDatabaseStorage extends DatabaseStorage {
   Future<bool> tmpRecover() async {
     final isFile = await fs.isFile(tmpPath);
     if (logV) {
-      print('Recovering from ${tmpPath}');
+      print('Recovering from $tmpPath');
     }
 
     if (isFile) {

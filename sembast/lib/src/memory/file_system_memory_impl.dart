@@ -21,7 +21,7 @@ class OSErrorMemory implements fs.OSError {
 
   @override
   String toString() {
-    return '(OS Error: ${message}, errno = ${errorCode})';
+    return '(OS Error: $message, errno = $errorCode)';
   }
 }
 
@@ -42,7 +42,7 @@ class FileSystemExceptionMemory implements fs.FileSystemException {
 
   @override
   String toString() {
-    return "FileSystemException: ${message}, path = '${path}' ${osError}";
+    return "FileSystemException: $message, path = '$path' $osError";
   }
 }
 
@@ -72,7 +72,7 @@ class DirectoryMemoryImpl extends FileSystemEntityMemoryImpl {
 
   @override
   String toString() {
-    return 'memDir:${path}';
+    return 'memDir:$path';
   }
 }
 
@@ -148,7 +148,7 @@ class FileMemoryImpl extends FileSystemEntityMemoryImpl {
 
   @override
   String toString() {
-    return 'memFile:${path}';
+    return 'memFile:$path';
   }
 }
 
@@ -200,7 +200,7 @@ abstract class FileSystemEntityMemoryImpl {
 
   @override
   String toString() {
-    return 'memEntity:${path}';
+    return 'memEntity:$path';
   }
 }
 

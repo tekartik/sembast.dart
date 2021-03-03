@@ -32,7 +32,7 @@ class SembastTransaction extends Object
 
   @override
   String toString() {
-    return 'txn ${_id}${completer.isCompleted ? ' completed' : ''}';
+    return 'txn $_id${completer.isCompleted ? ' completed' : ''}';
   }
 
   /// Make it an executor.
@@ -72,6 +72,6 @@ class SembastTransactionStore {
 
   @override
   String toString() {
-    return '${store}';
+    return '$store';
   }
 }

@@ -38,5 +38,5 @@ class DatabaseException implements Exception {
       : _code = errDatabaseClosed;
 
   @override
-  String toString() => '[${_code}] ${_message}';
+  String toString() => '[$_code] $_message';
 }

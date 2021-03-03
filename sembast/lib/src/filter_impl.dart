@@ -94,7 +94,7 @@ class SembastEqualsFilter extends SembastFilterBase
 
   @override
   String toString() {
-    return '${field} == ${value}';
+    return '$field == $value';
   }
 }
 
@@ -141,7 +141,7 @@ class SembastMatchesFilter extends SembastFilterBase
 
   @override
   String toString() {
-    return '${field} MATCHES ${regExp}';
+    return '$field MATCHES $regExp';
   }
 }
 
@@ -246,7 +246,7 @@ class SembastFilterPredicate extends SembastFilterBase
 
   @override
   String toString() {
-    return '${field} ${operation} ${value}';
+    return '$field $operation $value';
   }
 }
 
