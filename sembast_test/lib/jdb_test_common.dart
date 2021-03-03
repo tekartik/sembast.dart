@@ -14,13 +14,14 @@ DatabaseTestContextJdb get databaseTestContextJdbMemory =>
 ///
 /// helper to read a list of string (lines). unsafe
 ///
-Future jdbImportFromMap(JdbFactory jdbFactory, String name, Map map) async {
+Future<void> jdbImportFromMap(
+    JdbFactory jdbFactory, String name, Map map) async {
   var jdb = await jdbFactory.open(name);
   await jdbDatabaseImportFromMap(jdb, map);
-  await jdb.close();
+  jdb.close();
 }
 
-Future jdbDatabaseImportFromMap(JdbDatabase jdb, Map map) async {
+Future<void> jdbDatabaseImportFromMap(JdbDatabase jdb, Map map) async {
   // Clear all before import
   await jdb.clearAll();
   var entries = (map['entries'] as List)?.cast<Map>()?.map((map) {

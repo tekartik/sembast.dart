@@ -29,7 +29,7 @@ void main() {
           greaterThan(0));
     });
     void _checkBlob(Blob blob, String expectedBase64) {
-      var reason = '${blob}';
+      var reason = '$blob';
       expect(blob.toBase64(), expectedBase64, reason: 'timestamp $reason');
     }
 

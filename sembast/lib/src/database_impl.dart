@@ -719,7 +719,7 @@ class SembastDatabase extends Object
             final found = await _storageBase!.find();
             if (!found) {
               throw DatabaseException.databaseNotFound(
-                  'Database (open existing only) ${path} not found');
+                  'Database (open existing only) $path not found');
             }
 
             /// Once used, change the mode to existing to handle any re-open
@@ -1292,7 +1292,7 @@ class SembastDatabase extends Object
               for (var ctlr in ctlrs) {
                 void _updateRecord() {
                   if (debugListener) {
-                    print('updating $ctlr: with ${record}');
+                    print('updating $ctlr: with $record');
                   }
                   if (!record.deleted) {
                     ctlr.add(record);

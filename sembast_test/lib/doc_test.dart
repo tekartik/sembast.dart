@@ -597,7 +597,7 @@ void defineTests(DatabaseTestContext ctx) {
       db = await setupForTest(ctx, 'doc/database_utils.db');
 
       // Get the list of non-empty store names
-      var names = await getNonEmptyStoreNames(db);
+      var names = getNonEmptyStoreNames(db);
 
       expect(names, []);
     });

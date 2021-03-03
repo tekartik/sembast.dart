@@ -132,7 +132,7 @@ class SembastStore {
 
     record = txnPutRecordSync(txn, record);
     if (database.logV) {
-      print('${txn} put ${record}');
+      print('$txn put $record');
     }
     return record.value;
   }
@@ -173,7 +173,7 @@ class SembastStore {
 
     txnPutRecordSync(txn, record);
     if (database.logV) {
-      print('${txn} update ${record}');
+      print('$txn update $record');
     }
     return record.value;
   }
@@ -448,7 +448,7 @@ class SembastStore {
     record ??= recordMap[key];
 
     if (database.logV) {
-      print('${database.currentTransaction} get ${record} key ${key}');
+      print('${database.currentTransaction} get $record key $key');
     }
     return record;
   }
@@ -645,7 +645,7 @@ class SembastStore {
 
   @override
   String toString() {
-    return '${name}';
+    return '$name';
   }
 
   /// Clear a store in a transaction.

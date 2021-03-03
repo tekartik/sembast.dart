@@ -240,8 +240,7 @@ K cloneKey<K>(K key) {
   if (key == null) {
     return key;
   }
-  throw DatabaseException.badParam(
-      'key ${key} not supported ${key.runtimeType}');
+  throw DatabaseException.badParam('key $key not supported ${key.runtimeType}');
 }
 
 /// True if the value is an array or map.

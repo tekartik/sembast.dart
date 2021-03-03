@@ -25,7 +25,7 @@ void main() {
       recordSize = _recordContent.length;
 
       var dbPath = join('.dart_tool', 'sembast', 'test',
-          'perf_${recordCount}_${times}_${recordSize}_${transactionCount}.db');
+          'perf_${recordCount}_${times}_${recordSize}_$transactionCount.db');
       try {
         await File(dbPath).delete();
       } catch (_) {}
