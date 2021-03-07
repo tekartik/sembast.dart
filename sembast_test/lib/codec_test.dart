@@ -17,7 +17,7 @@ void defineTests(DatabaseTestContext ctx) {
       await factory.deleteDatabase(path);
       var codec =
           SembastCodec(signature: 'base64', codec: SembaseBase64Codec());
-      var store = StoreRef<String, dynamic>.main();
+      var store = StoreRef<String, Object?>.main();
       var record = store.record('key');
       var recordTimestamp = store.record('timestamp');
       await factory.deleteDatabase('test');

@@ -19,13 +19,13 @@ void defineTests(DatabaseTestContext ctx) {
   var factory = ctx.factory;
 
   group('doc', () {
-    Database db;
+    Database? db;
 
     setUp(() async {});
 
     tearDown(() async {
       if (db != null) {
-        await db.close();
+        await db!.close();
         db = null;
       }
     });
@@ -37,14 +37,14 @@ void defineTests(DatabaseTestContext ctx) {
       {
         var store = StoreRef.main();
 
-        await store.record('title').put(db, 'Simple application');
-        await store.record('version').put(db, 10);
-        await store.record('settings').put(db, {'offline': true});
-        var title = await store.record('title').get(db) as String;
-        var version = await store.record('version').get(db) as int;
-        var settings = await store.record('settings').get(db) as Map;
+        await store.record('title').put(db!, 'Simple application');
+        await store.record('version').put(db!, 10);
+        await store.record('settings').put(db!, {'offline': true});
+        var title = await store.record('title').get(db!) as String?;
+        var version = await store.record('version').get(db!) as int?;
+        var settings = await store.record('settings').get(db!) as Map?;
 
-        await store.record('version').delete(db);
+        await store.record('version').delete(db!);
 
         unused([title, version, settings]);
       }
@@ -52,12 +52,12 @@ void defineTests(DatabaseTestContext ctx) {
       // records
       {
         var store = intMapStoreFactory.store();
-        var key = await store.add(db, {
+        var key = await store.add(db!, {
           'path': {'sub': 'my_value'},
           'with.dots': 'my_other_value'
         });
 
-        var record = await store.record(key).getSnapshot(db);
+        var record = (await store.record(key).getSnapshot(db!))!;
         var value = record['path.sub'];
         // value = 'my_value'
         var value2 = record[FieldKey.escape('with.dots')];
@@ -68,24 +68,24 @@ void defineTests(DatabaseTestContext ctx) {
       }
 
       {
-        await db.close();
+        await db!.close();
         db = await setupForTest(ctx, 'doc/store.db');
 
         var store = StoreRef<int, String>.main();
         // Auto incrementation is built-in
-        var key1 = await store.add(db, 'value1');
-        var key2 = await store.add(db, 'value2');
+        var key1 = await store.add(db!, 'value1');
+        var key2 = await store.add(db!, 'value2');
         // key1 = 1, key2 = 2...
         expect([key1, key2], [1, 2]);
 
-        await db.transaction((txn) async {
+        await db!.transaction((txn) async {
           await store.add(txn, 'value1');
           await store.add(txn, 'value2');
         });
       }
       {
-        var path = db.path;
-        await db.close();
+        var path = db!.path;
+        await db!.close();
 
         // Migration
 
@@ -94,7 +94,7 @@ void defineTests(DatabaseTestContext ctx) {
 
         // ...
 
-        await db.close();
+        await db!.close();
 
         db = await factory.openDatabase(path, version: 2,
             onVersionChanged: (db, oldVersion, newVersion) {
@@ -111,23 +111,23 @@ void defineTests(DatabaseTestContext ctx) {
         var store = intMapStoreFactory.store();
 
         // Add the data and get the key
-        var key = await store.add(db, {'value': 'test'});
+        var key = await store.add(db!, {'value': 'test'});
 
         // Retrieve the record
         var record = store.record(key);
-        var readMap = await record.get(db);
+        var readMap = (await record.get(db!))!;
 
         expect(readMap, {'value': 'test'});
 
         // Update the record
-        await record.put(db, {'other_value': 'test2'}, merge: true);
+        await record.put(db!, {'other_value': 'test2'}, merge: true);
 
-        readMap = await record.get(db);
+        readMap = (await record.get(db!))!;
 
         expect(readMap, {'value': 'test', 'other_value': 'test2'});
 
         // Track record changes
-        var subscription = record.onSnapshot(db).listen((snapshot) {
+        var subscription = record.onSnapshot(db!).listen((snapshot) {
           // if snapshot is null, the record is not present or has been
           // deleted
 
@@ -135,7 +135,7 @@ void defineTests(DatabaseTestContext ctx) {
         });
         // cancel subscription. Important! not doing this might lead to
         // memory leaks
-        unawaited(subscription?.cancel());
+        unawaited(subscription.cancel());
       }
 
       {
@@ -143,14 +143,14 @@ void defineTests(DatabaseTestContext ctx) {
         var store = StoreRef<String, String>.main();
 
         // Writing the data
-        await store.record('username').put(db, 'my_username');
-        await store.record('url').put(db, 'my_url');
+        await store.record('username').put(db!, 'my_username');
+        await store.record('url').put(db!, 'my_url');
 
         // Reading the data
-        var url = await store.record('url').get(db);
-        var username = await store.record('username').get(db);
+        var url = await store.record('url').get(db!);
+        var username = await store.record('username').get(db!);
 
-        await db.transaction((txn) async {
+        await db!.transaction((txn) async {
           url = await store.record('url').get(txn);
           username = await store.record('username').get(txn);
         });
@@ -159,15 +159,15 @@ void defineTests(DatabaseTestContext ctx) {
       }
 
       {
-        // Use the main store, key being an int, value a Map<String, dynamic>
+        // Use the main store, key being an int, value a Map<String, Object?>
         // Lint warnings will warn you if you try to use different types
         var store = intMapStoreFactory.store();
-        var key = await store.add(db, {'offline': true});
-        var value = await store.record(key).get(db);
+        var key = await store.add(db!, {'offline': true});
+        var value = (await store.record(key).get(db!))!;
 
         // specify a key
         key = 1234;
-        await store.record(key).put(db, {'offline': true});
+        await store.record(key).put(db!, {'offline': true});
 
         unused(value);
       }
@@ -177,7 +177,7 @@ void defineTests(DatabaseTestContext ctx) {
         var store = intMapStoreFactory.store('animals');
 
         // Store some objects
-        await db.transaction((txn) async {
+        await db!.transaction((txn) async {
           await store.add(txn, {'name': 'fish'});
           await store.add(txn, {'name': 'cat'});
           await store.add(txn, {'name': 'dog'});
@@ -188,14 +188,14 @@ void defineTests(DatabaseTestContext ctx) {
         var finder = Finder(
             filter: Filter.greaterThan('name', 'cat'),
             sortOrders: [SortOrder('name')]);
-        var records = await store.find(db, finder: finder);
+        var records = await store.find(db!, finder: finder);
 
         expect(records.length, 2);
         expect(records[0]['name'], 'dog');
         expect(records[1]['name'], 'fish');
 
         // Find the first record matching the finder
-        var record = await store.findFirst(db, finder: finder);
+        var record = (await store.findFirst(db!, finder: finder))!;
         // Get the record id
         var recordId = record.key;
         // Get the record value
@@ -206,30 +206,30 @@ void defineTests(DatabaseTestContext ctx) {
 
         // Track query changes
         var query = store.query(finder: finder);
-        var subscription = query.onSnapshots(db).listen((snapshots) {
+        var subscription = query.onSnapshots(db!).listen((snapshots) {
           // snapshots always contains the list of records matching the query
 
           // ...
         });
         // cancel subscription. Important! not doing this might lead to
         // memory leaks
-        unawaited(subscription?.cancel());
+        unawaited(subscription.cancel());
       }
 
       {
-        var store = intMapStoreFactory.store('animals');
-        await store.drop(db);
+        final store = intMapStoreFactory.store('animals');
+        await store.drop(db!);
 
         // Store some objects
-        int key1, key2, key3;
-        await db.transaction((txn) async {
+        late int key1, key2, key3;
+        await db!.transaction((txn) async {
           key1 = await store.add(txn, {'name': 'fish'});
           key2 = await store.add(txn, {'name': 'cat'});
           key3 = await store.add(txn, {'name': 'dog'});
         });
 
         // Read by key
-        var value = await store.record(key1).get(db);
+        var value = (await store.record(key1).get(db!))!;
 
         // read values are immutable/read-only. If you want to modify it you
         // should clone it first
@@ -245,10 +245,10 @@ void defineTests(DatabaseTestContext ctx) {
         map['name'] = 'nice fish';
 
         // existing remain un changed
-        expect(await store.record(key1).get(db), {'name': 'fish'});
+        expect(await store.record(key1).get(db!), {'name': 'fish'});
 
 // Read 2 records by key
-        var records = await store.records([key2, key3]).get(db);
+        var records = await store.records([key2, key3]).get(db!);
         expect(records[0], {'name': 'cat'});
         expect(records[1], {'name': 'dog'});
 
@@ -258,7 +258,7 @@ void defineTests(DatabaseTestContext ctx) {
           var finder = Finder(
               filter: Filter.greaterThan('name', 'cat'),
               sortOrders: [SortOrder('name')]);
-          var records = await store.find(db, finder: finder);
+          var records = await store.find(db!, finder: finder);
 
           expect(records.length, 2);
           expect(records[0]['name'], 'dog');
@@ -267,7 +267,7 @@ void defineTests(DatabaseTestContext ctx) {
         {
           // Look for the last created record
           var finder = Finder(sortOrders: [SortOrder(Field.key, false)]);
-          var record = await store.findFirst(db, finder: finder);
+          var record = (await store.findFirst(db!, finder: finder))!;
 
           expect(record['name'], 'dog');
         }
@@ -276,10 +276,10 @@ void defineTests(DatabaseTestContext ctx) {
           var finder = Finder(
               sortOrders: [SortOrder('name', true)],
               start: Boundary(values: ['cat']));
-          var record = await store.findFirst(db, finder: finder);
+          var record = (await store.findFirst(db!, finder: finder))!;
           expect(record['name'], 'dog');
 
-          record = await store.findFirst(db, finder: finder);
+          record = (await store.findFirst(db!, finder: finder))!;
 
           // record snapshot are read-only.
           // If you want to modify it you should clone it
@@ -287,19 +287,19 @@ void defineTests(DatabaseTestContext ctx) {
           map['name'] = 'nice dog';
 
           // existing remains unchanged
-          record = await store.findFirst(db, finder: finder);
+          record = (await store.findFirst(db!, finder: finder))!;
           expect(record['name'], 'dog');
         }
         {
           // Upsert multiple records
           var records = store.records([key1, key2]);
-          var result = await records.put(
-              db,
+          var result = await (records.put(
+              db!,
               [
                 {'value': 'new value for key1'},
                 {'value_other': 'new value for key2'}
               ],
-              merge: true);
+              merge: true));
           expect(result, [
             {'name': 'fish', 'value': 'new value for key1'},
             {'name': 'cat', 'value_other': 'new value for key2'}
@@ -309,7 +309,7 @@ void defineTests(DatabaseTestContext ctx) {
           // Our shop store
           var store = intMapStoreFactory.store('shop');
 
-          await db.transaction((txn) async {
+          await db!.transaction((txn) async {
             await store.add(txn, {'name': 'Lamp', 'price': 10});
             await store.add(txn, {'name': 'Chair', 'price': 10});
             await store.add(txn, {'name': 'Deco', 'price': 5});
@@ -321,14 +321,14 @@ void defineTests(DatabaseTestContext ctx) {
           var finder = Finder(
               sortOrders: [SortOrder('price'), SortOrder('name')],
               start: Boundary(values: [10, 'Chair']));
-          var record = await store.findFirst(db, finder: finder);
+          var record = (await store.findFirst(db!, finder: finder))!;
           expect(record['name'], 'Lamp');
 
           // You can also specify to look after a given record
           finder = Finder(
               sortOrders: [SortOrder('price'), SortOrder('name')],
               start: Boundary(record: record));
-          record = await store.findFirst(db, finder: finder);
+          record = (await store.findFirst(db!, finder: finder))!;
           // After the lamp the more expensive one is the Table
           expect(record['name'], 'Table');
 
@@ -338,21 +338,21 @@ void defineTests(DatabaseTestContext ctx) {
             // Delete all record with a price greater then 10
             var filter = Filter.greaterThan('price', 10);
             var finder = Finder(filter: filter);
-            final deleted = await store.delete(db, finder: finder);
+            final deleted = await store.delete(db!, finder: finder);
             expect(deleted, 1);
 
             // Clear all records from the store
-            await store.delete(db);
+            await store.delete(db!);
           }
 
           {
             // Delete all record with a price greater then 10
             var filter = Filter.greaterThan('price', 10);
             var finder = Finder(filter: filter);
-            await store.delete(db, finder: finder);
+            await store.delete(db!, finder: finder);
 
             // Clear all records from the store
-            await store.delete(db);
+            await store.delete(db!);
           }
         }
       }
@@ -362,23 +362,24 @@ void defineTests(DatabaseTestContext ctx) {
       db = await setupForTest(ctx, 'doc/new_1.15_shop_file_format.db');
       {
         // Our shop store sample data
-        var store = intMapStoreFactory.store('shop');
+        StoreRef<int?, Map<String, Object?>> store =
+            intMapStoreFactory.store('shop');
 
-        int lampKey;
-        int chairKey;
-        await db.transaction((txn) async {
+        int? lampKey;
+        int? chairKey;
+        await db!.transaction((txn) async {
           // Add 2 records
           lampKey = await store.add(txn, {'name': 'Lamp', 'price': 10});
           chairKey = await store.add(txn, {'name': 'Chair', 'price': 15});
         });
 
         // update the price of the lamp record
-        await store.record(lampKey).update(db, {'price': 12});
+        await store.record(lampKey).update(db!, {'price': 12});
 
         // Avoid unused warning that make the code easier-to read
         expect(chairKey, 2);
 
-        var content = await exportDatabase(db);
+        var content = await exportDatabase(db!);
         expect(
             content,
             {
@@ -409,7 +410,7 @@ void defineTests(DatabaseTestContext ctx) {
             await importDatabase(map, databaseFactory, 'imported.db');
 
         // Check the lamp price
-        expect((await store.record(lampKey).get(importedDb))['price'], 12);
+        expect((await store.record(lampKey).get(importedDb))!['price'], 12);
       }
     });
 
@@ -417,25 +418,26 @@ void defineTests(DatabaseTestContext ctx) {
       db = await setupForTest(ctx, 'doc/write_data.db');
       {
         // Our product store.
-        var store = intMapStoreFactory.store('product');
+        StoreRef<int?, Map<String, Object?>> store =
+            intMapStoreFactory.store('product');
 
-        int lampKey;
-        int chairKey;
-        await db.transaction((txn) async {
+        int? lampKey;
+        int? chairKey;
+        await db!.transaction((txn) async {
           // Add 2 records
           lampKey = await store.add(txn, {'name': 'Lamp', 'price': 10});
           chairKey = await store.add(txn, {'name': 'Chair', 'price': 15});
         });
 
-        expect(
-            await store.record(lampKey).get(db), {'name': 'Lamp', 'price': 10});
+        expect(await store.record(lampKey).get(db!),
+            {'name': 'Lamp', 'price': 10});
 
         // update the price of the lamp record
-        await store.record(lampKey).update(db, {'price': 12});
+        await store.record(lampKey).update(db!, {'price': 12});
 
         var tableKey = 1000578;
         // Update or create the table product with key 1000578
-        await store.record(tableKey).put(db, {'name': 'Table', 'price': 120});
+        await store.record(tableKey).put(db!, {'name': 'Table', 'price': 120});
 
         // Avoid unused warning that make the code easier-to read
         expect(chairKey, 2);
@@ -501,11 +503,11 @@ void defineTests(DatabaseTestContext ctx) {
           }
         });
 
-        Future<List<Map<String, dynamic>>> getProductMaps() async {
+        Future<List<Map<String, Object?>>> getProductMaps() async {
           var results = await store
               .stream(db)
-              .map((snapshot) => Map<String, dynamic>.from(snapshot.value)
-                ..['id'] = snapshot.key)
+              .map(((snapshot) => Map<String, Object?>.from(snapshot.value)
+                ..['id'] = snapshot.key))
               .toList();
           return results;
         }
@@ -597,7 +599,7 @@ void defineTests(DatabaseTestContext ctx) {
       db = await setupForTest(ctx, 'doc/database_utils.db');
 
       // Get the list of non-empty store names
-      var names = await getNonEmptyStoreNames(db);
+      var names = getNonEmptyStoreNames(db!);
 
       expect(names, []);
     });

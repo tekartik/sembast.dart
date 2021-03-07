@@ -10,7 +10,7 @@ void main() {
 
 void defineTests(DatabaseTestContext ctx) {
   group('src_store', () {
-    SembastDatabase db;
+    late SembastDatabase db;
 
     setUp(() async {
       db = await setupForTest(ctx, 'src_store.db') as SembastDatabase;

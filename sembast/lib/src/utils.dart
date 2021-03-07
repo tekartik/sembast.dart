@@ -17,7 +17,7 @@ bool checkMapKey(key) {
     return false;
   }
   // Cannot contain .
-  if ((key as String).contains('.')) {
+  if (key.contains('.')) {
     return false;
   }
   return true;
@@ -101,13 +101,8 @@ int compareValue(dynamic value1, dynamic value2) {
   }
   // Compare value type
   var cmp = compareValueType(value1, value2);
-  if (cmp == null) {
-    /// Convert to string in the worst case
-    if (!(value1 is String) || !(value2 is String)) {
-      return compareValue(value1?.toString(), value2?.toString());
-    }
-  }
-  return cmp ?? 0;
+
+  return cmp;
 }
 
 /// Compare 2 boolean: fase < null
@@ -124,7 +119,6 @@ int compareBool(bool value1, bool value2) {
 /// Compare 2 value types.
 ///
 /// return <0 if value1 < value2 or >0 if greater
-/// returns null if cannot be compared (typically custom types)
 ///
 /// Follows firestore ordering:
 /// https://firebase.google.com/docs/firestore/manage-data/data-types
@@ -213,11 +207,13 @@ int compareValueType(dynamic value1, dynamic value2) {
   } else if (value2 is Map) {
     return 1;
   }
-  return null;
+
+  /// Convert to string in the worst case
+  return compareValue(value1.toString(), value2.toString());
 }
 
-Map<String, dynamic> _fixMap(Map map) {
-  var fixedMap = <String, dynamic>{};
+Map<String, Object?> _fixMap(Map map) {
+  var fixedMap = <String, Object?>{};
   map.forEach((key, value) {
     if (value != FieldValue.delete) {
       fixedMap[key as String] = _fixValue(value);
@@ -244,8 +240,7 @@ K cloneKey<K>(K key) {
   if (key == null) {
     return key;
   }
-  throw DatabaseException.badParam(
-      'key ${key} not supported${key != null ? ' type:${key.runtimeType}' : ''}');
+  throw DatabaseException.badParam('key $key not supported ${key.runtimeType}');
 }
 
 /// True if the value is an array or map.
@@ -256,7 +251,7 @@ bool isValueMutable(dynamic value) {
 /// Clone a value.
 dynamic cloneValue(dynamic value) {
   if (value is Map) {
-    return value.map<String, dynamic>(
+    return value.map<String, Object?>(
         (key, value) => MapEntry(key as String, cloneValue(value)));
   }
   if (value is Iterable) {
@@ -268,8 +263,8 @@ dynamic cloneValue(dynamic value) {
 /// Sanitize Map type for root value
 dynamic sanitizeValueIfMap(dynamic value) {
   if (value is Map) {
-    if (!(value is Map<String, dynamic>)) {
-      return value?.cast<String, dynamic>();
+    if (!(value is Map<String, Object?>)) {
+      return value.cast<String, Object?>();
     }
   }
   return value;
@@ -296,9 +291,9 @@ bool isBasicTypeFieldValueOrNull(dynamic value) {
 }
 
 /// Make a value immutable.
-dynamic immutableValue(dynamic value) {
+Object? immutableValue(Object? value) {
   if (value is Map) {
-    return ImmutableMap<String, dynamic>(value);
+    return ImmutableMap<String, Object?>(value);
   } else if (value is Iterable) {
     return ImmutableList(value);
   }
@@ -336,7 +331,7 @@ class ImmutableMap<K, V> extends MapBase<K, V> {
   ImmutableMap(Map map) : _map = map.cast<K, V>();
 
   @override
-  V operator [](Object key) => immutableValue(_map[key]) as V;
+  V? operator [](Object? key) => immutableValue(_map[key as K]) as V?;
 
   @override
   void operator []=(K key, V value) => throw StateError('read only');
@@ -348,11 +343,11 @@ class ImmutableMap<K, V> extends MapBase<K, V> {
   Iterable<K> get keys => _map.keys;
 
   @override
-  V remove(Object key) => throw StateError('read only');
+  V remove(Object? key) => throw StateError('read only');
 }
 
 /// Get value at a given field path.
-T getPartsMapValue<T>(Map map, Iterable<String> parts) {
+T? getPartsMapValue<T>(Map map, Iterable<String> parts) {
   dynamic value = map;
   for (final part in parts) {
     if (value is Map) {
@@ -361,14 +356,14 @@ T getPartsMapValue<T>(Map map, Iterable<String> parts) {
       return null;
     }
   }
-  return value as T;
+  return value as T?;
 }
 
 /// Get a raw value at a given field path.
-T getPartsMapRawValue<T>(Map map, Iterable<String> parts) {
+T? getPartsMapRawValue<T>(Map map, Iterable<String> parts) {
   // Allow getting raw value
   if (map is ImmutableMap) {
-    map = (map as ImmutableMap).rawMap;
+    map = map.rawMap;
   }
   dynamic value = map;
   for (var part in parts) {
@@ -378,7 +373,7 @@ T getPartsMapRawValue<T>(Map map, Iterable<String> parts) {
       return null;
     }
   }
-  return value as T;
+  return value as T?;
 }
 
 /// Set value at a given field path.
@@ -387,17 +382,17 @@ void setPartsMapValue<T>(Map map, List<String> parts, T value) {
     final part = parts[i];
     dynamic sub = map[part];
     if (!(sub is Map)) {
-      sub = <String, dynamic>{};
+      sub = <String, Object?>{};
       map[part] = sub;
     }
-    map = sub as Map;
+    map = sub;
   }
   map[parts.last] = value;
 }
 
 /// Check if a trick is enclosed by backticks
 bool isBacktickEnclosed(String field) {
-  final length = field?.length ?? 0;
+  final length = field.length;
   if (length < 2) {
     return false;
   }
@@ -408,7 +403,7 @@ bool isBacktickEnclosed(String field) {
 String _escapeKey(String field) => '`$field`';
 
 /// Escape a key.
-String escapeKey(String field) {
+String? escapeKey(String? field) {
   if (field == null) {
     return null;
   }
@@ -434,12 +429,12 @@ List<String> getFieldParts(String field) {
 List<String> getRawFieldParts(String field) => field.split('.');
 
 /// Get field value.
-T getMapFieldValue<T>(Map map, String field) {
+T? getMapFieldValue<T>(Map map, String field) {
   return getPartsMapValue(map, getFieldParts(field));
 }
 
 /// Avoid immutable map duplication
-T getMapFieldRawValue<T>(Map map, String field) {
+T? getMapFieldRawValue<T>(Map map, String field) {
   return getPartsMapRawValue(map, getFieldParts(field));
 }
 
@@ -450,7 +445,7 @@ void setMapFieldValue<T>(Map map, String field, T value) {
 
 /// Merge an existing value with a new value, Map only!
 dynamic mergeValue(dynamic existingValue, dynamic newValue,
-    {bool allowDotsInKeys}) {
+    {bool? allowDotsInKeys}) {
   allowDotsInKeys ??= false;
 
   if (newValue == null) {
@@ -464,15 +459,15 @@ dynamic mergeValue(dynamic existingValue, dynamic newValue,
     return newValue;
   }
 
-  final mergedMap = cloneValue(existingValue) as Map<String, dynamic>;
-  Map currentMap = mergedMap;
+  final mergedMap = cloneValue(existingValue) as Map<String, Object?>?;
+  Map? currentMap = mergedMap;
 
   // Here we have the new key and values to merge
   void merge(key, value) {
     var stringKey = key as String;
     // Handle a.b.c or `` `a.b.c` ``
     List<String> keyParts;
-    if (allowDotsInKeys) {
+    if (allowDotsInKeys!) {
       keyParts = [stringKey];
     } else {
       keyParts = getFieldParts(stringKey);
@@ -481,17 +476,17 @@ dynamic mergeValue(dynamic existingValue, dynamic newValue,
       stringKey = keyParts[0];
       // delete the field?
       if (value == FieldValue.delete) {
-        currentMap.remove(stringKey);
+        currentMap!.remove(stringKey);
       } else {
         // Replace the content. We don't want to merge here since we are the
         // last part of the path specification
-        currentMap[stringKey] = value;
+        currentMap![stringKey] = value;
       }
     } else {
       if (value == FieldValue.delete) {
         var map = currentMap;
         for (var part in keyParts.sublist(0, keyParts.length - 1)) {
-          dynamic sub = map[part];
+          dynamic sub = map![part];
           if (sub is Map) {
             map = sub;
           } else {
@@ -505,14 +500,14 @@ dynamic mergeValue(dynamic existingValue, dynamic newValue,
       } else {
         var map = currentMap;
         for (final part in keyParts.sublist(0, keyParts.length - 1)) {
-          dynamic sub = map[part];
+          dynamic sub = map![part];
           if (sub is Map) {
             map = sub;
           } else {
             // create sub part
-            sub = <String, dynamic>{};
+            sub = <String, Object?>{};
             map[part] = sub;
-            map = sub as Map;
+            map = sub;
           }
         }
         var previousMap = currentMap;
@@ -523,7 +518,7 @@ dynamic mergeValue(dynamic existingValue, dynamic newValue,
     }
   }
 
-  (newValue as Map).forEach(merge);
+  newValue.forEach(merge);
   return mergedMap;
 }
 

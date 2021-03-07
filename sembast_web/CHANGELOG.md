@@ -1,3 +1,7 @@
+## 2.0.0+1
+
+- `nnbd` support, breaking change.
+
 ## 1.2.0+1
 
 - Bump sembast dependency

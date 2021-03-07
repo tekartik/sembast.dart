@@ -37,8 +37,8 @@ void main() {
 ///
 class OpenHelper {
   final String path;
-  Database _db;
-  Completer<Database> _completer;
+  Database? _db;
+  Completer<Database>? _completer;
 
   OpenHelper(this.path);
 
@@ -48,13 +48,13 @@ class OpenHelper {
       _completer = Completer();
       await _openDatabase();
     }
-    return _completer.future;
+    return _completer!.future;
   }
 
-  Future<Database> _openDatabase() async {
+  Future<Database?> _openDatabase() async {
     _db = await databaseFactoryIo.openDatabase(path);
     // Mark as opened
-    _completer.complete(_db);
+    _completer!.complete(_db);
     return _db;
   }
 }

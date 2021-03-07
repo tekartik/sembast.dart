@@ -17,19 +17,19 @@ abstract class JdbException {
 /// Journal entry database.
 class JdbInfoEntry {
   /// Jdb entry id.
-  String id;
+  String? id;
 
   /// Jdb value
-  dynamic value;
+  Object? value;
 
   @override
   String toString() => '[$id] $value';
 
   /// Debug map.
-  Map<String, dynamic> exportToMap() {
-    var map = <String, dynamic>{
+  Map<String, Object?> exportToMap() {
+    var map = <String, Object?>{
       'id': id,
-      'value': value,
+      if (value != null) 'value': value,
     };
     return map;
   }
@@ -47,64 +47,63 @@ abstract class JdbEntry {
   bool get deleted;
 
   @override
-  String toString() =>
-      '[$id] $record $value${(deleted ?? false) ? ' (deleted)' : ''}';
+  String toString() => '[$id] $record ${deleted ? ' (deleted)' : ' $value'}';
 
-  /// Jdb value
-  dynamic get value;
+  /// Jdb value - null if deleted
+  Object? get value;
 }
 
 /// Read entry
 class JdbReadEntry extends JdbEntry {
   @override
-  int id;
+  late int id;
 
   @override
-  RecordRef record;
+  late RecordRef record;
 
   @override
-  dynamic value;
+  Object? value;
 
   @override
-  bool deleted;
+  late bool deleted;
 }
 
 /// Write entry.
 class JdbWriteEntry extends JdbEntry {
   @override
-  int id;
+  late int id;
 
   /// Record
-  TxnRecord txnRecord;
+  TxnRecord? txnRecord;
 
   // Ref.
   @override
-  RecordRef get record => txnRecord.ref;
+  RecordRef get record => txnRecord!.ref;
 
-  dynamic _value;
+  Object? _value;
 
   /// value.
   @override
-  dynamic get value => _value ??= txnRecord.record.value;
+  Object? get value => _value ??= txnRecord!.record.value;
 
   @override
   String toString() => '[$id] $record $value';
 
   @override
-  bool get deleted => txnRecord.deleted;
+  bool get deleted => txnRecord!.deleted;
 }
 
 /// Raw entry.
 class JdbRawWriteEntry extends JdbWriteEntry {
   @override
-  final dynamic value;
+  final Object? value;
   @override
   final bool deleted;
   @override
   final RecordRef record;
 
   /// Raw entry.
-  JdbRawWriteEntry({this.value, this.deleted, this.record});
+  JdbRawWriteEntry({this.value, required this.deleted, required this.record});
 }
 
 /// Jdb.
@@ -113,7 +112,7 @@ abstract class JdbDatabase {
   Stream<int> get revisionUpdate;
 
   /// Get info.
-  Future<JdbInfoEntry> getInfoEntry(String id);
+  Future<JdbInfoEntry?> getInfoEntry(String id);
 
   /// Set info.
   Future setInfoEntry(JdbInfoEntry entry);
@@ -143,7 +142,7 @@ abstract class JdbDatabase {
   Future<StorageJdbWriteResult> writeIfRevision(StorageJdbWriteQuery query);
 
   /// Read all context (re-open if needed). Test only.
-  Future<Map<String, dynamic>> exportToMap();
+  Future<Map<String, Object?>> exportToMap();
 
   /// Compact the database
   Future compact();
@@ -158,7 +157,7 @@ abstract class JdbDatabase {
 /// Jdb implementation.
 abstract class JdbFactory {
   /// Open the database.
-  Future<JdbDatabase> open(String path, {DatabaseOpenOptions options});
+  Future<JdbDatabase> open(String path, {DatabaseOpenOptions? options});
 
   /// Delete a database
   Future delete(String path);

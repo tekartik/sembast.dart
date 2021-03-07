@@ -13,14 +13,14 @@ Supported key types are:
 Supported value types are:
 - `String`
 - `num` (`int` and `double`)
-- `Map<String, dynamic>`
-- `List<dynamic>` (`Iterable` is not a supported types, use to `List()` to convert any iterable)
+- `Map<String, Object?>`
+- `List<Object?>` (`Iterable` is not a supported types, use to `List()` to convert any iterable)
 - `bool`
-- `null`
+- `null` (the record value itself cannot be null)
 - `Blob` (custom type)
 - `Timestamp` (custom type)
 
-Using the Store API, Map must be of type `Map<String, dynamic>`.
+Using the Store API, Map must be of type `Map<String, Object?>`.
 
 ## Keys and map keys
 

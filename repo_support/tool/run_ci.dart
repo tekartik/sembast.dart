@@ -1,4 +1,5 @@
 import 'package:dev_test/package.dart';
+import 'package:path/path.dart';
 
 Future main() async {
   for (var dir in [
@@ -6,6 +7,6 @@ Future main() async {
     'sembast_test',
     'sembast_web',
   ]) {
-    await packageRunCi(dir);
+    await packageRunCi(join('..', dir));
   }
 }

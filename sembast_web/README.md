@@ -4,7 +4,7 @@
 
 Works on browser applications and flutter web applications. 
 
-* Basic [sembast_web demo](https://github.com/alextekartik/flutter_app_example/tree/master/demosembast) on flutter.
+* Basic [sembast_web demo](https://github.com/alextekartik/flutter_app_example/tree/master/demo_sembast) on flutter.
 * [notepad_sembast](https://github.com/alextekartik/flutter_app_example/tree/master/notepad_sembast): Simple flutter notepad on all platforms
   ([online demo](https://alextekartik.github.io/flutter_app_example/notepad_sembast/))
 
@@ -33,7 +33,7 @@ Future main() async {
 
   // Add a new record
   var key =
-      await store.add(db, <String, dynamic>{'name': 'Table', 'price': 15});
+      await store.add(db, <String, Object?>{'name': 'Table', 'price': 15});
 
   // Read the record
   var value = await store.record(key).get(db);

@@ -11,15 +11,13 @@ class DatabaseFactoryIo extends DatabaseFactoryFs {
   FileSystemIo get fileSystemIo => fs as FileSystemIo;
 
   /// Io file system implementation
-  DatabaseFactoryIo({String rootPath})
+  DatabaseFactoryIo({String? rootPath})
       : super(FileSystemIo(rootPath: rootPath));
 
   @override
   Future<Database> openDatabaseWithOptions(
       String path, DatabaseOpenOptions options) {
-    if (path != null) {
-      path = fileSystemIo.absolute(path);
-    }
+    path = fileSystemIo.absolute(path);
     return super.openDatabaseWithOptions(path, options);
   }
 }
@@ -29,5 +27,5 @@ class DatabaseFactoryIo extends DatabaseFactoryFs {
 final DatabaseFactoryIo databaseFactoryIo = DatabaseFactoryIo();
 
 /// Create an IO factory with a root path.
-DatabaseFactory createDatabaseFactoryIo({String rootPath}) =>
+DatabaseFactory createDatabaseFactoryIo({String? rootPath}) =>
     DatabaseFactoryIo(rootPath: rootPath);

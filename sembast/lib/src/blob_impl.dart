@@ -7,9 +7,7 @@ class Blob implements Comparable<Blob> {
   final Uint8List bytes;
 
   /// Blob creation.
-  Blob(this.bytes) {
-    assert(bytes != null);
-  }
+  Blob(this.bytes);
 
   /// Blob creation from int list.
   Blob.fromList(List<int> list) : bytes = Uint8List.fromList(list);
@@ -42,7 +40,7 @@ class Blob implements Comparable<Blob> {
       }();
 
   @override
-  String toString() => 'Blob(len: ${bytes?.length})';
+  String toString() => 'Blob(len: ${bytes.length})';
 
   @override
   int compareTo(Blob other) {

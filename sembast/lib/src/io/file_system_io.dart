@@ -29,7 +29,7 @@ io.FileMode _fileMode(fs.FileMode fsFileMode) {
     case fs.FileMode.append:
       return fileModeAppendIo;
     default:
-      throw null;
+      throw fsFileMode;
   }
 }
 
@@ -82,7 +82,7 @@ class _IoOSError implements fs.OSError {
 class _IoFileSystemException implements fs.FileSystemException {
   io.FileSystemException ioFse;
 
-  _IoFileSystemException(this.ioFse) : osError = _IoOSError(ioFse.osError);
+  _IoFileSystemException(this.ioFse) : osError = _IoOSError(ioFse.osError!);
 
   @override
   final _IoOSError osError;
@@ -91,25 +91,44 @@ class _IoFileSystemException implements fs.FileSystemException {
   String get message => ioFse.message;
 
   @override
-  String get path => ioFse.path;
+  String? get path => ioFse.path;
 
   @override
   String toString() => ioFse.toString();
+}
+
+class _FileSystemExceptionIoDefault implements fs.FileSystemException {
+  _FileSystemExceptionIoDefault(this.message);
+
+  @override
+  _IoOSError? get osError => null;
+
+  @override
+  final String message;
+
+  @override
+  String? get path => null;
+
+  @override
+  String toString() => 'FsIoException($message)';
 }
 
 Future<T> _wrap<T>(Future<T> future) {
   return future.catchError((e) {
     if (e is io.FileSystemException) {
       throw _IoFileSystemException(e);
+    } else if (e is fs.FileSystemException) {
+      throw e;
+    } else {
+      throw _FileSystemExceptionIoDefault('error ${e?.toString()}');
     }
-    throw e;
   });
 }
 
 /// File system io implementation.
 class FileSystemIo implements fs.FileSystem {
   /// Root path.
-  final String rootPath;
+  final String? rootPath;
 
   /// get a path in absolute format.
   String absolute(String path) {
@@ -121,11 +140,8 @@ class FileSystemIo implements fs.FileSystem {
   }
 
   String _normalizeWithRoot(String path) {
-    if (path == null) {
-      throw ArgumentError.notNull(path);
-    }
     if (rootPath != null) {
-      return normalize(join(rootPath, path));
+      return normalize(join(rootPath!, path));
     } else {
       return normalize(path);
     }
@@ -159,16 +175,17 @@ class FileSystemIo implements fs.FileSystem {
           followLinks: true));
 
   @override
-  DirectoryIo get currentDirectory => rootPath != null
-      ? (directory('.') as DirectoryIo)
-      : (io.Directory.current == null
-          ? null
-          : directory(io.Directory.current.path) as DirectoryIo);
+  DirectoryIo get currentDirectory {
+    if (rootPath != null) {
+      return directory('.') as DirectoryIo;
+    } else {
+      // post nnbd...
+      return directory('.') as DirectoryIo;
+    }
+  }
 
   @override
-  FileIo get scriptFile => io.Platform.script == null
-      ? null
-      : file(io.Platform.script.toFilePath()) as FileIo;
+  FileIo get scriptFile => file(io.Platform.script.toFilePath()) as FileIo;
 
   @override
   String toString() => 'io';
@@ -182,7 +199,7 @@ abstract class FileSystemEntityIo implements fs.FileSystemEntity {
   final String path;
 
   /// The native entity.
-  io.FileSystemEntity ioFileSystemEntity;
+  late io.FileSystemEntity ioFileSystemEntity;
 
   /// File system entity io implementation.
   FileSystemEntityIo(this._fs, this.path);
@@ -261,7 +278,7 @@ class FileIo extends FileSystemEntityIo implements fs.File {
       _wrap(ioFile.create(recursive: recursive)).then((io.File ioFile) => this);
 
   @override
-  Stream<Uint8List> openRead([int start, int end]) //
+  Stream<Uint8List> openRead([int? start, int? end]) //
       =>
       intListStreamToUint8ListStream(ioFile.openRead(start, end));
 

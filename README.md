@@ -20,8 +20,11 @@ memory (Browser, VM, Flutter, Node) for testing purpose
 * Web support (including Flutter Web) through [`sembast_web`](https://pub.dev/packages/sembast_web).
 * Can work on top of sqflite through [`sembast_sqflite`](https://pub.dev/packages/sembast_sqflite).
 
-Usage example: [notepad_sembast](https://github.com/alextekartik/flutter_app_example/tree/master/notepad_sembast): Simple flutter notepad working on all platforms (web/mobile/mac)
+Usage example: 
+* [notepad_sembast](https://github.com/alextekartik/flutter_app_example/tree/master/notepad_sembast): Simple flutter notepad working on all platforms (web/mobile/desktop)
  ([online demo](https://alextekartik.github.io/flutter_app_example/notepad_sembast/))
+* [demo_sembast](https://github.com/alextekartik/flutter_app_example/tree/master/demo_sembast): Simplest sembast demo based on the app template with added persistency. [Online demo](https://alextekartik.github.io/flutter_app_example/demo_sembast)
+  
 
 Follow the [guide](https://github.com/tekartik/sembast.dart/blob/master/sembast/doc/guide.md).
 

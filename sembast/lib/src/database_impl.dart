@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:meta/meta.dart';
 import 'package:sembast/sembast.dart';
 import 'package:sembast/src/api/log_level.dart';
 import 'package:sembast/src/api/protected/jdb.dart';
@@ -9,12 +8,12 @@ import 'package:sembast/src/api/v2/sembast.dart' as v2;
 import 'package:sembast/src/common_import.dart';
 import 'package:sembast/src/cooperator.dart';
 import 'package:sembast/src/database_client_impl.dart';
+import 'package:sembast/src/database_content.dart';
 import 'package:sembast/src/database_factory_mixin.dart';
 import 'package:sembast/src/debug_utils.dart';
 import 'package:sembast/src/jdb.dart';
 import 'package:sembast/src/json_encodable_codec.dart';
 import 'package:sembast/src/listener.dart';
-import 'package:sembast/src/database_content.dart';
 import 'package:sembast/src/meta.dart';
 import 'package:sembast/src/record_impl.dart';
 import 'package:sembast/src/sembast_codec_impl.dart';
@@ -34,16 +33,16 @@ SembastDatabase getDatabase(Database database) => database as SembastDatabase;
 /// Commit entries in a transaction.
 class CommitEntries {
   /// Last known revision
-  int revision;
+  int? revision;
 
   /// records changed.
-  List<TxnRecord> txnRecords;
+  List<TxnRecord>? txnRecords;
 
   /// True when upgrading
-  bool upgrading;
+  late bool upgrading;
 
   /// Upgrading meta
-  Meta upgradingMeta;
+  Meta? upgradingMeta;
 
   /// Has at least one record
   bool get hasWriteData => txnRecords?.isNotEmpty ?? false;
@@ -54,8 +53,12 @@ class CommitData extends CommitEntries {
   // Only when we have listeners
 }
 
+/// Mixin to help on evolution
+mixin SembastDatabaseMin implements Database {}
+
 /// Database implementation.
 class SembastDatabase extends Object
+    with SembastDatabaseMin
     implements Database, SembastDatabaseClient {
   // Can be modified by openHelper for test purpose
   /// its open helper.
@@ -64,15 +67,15 @@ class SembastDatabase extends Object
   /// log helper.
   final bool logV = sembastLogLevel == SembastLogLevel.verbose;
 
-  final StorageBase _storageBase;
+  final StorageBase? _storageBase;
 
-  DatabaseStorage _storageFs;
-  StorageJdb _storageJdb;
-  StreamSubscription<int> _storageJdbRevisionUpdateSubscription;
-  int _jdbRevision;
+  DatabaseStorage? _storageFs;
+  StorageJdb? _storageJdb;
+  StreamSubscription<int>? _storageJdbRevisionUpdateSubscription;
+  int? _jdbRevision;
 
   /// Get internal jdb storage if any
-  StorageJdb get storageJdb => _storageJdb;
+  StorageJdb? get storageJdb => _storageJdb;
 
   // Lock used for opening/writing/compacting
 
@@ -89,39 +92,39 @@ class SembastDatabase extends Object
   final listener = DatabaseListener();
 
   @override
-  String get path => _storageBase.path;
+  String get path => _storageBase!.path;
 
   //int _rev = 0;
   // incremental for each transaction
   int _txnId = 0;
 
-  Meta _meta;
+  Meta? _meta;
 
   @override
-  int get version => _meta.version;
+  int get version => _meta!.version!;
 
   // True during onVersionChanged
   bool _upgrading = false;
-  Meta _upgradingMeta;
+  Meta? _upgradingMeta;
   bool _opened = false;
   bool _closed = false;
 
   /// The open options.
-  DatabaseOpenOptions get openOptions => openHelper?.options;
+  DatabaseOpenOptions get openOptions => openHelper.options;
 
   // DatabaseMode _openMode;
   // Only set during open (used during onVersionChanged
-  Transaction _openTransaction;
+  Transaction? _openTransaction;
 
   /// Our main store
-  SembastStore get mainStore => _mainStore;
+  SembastStore? get mainStore => _mainStore;
 
-  SembastStore _mainStore;
+  SembastStore? _mainStore;
   final _stores = <String, SembastStore>{};
   final _txnDroppedStores = <String>[];
 
   /// To optimize auto increment int key generation in a transaction
-  final _txnStoreLastIntKeys = <String, int>{};
+  final Map<String, int?> _txnStoreLastIntKeys = <String, int>{};
 
   /// Current in memory stores
   Iterable<SembastStore> get stores => _stores.values;
@@ -156,19 +159,16 @@ class SembastDatabase extends Object
   /// Rollback changed in a transaction.
   void txnRollback(SembastTransaction txn) {
     // only valid in a transaction
-    if (txn == null) {
-      throw Exception('not in transaction');
-    }
     _clearTxnData();
   }
 
   // True if we are currently in the transaction
   // bool get isInTransaction => _isInTransaction;
 
-  SembastTransaction _transaction;
+  SembastTransaction? _transaction;
 
   /// Exported for testing
-  SembastTransaction get currentTransaction => _transaction;
+  SembastTransaction? get currentTransaction => _transaction;
 
   SembastStore _recordStore(SembastRecord record) =>
       getSembastStore(record.ref.store);
@@ -177,7 +177,7 @@ class SembastDatabase extends Object
 
   /// Set in memory.
   bool setRecordInMemory(TxnRecord record) {
-    return _recordStore(record).setRecordInMemory(record?.record);
+    return _recordStore(record).setRecordInMemory(record.record);
   }
 
   /// Load a record if needed (delta).
@@ -187,16 +187,14 @@ class SembastDatabase extends Object
     var store = _recordStore(record);
     dynamic existing = store.txnGetImmutableRecordSync(null, record.key);
     if (existing is ImmutableSembastRecordJdb) {
-      if (existing != null) {
-        // devPrint('existing ${existing?.revision} vs new ${record.revision}');
-        if (existing.revision != null) {
-          if ((record.revision ?? 0) > existing.revision) {
-            loadRecord(record);
-            return true;
-          }
+      // devPrint('existing ${existing?.revision} vs new ${record.revision}');
+      if (existing.revision != null) {
+        if ((record.revision ?? 0) > existing.revision!) {
+          loadRecord(record);
+          return true;
         }
-        return false;
       }
+      return false;
     }
     loadRecord(record);
     return true;
@@ -218,13 +216,13 @@ class SembastDatabase extends Object
   String encodeRecordMap(Map map) => _jsonCodec.encode(toJsonEncodable(map));
 
   /// Decode a text.
-  Map<String, dynamic> decodeRecordLineString(String text) {
-    var result = _jsonEncodableCodec.decode(_jsonCodec.decode(text));
-    if (result is Map<String, dynamic>) {
+  Map<String, Object?>? decodeRecordLineString(String text) {
+    var result = _jsonEncodableCodec.decode(_jsonCodec.decode(text)!);
+    if (result is Map<String, Object?>) {
       return result;
     }
     if (result is Map) {
-      return result?.cast<String, dynamic>();
+      return result.cast<String, Object?>();
     }
     return null;
   }
@@ -239,12 +237,12 @@ class SembastDatabase extends Object
       store.currentRecords;
 
   /// For jdb only
-  Future<int> generateUniqueIntKey(String store) async {
+  Future<int?> generateUniqueIntKey(String store) async {
     if (_storageJdb != null) {
       // Get any previous generated int key
       var lastIntKey = _txnStoreLastIntKeys[store];
       if (lastIntKey == null) {
-        lastIntKey = await _storageJdb.generateUniqueIntKey(store);
+        lastIntKey = await _storageJdb!.generateUniqueIntKey(store);
       } else {
         // increment previous read value
         lastIntKey++;
@@ -258,9 +256,9 @@ class SembastDatabase extends Object
   }
 
   /// For jdb only
-  Future<String> generateUniqueStringKey(String store) {
+  Future<String?> generateUniqueStringKey(String store) async {
     if (_storageJdb != null) {
-      return _storageJdb.generateUniqueStringKey(store);
+      return _storageJdb!.generateUniqueStringKey(store);
     }
     return null;
   }
@@ -271,10 +269,10 @@ class SembastDatabase extends Object
   Future txnCompact() async {
     assert(databaseLock.inLock);
     if (_storageFs?.supported ?? false) {
-      final tmpStorage = _storageFs.tmpStorage;
+      final tmpStorage = _storageFs!.tmpStorage!;
       // new stat with compact + 1
       final exportStat = DatabaseExportStat()
-        ..compactCount = _exportStat.compactCount + 1;
+        ..compactCount = _exportStat!.compactCount + 1;
       await tmpStorage.delete();
       await tmpStorage.findOrCreate();
 
@@ -289,7 +287,7 @@ class SembastDatabase extends Object
         lines.add(line);
       }
 
-      Future _addLine(Map<String, dynamic> map) async {
+      Future _addLine(Map<String, Object?> map) async {
         String encoded;
         try {
           encoded = encodeRecordMap(map);
@@ -304,7 +302,7 @@ class SembastDatabase extends Object
       }
 
       // meta is always json
-      await _addStringLine(json.encode(_meta.toMap()));
+      await _addStringLine(json.encode(_meta!.toMap()));
 
       var stores = getCurrentStores();
       for (var store in stores) {
@@ -314,12 +312,12 @@ class SembastDatabase extends Object
         }
       }
       await tmpStorage.appendLines(lines);
-      await _storageFs.tmpRecover();
+      await _storageFs!.tmpRecover();
 
       _exportStat = exportStat;
       // devPrint('compacted: $_exportStat');
     } else if (_storageJdb?.supported ?? false) {
-      await _storageJdb.compact();
+      await _storageJdb!.compact();
     }
   }
 
@@ -332,7 +330,7 @@ class SembastDatabase extends Object
       var records = store.currentTxnRecords;
 
       if (records?.isNotEmpty ?? false) {
-        txnRecords.addAll(records);
+        txnRecords.addAll(records!);
       }
     }
 
@@ -350,7 +348,7 @@ class SembastDatabase extends Object
     for (var store in stores) {
       var records = store.currentTxnRecords;
       if (records?.isNotEmpty ?? false) {
-        content.addTxnStoreRecords(store.ref, records);
+        content.addTxnStoreRecords(store.ref, records!);
       }
     }
     return content;
@@ -382,9 +380,9 @@ class SembastDatabase extends Object
           // Try to estimated if compact will be needed
           if (_storageFs?.supported ?? false) {
             if (exists) {
-              _exportStat.obsoleteLineCount++;
+              _exportStat!.obsoleteLineCount++;
             }
-            _exportStat.lineCount++;
+            _exportStat!.lineCount++;
           }
         }
       }
@@ -405,7 +403,7 @@ class SembastDatabase extends Object
         var records = storeContent.records;
         var store = storeContent.store;
 
-        if (records?.isNotEmpty == true) {
+        if (records.isNotEmpty == true) {
           // Prepare listener operations
 
           var listener = this.listener.getStore(store);
@@ -452,18 +450,18 @@ class SembastDatabase extends Object
             rethrow;
           }
         }
-        await _storageFs.appendLines(lines);
+        await _storageFs!.appendLines(lines);
       }
     }
   }
 
   /// Put records in a transaction
-  Future<List<ImmutableSembastRecord>> txnPutRecords(
+  Future<List<ImmutableSembastRecord?>> txnPutRecords(
       SembastTransaction txn, List<ImmutableSembastRecord> records) async {
     // clone for safe loop
     records = List<ImmutableSembastRecord>.from(records);
     var recordsResult =
-        List<ImmutableSembastRecord>.filled(records.length, null);
+        List<ImmutableSembastRecord?>.filled(records.length, null);
     for (var i = 0; i < records.length; i++) {
       recordsResult[i] = await txnPutRecord(txn, records[i]);
     }
@@ -484,10 +482,10 @@ class SembastDatabase extends Object
   ///
   /// reload
   //
-  Future<Database> reOpen([DatabaseOpenOptions options]) async {
+  Future<Database> reOpen([DatabaseOpenOptions? options]) async {
     /// Fix openMode
     if (options?.mode != null) {
-      openHelper.openMode = options.mode;
+      openHelper.openMode = options!.mode;
     }
     options ??= openOptions;
     await close();
@@ -508,7 +506,7 @@ class SembastDatabase extends Object
     }
   }
 
-  SembastStore _addStore(String storeName) {
+  SembastStore _addStore(String? storeName) {
     if (storeName == null) {
       return _mainStore = _addStore(dbMainStore);
     } else {
@@ -521,18 +519,15 @@ class SembastDatabase extends Object
   ///
   /// find existing store
   ///
-  SembastStore findStore(String storeName) {
-    SembastStore store;
-    if (storeName == null) {
-      store = _mainStore;
-    } else {
-      store = _stores[storeName];
-    }
+  SembastStore? findStore(String storeName) {
+    SembastStore? store;
+    store = _stores[storeName];
+
     return store;
   }
 
   /// Find a store in a transaction.
-  SembastTransactionStore txnFindStore(
+  SembastTransactionStore? txnFindStore(
       SembastTransaction txn, String storeName) {
     var store = findStore(storeName);
     return txn.toExecutor(store);
@@ -570,7 +565,7 @@ class SembastDatabase extends Object
   }
 
   /// Get a store in a transaction.
-  SembastTransactionStore txnGetStore(
+  SembastTransactionStore? txnGetStore(
       SembastTransaction txn, String storeName) {
     var store = getSembastStore(v2.StoreRef(storeName));
     return txn.toExecutor(store);
@@ -605,7 +600,7 @@ class SembastDatabase extends Object
   /// Flush changes.
   Future flush() async {
     // Wait for pending transaction
-    await transactionLock.synchronized(() async => null);
+    await transactionLock.synchronized(() {});
     // Wait for pending writes
     await databaseOperation(null);
   }
@@ -616,7 +611,7 @@ class SembastDatabase extends Object
   Future<Database> open(DatabaseOpenOptions options) async {
     // Default mode
     // Open is overriden in openHelper
-    var mode = openHelper?.openMode;
+    var mode = openHelper.openMode;
     var version = options.version;
     var _openMode = mode;
     // devPrint('Opening mode ${mode}');
@@ -627,13 +622,13 @@ class SembastDatabase extends Object
 
     // Check codec
     if (options.codec != null) {
-      if (options.codec.signature == null) {
-        if (options.codec.codec != null) {
+      if (options.codec!.signature == null) {
+        if (options.codec!.codec != null) {
           throw DatabaseException.invalidCodec(
               'Codec signature cannot be null');
         }
       } else {
-        if (options.codec.codec == null) {
+        if (options.codec!.codec == null) {
           throw DatabaseException.invalidCodec(
               'Codec implementation cannot be null');
         }
@@ -645,9 +640,9 @@ class SembastDatabase extends Object
       _closed = false;
 
       try {
-        Meta meta;
+        Meta? meta;
 
-        Future _handleVersionChanged(int oldVersion, int newVersion) async {
+        Future _handleVersionChanged(int? oldVersion, int? newVersion) async {
           _upgrading = true;
           try {
             await transaction((txn) async {
@@ -663,8 +658,8 @@ class SembastDatabase extends Object
                 // Eventually run onVersionChanged
                 // Change will be committed when the transaction terminates
                 if (options.onVersionChanged != null) {
-                  result = await options.onVersionChanged(
-                      this, oldVersion, newVersion);
+                  result = await options.onVersionChanged!(
+                      this, oldVersion!, newVersion!);
                 }
               } finally {
                 _openTransaction = null;
@@ -691,7 +686,7 @@ class SembastDatabase extends Object
 
           var needVersionChanged = false;
 
-          final oldVersion = meta.version;
+          final oldVersion = meta!.version;
 
           if (oldVersion == 0) {
             needVersionChanged = true;
@@ -721,27 +716,27 @@ class SembastDatabase extends Object
         //_path = path;
         Future _findOrCreate() async {
           if (mode == DatabaseMode.existing) {
-            final found = await _storageBase.find();
+            final found = await _storageBase!.find();
             if (!found) {
               throw DatabaseException.databaseNotFound(
-                  'Database (open existing only) ${path} not found');
+                  'Database (open existing only) $path not found');
             }
 
             /// Once used, change the mode to existing to handle any re-open
             openHelper.openMode = DatabaseMode.defaultMode;
           } else {
             if (mode == DatabaseMode.empty) {
-              await _storageBase.delete();
+              await _storageBase!.delete();
 
               /// Once used, change the mode to existing to handle any re-open
               openHelper.openMode = DatabaseMode.defaultMode;
             }
-            await _storageBase.findOrCreate();
+            await _storageBase!.findOrCreate();
           }
         }
 
         await _findOrCreate();
-        if (_storageBase.supported) {
+        if (_storageBase!.supported) {
           void _clearBeforeImport() {
             // empty stores and meta
             _exportStat = DatabaseExportStat();
@@ -756,29 +751,29 @@ class SembastDatabase extends Object
           if (_storageFs?.supported ?? false) {
             var corrupted = false;
 
-            Future import(Stream<String> lines, {bool safeMode}) async {
+            Future import(Stream<String> lines, {bool? safeMode}) async {
               _clearBeforeImport();
               var firstLineRead = false;
 
               await for (var line in lines) {
-                _exportStat.lineCount++;
+                _exportStat!.lineCount++;
 
-                Map<String, dynamic> map;
+                Map<String, Object?>? map;
 
                 // Until meta is read, we assume it is json
                 if (!firstLineRead) {
                   // Read the meta first
                   // The first line is always json
                   try {
-                    map = (json.decode(line) as Map)?.cast<String, dynamic>();
+                    map = (json.decode(line) as Map?)?.cast<String, Object?>();
                   } on Exception catch (_) {}
                   if (Meta.isMapMeta(map)) {
                     // meta?
-                    meta = Meta.fromMap(map);
+                    meta = Meta.fromMap(map!);
 
                     // Check codec signature if any
                     checkCodecEncodedSignature(
-                        options.codec, meta.codecSignature);
+                        options.codec, meta!.codecSignature);
                     firstLineRead = true;
                     continue;
                   } else {
@@ -799,7 +794,7 @@ class SembastDatabase extends Object
                 } on Exception catch (_) {
                   // We can have meta here
                   try {
-                    map = (json.decode(line) as Map)?.cast<String, dynamic>();
+                    map = (json.decode(line) as Map?)?.cast<String, Object?>();
                   } on Exception catch (_) {
                     if (_openMode == DatabaseMode.neverFails) {
                       corrupted = true;
@@ -815,12 +810,12 @@ class SembastDatabase extends Object
                   }
                 }
 
-                if (isMapRecord(map)) {
+                if (isMapRecord(map!)) {
                   // record?
                   final record =
                       ImmutableSembastRecord.fromDatabaseRowMap(this, map);
                   if (_noTxnHasRecord(record)) {
-                    _exportStat.obsoleteLineCount++;
+                    _exportStat!.obsoleteLineCount++;
                   }
                   loadRecord(record);
                 } else if (Meta.isMapMeta(map)) {
@@ -829,7 +824,7 @@ class SembastDatabase extends Object
 
                   // Check codec signature if any
                   checkCodecEncodedSignature(
-                      options.codec, meta.codecSignature);
+                      options.codec, meta!.codecSignature);
                 } else {
                   // If a codec is used, we fail
                   if (_openMode == DatabaseMode.neverFails &&
@@ -844,18 +839,18 @@ class SembastDatabase extends Object
             }
 
             try {
-              await import(_storageFs.readLines(), safeMode: true);
+              await import(_storageFs!.readLines(), safeMode: true);
             } catch (e) {
               // devPrint('error normal read $e');
               corrupted = true;
               // reading lines normally failed, try safe mode
-              await import(_storageFs.readSafeLines());
+              await import(_storageFs!.readSafeLines());
             }
             // if corrupted and not even meta
             // delete it
             if (corrupted && meta == null) {
-              await _storageFs.delete();
-              await _storageFs.findOrCreate();
+              await _storageFs!.delete();
+              await _storageFs!.findOrCreate();
             } else {
               // auto compaction
               // allow for 20% of lost lines
@@ -868,18 +863,18 @@ class SembastDatabase extends Object
             }
           } else if (_storageJdb?.supported ?? false) {
             _clearBeforeImport();
-            var map = await _storageJdb.readMeta();
+            var map = await _storageJdb!.readMeta();
 
             if (Meta.isMapMeta(map)) {
               // meta?
-              meta = Meta.fromMap(map);
+              meta = Meta.fromMap(map!);
             }
 
             await jdbFullImport();
 
             /// Revision update to force reading
             _storageJdbRevisionUpdateSubscription =
-                _storageJdb.revisionUpdate.listen((revision) {
+                _storageJdb!.revisionUpdate.listen((revision) {
               jdbDeltaImport(revision);
             });
             _meta = meta;
@@ -906,14 +901,14 @@ class SembastDatabase extends Object
   /// Full import - must be in transaction
   Future jdbFullImport() async {
     /// read revision before.
-    _jdbRevision = await _storageJdb.getRevision();
-    await for (var entry in _storageJdb.entries) {
+    _jdbRevision = await _storageJdb!.getRevision();
+    await for (var entry in _storageJdb!.entries) {
       var record = ImmutableSembastRecordJdb(entry.record, entry.value,
           deleted: entry.deleted, revision: entry.id);
-      _exportStat.lineCount++;
+      _exportStat!.lineCount++;
       // Make it fast
-      if (entry.deleted ?? false) {
-        _exportStat.obsoleteLineCount++;
+      if (entry.deleted) {
+        _exportStat!.obsoleteLineCount++;
       }
       loadRecord(record);
     }
@@ -946,26 +941,25 @@ class SembastDatabase extends Object
   /// Delta import. Must be in a transaction
   ///
   /// Also feed content listener
-  Future<JdbImportResult> txnJdbDeltaImport(int revision) async {
+  Future<JdbImportResult> txnJdbDeltaImport(int? revision) async {
     bool delta;
     var minRevision = _jdbRevision ?? 0;
-    var deltaMinRevision = await _storageJdb.getDeltaMinRevision();
+    var deltaMinRevision = await _storageJdb!.getDeltaMinRevision();
 
     if (minRevision >= deltaMinRevision) {
       delta = true;
-      var entries = await _storageJdb.getEntriesAfter(minRevision ?? 0);
+      var entries = await _storageJdb!.getEntriesAfter(minRevision);
       // devPrint('delta import $entries $revision');
       if (!_closed) {
         for (var entry in entries) {
           // skip transaction empry record
-          if (entry.record != null) {
-            var record = ImmutableSembastRecordJdb(entry.record, entry.value,
-                deleted: entry.deleted, revision: entry.id);
 
-            if (jdbDeltaLoadRecord(record)) {
-              // Ignore already added/old record
-              _addRecordToPendingListenerContent(record);
-            }
+          var record = ImmutableSembastRecordJdb(entry.record, entry.value,
+              deleted: entry.deleted, revision: entry.id);
+
+          if (jdbDeltaLoadRecord(record)) {
+            // Ignore already added/old record
+            _addRecordToPendingListenerContent(record);
           }
         }
         _jdbRevision = revision;
@@ -974,13 +968,13 @@ class SembastDatabase extends Object
       delta = false;
       _exportStat = DatabaseExportStat();
       var records = <ImmutableSembastRecordJdb>[];
-      await for (var entry in _storageJdb.entries) {
+      await for (var entry in _storageJdb!.entries) {
         var record = ImmutableSembastRecordJdb(entry.record, entry.value,
             deleted: entry.deleted, revision: entry.id);
-        _exportStat.lineCount++;
+        _exportStat!.lineCount++;
         // Make it fast
-        if (entry.deleted ?? false) {
-          _exportStat.obsoleteLineCount++;
+        if (entry.deleted) {
+          _exportStat!.obsoleteLineCount++;
         }
         records.add(record);
       }
@@ -1002,7 +996,7 @@ class SembastDatabase extends Object
     _closed = true;
     // Close the jdb database
     if (_storageJdb != null) {
-      _storageJdb.close();
+      _storageJdb!.close();
     }
     await openHelper.lockedCloseDatabase();
   }
@@ -1025,23 +1019,19 @@ class SembastDatabase extends Object
   }
 
   /// info as json
-  Map<String, dynamic> toJson() {
-    var map = <String, dynamic>{};
-    if (path != null) {
-      map['path'] = path;
+  Map<String, Object?> toJson() {
+    var map = <String, Object?>{};
+    map['path'] = path;
+    map['version'] = version;
+
+    final stores = <Map<String, Object?>>[];
+    for (var store in _stores.values) {
+      stores.add(store.toJson());
     }
-    if (version != null) {
-      map['version'] = version;
-    }
-    if (_stores != null) {
-      final stores = <Map<String, dynamic>>[];
-      for (var store in _stores.values) {
-        stores.add(store.toJson());
-      }
-      map['stores'] = stores;
-    }
+    map['stores'] = stores;
+
     if (_exportStat != null) {
-      map['exportStat'] = _exportStat.toJson();
+      map['exportStat'] = _exportStat!.toJson();
     }
     return map;
   }
@@ -1049,7 +1039,7 @@ class SembastDatabase extends Object
   /// Lazy store operations.
   final lazyStorageOperations = <Future Function()>[];
 
-  DatabaseExportStat _exportStat;
+  DatabaseExportStat? _exportStat;
 
   /// Basic algorithm to tell whether the storage file must be updated
   /// (compacted) or not.
@@ -1062,8 +1052,8 @@ class SembastDatabase extends Object
   /// * There are 20% of obsolete lines to delete
   bool get _needCompact {
     return (_storageFs != null) &&
-        (_exportStat.obsoleteLineCount > 5 &&
-            (_exportStat.obsoleteLineCount / _exportStat.lineCount > 0.20));
+        (_exportStat!.obsoleteLineCount > 5 &&
+            (_exportStat!.obsoleteLineCount / _exportStat!.lineCount > 0.20));
   }
 
   @override
@@ -1072,7 +1062,7 @@ class SembastDatabase extends Object
   }
 
   /// Execute an exclusive operation on the database storage
-  Future databaseOperation(Future Function() action) async {
+  Future databaseOperation(Future Function()? action) async {
     // Don't lock if no pending operation, nor action
     if (lazyStorageOperations.isEmpty && action == null) {
       return;
@@ -1101,16 +1091,16 @@ class SembastDatabase extends Object
       FutureOr<T> Function(Transaction transaction) action) async {
     // during open?
     if (_openTransaction != null) {
-      return await action(_openTransaction);
+      return await action(_openTransaction!);
     }
-    CommitData commitData;
+    CommitData? commitData;
 
     /// Can be true during open only when version changes.
     var upgrading = _upgrading;
 
     /// For jdb only
     var reloadData = false;
-    StorageJdbWriteResult jdbIncrementRevisionStatus;
+    late StorageJdbWriteResult jdbIncrementRevisionStatus;
     T result;
     do {
       if (reloadData) {
@@ -1131,7 +1121,7 @@ class SembastDatabase extends Object
 
           _clearTxnData();
           // Mark transaction complete, ignore error
-          _transaction?.completer?.complete();
+          _transaction?.completer.complete();
 
           // Compatibility remove transaction
           _transaction = null;
@@ -1141,7 +1131,7 @@ class SembastDatabase extends Object
 
         try {
           // devPrint('transaction ${jdbRevision}');
-          actionResult = await Future<T>.sync(() => action(_transaction));
+          actionResult = await Future<T>.sync(() => action(_transaction!));
 
           // Commit directly on jdb to handle transaction changes
           if (storageJdb != null) {
@@ -1151,12 +1141,12 @@ class SembastDatabase extends Object
             if (commitEntries.hasWriteData || commitEntries.upgrading) {
               // Build Entries
               var entries = <JdbWriteEntry>[];
-              for (var record in commitEntries.txnRecords) {
+              for (var record in commitEntries.txnRecords!) {
                 var entry = JdbWriteEntry()..txnRecord = record;
                 entries.add(entry);
               }
               final infoEntries = <JdbInfoEntry>[
-                if (upgrading) getMetaInfoEntry(commitEntries.upgradingMeta)
+                if (upgrading) getMetaInfoEntry(commitEntries.upgradingMeta!)
               ];
               _txnStoreLastIntKeys.forEach((store, lastId) {
                 infoEntries.add(getStoreLastIntKeyInfoEntry(store, lastId));
@@ -1167,9 +1157,9 @@ class SembastDatabase extends Object
                   infoEntries: infoEntries);
 
               // Commit to storage now
-              var status = await storageJdb.writeIfRevision(query);
+              var status = await storageJdb!.writeIfRevision(query);
               // devPrint(status);
-              if (!status.success) {
+              if (!status.success!) {
                 reloadData = true;
                 jdbIncrementRevisionStatus = status;
                 _transactionCleanUp();
@@ -1197,12 +1187,12 @@ class SembastDatabase extends Object
                 // Write meta when upgrading, write before the records!
                 //
                 if (upgrading) {
-                  await _storageFs
-                      .appendLine(json.encode(_upgradingMeta.toMap()));
-                  _exportStat.lineCount++;
+                  await _storageFs!
+                      .appendLine(json.encode(_upgradingMeta!.toMap()));
+                  _exportStat!.lineCount++;
                 }
                 if (commitData?.txnRecords?.isNotEmpty == true) {
-                  await storageCommitRecords(commitData.txnRecords);
+                  await storageCommitRecords(commitData!.txnRecords!);
                 }
 
                 // devPrint('needCompact $_needCompact $_exportStat');
@@ -1256,7 +1246,7 @@ class SembastDatabase extends Object
   FutureOr cooperate() => cooperator?.cooperate();
 
   /// Ensure the transaction is still current
-  void checkTransaction(SembastTransaction transaction) {
+  void checkTransaction(SembastTransaction? transaction) {
     if (transaction != null && transaction != currentTransaction) {
       throw StateError(
           'The transaction is no longer active. Make sure you (a)wait all pending operations in your transaction block');
@@ -1273,14 +1263,14 @@ class SembastDatabase extends Object
 
   // Only set during open
   @override
-  SembastTransaction get sembastTransaction =>
-      _openTransaction as SembastTransaction;
+  SembastTransaction? get sembastTransaction =>
+      _openTransaction as SembastTransaction?;
 
   /// Needed after a full import
   void _restartListeners() {
     // A full import was done, re-run all queries
     for (var store in listener.stores) {
-      var storeListener = listener.getStore(store);
+      var storeListener = listener.getStore(store)!;
       storeListener.restart();
     }
   }
@@ -1302,7 +1292,7 @@ class SembastDatabase extends Object
               for (var ctlr in ctlrs) {
                 void _updateRecord() {
                   if (debugListener) {
-                    print('updating $ctlr: with ${record}');
+                    print('updating $ctlr: with $record');
                   }
                   if (!record.deleted) {
                     ctlr.add(record);
@@ -1364,13 +1354,13 @@ class SembastDatabase extends Object
     } else if (value is List) {
       return value;
     } else if (value is Map) {
-      if (!(value is Map<String, dynamic>)) {
+      if (!(value is Map<String, Object?>)) {
         // We force the value map type for easy usage
-        return value.cast<String, dynamic>();
+        return value.cast<String, Object?>();
       }
       return value;
     }
-    if (openOptions.codec.jsonEncodableCodec.supportsType(value)) {
+    if (openOptions.codec!.jsonEncodableCodec.supportsType(value)) {
       return value;
     }
     throw ArgumentError.value(
@@ -1378,18 +1368,17 @@ class SembastDatabase extends Object
   }
 
   /// Use the one defined or the default one
-  Codec<dynamic, String> get _jsonCodec => openOptions?.codec?.codec ?? json;
+  Codec<Object?, String> get _jsonCodec => openOptions.codec?.codec ?? json;
 
   /// Use the one defined or the default one
   JsonEncodableCodec get _jsonEncodableCodec =>
-      openOptions?.codec?.jsonEncodableCodec ??
-      sembastDefaultJsonEncodableCodec;
+      openOptions.codec?.jsonEncodableCodec ?? sembastDefaultJsonEncodableCodec;
 
   /// Convert a value to a json encodable format
-  dynamic toJsonEncodable(dynamic value) => _jsonEncodableCodec.encode(value);
+  Object toJsonEncodable(Object value) => _jsonEncodableCodec.encode(value);
 
   /// Convert a value from a json encodable format
-  dynamic fromJsonEncodable(dynamic value) => _jsonEncodableCodec.decode(value);
+  Object fromJsonEncodable(Object value) => _jsonEncodableCodec.decode(value);
 
   /// Sanitize a value.
   void _check(dynamic value, bool update) {
@@ -1421,7 +1410,7 @@ class SembastDatabase extends Object
   }
 
   /// Sanitized an input value for the store
-  V sanitizeInputValue<V>(dynamic value, {bool update}) {
+  V? sanitizeInputValue<V>(dynamic value, {bool? update}) {
     update ??= false;
     if (update && (value is FieldValue)) {
       throw ArgumentError.value(value, '$value not supported at root');
@@ -1429,21 +1418,21 @@ class SembastDatabase extends Object
     _check(value, update);
     if (value is List) {
       try {
-        return value.cast<dynamic>() as V;
+        return value.cast<Object?>() as V;
       } catch (e) {
         throw ArgumentError.value(value, 'type $V not supported',
-            'List must be of type List<dynamic> for type ${value.runtimeType} value $value');
+            'List must be of type List<Object?> for type ${value.runtimeType} value $value');
       }
     } else if (value is Map) {
       try {
         // We force the value map type for easy usage
-        return value.cast<String, dynamic>() as V;
+        return value.cast<String, Object?>() as V;
       } catch (e) {
         throw ArgumentError.value(value, 'type $V not supported',
-            'Map must be of type Map<String, dynamic> for type ${value.runtimeType} value $value');
+            'Map must be of type Map<String, Object?> for type ${value.runtimeType} value $value');
       }
     }
-    return value as V;
+    return value as V?;
   }
 }
 
@@ -1460,31 +1449,34 @@ class DatabaseExportStat {
   /// Export stat.
   DatabaseExportStat();
 
+  int _mapInt(Map map, String key) {
+    var value = map[key];
+    if (value is int) {
+      return value;
+    }
+    return 0;
+  }
+
   /// From a map.
   DatabaseExportStat.fromJson(Map map) {
     if (map['lineCount'] != null) {
-      lineCount = map['lineCount'] as int;
+      lineCount = _mapInt(map, 'lineCount');
     }
     if (map['compactCount'] != null) {
-      compactCount = map['compactCount'] as int;
+      compactCount = _mapInt(map, 'compactCount');
     }
     if (map['obsoleteLineCount'] != null) {
-      obsoleteLineCount = map['obsoleteLineCount'] as int;
+      obsoleteLineCount = _mapInt(map, 'obsoleteLineCount');
     }
   }
 
   /// To a map.
-  Map<String, dynamic> toJson() {
-    var map = <String, dynamic>{};
-    if (lineCount != null) {
-      map['lineCount'] = lineCount;
-    }
-    if (obsoleteLineCount != null) {
-      map['obsoleteLineCount'] = obsoleteLineCount;
-    }
-    if (compactCount != null) {
-      map['compactCount'] = compactCount;
-    }
+  Map<String, Object?> toJson() {
+    var map = <String, Object?>{};
+
+    map['lineCount'] = lineCount;
+    map['obsoleteLineCount'] = obsoleteLineCount;
+    map['compactCount'] = compactCount;
     return map;
   }
 
@@ -1498,5 +1490,5 @@ class JdbImportResult {
   final bool delta;
 
   /// Import result.
-  JdbImportResult({@required this.delta});
+  JdbImportResult({required this.delta});
 }

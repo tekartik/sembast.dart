@@ -61,7 +61,7 @@ class FileSystemMemory implements fs.FileSystem {
       directory(_impl.currentPath) as DirectoryMemory;
 
   @override
-  FileMemory get scriptFile => null;
+  FileMemory? get scriptFile => null;
 
   @override
   String toString() => 'memory';
@@ -73,11 +73,7 @@ abstract class FileSystemEntityMemory implements fs.FileSystemEntity {
   final String path;
 
   /// In memory file entity.
-  FileSystemEntityMemory(this.path) {
-    if (path == null) {
-      throw ArgumentError.notNull('path');
-    }
-  }
+  FileSystemEntityMemory(this.path);
 
   @override
   Future<bool> exists() async => _fs._impl.exists(path);
@@ -109,7 +105,7 @@ class DirectoryMemory extends FileSystemEntityMemory implements fs.Directory {
 
   @override
   Future<fs.FileSystemEntity> rename(String newPath) async {
-    final renamed = _fs._impl.rename(path, newPath);
+    final renamed = _fs._impl.rename(path, newPath)!;
     return DirectoryMemory(renamed.path);
   }
 }
@@ -129,7 +125,8 @@ class FileMemory extends FileSystemEntityMemory implements fs.File {
 
   // don't care about start end
   @override
-  Stream<Uint8List> openRead([int start, int end]) => _fs._impl.openRead(path);
+  Stream<Uint8List> openRead([int? start, int? end]) =>
+      _fs._impl.openRead(path);
 
   // don't care about encoding - assume UTF8
   @override
@@ -140,7 +137,7 @@ class FileMemory extends FileSystemEntityMemory implements fs.File {
 
   @override
   Future<fs.File> rename(String newPath) async {
-    final renamed = _fs._impl.rename(path, newPath);
+    final renamed = _fs._impl.rename(path, newPath)!;
     return FileMemory(renamed.path);
   }
 }

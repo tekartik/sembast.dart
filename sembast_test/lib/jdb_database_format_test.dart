@@ -16,20 +16,20 @@ void main() {
 
 void defineTests(DatabaseTestContextJdb ctx) {
   //String getDbPath() => ctx.outPath + '.db';
-  String dbPath;
+  String? dbPath;
   var store = StoreRef.main();
 
   var factory = ctx.factory;
-  Future<String> prepareForDb() async {
+  Future<String?> prepareForDb() async {
     dbPath = dbPathFromName('jdb_database_format.db');
-    await ctx.jdbFactory.delete(dbPath);
+    await ctx.jdbFactory.delete(dbPath!);
     return dbPath;
   }
 
   SembastDatabase getSembastDatabase(Database db) => (db as SembastDatabase);
   // StorageJdb getStorageJdb(Database db) => getSembastDatabase(db).storageJdb;
-  Future<Map<String, dynamic>> exportToMap(Database db) =>
-      getJdbDatabase(db).exportToMap();
+  Future<Map<String, Object?>> exportToMap(Database db) =>
+      getJdbDatabase(db)!.exportToMap();
   DatabaseExportStat getExportStat(Database db) =>
       getDatabaseExportStat(getSembastDatabase(db));
   Future compact(Database db) => getSembastDatabase(db).compact();
@@ -37,11 +37,11 @@ void defineTests(DatabaseTestContextJdb ctx) {
       getSembastDatabase(db).jdbDeltaImport(revision);
 
   Future importFromMap(Map map) {
-    return jdbImportFromMap(ctx.jdbFactory, dbPath, map);
+    return jdbImportFromMap(ctx.jdbFactory, dbPath!, map);
   }
 
   Future dbImportFromMap(Database db, Map map) {
-    return jdbDatabaseImportFromMap(getJdbDatabase(db), map);
+    return jdbDatabaseImportFromMap(getJdbDatabase(db)!, map);
   }
 
   group('basic format', () {
@@ -53,8 +53,8 @@ void defineTests(DatabaseTestContextJdb ctx) {
 
     test('open_no_version', () async {
       await prepareForDb();
-      var db = await factory.openDatabase(dbPath);
-      expect(await getJdbDatabase(db).exportToMap(), {
+      var db = await factory.openDatabase(dbPath!);
+      expect(await getJdbDatabase(db)!.exportToMap(), {
         'entries': [],
         'infos': [
           {
@@ -71,8 +71,8 @@ void defineTests(DatabaseTestContextJdb ctx) {
 
     test('open_version_2', () async {
       await prepareForDb();
-      var db = await factory.openDatabase(dbPath, version: 2);
-      expect(await getJdbDatabase(db).exportToMap(), {
+      var db = await factory.openDatabase(dbPath!, version: 2);
+      expect(await getJdbDatabase(db)!.exportToMap(), {
         'entries': [],
         'infos': [
           {
@@ -87,10 +87,10 @@ void defineTests(DatabaseTestContextJdb ctx) {
 
     test('open_no_version_then_2', () async {
       await prepareForDb();
-      var db = await factory.openDatabase(dbPath, version: 1);
+      var db = await factory.openDatabase(dbPath!, version: 1);
       await db.close();
-      db = await factory.openDatabase(dbPath, version: 2);
-      expect(await getJdbDatabase(db).exportToMap(), {
+      db = await factory.openDatabase(dbPath!, version: 2);
+      expect(await getJdbDatabase(db)!.exportToMap(), {
         'entries': [],
         'infos': [
           {
@@ -104,10 +104,10 @@ void defineTests(DatabaseTestContextJdb ctx) {
 
     test('1 string record', () async {
       await prepareForDb();
-      var db = await factory.openDatabase(dbPath);
+      var db = await factory.openDatabase(dbPath!);
       try {
         await store.record(1).put(db, 'hi');
-        expect(await getJdbDatabase(db).exportToMap(), {
+        expect(await getJdbDatabase(db)!.exportToMap(), {
           'entries': [
             {
               'id': 1,
@@ -129,10 +129,10 @@ void defineTests(DatabaseTestContextJdb ctx) {
 
     test('1 string record delete compact', () async {
       await prepareForDb();
-      var db = await factory.openDatabase(dbPath);
+      var db = await factory.openDatabase(dbPath!);
       try {
         await store.record(1).put(db, 'hi');
-        expect(await getJdbDatabase(db).exportToMap(), {
+        expect(await getJdbDatabase(db)!.exportToMap(), {
           'entries': [
             {
               'id': 1,
@@ -148,11 +148,11 @@ void defineTests(DatabaseTestContextJdb ctx) {
           ]
         });
         await store.record(1).delete(db);
-        expect(await getJdbDatabase(db).exportToMap(), {
+        expect(await getJdbDatabase(db)!.exportToMap(), {
           'entries': [
             {
               'id': 2,
-              'value': {'key': 1, 'value': null, 'deleted': true}
+              'value': {'key': 1, 'deleted': true}
             }
           ],
           'infos': [
@@ -164,7 +164,7 @@ void defineTests(DatabaseTestContextJdb ctx) {
           ]
         });
         await compact(db);
-        expect(await getJdbDatabase(db).exportToMap(), {
+        expect(await getJdbDatabase(db)!.exportToMap(), {
           'entries': [],
           'infos': [
             {'id': 'deltaMinRevision', 'value': 2},
@@ -182,7 +182,7 @@ void defineTests(DatabaseTestContextJdb ctx) {
 
     test('deltaImport', () async {
       await prepareForDb();
-      var db = await factory.openDatabase(dbPath);
+      var db = await factory.openDatabase(dbPath!);
       try {
         await store.record(1).put(db, 'hi');
         var storeEmptyFuture =
@@ -210,11 +210,11 @@ void defineTests(DatabaseTestContextJdb ctx) {
         // db = await factory.openDatabase(dbPath);
         // devPrint('0');
         await deltaImport(db, 2);
-        expect(await getJdbDatabase(db).exportToMap(), {
+        expect(await getJdbDatabase(db)!.exportToMap(), {
           'entries': [
             {
               'id': 2,
-              'value': {'key': 1, 'value': null, 'deleted': true}
+              'value': {'key': 1, 'deleted': true}
             }
           ],
           'infos': [
@@ -234,7 +234,7 @@ void defineTests(DatabaseTestContextJdb ctx) {
 
     test('deltaImport_full', () async {
       await prepareForDb();
-      var db = await factory.openDatabase(dbPath);
+      var db = await factory.openDatabase(dbPath!);
       try {
         await store.record(1).put(db, 'hi');
         var recordDeleteFuture = store
@@ -257,7 +257,7 @@ void defineTests(DatabaseTestContextJdb ctx) {
         // A full import will be performed
         await deltaImport(db, 2);
 
-        expect(await getJdbDatabase(db).exportToMap(), {
+        expect(await getJdbDatabase(db)!.exportToMap(), {
           'entries': [],
           'infos': [
             {'id': 'deltaMinRevision', 'value': 2},
@@ -292,11 +292,11 @@ void defineTests(DatabaseTestContextJdb ctx) {
           }
         ]
       });
-      var db = await factory.openDatabase(dbPath);
+      var db = await factory.openDatabase(dbPath!);
 
       try {
         //await store.record(1).put(db, 'hi');
-        expect(await getJdbDatabase(db).exportToMap(), {
+        expect(await getJdbDatabase(db)!.exportToMap(), {
           'entries': [
             {
               'id': 1,
@@ -332,7 +332,7 @@ void defineTests(DatabaseTestContextJdb ctx) {
           {'id': 'revision', 'value': 1}
         ]
       });
-      var db = await factory.openDatabase(dbPath);
+      var db = await factory.openDatabase(dbPath!);
       expect(await store.record(1).get(db), 'hi');
       expect(await exportToMap(db), {
         'entries': [
@@ -351,7 +351,7 @@ void defineTests(DatabaseTestContextJdb ctx) {
       });
 
       await db.close();
-      db = await factory.openDatabase(dbPath);
+      db = await factory.openDatabase(dbPath!);
 
       expect(await exportToMap(db), {
         'entries': [
@@ -376,5 +376,5 @@ void defineTests(DatabaseTestContextJdb ctx) {
   });
 }
 
-JdbDatabase getJdbDatabase(Database database) =>
+JdbDatabase? getJdbDatabase(Database database) =>
     ((database as SembastDatabase).storageJdb as SembastStorageJdb).jdbDatabase;

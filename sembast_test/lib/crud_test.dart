@@ -11,7 +11,7 @@ void main() {
 
 void defineTests(DatabaseTestContext ctx) {
   group('crud', () {
-    Database db;
+    late Database db;
 
     final mainStore = StoreRef.main();
 
@@ -104,7 +104,8 @@ void defineTests(DatabaseTestContext ctx) {
       final store = intMapStoreFactory.store();
       var record = store.record(1);
       await record.put(db, {'test': 1});
-      var snapshot = await record.getSnapshot(db);
+      var snapshot = (await record.getSnapshot(db))
+          as RecordSnapshot<int, Map<String, Object?>>;
       try {
         snapshot.value['test'] = 2;
         fail('should fail');

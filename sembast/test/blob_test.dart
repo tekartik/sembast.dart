@@ -5,26 +5,6 @@ import 'test_common.dart';
 
 void main() {
   group('blob', () {
-    test('null', () {
-      try {
-        Blob(null);
-        fail('should fail');
-      } catch (e) {
-        expect(e, const TypeMatcher<AssertionError>());
-      }
-      try {
-        Blob.fromList(null);
-        fail('should fail');
-      } catch (e) {
-        expect(e, isNot(const TypeMatcher<TestFailure>()));
-      }
-      try {
-        Blob.fromBase64(null);
-        fail('should fail');
-      } catch (e) {
-        expect(e, isNot(const TypeMatcher<TestFailure>()));
-      }
-    });
     test('equals', () {
       expect(Blob.fromList([1, 2]), Blob.fromList([1, 2]));
       expect(Blob.fromList([]), Blob.fromList([]));
@@ -49,7 +29,7 @@ void main() {
           greaterThan(0));
     });
     void _checkBlob(Blob blob, String expectedBase64) {
-      var reason = '${blob}';
+      var reason = '$blob';
       expect(blob.toBase64(), expectedBase64, reason: 'timestamp $reason');
     }
 

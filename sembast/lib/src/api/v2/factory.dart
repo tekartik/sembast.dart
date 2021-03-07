@@ -25,15 +25,15 @@ abstract class DatabaseFactory {
   ///
   /// Custom [settings] can be specified.
   Future<Database> openDatabase(String path,
-      {int version,
-      OnVersionChangedFunction onVersionChanged,
-      DatabaseMode mode,
-      SembastCodec codec});
+      {int? version,
+      OnVersionChangedFunction? onVersionChanged,
+      DatabaseMode? mode,
+      SembastCodec? codec});
 
   ///
   /// Delete a database if existing
   ///
-  Future deleteDatabase(String path);
+  Future<void> deleteDatabase(String path);
 }
 
 /// Callback interface called when the existing version differs from the

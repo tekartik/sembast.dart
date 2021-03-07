@@ -1,19 +1,20 @@
 # Install firefox
 addons:
   firefox: latest
+  chrome: stable
 
 language: dart
 sudo: required
-dist: xenial
+
 dart:
   - stable
   - beta
   - dev
 before_script:
+  - cd repo_support
+  - dart pub get
   - # Set firefox headless
   - export MOZ_HEADLESS=1
-  - pub run chrome_travis:init
-  - source $(pub run chrome_travis:env_rc)
 script:
   - dart tool/travis.dart
 # matrix:

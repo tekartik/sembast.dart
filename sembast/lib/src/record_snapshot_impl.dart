@@ -7,11 +7,11 @@ import 'package:sembast/src/utils.dart';
 /// Record snapshot mixin.
 mixin RecordSnapshotMixin<K, V>
     implements RecordSnapshot<K, V>, SembastRecordValue<V> {
-  /// Record revision.
-  int revision;
+  /// Record revision - jdb only
+  int? revision;
 
   @override
-  RecordRef<K, V> ref;
+  late RecordRef<K, V> ref;
 
   @override
   K get key => ref.key;
@@ -21,7 +21,7 @@ mixin RecordSnapshotMixin<K, V>
 
   /// direct access to raw value
   @override
-  V rawValue;
+  late V rawValue;
 
   @override
   String toString() => '$ref $rawValue';
@@ -30,10 +30,10 @@ mixin RecordSnapshotMixin<K, V>
   /// get the value of the specified [field]
   ///
   @override
-  dynamic operator [](String field) => getValue(field);
+  Object? operator [](String field) => getValue(field);
 
   /// Safe value
-  dynamic getValue(String field) {
+  Object? getValue(String field) {
     if (field == Field.value) {
       return value;
     } else if (field == Field.key) {
@@ -67,7 +67,7 @@ mixin RecordSnapshotMixin<K, V>
 class SembastRecordSnapshot<K, V> with RecordSnapshotMixin<K, V> {
   /// Snapshot from an immutable record.
   SembastRecordSnapshot.fromRecord(ImmutableSembastRecord record) {
-    ref = record.ref?.cast<K, V>();
+    ref = record.ref.cast<K, V>();
     rawValue = record.value as V;
   }
 
@@ -91,7 +91,7 @@ class SembastRecordRawSnapshot<K, V> implements RecordSnapshot<K, V> {
 
   /// Raw access to data
   @override
-  dynamic operator [](String field) => snapshot.getRawValue(field);
+  dynamic operator [](String? field) => snapshot.getRawValue(field!);
 
   /// Raw access to data
   @override

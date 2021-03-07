@@ -12,7 +12,7 @@ void main() {
 
 void defineTests(DatabaseTestContext ctx) {
   group('record_listener', () {
-    Database db;
+    late Database db;
 
     setUp(() async {
       db = await setupForTest(ctx, 'record_listener.db');
@@ -159,8 +159,10 @@ void defineTests(DatabaseTestContext ctx) {
         completer.complete();
       });
       expect(database.listener.isNotEmpty, isTrue);
-      var ctlr =
-          database.listener.getStore(store).getQueryListenerControllers().first;
+      var ctlr = database.listener
+          .getStore(store)!
+          .getQueryListenerControllers()
+          .first;
       ctlr.close();
 
       await completer.future;

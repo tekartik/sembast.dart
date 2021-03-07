@@ -1,4 +1,6 @@
+// @dart=2.9
 import 'package:process_run/shell.dart';
+import 'package:pub_semver/pub_semver.dart';
 import 'run_coverage.dart' as coverage;
 import 'submit_coverage_info.dart' as submit_coverage;
 
@@ -16,6 +18,9 @@ pub run build_runner test -- -p chrome -j 1
 pub run test -p chrome,firefox -j 1
 ''');
 
-  await coverage.main();
-  await submit_coverage.main();
+  // Skip coverage
+  if (dartVersion <= Version(2, 12, 0, pre: '0')) {
+    await coverage.main();
+    await submit_coverage.main();
+  }
 }

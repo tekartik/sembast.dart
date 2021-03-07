@@ -9,15 +9,15 @@ void main() {
   group('encrypt_codec', () {
     group('map', () {
       void _testCodec(SembastCodec codec) {
-        var encrypted = codec.codec.encode({'test': 1});
-        var encrypted2 = codec.codec.encode({'test': 1});
+        var encrypted = codec.codec!.encode({'test': 1});
+        var encrypted2 = codec.codec!.encode({'test': 1});
 
         expect(encrypted.length, 28);
         expect(encrypted2.length, 28);
         // They should not be equals!
         expect(encrypted, isNot(encrypted2));
-        expect(codec.codec.decode(encrypted), {'test': 1});
-        expect(codec.codec.decode(encrypted2), {'test': 1});
+        expect(codec.codec!.decode(encrypted), {'test': 1});
+        expect(codec.codec!.decode(encrypted2), {'test': 1});
       }
 
       test('codec', () {
@@ -30,7 +30,7 @@ void main() {
       test('decode', () {
         dynamic testDecode(String encrypted) {
           expect(
-              getEncryptSembastCodec(password: 'test').codec.decode(encrypted),
+              getEncryptSembastCodec(password: 'test').codec!.decode(encrypted),
               {'test': 1});
         }
 
@@ -40,11 +40,11 @@ void main() {
     });
     test('non_map', () {
       var codec = getEncryptSembastCodec(password: 'test');
-      var encrypted = codec.codec.encode(1);
+      var encrypted = codec.codec!.encode(1);
       print(encrypted);
-      expect(codec.codec.decode(encrypted), 1);
-      expect(codec.codec.decode('/rrxTMsFHFI=VA=='), 1);
-      expect(codec.codec.decode('QpInbufcf6w=Ag=='), 1);
+      expect(codec.codec!.decode(encrypted), 1);
+      expect(codec.codec!.decode('/rrxTMsFHFI=VA=='), 1);
+      expect(codec.codec!.decode('QpInbufcf6w=Ag=='), 1);
     });
   });
 }

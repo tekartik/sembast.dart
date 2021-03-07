@@ -8,7 +8,7 @@ void main() {
 
 void defineTests(DatabaseTestContext ctx) {
   group('crud_impl', () {
-    Database db;
+    late Database db;
 
     var store = StoreRef.main();
 
@@ -61,7 +61,7 @@ void defineTests(DatabaseTestContext ctx) {
 
     test('put_close_get_map', () async {
       var record = store.record(1);
-      final info = <String, dynamic>{'info': 12};
+      final info = <String, Object?>{'info': 12};
       await record.put(db, info);
       db = await reOpen(db);
       var infoRead = await record.get(db);

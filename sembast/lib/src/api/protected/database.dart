@@ -1,1 +1,2 @@
-export 'package:sembast/src/database_impl.dart' show SembastDatabase;
+export 'package:sembast/src/database_impl.dart'
+    show SembastDatabase, SembastDatabaseMin;

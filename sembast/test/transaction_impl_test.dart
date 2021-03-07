@@ -13,7 +13,7 @@ void main() {
 
 void defineTests(DatabaseTestContext ctx) {
   group('transaction_impl', () {
-    SembastDatabase db;
+    late SembastDatabase db;
 
     setUp(() async {
       db = await setupForTest(ctx, 'compat/transaction_impl.db')
@@ -33,6 +33,7 @@ void defineTests(DatabaseTestContext ctx) {
       futures.add(record.put(db, 'hi'));
       // expect(db.currentTransaction, isNull);
       // here the value should not be loaded yet
+
       futures.add(record.get(db).then((value) {
         //expect(db.currentTransaction, isNull);
         expect(value, null);
@@ -41,43 +42,40 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     var transactionIdAfterOpen = 1;
-    test('one currentTransaction', () {
-      db.transaction((txn) {
-        expect(db.currentTransaction.id, transactionIdAfterOpen + 1);
-        return Future.value().then((_) {
-          expect(db.currentTransaction.id, transactionIdAfterOpen + 1);
-        }).then((_) {
-          expect(db.currentTransaction.id, transactionIdAfterOpen + 1);
-        });
-      }).then((_) {
-        expect(db.currentTransaction, null);
+    test('one currentTransaction', () async {
+      expect(db.currentTransaction, null);
+      await db.transaction((txn) async {
+        expect(db.currentTransaction!.id, transactionIdAfterOpen + 1);
+        await Future.value();
+        expect(db.currentTransaction!.id, transactionIdAfterOpen + 1);
+        await Future.value();
+        expect(db.currentTransaction!.id, transactionIdAfterOpen + 1);
       });
+      expect(db.currentTransaction, null);
     });
 
-    test('two currentTransaction', () {
-      db.transaction((txn) {
-        expect(db.currentTransaction.id, transactionIdAfterOpen + 1);
-      }).then((_) {
-        // expect(db.currentTransaction, null);
+    test('two currentTransaction', () async {
+      expect(db.currentTransaction, null);
+      // ignore: unawaited_futures
+      db.transaction((txn) async {
+        await Future.value();
+        expect(db.currentTransaction!.id, transactionIdAfterOpen + 1);
       });
-      return db.transaction((txn) {
-        expect(db.currentTransaction.id, transactionIdAfterOpen + 2);
-      }).then((_) {
-        // expect(db.currentTransaction, null);
+      await db.transaction((txn) {
+        expect(db.currentTransaction!.id, transactionIdAfterOpen + 2);
       });
+      expect(db.currentTransaction, null);
     });
 
-    test('two currentTransaction follow', () {
-      db.transaction((txn) {
-        expect(db.currentTransaction.id, transactionIdAfterOpen + 1);
-      }).then((_) {
-        expect(db.currentTransaction, null);
-        return db.transaction((txn) {
-          expect(db.currentTransaction.id, transactionIdAfterOpen + 2);
-        }).then((_) {
-          expect(db.currentTransaction, null);
-        });
+    test('two currentTransaction follow', () async {
+      await db.transaction((txn) {
+        expect(db.currentTransaction!.id, transactionIdAfterOpen + 1);
       });
+      expect(db.currentTransaction, null);
+      await db.transaction((txn) {
+        expect(db.currentTransaction!.id, transactionIdAfterOpen + 2);
+      });
+      expect(db.currentTransaction, null);
     });
   });
 }

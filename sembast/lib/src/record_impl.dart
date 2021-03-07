@@ -9,7 +9,7 @@ import 'package:sembast/src/utils.dart';
 ///
 /// Internal Record, either in store or in transaction
 ///
-abstract class SembastRecord extends RecordSnapshot<dynamic, dynamic> {
+abstract class SembastRecord extends RecordSnapshot<Object?, Object?> {
   ///
   /// true if the record has been deleted
   bool get deleted;
@@ -21,12 +21,12 @@ mixin SembastRecordHelperMixin implements SembastRecord {
   /// Copy a record.
   ///
   ImmutableSembastRecord sembastClone(
-      {SembastStore store,
+      {SembastStore? store,
       dynamic key,
-      RecordRef<dynamic, dynamic> ref,
+      RecordRef<Object?, Object?>? ref,
       dynamic value,
-      bool deleted}) {
-    return ImmutableSembastRecord(ref ?? this.ref, value ?? this.value,
+      required bool deleted}) {
+    return ImmutableSembastRecord(ref ?? this.ref, (value ?? this.value) as Map,
         deleted: deleted);
   }
 
@@ -35,21 +35,21 @@ mixin SembastRecordHelperMixin implements SembastRecord {
     return ImmutableSembastRecord(ref, null, deleted: true);
   }
 
-  Map<String, dynamic> _toBaseMap() {
-    var map = <String, dynamic>{};
+  Map<String, Object?> _toBaseMap() {
+    var map = <String, Object?>{};
     map[dbRecordKey] = key;
 
     if (deleted == true) {
       map[dbRecordDeletedKey] = true;
     }
-    if (ref.store != null && ref.store != mainStoreRef) {
+    if (ref.store != mainStoreRef) {
       map[dbStoreNameKey] = ref.store.name;
     }
     return map;
   }
 
   /// The actual map written to disk
-  Map<String, dynamic> toDatabaseRowMap() {
+  Map<String, Object?> toDatabaseRowMap() {
     var map = _toBaseMap();
     // Don't write the value for deleted
     // ...and for null too anyway...
@@ -74,12 +74,12 @@ mixin SembastRecordHelperMixin implements SembastRecord {
 /// Used as an interface
 abstract class SembastRecordValue<V> {
   /// Raw value/
-  V rawValue;
+  late V rawValue;
 }
 
 /// Sembast record mixin.
 mixin SembastRecordMixin implements SembastRecord, SembastRecordValue {
-  bool _deleted;
+  bool? _deleted;
 
   @override
   bool get deleted => _deleted == true;
@@ -92,8 +92,10 @@ mixin SembastRecordMixin implements SembastRecord, SembastRecordValue {
 /// Immutable record in jdb.
 class ImmutableSembastRecordJdb extends ImmutableSembastRecord {
   /// Immutable record in jdb.
+  ///
+  /// revision needed
   ImmutableSembastRecordJdb(RecordRef ref, dynamic value,
-      {bool deleted, int revision})
+      {bool deleted = false, required int revision})
       : super(ref, value, deleted: deleted) {
     this.revision = revision;
   }
@@ -103,12 +105,12 @@ class ImmutableSembastRecordJdb extends ImmutableSembastRecord {
 class ImmutableSembastRecord
     with SembastRecordMixin, SembastRecordHelperMixin, RecordSnapshotMixin {
   @override
-  set value(value) {
+  set value(dynamic value) {
     throw StateError('Record is immutable. Clone to modify it');
   }
 
   @override
-  dynamic get value => immutableValue(super.value);
+  Object? get value => immutableValue(super.value);
 
   static var _lastRevision = 0;
 
@@ -118,10 +120,10 @@ class ImmutableSembastRecord
 
   /// Record from row map.
   ImmutableSembastRecord.fromDatabaseRowMap(Database db, Map map) {
-    final storeName = map[dbStoreNameKey] as String;
+    final storeName = map[dbStoreNameKey] as String?;
     final storeRef = storeName == null
         ? mainStoreRef
-        : StoreRef<dynamic, dynamic>(storeName);
+        : StoreRef<Object?, Object?>(storeName);
     ref = storeRef.record(map[dbRecordKey]);
     super.value = sanitizeValueIfMap(map[dbRecordValueKey]);
     _deleted = map[dbRecordDeletedKey] == true;
@@ -133,8 +135,10 @@ class ImmutableSembastRecord
   /// We know data has been sanitized before
   /// an optional [key]
   ///
-  ImmutableSembastRecord(RecordRef<dynamic, dynamic> ref, dynamic value,
-      {bool deleted}) {
+  /// value is null for deleted record
+  ///
+  ImmutableSembastRecord(RecordRef<Object?, Object?> ref, Object? value,
+      {bool deleted = false}) {
     this.ref = ref;
     super.value = value;
     _deleted = deleted;
@@ -160,7 +164,7 @@ class TxnRecord with SembastRecordHelperMixin implements SembastRecord {
   TxnRecord(this.record);
 
   @override
-  dynamic operator [](String field) => record[field];
+  dynamic operator [](String? field) => record[field!];
 
   @override
   bool get deleted => record.deleted;
@@ -178,7 +182,7 @@ class TxnRecord with SembastRecordHelperMixin implements SembastRecord {
   RecordSnapshot<RK, RV> cast<RK, RV>() => record.cast<RK, RV>();
 
   /// non deleted record.
-  ImmutableSembastRecord get nonDeletedRecord => deleted ? null : record;
+  ImmutableSembastRecord? get nonDeletedRecord => deleted ? null : record;
 }
 
 ///
@@ -194,17 +198,14 @@ ImmutableSembastRecordJdb makeImmutableRecordJdb(
     ImmutableSembastRecord record) {
   if (record is ImmutableSembastRecordJdb) {
     return record;
-  } else if (record == null) {
-    // This can happen when settings boundary
-    return null;
   }
   // no revision
   return ImmutableSembastRecordJdb(record.ref, cloneValue(record.value),
-      deleted: record.deleted);
+      deleted: record.deleted, revision: record.revision!);
 }
 
 /// Make immutable snapshot.
-RecordSnapshot makeImmutableRecordSnapshot(RecordSnapshot record) {
+RecordSnapshot? makeImmutableRecordSnapshot(RecordSnapshot? record) {
   if (record is ImmutableSembastRecord) {
     return record;
   } else if (record is SembastRecordSnapshot) {
@@ -221,5 +222,5 @@ List<SembastRecordSnapshot<K, V>> immutableListToSnapshots<K, V>(
     List<ImmutableSembastRecord> records) {
   return records
       .map((immutable) => SembastRecordSnapshot<K, V>.fromRecord(immutable))
-      ?.toList(growable: false);
+      .toList(growable: false);
 }

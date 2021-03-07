@@ -1,4 +1,3 @@
-import 'package:meta/meta.dart';
 import 'package:sembast/sembast.dart';
 import 'package:sembast/src/api/query_ref.dart';
 import 'package:sembast/src/api/record_ref.dart';
@@ -16,7 +15,7 @@ class _ControllerBase {
   static var _lastId = 0;
 
   /// Debug only
-  int _id;
+  int? _id;
 
   _ControllerBase() {
     _id = ++_lastId;
@@ -26,28 +25,28 @@ class _ControllerBase {
 /// Query listener controller.
 class QueryListenerController<K, V> extends _ControllerBase {
   /// onListen to start or restart query.
-  void Function() onListen;
+  void Function()? onListen;
 
   /// The query.
   final SembastQueryRef<K, V> queryRef;
-  StreamController<List<RecordSnapshot<K, V>>> _streamController;
+  StreamController<List<RecordSnapshot<K, V>>>? _streamController;
 
   /// True when the first data has arrived
   bool get hasInitialData => _allMatching != null;
 
   /// true if closed.
-  bool get isClosed => _streamController.isClosed;
+  bool get isClosed => _streamController!.isClosed;
 
   /// The current list
-  List<RecordSnapshot<K, V>> list;
-  List<ImmutableSembastRecord> _allMatching;
+  List<RecordSnapshot<K, V>>? list;
+  List<ImmutableSembastRecord>? _allMatching;
 
   /// The finder.
   // ignore: deprecated_member_use_from_same_package
-  SembastFinder get finder => queryRef.finder;
+  SembastFinder? get finder => queryRef.finder;
 
   /// The filter.
-  SembastFilterBase get filter => finder?.filter as SembastFilterBase;
+  SembastFilterBase? get filter => finder?.filter as SembastFilterBase?;
 
   /// close controller.
   void close() {
@@ -56,7 +55,7 @@ class QueryListenerController<K, V> extends _ControllerBase {
 
   /// Query listener controller.
   QueryListenerController(DatabaseListener listener, this.queryRef,
-      {@required this.onListen}) {
+      {required this.onListen}) {
     // devPrint('query $queryRef');
 
     _streamController =
@@ -71,18 +70,18 @@ class QueryListenerController<K, V> extends _ControllerBase {
       if (debugListener) {
         print('onListen $this');
       }
-      onListen();
+      onListen!();
     });
   }
 
   /// stream.
-  Stream<List<RecordSnapshot<K, V>>> get stream => _streamController.stream;
+  Stream<List<RecordSnapshot<K, V>>> get stream => _streamController!.stream;
 
-  bool get _shouldAdd => !isClosed && _streamController.hasListener;
+  bool get _shouldAdd => !isClosed && _streamController!.hasListener;
 
   /// Add data to stream, allMatching is already sorted
   Future add(
-      List<ImmutableSembastRecord> allMatching, Cooperator cooperator) async {
+      List<ImmutableSembastRecord>? allMatching, Cooperator? cooperator) async {
     if (!_shouldAdd) {
       return;
     }
@@ -96,22 +95,22 @@ class QueryListenerController<K, V> extends _ControllerBase {
     }
 
     // devPrint('adding $allMatching / limit $list / $finder');
-    _streamController?.add(immutableListToSnapshots<K, V>(list));
+    _streamController?.add(immutableListToSnapshots<K, V>(list!));
   }
 
   /// Add error.
-  void addError(dynamic error, StackTrace stackTrace) {
+  void addError(Object error, StackTrace stackTrace) {
     if (!_shouldAdd) {
       return;
     }
-    _streamController.addError(error, stackTrace);
+    _streamController!.addError(error, stackTrace);
   }
 
   /// Update the records.
   ///
   /// We are async safe here
   Future update(
-      Iterable<ImmutableSembastRecord> records, Cooperator cooperator) async {
+      Iterable<ImmutableSembastRecord> records, Cooperator? cooperator) async {
     if (!_shouldAdd) {
       return;
     }
@@ -119,7 +118,7 @@ class QueryListenerController<K, V> extends _ControllerBase {
     var hasChanges = false;
 
     // Restart from the base we have for efficiency
-    var allMatching = List<ImmutableSembastRecord>.from(_allMatching);
+    var allMatching = List<ImmutableSembastRecord>.from(_allMatching!);
 
     var keys = Set.from(records.map((record) => record.key));
     // Remove all matching
@@ -154,7 +153,7 @@ class QueryListenerController<K, V> extends _ControllerBase {
       }
 
       if (cooperator?.needCooperate ?? false) {
-        await cooperator.cooperate();
+        await cooperator!.cooperate();
       }
     }
     if (isClosed) {
@@ -174,7 +173,7 @@ class QueryListenerController<K, V> extends _ControllerBase {
       if (debugListener) {
         print('restarting listener $this');
       }
-      onListen();
+      onListen!();
     }
   }
 }
@@ -185,11 +184,11 @@ class RecordListenerController<K, V> extends _ControllerBase {
   final RecordRef<K, V> recordRef;
 
   /// Start or restart
-  void Function() onListen;
+  void Function()? onListen;
 
   /// has initial data.
   bool hasInitialData = false;
-  StreamController<RecordSnapshot<K, V>> _streamController;
+  late StreamController<RecordSnapshot<K, V>?> _streamController;
 
   /// close.
   void close() {
@@ -201,8 +200,8 @@ class RecordListenerController<K, V> extends _ControllerBase {
 
   /// Record listener controller.
   RecordListenerController(DatabaseListener listener, this.recordRef,
-      {@required this.onListen}) {
-    _streamController = StreamController<RecordSnapshot<K, V>>(onCancel: () {
+      {required this.onListen}) {
+    _streamController = StreamController<RecordSnapshot<K, V>?>(onCancel: () {
       if (debugListener) {
         print('onCancel $this');
       }
@@ -213,18 +212,18 @@ class RecordListenerController<K, V> extends _ControllerBase {
       if (debugListener) {
         print('onListen $this');
       }
-      onListen();
+      onListen!();
     });
   }
 
   /// stream.
-  Stream<RecordSnapshot<K, V>> get stream => _streamController.stream;
+  Stream<RecordSnapshot<K, V>?> get stream => _streamController.stream;
 
   /// True if should add or start listening.
   bool get _shouldAdd => !isClosed && _streamController.hasListener;
 
   /// Add a snapshot if not deleted
-  void add(RecordSnapshot snapshot) {
+  void add(RecordSnapshot? snapshot) {
     if (!_shouldAdd) {
       return;
     }
@@ -233,7 +232,7 @@ class RecordListenerController<K, V> extends _ControllerBase {
   }
 
   /// Add an error.
-  void addError(dynamic error, StackTrace stackTrace) {
+  void addError(Object error, StackTrace stackTrace) {
     if (!_shouldAdd) {
       return;
     }
@@ -249,7 +248,7 @@ class RecordListenerController<K, V> extends _ControllerBase {
       if (debugListener) {
         print('restarting listener $this');
       }
-      onListen();
+      onListen!();
     }
   }
 }
@@ -258,7 +257,7 @@ class RecordListenerController<K, V> extends _ControllerBase {
 class StoreListener {
   /// Our store.
   final StoreRef store;
-  final _records = <dynamic, List<RecordListenerController>>{};
+  final _records = <Object?, List<RecordListenerController>>{};
   final _queries = <QueryListenerController>[];
 
   /// Store listener.
@@ -304,10 +303,10 @@ class StoreListener {
   }
 
   /// All record keys being watched
-  Iterable<dynamic> get recordKeys => _records.keys;
+  Iterable<Object?> get recordKeys => _records.keys;
 
   /// Get the record listener.
-  List<RecordListenerController<K, V>> getRecordControllers<K, V>(
+  List<RecordListenerController<K, V>>? getRecordControllers<K, V>(
       RecordRef<K, V> recordRef) {
     return _records[recordRef.key]?.cast<RecordListenerController<K, V>>();
   }
@@ -355,7 +354,7 @@ class DatabaseListener {
 
   /// Add a record.
   RecordListenerController<K, V> addRecord<K, V>(RecordRef<K, V> recordRef,
-      {@required void Function() onListen}) {
+      {required void Function()? onListen}) {
     var ctlr =
         RecordListenerController<K, V>(this, recordRef, onListen: onListen);
     var storeRef = recordRef.store;
@@ -369,7 +368,7 @@ class DatabaseListener {
 
   /// Add a query.
   QueryListenerController<K, V> addQuery<K, V>(QueryRef<K, V> queryRef,
-      {@required void Function() onListen}) {
+      {required void Function()? onListen}) {
     var ctlr = newQuery(queryRef, onListen: onListen);
     addQueryController(ctlr);
     return ctlr;
@@ -377,7 +376,7 @@ class DatabaseListener {
 
   /// Create a query.
   QueryListenerController<K, V> newQuery<K, V>(QueryRef<K, V> queryRef,
-      {@required void Function() onListen}) {
+      {required void Function()? onListen}) {
     var ref = queryRef as SembastQueryRef<K, V>;
     var ctlr = QueryListenerController<K, V>(this, ref, onListen: onListen);
     return ctlr;
@@ -422,15 +421,15 @@ class DatabaseListener {
   }
 
   /// Get a record controller.
-  List<RecordListenerController<K, V>> getRecord<K, V>(
+  List<RecordListenerController<K, V>>? getRecord<K, V>(
       RecordRef<K, V> recordRef) {
-    return _stores[recordRef]
+    return _stores[recordRef as StoreRef<Object?, Object?>]!
         .getRecordControllers(recordRef)
         ?.cast<RecordListenerController<K, V>>();
   }
 
   /// Get a store listener.
-  StoreListener getStore(StoreRef ref) => _stores[ref];
+  StoreListener? getStore(StoreRef ref) => _stores[ref];
 
   /// All store listeners.
   Iterable<StoreRef> get stores => _stores.keys;

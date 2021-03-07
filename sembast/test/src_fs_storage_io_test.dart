@@ -26,10 +26,10 @@ void main() {
       } on FormatException catch (_) {}
 
       expect(
-          null,
           await storage
               .readSafeLines()
-              .firstWhere((element) => true, orElse: () => null));
+              .firstWhere((element) => true, orElse: () => ''),
+          '');
 
       await storage.delete();
       await io.File(path).writeAsBytes([

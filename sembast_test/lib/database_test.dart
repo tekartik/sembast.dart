@@ -19,7 +19,7 @@ void defineTests(DatabaseTestContext ctx) {
     dbPath = dbPathFromName(join('compat', 'database.db'));
 
     group('open', () {
-      Database db;
+      Database? db;
 
       setUp(() async {
         await factory.deleteDatabase(dbPath);
@@ -107,7 +107,7 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     group('onVersionChanged', () {
-      Database db;
+      Database? db;
 
       setUp(() {
         return factory.deleteDatabase(dbPath).then((_) {});
@@ -119,8 +119,8 @@ void defineTests(DatabaseTestContext ctx) {
 
       test('open_no_version', () async {
         // save to make sure we've been through
-        int _oldVersion;
-        int _newVersion;
+        int? _oldVersion;
+        int? _newVersion;
         void _onVersionChanged(Database db, int oldVersion, int newVersion) {
           expect(db.version, oldVersion);
           _oldVersion = oldVersion;
@@ -138,8 +138,8 @@ void defineTests(DatabaseTestContext ctx) {
 
       test('open_version', () async {
         // save to make sure we've been through
-        int _oldVersion;
-        int _newVersion;
+        int? _oldVersion;
+        int? _newVersion;
         void _onVersionChanged(Database db, int oldVersion, int newVersion) {
           expect(db.version, oldVersion);
           _oldVersion = oldVersion;
@@ -171,7 +171,7 @@ void defineTests(DatabaseTestContext ctx) {
           expect(await store.record(2).get(db), 'other');
           expect(db.version, 1);
         } finally {
-          await db?.close();
+          await db.close();
         }
       });
 
@@ -192,7 +192,7 @@ void defineTests(DatabaseTestContext ctx) {
           expect(await store.record(2).get(db), 'other');
           expect(db.version, 1);
         } finally {
-          await db?.close();
+          await db.close();
         }
 
         db = await factory.openDatabase(dbPath, version: 2,
@@ -215,7 +215,7 @@ void defineTests(DatabaseTestContext ctx) {
           expect(await store.record(2).get(db), 'other2');
           expect(db.version, 2);
         } finally {
-          await db?.close();
+          await db.close();
         }
       });
 

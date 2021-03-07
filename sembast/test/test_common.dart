@@ -10,16 +10,13 @@ export 'src/test/test.dart';
 export 'src/test_defs.dart';
 
 class DatabaseTestContext {
-  DatabaseFactory factory;
+  late DatabaseFactory factory;
 
   // String dbPath;
 
   // Delete the existing and open the database
   // ignore: always_require_non_null_named_parameters
-  Future<Database> open(String dbPath, {int version}) async {
-    assert(dbPath != null, 'dbPath cannot be null');
-    // this.dbPath = dbPath;
-
+  Future<Database> open(String dbPath, {int? version}) async {
     await factory.deleteDatabase(dbPath);
     return await factory.openDatabase(dbPath, version: version);
   }
@@ -27,16 +24,16 @@ class DatabaseTestContext {
 
 void unused(dynamic value) {}
 
-void setDatabaseCooperator(Database db, Cooperator cooperator) {
+void setDatabaseCooperator(Database db, Cooperator? cooperator) {
   (db as SembastDatabase).cooperator = cooperator;
 }
 
-Future<Database> reOpen(Database db, {DatabaseMode mode}) {
+Future<Database> reOpen(Database db, {DatabaseMode? mode}) {
   return (db as SembastDatabase).reOpen(DatabaseOpenOptions(
-      mode: mode ?? (db as SembastDatabase).openOptions.mode,
-      codec: (db as SembastDatabase).openOptions.codec,
-      version: (db as SembastDatabase).openOptions.version,
-      onVersionChanged: (db as SembastDatabase).openOptions.onVersionChanged));
+      mode: mode ?? db.openOptions.mode,
+      codec: db.openOptions.codec,
+      version: db.openOptions.version,
+      onVersionChanged: db.openOptions.onVersionChanged));
 }
 
 bool get isWeb => identical(1, 1.0);

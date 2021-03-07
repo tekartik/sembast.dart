@@ -126,17 +126,12 @@ void defineTests(FileSystemTestContext ctx) {
 
       test('type', () async {
         await clearOutFolder();
-        return fs.type(namePath('test')).then((FileSystemEntityType type) {
-          expect(type, FileSystemEntityType.notFound);
-        }).then((_) {
-          return fs.isFile(namePath('test')).then((bool isFile) {
-            expect(isFile, false);
-          });
-        }).then((_) {
-          return fs.isDirectory(namePath('test')).then((bool isFile) {
-            expect(isFile, false);
-          });
-        });
+        var type = await fs.type(namePath('test'));
+
+        expect(type, FileSystemEntityType.notFound);
+
+        expect(await fs.isFile(namePath('test')), false);
+        expect(await fs.isDirectory(namePath('test')), false);
       });
     });
 
@@ -150,12 +145,6 @@ void defineTests(FileSystemTestContext ctx) {
         expect(dir.path, r'\');
         dir = fs.directory(r'');
         expect(dir.path, r'');
-        try {
-          dir = fs.directory(null);
-          fail('should fail');
-        } on ArgumentError catch (_) {
-          // Invalid argument(s): null is not a String
-        }
       });
       test('dir exists', () async {
         await clearOutFolder();
@@ -245,12 +234,6 @@ void defineTests(FileSystemTestContext ctx) {
         expect(file.path, r'\');
         file = fs.file(r'');
         expect(file.path, r'');
-        try {
-          file = fs.file(null);
-          fail('should fail');
-        } on ArgumentError catch (_) {
-          // Invalid argument(s): null is not a String
-        }
       });
       test('file exists', () async {
         await clearOutFolder();

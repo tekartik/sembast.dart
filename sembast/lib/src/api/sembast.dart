@@ -25,3 +25,6 @@ export 'package:sembast/src/record_ref_impl.dart'
 export 'package:sembast/src/store_ref_impl.dart' show SembastStoreRefExtension;
 export 'package:sembast/src/cooperator.dart'
     show enableSembastCooperator, disableSembastCooperator;
+// v3.0.0
+export 'package:sembast/src/records_ref_impl.dart'
+    show SembastRecordsRefExtension;

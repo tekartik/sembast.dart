@@ -19,16 +19,16 @@ const int _exportSignatureVersion = 1;
 ///
 /// Return the data in an exported format that (can be JSONified).
 ///
-Future<Map<String, dynamic>> exportDatabase(Database db) {
+Future<Map<String, Object?>> exportDatabase(Database db) {
   return db.transaction((txn) async {
-    var export = <String, dynamic>{
+    var export = <String, Object?>{
       // our export signature
       _exportSignatureKey: _exportSignatureVersion,
       // the db version
       _dbVersion: db.version
     };
 
-    final storesExport = <Map<String, dynamic>>[];
+    final storesExport = <Map<String, Object?>>[];
 
     // export all records from each store
 
@@ -40,7 +40,7 @@ Future<Map<String, dynamic>> exportDatabase(Database db) {
       final keys = [];
       final values = [];
 
-      final storeExport = <String, dynamic>{
+      final storeExport = <String, Object?>{
         _name: store.name,
         _keys: keys,
         _values: values
@@ -48,9 +48,9 @@ Future<Map<String, dynamic>> exportDatabase(Database db) {
 
       for (var record in store.currentRecords) {
         keys.add(record.key);
-        values.add(sembastDatabase.toJsonEncodable(record.value));
-        if (sembastDatabase.cooperator.needCooperate) {
-          await sembastDatabase.cooperator.cooperate();
+        values.add(sembastDatabase.toJsonEncodable(record.value!));
+        if (sembastDatabase.cooperator!.needCooperate) {
+          await sembastDatabase.cooperator!.cooperate();
         }
       }
 
@@ -72,7 +72,7 @@ Future<Map<String, dynamic>> exportDatabase(Database db) {
 ///
 Future<Database> importDatabase(
     Map srcData, DatabaseFactory dstFactory, String dstPath,
-    {SembastCodec codec}) async {
+    {SembastCodec? codec}) async {
   await dstFactory.deleteDatabase(dstPath);
 
   // check signature
@@ -80,27 +80,26 @@ Future<Database> importDatabase(
     throw const FormatException('invalid export format');
   }
 
-  final version = srcData[_dbVersion] as int;
+  final version = srcData[_dbVersion] as int?;
 
   final db = await dstFactory.openDatabase(dstPath,
       version: version, mode: DatabaseMode.empty, codec: codec);
   var sembastDatabase = db as SembastDatabase;
   await db.transaction((txn) async {
     final storesExport =
-        (srcData[_stores] as Iterable)?.toList(growable: false)?.cast<Map>();
+        (srcData[_stores] as Iterable?)?.toList(growable: false).cast<Map>();
     if (storesExport != null) {
       for (var storeExport in storesExport) {
         final storeName = storeExport[_name] as String;
 
-        final keys = (storeExport[_keys] as Iterable)?.toList(growable: false);
-        final values =
-            (storeExport[_values] as Iterable)?.toList(growable: false);
+        final keys = (storeExport[_keys] as Iterable).toList(growable: false);
+        final values = List<Object>.from(storeExport[_values] as Iterable);
 
         var store =
             (txn as SembastTransaction).getSembastStore(StoreRef(storeName));
         for (var i = 0; i < keys.length; i++) {
-          await store.txnPut(txn as SembastTransaction,
-              sembastDatabase.fromJsonEncodable(values[i]), keys[i]);
+          await store.txnPut(
+              txn, sembastDatabase.fromJsonEncodable(values[i]), keys[i]);
         }
       }
     }

@@ -30,7 +30,7 @@ void defineTests(DatabaseTestContext ctx) {
 
       // json round trip and export
       var jsonExport = json.encode(export);
-      export = (json.decode(jsonExport) as Map)?.cast<String, dynamic>();
+      export = (json.decode(jsonExport) as Map).cast<String, Object?>();
       importedDb = await importDatabase(export, ctx.factory, importDbPath);
       expect(await exportDatabase(importedDb), expectedExport);
       await importedDb.close();

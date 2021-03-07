@@ -17,7 +17,6 @@ void main() {
     });
 
     test('FieldKey', () {
-      expect(FieldKey.escape(null), isNull);
       expect(FieldKey.escape('``'), '````');
       expect(FieldKey.escape('`é`'), '``é``');
       expect(FieldKey.escape('```'), '`````');

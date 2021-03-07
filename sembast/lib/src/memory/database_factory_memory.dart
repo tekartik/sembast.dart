@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:sembast/sembast.dart';
+import 'package:sembast/src/api/v2/sembast_memory.dart';
 import 'package:sembast/src/database_factory_mixin.dart';
 import 'package:sembast/src/database_impl.dart';
 import 'package:sembast/src/jdb/jdb_factory_memory.dart';
@@ -25,10 +26,8 @@ class DatabaseFactoryMemory extends SembastDatabaseFactory
     with DatabaseFactoryMixin {
   @override
   Future doDeleteDatabase(String path) async {
-    if (path != null) {
-      _databases.remove(path);
-      _exists.remove(path);
-    }
+    _databases.remove(path);
+    _exists.remove(path);
   }
 
   //Database _defaultDatabase;
@@ -41,20 +40,31 @@ class DatabaseFactoryMemory extends SembastDatabaseFactory
 
   @override
   SembastDatabase newDatabase(DatabaseOpenHelper openHelper) {
-    SembastDatabase db;
+    SembastDatabase? db;
     var path = openHelper.path;
     // For null path we always create a new database
-    if (path != null) {
-      db = _databases[path];
-    }
+
+    db = _databases[path];
 
     if (db == null) {
       db = SembastDatabase(openHelper, DatabaseStorageMemory(this, path));
-      if (path != null) {
-        _databases[path] = db;
-      }
+
+      _databases[path] = db;
     }
     return db;
+  }
+
+  @override
+  Future<Database> openDatabaseWithOptions(
+      String path, DatabaseOpenOptions options) async {
+    // Handle in memory special db here
+    // Basic implementation: delete it...
+    if (path == sembastInMemoryDatabasePath) {
+      await doDeleteDatabase(path);
+      var helper = DatabaseOpenHelper(this, path, options);
+      return helper.openDatabase();
+    }
+    return super.openDatabaseWithOptions(path, options);
   }
 }
 
@@ -62,7 +72,7 @@ class DatabaseFactoryMemory extends SembastDatabaseFactory
 /// Open a new database in memory
 ///
 Future<Database> openMemoryDatabase() {
-  return databaseFactoryMemory.openDatabase(null);
+  return databaseFactoryMemory.openDatabase(sembastInMemoryDatabasePath);
 }
 
 /// In memory storage.
@@ -81,7 +91,7 @@ class DatabaseStorageMemory extends DatabaseStorage {
   }
 
   @override
-  Future findOrCreate() async {
+  Future<void> findOrCreate() async {
     // Always create
     factory._exists[path] = true;
   }
@@ -90,19 +100,21 @@ class DatabaseStorageMemory extends DatabaseStorage {
   bool get supported => false;
 
   @override
-  Future delete() => null;
+  Future<void> delete() async {
+    // no-op
+  }
 
   @override
-  Stream<String> readLines() => null;
+  Stream<String> readLines() => throw UnimplementedError();
 
   @override
-  Future appendLines(List<String> lines) => null;
+  Future<void> appendLines(List<String> lines) => throw UnimplementedError();
 
   @override
-  DatabaseStorage get tmpStorage => null;
+  DatabaseStorage? get tmpStorage => null;
 
   @override
-  Future tmpRecover() => null;
+  Future<void> tmpRecover() => throw UnimplementedError();
 
   @override
   Stream<String> readSafeLines() {

@@ -82,7 +82,7 @@ class Cooperator {
 }
 
 /// Check if cooperate is needed
-bool cooperateNeeded(Cooperator cooperator) =>
+bool cooperateNeeded(Cooperator? cooperator) =>
     cooperator?.needCooperate ?? false;
 
 /// Global cooperator.
@@ -97,7 +97,7 @@ bool cooperatorDisabled = false;
 /// thread. Should be called before any other call.
 @visibleForTesting
 void disableSembastCooperator() {
-  globalCooperator?.stop();
+  globalCooperator.stop();
   cooperatorDisabled = true;
 }
 
@@ -106,7 +106,7 @@ void disableSembastCooperator() {
 /// [delayMicroseconds] specifies at which frequency an heavy algorithm is paused.
 /// [pauseMicroseconds] specifies the duration of the pauseat which frequency an heavy algorithm is paused.
 @visibleForTesting
-void enableSembastCooperator({int delayMicroseconds, int pauseMicroseconds}) {
+void enableSembastCooperator({int? delayMicroseconds, int? pauseMicroseconds}) {
   cooperatorDisabled = false;
   cooperatorDelayMicroseconds =
       delayMicroseconds ?? _cooperatorDelayMicrosecondsDefault;

@@ -11,7 +11,7 @@ void main() {
 
 void defineTests(DatabaseTestContext ctx) {
   group('record', () {
-    Database db;
+    late Database db;
 
     setUp(() async {
       db = await setupForTest(ctx, 'record.db');
@@ -67,8 +67,8 @@ void defineTests(DatabaseTestContext ctx) {
       await record.delete(db);
       var future4 = record.onSnapshot(db).first;
       expect(await future1, isNull);
-      expect((await future2).value, 'test');
-      expect((await future3).value, 'test2');
+      expect((await future2)!.value, 'test');
+      expect((await future3)!.value, 'test2');
       expect(await future4, isNull);
     });
 
@@ -169,7 +169,7 @@ void defineTests(DatabaseTestContext ctx) {
       var store = StoreRef<int, String>.main();
       var record = store.record(1);
       await record.put(db, 'test');
-      expect((await record.onSnapshot(db).first).value, 'test');
+      expect((await record.onSnapshot(db).first)!.value, 'test');
     });
 
     test('onSnapshot 2 records', () async {
@@ -182,8 +182,8 @@ void defineTests(DatabaseTestContext ctx) {
         await record1.put(txn, 'test1');
         await record2.put(txn, 'test2');
       });
-      expect((await future1).value, 'test1');
-      expect((await future2).value, 'test2');
+      expect((await future1)!.value, 'test1');
+      expect((await future2)!.value, 'test2');
     });
   });
 }

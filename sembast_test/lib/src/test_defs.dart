@@ -25,7 +25,7 @@ class TestException implements Exception {
 
 // FileSystem context
 class FileSystemTestContext {
-  FileSystem fs;
+  FileSystem? fs;
 
   //String get outPath => fs.currentDirectory.path;
 }
@@ -67,7 +67,7 @@ void devPrintJson(Map json) {
   print(const JsonEncoder.withIndent('  ').convert(json));
 }
 
-Future<Database> reOpen(Database db, {DatabaseMode mode}) {
+Future<Database> reOpen(Database db, {DatabaseMode? mode}) {
   return (db as SembastDatabase).reOpen(DatabaseOpenOptions(mode: mode));
 }
 
@@ -75,7 +75,7 @@ bool hasStorage(DatabaseFactory factory) =>
     // ignore: deprecated_member_use_from_same_package
     (factory as SembastDatabaseFactory).hasStorage;
 
-bool hasStorageJdb(DatabaseFactory factory) => factory is DatabaseFactoryJdb;
+bool hasStorageJdb(DatabaseFactory? factory) => factory is DatabaseFactoryJdb;
 
 /// Get an existing database version
 Future<int> getExistingDatabaseVersion(

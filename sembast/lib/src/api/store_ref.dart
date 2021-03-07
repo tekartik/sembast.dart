@@ -38,7 +38,7 @@ abstract class StoreFactory<K, V> {
 }
 
 /// Store factory with key as int and value as Map
-final intMapStoreFactory = StoreFactoryBase<int, Map<String, dynamic>>();
+final intMapStoreFactory = StoreFactoryBase<int, Map<String, Object?>>();
 
 /// Store factory with key as String and value as Map
-final stringMapStoreFactory = StoreFactoryBase<String, Map<String, dynamic>>();
+final stringMapStoreFactory = StoreFactoryBase<String, Map<String, Object?>>();

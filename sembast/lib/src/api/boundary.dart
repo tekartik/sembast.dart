@@ -18,7 +18,7 @@ abstract class Boundary {
   /// [snapshot] superseeds record
   ///
   factory Boundary(
-      {RecordSnapshot record, bool include, List<dynamic> values}) {
+      {RecordSnapshot? record, bool? include, List<Object?>? values}) {
     return SembastBoundary(record: record, include: include, values: values);
   }
 }

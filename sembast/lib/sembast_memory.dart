@@ -1,14 +1,8 @@
 library sembast.memory;
 
-import 'package:sembast/src/memory/database_factory_memory.dart' as impl;
-
-import 'sembast.dart';
-
-/// The in memory factory (no storage).
-DatabaseFactory get databaseFactoryMemory => impl.databaseFactoryMemory;
-
-/// The memory with a simulated file system factory.
-DatabaseFactory get databaseFactoryMemoryFs => impl.databaseFactoryMemoryFs;
-
-/// Create a new empty factory
-DatabaseFactory newDatabaseFactoryMemory() => impl.DatabaseFactoryMemory();
+export 'package:sembast/src/api/v2/sembast_memory.dart'
+    show
+        sembastInMemoryDatabasePath,
+        databaseFactoryMemory,
+        databaseFactoryMemoryFs,
+        newDatabaseFactoryMemory;

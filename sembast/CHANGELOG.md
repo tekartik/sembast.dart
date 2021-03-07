@@ -1,3 +1,8 @@
+## 3.0.0+3
+
+* `nnbd` support, breaking change.
+* No longer supports null record value.
+
 ## 2.4.10+3
 
 * Add `QueryRef.onSnapshot` to listen for the first matching record
@@ -117,7 +122,7 @@
 
 ## 1.15.3
 
-* Enforce `Map<String, dynamic>` for maps in the store API
+* Enforce `Map<String, Object?>` for maps in the store API
 * Add `cloneMap` utility to allow modifying a read record
 
 ## 1.15.2

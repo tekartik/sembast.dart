@@ -11,7 +11,7 @@ void main() {
       var dbListener = DatabaseListener();
       var ctlr = dbListener.addRecord(store.record(1), onListen: null);
       expect(dbListener.isNotEmpty, isTrue);
-      var storeListener = dbListener.getStore(store);
+      var storeListener = dbListener.getStore(store)!;
       expect(storeListener.keyHasRecordListener(1), isTrue);
       expect(storeListener.hasQueryListener, isFalse);
       expect(storeListener.keyHasAnyListener(1), isTrue);

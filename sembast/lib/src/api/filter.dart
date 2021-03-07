@@ -7,7 +7,7 @@ import 'package:sembast/src/filter_impl.dart';
 /// Don't subclass
 abstract class Filter {
   /// [field] value must be equals to [value].
-  factory Filter.equals(String field, value, {bool anyInList}) {
+  factory Filter.equals(String field, value, {bool? anyInList}) {
     return SembastEqualsFilter(field, value, anyInList);
   }
 
@@ -54,14 +54,14 @@ abstract class Filter {
   ///
   /// If [anyInList] is true, it means that if field is a list, a record matches
   /// if any of the list item matches the pattern.
-  factory Filter.matches(String field, String pattern, {bool anyInList}) =>
+  factory Filter.matches(String field, String pattern, {bool? anyInList}) =>
       Filter.matchesRegExp(field, RegExp(pattern), anyInList: anyInList);
 
   /// Filter [field] value using [regExp] regular expression.
   ///
   /// If [anyInList] is true, it means that if field is a list, a record matches
   /// if any of the list item matches the pattern.
-  factory Filter.matchesRegExp(String field, RegExp regExp, {bool anyInList}) {
+  factory Filter.matchesRegExp(String field, RegExp regExp, {bool? anyInList}) {
     return SembastMatchesFilter(field, regExp, anyInList);
   }
 

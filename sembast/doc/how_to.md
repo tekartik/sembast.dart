@@ -83,3 +83,58 @@ import 'package:sembast/utils/database_utils.dart';
 // Get the list of non-empty store names
 var names = await getNonEmptyStoreNames(db);
 ```
+
+## Convert int keys to String keys
+
+Let's assume you have a simple database with 3 fruits with generated int ids.
+
+```dart
+var fruitStoreV1 = intMapStoreFactory.store('fruit');
+var db = await factory.openDatabase('database.db', version: 1);
+await fruitStoreV1.addAll(
+  db,
+  ['banana', 'apple', 'pear']
+    .map((fruitName) => {'name': fruitName})
+    .toList());
+(await fruitStoreV1.find(db))
+  .forEach((snapshot) => print('${snapshot.key}: ${snapshot.value}'));
+// 1: {name: banana}
+// 2: {name: apple}
+// 3: {name: pear}
+await db.close();
+```
+
+You could convert to String keys with something like this:
+
+```dart
+// New format, new store.
+var fruitStoreV2 = stringMapStoreFactory.store('fruit_v2');
+var fruitStore = fruitStoreV2;
+// New version 2, key are string for fruit.
+var db = await factory.openDatabase('database.db', version: 2,
+    onVersionChanged: (db, oldVersion, newVersion) async {
+  if (oldVersion == 1) {
+    // Convert int key to String keys.
+    await db.transaction((txn) async {
+      // Convert int key to String key, by adding the existing to the new store
+      await fruitStoreV2.addAll(
+          txn,
+          (await fruitStoreV1.find(txn))
+              .map((snapshot) => snapshot.value)
+      .toList());
+      // Drop the old store
+      await fruitStoreV1.drop(txn);
+    });
+  }
+});
+(await fruitStore.find(db))
+    .forEach((snapshot) => print('${snapshot.key}: ${snapshot.value}'));
+// -MNxE-uEQjljyvy8BCFl: {name: banana}
+// -MNxE-uGfue6D7DJAFY2: {name: apple}
+// -MNxE-uGfue6D7DJAFY3: {name: pear}
+await db.close();
+```
+
+This is of course, the simplest scenario that might not fit your needs.
+A more complex migration could be done. Any reference to the old key, if any, should be updated too.
+If you don't want to change the store name, another step would be to move the data again to the old store.

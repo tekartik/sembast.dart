@@ -17,7 +17,7 @@ void main() {
 
 void defineTests(DatabaseTestContext ctx) {
   group('query', () {
-    Database db;
+    late Database db;
 
     setUp(() async {
       db = await setupForTest(ctx, 'query.db');
@@ -28,8 +28,8 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     Future expectQueryAndFirstSnapshotKeys(
-        Finder finder, List<int> keys) async {
-      var store = StoreRef<int, dynamic>.main();
+        Finder? finder, List<int> keys) async {
+      var store = StoreRef<int, Object?>.main();
       var results = await store.query(finder: finder).onSnapshots(db).first;
       expect(results.map((e) => e.key), keys);
       results = await store.query(finder: finder).getSnapshots(db);
@@ -42,7 +42,7 @@ void defineTests(DatabaseTestContext ctx) {
       if (keys.isEmpty) {
         expect(result, isNull);
       } else {
-        expect(result.key, keys.first);
+        expect(result!.key, keys.first);
       }
     }
 
@@ -74,14 +74,14 @@ void defineTests(DatabaseTestContext ctx) {
       var query = store.query();
       expect((await query.getSnapshots(db)).map((snapshot) => snapshot.key),
           [1, 2]);
-      expect((await query.getSnapshot(db)).key, 1);
+      expect((await query.getSnapshot(db))!.key, 1);
       await expectQueryAndFirstSnapshotKeys(null, [1, 2]);
       var finder = Finder(filter: Filter.equals(Field.value, 'test2'));
       query = store.query(finder: finder);
       await expectQueryAndFirstSnapshotKeys(finder, [2]);
       expect(
           (await query.getSnapshots(db)).map((snapshot) => snapshot.key), [2]);
-      expect((await query.getSnapshot(db)).key, 2);
+      expect((await query.getSnapshot(db))!.key, 2);
       finder = Finder(filter: Filter.equals(Field.value, 'test3'));
       query = store.query(finder: finder);
       await expectQueryAndFirstSnapshotKeys(finder, []);
@@ -137,14 +137,14 @@ void defineTests(DatabaseTestContext ctx) {
       expect(await future1, isNull);
 
       try {
-        expect((await future2).value, 'test2');
+        expect((await future2)!.value, 'test2');
       } catch (e) {
-        expect((await future2).value, 'test');
+        expect((await future2)!.value, 'test');
       }
       /*
       expect((await future2).first.value, 'test');
       */
-      expect((await future3).value, 'test2');
+      expect((await future3)!.value, 'test2');
       expect(await future4, isNull);
     });
 
@@ -284,7 +284,7 @@ void defineTests(DatabaseTestContext ctx) {
       var record = store.record(1);
       await record.put(db, 'test1');
       var future =
-          record.onSnapshot(db).where((snapshot) => snapshot == null).first;
+          record.onSnapshot(db).where(((snapshot) => snapshot == null)).first;
       // ignore: unawaited_futures
       record.delete(db);
       await future;
@@ -475,8 +475,8 @@ void defineTests(DatabaseTestContext ctx) {
       var finder = Finder(sortOrders: [SortOrder('dateTime')]);
       var future1 = store.query(finder: finder).onSnapshots(db).first;
       await db.transaction((txn) async {
-        await record1.put(txn, <String, dynamic>{'dateTime': DateTime(2020)});
-        await record2.put(txn, <String, dynamic>{'dateTime': DateTime(2019)});
+        await record1.put(txn, <String, Object?>{'dateTime': DateTime(2020)});
+        await record2.put(txn, <String, Object?>{'dateTime': DateTime(2019)});
       });
       var future2 = store.query(finder: finder).onSnapshots(db).first;
       expect(await future1, isEmpty);
@@ -569,7 +569,7 @@ void defineTests(DatabaseTestContext ctx) {
 
     test('onSnapshots 2 records sort order different types', () async {
       List<RecordSnapshot> results;
-      var store = StoreRef<int, dynamic>.main();
+      var store = StoreRef<int, Object?>.main();
       var record1 = store.record(1);
       var record2 = store.record(2);
       var finder = Finder(sortOrders: [SortOrder(Field.value)]);
@@ -675,29 +675,29 @@ void defineTests(DatabaseTestContext ctx) {
         results1.add(event);
       });
       await db.transaction((txn) async {
-        await record1.put(txn, <String, dynamic>{
+        await record1.put(txn, <String, Object?>{
           'dateTime': Timestamp.fromDateTime(DateTime.utc(2020))
         });
-        await record2.put(txn, <String, dynamic>{
+        await record2.put(txn, <String, Object?>{
           'dateTime': Timestamp.fromDateTime(DateTime.utc(2018))
         });
-        await record3.put(txn, <String, dynamic>{
+        await record3.put(txn, <String, Object?>{
           'dateTime': Timestamp.fromDateTime(DateTime.utc(2016))
         });
-        await record4.put(txn, <String, dynamic>{
+        await record4.put(txn, <String, Object?>{
           'dateTime': Timestamp.fromDateTime(DateTime.utc(2009))
         });
       });
       await expectQueryAndFirstSnapshotKeys(finder, [2]);
 
       await db.transaction((txn) async {
-        await record1.put(txn, <String, dynamic>{
+        await record1.put(txn, <String, Object?>{
           'dateTime': Timestamp.fromDateTime(DateTime.utc(2010))
         });
-        await record2.put(txn, <String, dynamic>{
+        await record2.put(txn, <String, Object?>{
           'dateTime': Timestamp.fromDateTime(DateTime.utc(2018, 2))
         });
-        await record4.put(txn, <String, dynamic>{
+        await record4.put(txn, <String, Object?>{
           'dateTime': Timestamp.fromDateTime(DateTime.utc(2014))
         });
       });
@@ -746,29 +746,29 @@ void defineTests(DatabaseTestContext ctx) {
         results1.add(event);
       });
       await db.transaction((txn) async {
-        await record1.put(txn, <String, dynamic>{
+        await record1.put(txn, <String, Object?>{
           'dateTime': Timestamp.fromDateTime(DateTime.utc(2020))
         });
-        await record2.put(txn, <String, dynamic>{
+        await record2.put(txn, <String, Object?>{
           'dateTime': Timestamp.fromDateTime(DateTime.utc(2018))
         });
-        await record3.put(txn, <String, dynamic>{
+        await record3.put(txn, <String, Object?>{
           'dateTime': Timestamp.fromDateTime(DateTime.utc(2016))
         });
-        await record4.put(txn, <String, dynamic>{
+        await record4.put(txn, <String, Object?>{
           'dateTime': Timestamp.fromDateTime(DateTime.utc(2009))
         });
       });
       await expectQueryAndFirstSnapshotKeys(finder, [3]);
 
       await db.transaction((txn) async {
-        await record1.put(txn, <String, dynamic>{
+        await record1.put(txn, <String, Object?>{
           'dateTime': Timestamp.fromDateTime(DateTime.utc(2010))
         });
-        await record2.put(txn, <String, dynamic>{
+        await record2.put(txn, <String, Object?>{
           'dateTime': Timestamp.fromDateTime(DateTime.utc(2018, 2))
         });
-        await record4.put(txn, <String, dynamic>{
+        await record4.put(txn, <String, Object?>{
           'dateTime': Timestamp.fromDateTime(DateTime.utc(2014))
         });
       });

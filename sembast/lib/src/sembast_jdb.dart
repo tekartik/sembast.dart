@@ -2,7 +2,6 @@ library sembast.sembast_jdb;
 
 import 'dart:async';
 
-import 'package:meta/meta.dart';
 import 'package:sembast/sembast.dart';
 import 'package:sembast/src/api/log_level.dart';
 import 'package:sembast/src/common_import.dart';
@@ -20,10 +19,10 @@ class SembastStorageJdb extends StorageBase implements StorageJdb {
   final JdbFactory jdbFactory;
 
   /// The underlying jdb database.
-  JdbDatabase jdbDatabase;
+  JdbDatabase? jdbDatabase;
 
   /// The open options, null for delete only.
-  DatabaseOpenOptions options;
+  DatabaseOpenOptions? options;
 
   @override
   final String path;
@@ -50,7 +49,7 @@ class SembastStorageJdb extends StorageBase implements StorageJdb {
 
   @override
   String toString() {
-    final map = <String, dynamic>{'path': path, 'jdb': jdbFactory.toString()};
+    final map = <String, Object?>{'path': path, 'jdb': jdbFactory.toString()};
     return map.toString();
   }
 
@@ -78,10 +77,10 @@ class SembastStorageJdb extends StorageBase implements StorageJdb {
   }
 
   @override
-  Future<Map<String, dynamic>> readMeta() async {
-    var value = (await jdbDatabase.getInfoEntry(metaKey))?.value;
+  Future<Map<String, Object?>?> readMeta() async {
+    var value = (await jdbDatabase!.getInfoEntry(metaKey))?.value;
     if (value is Map) {
-      return value?.cast<String, dynamic>();
+      return value.cast<String, Object?>();
     }
     return null;
   }
@@ -98,54 +97,51 @@ class SembastStorageJdb extends StorageBase implements StorageJdb {
   }
 
   @override
-  Stream<JdbEntry> get entries => jdbDatabase.entries;
+  Stream<JdbEntry> get entries => jdbDatabase!.entries;
 
   @override
   Future addEntries(List<JdbWriteEntry> entries) async {
     // devPrint(entries);
-    await jdbDatabase.addEntries(entries);
+    await jdbDatabase!.addEntries(entries);
   }
 
   @override
   Future<int> generateUniqueIntKey(String store) async {
-    return (await jdbDatabase.generateUniqueIntKeys(store, 1)).first;
+    return (await jdbDatabase!.generateUniqueIntKeys(store, 1)).first;
   }
 
   @override
   Future<String> generateUniqueStringKey(String store) async {
-    return (await jdbDatabase.generateUniqueStringKeys(store, 1)).first;
+    return (await jdbDatabase!.generateUniqueStringKeys(store, 1)).first;
   }
 
   @override
   Future<List<JdbEntry>> getEntriesAfter(int revision) async {
-    return await jdbDatabase.entriesAfterRevision(revision).toList();
+    return await jdbDatabase!.entriesAfterRevision(revision).toList();
   }
 
   @override
   // TODO: implement updates
-  Stream<StorageJdbStateUpdate> get updates => null;
+  Stream<StorageJdbStateUpdate>? get updates => null;
 
   @override
-  Stream<int> get revisionUpdate => jdbDatabase.revisionUpdate;
+  Stream<int> get revisionUpdate => jdbDatabase!.revisionUpdate;
 
   @override
-  Future<int> getRevision() => jdbDatabase.getRevision();
+  Future<int> getRevision() => jdbDatabase!.getRevision();
 
   @override
   Future<StorageJdbWriteResult> writeIfRevision(StorageJdbWriteQuery query) =>
-      jdbDatabase.writeIfRevision(query);
+      jdbDatabase!.writeIfRevision(query);
 
   @override
-  Future<Map<String, dynamic>> toDebugMap() {
-    // TODO: implement toDebugMap
-    return null;
-  }
+  Map<String, Object?> toDebugMap() => {'path': path};
 
   @override
-  Future compact() => jdbDatabase.compact();
+  Future compact() => jdbDatabase!.compact();
 
   @override
-  Future<int> getDeltaMinRevision() => jdbDatabase.getDeltaMinRevision();
+  Future<int> getDeltaMinRevision() => jdbDatabase!.getDeltaMinRevision();
 }
 
 /// Jdb implementation
@@ -181,13 +177,13 @@ class StorageJdbWriteQuery {
   final List<JdbWriteEntry> entries;
 
   /// The expected revision.
-  final int revision;
+  final int? revision;
 
   /// Write query.
   StorageJdbWriteQuery(
-      {@required this.revision,
-      @required this.infoEntries,
-      @required this.entries});
+      {required this.revision,
+      required this.infoEntries,
+      required this.entries});
 }
 
 /// Write result.
@@ -196,13 +192,13 @@ class StorageJdbWriteResult {
   final StorageJdbWriteQuery query;
 
   /// The read revision or the new one on success
-  final int revision;
+  final int? revision;
 
   /// True on success, otherwise should reload data.
-  final bool success;
+  final bool? success;
 
   /// Write result.
-  StorageJdbWriteResult({@required this.query, this.revision, this.success});
+  StorageJdbWriteResult({required this.query, this.revision, this.success});
 
   @override
   String toString() =>

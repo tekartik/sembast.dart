@@ -15,10 +15,6 @@ import 'package:sembast/src/records_ref_impl.dart';
 class SembastStoreRef<K, V> with StoreRefMixin<K, V> {
   /// Store implementation.
   SembastStoreRef(String name) {
-    if (name == null) {
-      throw ArgumentError(
-          'Store reference name cannot be null. Use StoreRef.main() to get the main store');
-    }
     this.name = name;
   }
 }
@@ -26,7 +22,7 @@ class SembastStoreRef<K, V> with StoreRefMixin<K, V> {
 /// Store ref mixin.
 mixin StoreRefMixin<K, V> implements StoreRef<K, V> {
   @override
-  String name;
+  late String name;
 
   @override
   RecordRef<K, V> record(K key) {
@@ -70,7 +66,7 @@ extension SembastStoreRefExtensionImpl<K, V> on StoreRef<K, V> {
   /// Find immutables records.
   Future<List<ImmutableSembastRecord>> findImmutableRecords(
       DatabaseClient databaseClient,
-      {Finder finder}) async {
+      {Finder? finder}) async {
     final client = getClient(databaseClient);
 
     return await client
@@ -94,8 +90,8 @@ extension SembastStoreRefExtension<K, V> on StoreRef<K, V> {
   /// Find a single record.
   ///
   /// Returns null if not found.
-  Future<RecordSnapshot<K, V>> findFirst(DatabaseClient databaseClient,
-      {Finder finder}) async {
+  Future<RecordSnapshot<K, V>?> findFirst(DatabaseClient databaseClient,
+      {Finder? finder}) async {
     final client = getClient(databaseClient);
 
     var record = await client
@@ -114,7 +110,7 @@ extension SembastStoreRefExtension<K, V> on StoreRef<K, V> {
   /// Returns an empty array if none found.
   ///
   Future<List<RecordSnapshot<K, V>>> find(DatabaseClient databaseClient,
-      {Finder finder}) async {
+      {Finder? finder}) async {
     var records = await findImmutableRecords(databaseClient, finder: finder);
     return immutableListToSnapshots<K, V>(records);
   }
@@ -122,8 +118,8 @@ extension SembastStoreRefExtension<K, V> on StoreRef<K, V> {
   ///
   /// Create a query with a finder.
   ///
-  QueryRef<K, V> query({Finder finder}) {
-    return SembastQueryRef(this, finder as SembastFinder);
+  QueryRef<K, V> query({Finder? finder}) {
+    return SembastQueryRef(this, finder as SembastFinder?);
   }
 
   ///
@@ -131,13 +127,13 @@ extension SembastStoreRefExtension<K, V> on StoreRef<K, V> {
   ///
   /// Returns null if not found.
   ///
-  Future<K> findKey(DatabaseClient databaseClient, {Finder finder}) async {
+  Future<K?> findKey(DatabaseClient databaseClient, {Finder? finder}) async {
     final client = getClient(databaseClient);
 
     var key = await client
         .getSembastStore(this)
         .txnFindKey(client.sembastTransaction, finder);
-    return key as K;
+    return (key as K?);
   }
 
   ///
@@ -146,7 +142,7 @@ extension SembastStoreRefExtension<K, V> on StoreRef<K, V> {
   /// Return an empty array if none found.
   ///
   Future<List<K>> findKeys(DatabaseClient databaseClient,
-      {Finder finder}) async {
+      {Finder? finder}) async {
     final client = getClient(databaseClient);
 
     var keys = await client
@@ -157,7 +153,7 @@ extension SembastStoreRefExtension<K, V> on StoreRef<K, V> {
 
   /// Unsorted record stream
   Stream<RecordSnapshot<K, V>> stream(DatabaseClient databaseClient,
-      {Filter filter}) {
+      {Filter? filter}) {
     final client = getClient(databaseClient);
 
     return client
@@ -168,7 +164,7 @@ extension SembastStoreRefExtension<K, V> on StoreRef<K, V> {
   ///
   /// count records.
   ///
-  Future<int> count(DatabaseClient databaseClient, {Filter filter}) {
+  Future<int> count(DatabaseClient databaseClient, {Filter? filter}) {
     final client = getClient(databaseClient);
     // no transaction needed for read
     return client
@@ -181,11 +177,10 @@ extension SembastStoreRefExtension<K, V> on StoreRef<K, V> {
   ///
   Future<K> add(DatabaseClient databaseClient, V value) async {
     final client = getClient(databaseClient);
-    value = client.sembastDatabase.sanitizeInputValue<V>(value);
-    return await client.inTransaction((txn) {
-      return client
-          .getSembastStore(this)
-          .txnAdd<K, V>(client.sembastTransaction, value);
+    value = client.sembastDatabase.sanitizeInputValue<V>(value)!;
+    return await client.inTransaction((txn) async {
+      var key = await client.getSembastStore(this).txnAdd<K, V>(txn, value);
+      return key as K;
     });
   }
 
@@ -200,7 +195,7 @@ extension SembastStoreRefExtension<K, V> on StoreRef<K, V> {
     await client.inTransaction((txn) async {
       var store = client.getSembastStore(this);
       for (var value in sanitizedValues) {
-        keys.add(await store.txnAdd<K, V>(client.sembastTransaction, value));
+        keys.add((await store.txnAdd<K, V>(txn, value))!);
       }
     });
     return keys;
@@ -209,9 +204,9 @@ extension SembastStoreRefExtension<K, V> on StoreRef<K, V> {
   /// Update records matching a given finder.
   ///
   /// Return the count updated. [value] is merged to the existing.
-  Future<int> update(DatabaseClient databaseClient, V value, {Finder finder}) {
+  Future<int> update(DatabaseClient databaseClient, V value, {Finder? finder}) {
     final client = getClient(databaseClient);
-    value = client.sembastDatabase.sanitizeInputValue<V>(value, update: true);
+    value = client.sembastDatabase.sanitizeInputValue<V>(value, update: true)!;
     return client.inTransaction((txn) async {
       return (await client
               .getSembastStore(this)
@@ -223,7 +218,7 @@ extension SembastStoreRefExtension<K, V> on StoreRef<K, V> {
   /// Delete records matching a given finder.
   ///
   /// Return the count updated. Delete all if no finder
-  Future<int> delete(DatabaseClient databaseClient, {Finder finder}) {
+  Future<int> delete(DatabaseClient databaseClient, {Finder? finder}) {
     final client = getClient(databaseClient);
     return client.inTransaction((txn) async {
       return (await client.getSembastStore(this).txnClear(txn, finder: finder))
@@ -235,7 +230,7 @@ extension SembastStoreRefExtension<K, V> on StoreRef<K, V> {
 /// Store factory mixin.
 mixin StoreFactoryMixin<K, V> implements StoreFactory<K, V> {
   @override
-  StoreRef<K, V> store([String name]) {
+  StoreRef<K, V> store([String? name]) {
     if (name == null) {
       return StoreRef<K, V>.main();
     } else {
@@ -247,8 +242,8 @@ mixin StoreFactoryMixin<K, V> implements StoreFactory<K, V> {
 /// Store factory base.
 class StoreFactoryBase<K, V> with StoreFactoryMixin<K, V> {}
 
-/// common `<int, Map<String, dynamic>>` factory
-final intMapStoreFactory = StoreFactoryBase<int, Map<String, dynamic>>();
+/// common `<int, Map<String, Object?>>` factory
+final intMapStoreFactory = StoreFactoryBase<int, Map<String, Object?>>();
 
-/// common `<String, Map<String, dynamic>>` factory
-final stringMapStoreFactory = StoreFactoryBase<String, Map<String, dynamic>>();
+/// common `<String, Map<String, Object?>>` factory
+final stringMapStoreFactory = StoreFactoryBase<String, Map<String, Object?>>();
