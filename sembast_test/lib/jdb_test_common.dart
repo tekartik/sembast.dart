@@ -24,27 +24,26 @@ Future<void> jdbImportFromMap(
 Future<void> jdbDatabaseImportFromMap(JdbDatabase jdb, Map map) async {
   // Clear all before import
   await jdb.clearAll();
-  var entries = (map['entries'] as List)?.cast<Map>()?.map((map) {
+  var entries = (map['entries'] as List?)?.cast<Map>().map((map) {
     var valueMap = map['value'] as Map;
-    var storeName = valueMap['store'] as String;
+    var storeName = valueMap['store'] as String?;
     var store = storeName == null ? StoreRef.main() : StoreRef(storeName);
     return JdbRawWriteEntry(
-        deleted: (valueMap['deleted'] as bool) ?? false,
+        deleted: (valueMap['deleted'] as bool?) ?? false,
         value: valueMap['value'],
-        record: store.record(valueMap['key']))
-      ..id = valueMap['id'] as int;
-  })?.toList(growable: false);
+        record: store.record(valueMap['key']));
+  }).toList(growable: false);
   if (entries?.isNotEmpty ?? false) {
-    await jdb.addEntries(entries);
+    await jdb.addEntries(entries!);
   }
-  var infos = (map['infos'] as List)
+  var infos = (map['infos'] as List?)
       ?.cast<Map>()
-      ?.map((map) => JdbInfoEntry()
-        ..id = map['id'] as String
+      .map((map) => JdbInfoEntry()
+        ..id = map['id'] as String?
         ..value = map['value'])
-      ?.toList(growable: false);
+      .toList(growable: false);
   if (infos?.isNotEmpty ?? false) {
-    for (var info in infos) {
+    for (var info in infos!) {
       await jdb.setInfoEntry(info);
     }
   }

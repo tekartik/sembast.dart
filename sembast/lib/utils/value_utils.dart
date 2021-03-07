@@ -11,8 +11,8 @@ Map<String, Object?> cloneMap(Map value) =>
 /// Clone a list to make it writable.
 ///
 /// This should be used to create a writable object that can be modified
-List<dynamic> cloneList(List<dynamic> value) =>
-    cloneValue(value) as List<dynamic>;
+List<Object?> cloneList(List<Object?> value) =>
+    cloneValue(value) as List<Object?>;
 
 /// Clone a value to make it writable, typically a list or a map.
 ///

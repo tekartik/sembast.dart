@@ -257,7 +257,7 @@ class RecordListenerController<K, V> extends _ControllerBase {
 class StoreListener {
   /// Our store.
   final StoreRef store;
-  final _records = <dynamic, List<RecordListenerController>>{};
+  final _records = <Object?, List<RecordListenerController>>{};
   final _queries = <QueryListenerController>[];
 
   /// Store listener.
@@ -303,7 +303,7 @@ class StoreListener {
   }
 
   /// All record keys being watched
-  Iterable<dynamic> get recordKeys => _records.keys;
+  Iterable<Object?> get recordKeys => _records.keys;
 
   /// Get the record listener.
   List<RecordListenerController<K, V>>? getRecordControllers<K, V>(
@@ -423,7 +423,7 @@ class DatabaseListener {
   /// Get a record controller.
   List<RecordListenerController<K, V>>? getRecord<K, V>(
       RecordRef<K, V> recordRef) {
-    return _stores[recordRef as StoreRef<dynamic, dynamic>]!
+    return _stores[recordRef as StoreRef<Object?, Object?>]!
         .getRecordControllers(recordRef)
         ?.cast<RecordListenerController<K, V>>();
   }

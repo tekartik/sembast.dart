@@ -18,7 +18,7 @@ class SembastStore {
   final SembastDatabase database;
 
   /// Store reference.
-  final StoreRef<dynamic, dynamic> ref;
+  final StoreRef<Object?, Object?> ref;
 
   ///
   /// Store name
@@ -44,7 +44,7 @@ class SembastStore {
   // bool get isInTransaction => database.isInTransaction;
   /// Store implementation.
   SembastStore(this.database, String name)
-      : ref = StoreRef<dynamic, dynamic>(name);
+      : ref = StoreRef<Object?, Object?>(name);
 
   /// The current transaction.
   SembastTransaction? get currentTransaction => database.currentTransaction;
@@ -57,7 +57,7 @@ class SembastStore {
   /// put a record in a transaction.
   ///
   /// Return the value added
-  Future<dynamic> txnPut(SembastTransaction txn, var value, var key,
+  Future<Object?> txnPut(SembastTransaction txn, var value, var key,
       {bool? merge}) async {
     await cooperate();
     return txnPutSync(txn, value, key, merge: merge);
@@ -115,7 +115,7 @@ class SembastStore {
   }
 
   /// Returns the value
-  Future<dynamic> txnPutSync(SembastTransaction txn, var value, var key,
+  Future<Object?> txnPutSync(SembastTransaction txn, var value, var key,
       {bool? merge}) async {
     ImmutableSembastRecord? record;
     if (merge == true) {
@@ -159,7 +159,7 @@ class SembastStore {
   /// Update a record in a transaction.
   ///
   /// Return the value updated
-  Future<dynamic> txnUpdate(
+  Future<Object?> txnUpdate(
       SembastTransaction txn, dynamic value, dynamic key) async {
     await cooperate();
     // Ignore non-existing record
@@ -287,7 +287,7 @@ class SembastStore {
       SembastTransaction? txn, Finder? finder) async {
     // Two ways of storing data
     List<ImmutableSembastRecord>? results;
-    late SplayTreeMap<dynamic, ImmutableSembastRecord> preOrderedResults;
+    late SplayTreeMap<Object?, ImmutableSembastRecord> preOrderedResults;
 
     // Use pre-ordered or not
     // Pre-ordered means we have no sort and don't need to go though all
@@ -299,7 +299,7 @@ class SembastStore {
     if (usePreordered) {
       // Preordered by key
       preOrderedResults =
-          SplayTreeMap<dynamic, ImmutableSembastRecord>(compareKey);
+          SplayTreeMap<Object?, ImmutableSembastRecord>(compareKey);
     } else {
       results = <ImmutableSembastRecord>[];
     }
@@ -559,7 +559,7 @@ class SembastStore {
   }
 
   /// Delete a record in a transaction.
-  Future<dynamic> txnDelete(SembastTransaction txn, var key) async {
+  Future<Object?> txnDelete(SembastTransaction txn, var key) async {
     var record = txnGetImmutableRecordSync(txn, key);
     await cooperate();
     if (record == null) {

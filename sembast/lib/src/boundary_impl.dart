@@ -8,7 +8,7 @@ class SembastBoundary implements Boundary {
   final RecordSnapshot? snapshot;
 
   /// The values if any.
-  List<dynamic>? values;
+  List<Object?>? values;
 
   ///
   /// default is [ascending] = true

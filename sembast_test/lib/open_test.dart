@@ -145,7 +145,7 @@ void defineTests(DatabaseTestContext ctx) {
       Future<Database> openDatabaseV2(String path) => factory.openDatabase(path,
           version: 2, onVersionChanged: changeFrom1To2);
 
-      Database db;
+      Database? db;
 
       await factory.deleteDatabase(path);
 

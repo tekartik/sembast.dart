@@ -9,8 +9,8 @@ void main() {
 
 void defineTests(DatabaseTestContext ctx) {
   group('records', () {
-    Database db;
-    var store = StoreRef<int, String>.main();
+    late Database db;
+    var store = StoreRef<int?, String>.main();
 
     setUp(() async {
       db = await setupForTest(ctx, 'records.db');
@@ -40,7 +40,7 @@ void defineTests(DatabaseTestContext ctx) {
 
       expect(await records.put(db, ['test']), ['test']);
       expect(await records.get(db), ['test']);
-      expect((await records.getSnapshots(db)).map((record) => record.value),
+      expect((await records.getSnapshots(db)).map((record) => record!.value),
           ['test']);
       expect(await records.get(db), [null]);
     });
@@ -52,7 +52,7 @@ void defineTests(DatabaseTestContext ctx) {
       records = store.records([1, 2]);
       expect(await records.get(db), ['test', null]);
       var snapshots = await records.getSnapshots(db);
-      expect(snapshots[0].value, 'test');
+      expect(snapshots[0]!.value, 'test');
       expect(snapshots[1], isNull);
       expect(await records.get(db), [null, null]);
     });

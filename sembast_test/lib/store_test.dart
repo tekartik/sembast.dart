@@ -5,7 +5,7 @@ import 'test_common.dart';
 final storeFactory = intMapStoreFactory;
 final otherStoreFactory = stringMapStoreFactory;
 final testStore = storeFactory.store('test');
-final otherStore = StoreRef<String, Map<String, dynamic>>('other');
+final otherStore = StoreRef<String, Map<String, Object?>>('other');
 final keyValueStore = StoreRef<String, String>('keyValue');
 
 void main() {
@@ -14,7 +14,7 @@ void main() {
 
 void defineTests(DatabaseTestContext ctx) {
   group('store', () {
-    Database db;
+    late Database db;
 
     setUp(() async {
       db = await setupForTest(ctx, 'store.db');
@@ -42,8 +42,8 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     test('put/get', () async {
-      var store1 = StoreRef<int, dynamic>('test1');
-      var store2 = StoreRef<int, dynamic>('test2');
+      var store1 = StoreRef<int, Object?>('test1');
+      var store2 = StoreRef<int, Object?>('test2');
       expect(await store1.record(1).put(db, 'hi'), 'hi');
       expect(await store2.record(1).put(db, 'ho'), 'ho');
       expect(await store1.record(1).get(db), 'hi');
@@ -64,7 +64,7 @@ void defineTests(DatabaseTestContext ctx) {
       expect(await record.get(db), isFalse);
       // await record.put(db, null); - no longer supported
       // expect(await record.get(db), isNull);
-      expect((await record.getSnapshot(db)).value, isFalse);
+      expect((await record.getSnapshot(db))!.value, isFalse);
     });
 
     test('records', () async {
@@ -74,13 +74,13 @@ void defineTests(DatabaseTestContext ctx) {
       expect((await records.get(db)), [null, null]);
       await store.record(2).put(db, 'hi');
       expect((await records.get(db)), [null, 'hi']);
-      expect((await records.getSnapshots(db)).last.value, 'hi');
+      expect((await records.getSnapshots(db)).last!.value, 'hi');
     });
 
     test('update', () async {
-      var store = intMapStoreFactory.store('animals');
+      final store = intMapStoreFactory.store('animals');
       // Store some objects
-      int key1, key2, key3;
+      late int key1, key2, key3;
       await db.transaction((txn) async {
         //var store = txn.getStore('animals');
         key1 = await store.add(txn, {'name': 'fish'});
@@ -116,7 +116,7 @@ void defineTests(DatabaseTestContext ctx) {
       await record.put(db, {
         'test': {'sub': 1}
       });
-      var snapshot = await store.findFirst(db);
+      var snapshot = (await store.findFirst(db))!;
       expect(snapshot.value, {
         'test': {'sub': 1}
       });
@@ -162,7 +162,7 @@ void defineTests(DatabaseTestContext ctx) {
         var key = await store.add(db, 1);
         var record = store.record(key);
         expect(await record.get(db), 1);
-        expect((await store.findFirst(db)).value, 1);
+        expect((await store.findFirst(db))!.value, 1);
       });
 
       test('addAll', () async {
@@ -172,7 +172,7 @@ void defineTests(DatabaseTestContext ctx) {
         expect(keys, hasLength(2));
         var record = store.record(keys.first);
         expect(await record.get(db), 1);
-        expect((await store.findFirst(db)).value, 1);
+        expect((await store.findFirst(db))!.value, 1);
         expect(await store.record(keys[1]).get(db), 2);
       });
 
@@ -185,7 +185,7 @@ void defineTests(DatabaseTestContext ctx) {
         expect(keys, hasLength(2));
         var record = store.record(keys.first);
         expect(await record.get(db), 1);
-        expect((await store.findFirst(db)).value, 1);
+        expect((await store.findFirst(db))!.value, 1);
         expect(await store.record(keys[1]).get(db), 2);
       });
     });
@@ -193,7 +193,7 @@ void defineTests(DatabaseTestContext ctx) {
     group('value_map', () {
       test('add', () async {
         // this is ok too
-        final store = StoreRef<String, Map<String, dynamic>>.main();
+        final store = StoreRef<String, Map<String, Object?>>.main();
         var innerMap = {'sub': 1};
         var map = {'test': innerMap};
         var key = await store.add(db, map);
@@ -208,7 +208,7 @@ void defineTests(DatabaseTestContext ctx) {
       });
 
       test('type', () async {
-        final store = StoreRef<String, Map<String, dynamic>>.main();
+        final store = StoreRef<String, Map<String, Object?>>.main();
         var map = {
           'int': 1,
           'double': 0.1,
@@ -228,7 +228,7 @@ void defineTests(DatabaseTestContext ctx) {
       });
 
       test('datetime', () async {
-        final store = StoreRef<String, Map<String, dynamic>>.main();
+        final store = StoreRef<String, Map<String, Object?>>.main();
         var map = {'dateTime': DateTime.now()};
         try {
           await store.add(db, map);
@@ -244,7 +244,7 @@ void defineTests(DatabaseTestContext ctx) {
         var key = await store.add(db, true);
         var record = store.record(key);
         expect(await record.get(db), true);
-        expect((await store.findFirst(db)).value, true);
+        expect((await store.findFirst(db))!.value, true);
       });
     });
 
@@ -255,7 +255,7 @@ void defineTests(DatabaseTestContext ctx) {
         var key = await store.add(db, 'test');
         var record = store.record(key);
         expect(await record.get(db), 'test');
-        expect((await store.findFirst(db)).value, 'test');
+        expect((await store.findFirst(db))!.value, 'test');
       });
     });
 
@@ -267,14 +267,14 @@ void defineTests(DatabaseTestContext ctx) {
         var record = store.record(key);
         expect(await record.get(db), 1);
 
-        var value = (await store.findFirst(db)).value;
+        var value = (await store.findFirst(db))!.value;
         expect(value, 1);
         if (!isJavascriptVm) {
           expect(value.runtimeType, double);
         }
         await db.close();
         db = await ctx.factory.openDatabase(db.path);
-        value = (await store.findFirst(db)).value;
+        value = (await store.findFirst(db))!.value;
         expect(value, 1);
         if (!isJavascriptVm) {
           expect(value.runtimeType, double);
@@ -294,7 +294,7 @@ void defineTests(DatabaseTestContext ctx) {
         var record2 = store.record(key2);
         expect(await record2.get(db), 1);
 
-        expect((await store.findFirst(db)).value, 0.1);
+        expect((await store.findFirst(db))!.value, 0.1);
       });
     });
 
@@ -327,7 +327,7 @@ void defineTests(DatabaseTestContext ctx) {
     group('map_dynamic_dynamic', () {
       test('add', () async {
         // this is ok too
-        final store = StoreRef<String, Map<dynamic, dynamic>>.main();
+        final store = StoreRef<String, Map<Object?, Object?>>.main();
         var key = await store.add(db, {'test': 'value'});
         var record = store.record(key);
 
@@ -367,7 +367,7 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     group('store_api', () {
-      Database db;
+      Database? db;
 
       tearDown(() async {
         await db?.close();
@@ -380,20 +380,20 @@ void defineTests(DatabaseTestContext ctx) {
 
       test('put/get/find string', () async {
         var record = keyValueStore.record('foo');
-        await record.put(db, 'bar');
+        await record.put(db!, 'bar');
 
-        var snapshot = await record.getSnapshot(db);
+        var snapshot = (await record.getSnapshot(db!))!;
 
         expect(snapshot.ref.store.name, 'keyValue');
         expect(snapshot.ref.key, 'foo');
         expect(snapshot.value, 'bar');
 
-        await record.put(db, 'new', merge: true);
-        snapshot = await record.getSnapshot(db);
+        await record.put(db!, 'new', merge: true);
+        snapshot = (await record.getSnapshot(db!))!;
         expect(snapshot.value, 'new');
 
-        await record.delete(db);
-        expect(await record.get(db), isNull);
+        await record.delete(db!);
+        expect(await record.get(db!), isNull);
       });
 
       test('put/get/find', () async {
@@ -402,22 +402,22 @@ void defineTests(DatabaseTestContext ctx) {
 
           await record.put(client, {'value': 2});
 
-          var snapshot = await testStore.record(1).getSnapshot(client);
+          var snapshot = (await testStore.record(1).getSnapshot(client))!;
 
           expect(snapshot.ref.store.name, 'test');
           expect(snapshot.ref.key, 1);
-          expect(snapshot.value, <String, dynamic>{'value': 2});
+          expect(snapshot.value, <String, Object?>{'value': 2});
 
           await record.put(client, {'other': 4}, merge: true);
-          snapshot = await record.getSnapshot(client);
-          expect(snapshot.value, <String, dynamic>{'value': 2, 'other': 4});
+          snapshot = (await record.getSnapshot(client))!;
+          expect(snapshot.value, <String, Object?>{'value': 2, 'other': 4});
 
           try {
             snapshot.value['value'] = 3;
             fail('should fail $client');
           } on StateError catch (_) {}
 
-          snapshot = await testStore.findFirst(client);
+          snapshot = (await testStore.findFirst(client))!;
           expect(snapshot.value, {'value': 2, 'other': 4});
           expect(await testStore.findKey(client), snapshot.key);
           expect(await testStore.findKeys(client), [snapshot.key]);
@@ -427,27 +427,27 @@ void defineTests(DatabaseTestContext ctx) {
             fail('should fail $client');
           } on StateError catch (_) {}
 
-          var map = Map<String, dynamic>.from(snapshot.value);
+          var map = Map<String, Object?>.from(snapshot.value);
           map['value'] = 3;
           await record.put(client, map);
-          snapshot = await record.getSnapshot(client);
-          expect(snapshot.value, <String, dynamic>{'value': 3, 'other': 4});
+          snapshot = (await record.getSnapshot(client))!;
+          expect(snapshot.value, <String, Object?>{'value': 3, 'other': 4});
 
           await record.delete(client);
           expect(await record.get(client), isNull);
         }
 
-        await _test(db);
-        await db.transaction((txn) async {
+        await _test(db!);
+        await db!.transaction((txn) async {
           await _test(txn);
         });
       });
 
       test('updateRecords', () async {
-        var store = intMapStoreFactory.store('animals');
+        final store = intMapStoreFactory.store('animals');
         // Store some objects
-        int key1, key2, key3;
-        await db.transaction((txn) async {
+        late int key1, key2, key3;
+        await db!.transaction((txn) async {
           key1 = await store.add(txn, {'name': 'fish'});
           key2 = await store.add(txn, {'name': 'cat'});
           key3 = await store.add(txn, {'name': 'dog'});
@@ -457,8 +457,8 @@ void defineTests(DatabaseTestContext ctx) {
         var finder = Finder(filter: Filter.greaterThan('name', 'cat'));
 
         // Update without transaction
-        await store.update(db, {'age': 4}, finder: finder);
-        expect(await store.records([key1, key2, key3]).get(db), [
+        await store.update(db!, {'age': 4}, finder: finder);
+        expect(await store.records([key1, key2, key3]).get(db!), [
           {'name': 'fish', 'age': 4},
           {'name': 'cat'},
           {'name': 'dog', 'age': 4}
@@ -466,20 +466,20 @@ void defineTests(DatabaseTestContext ctx) {
 
         // Update within transaction (not necessary, update is already done in
         // a transaction
-        await db.transaction((txn) async {
+        await db!.transaction((txn) async {
           expect(await store.update(txn, {'age': 5}, finder: finder), 2);
         });
-        expect(await store.records([key1, key2, key3]).get(db), [
+        expect(await store.records([key1, key2, key3]).get(db!), [
           {'name': 'fish', 'age': 5},
           {'name': 'cat'},
           {'name': 'dog', 'age': 5}
         ]);
 
         expect(
-            await store.delete(db,
+            await store.delete(db!,
                 finder: Finder(filter: Filter.equals('age', 5))),
             2);
-        expect(await store.records([key1, key2, key3]).get(db), [
+        expect(await store.records([key1, key2, key3]).get(db!), [
           null,
           {'name': 'cat'},
           null

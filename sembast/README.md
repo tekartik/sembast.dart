@@ -231,7 +231,7 @@ Supported value types are:
 - `String`
 - `num` (`int` and `double`)
 - `Map` (`Map<String, Object?>`)
-- `List` (`List<dynamic>`)
+- `List` (`List<Object?>`)
 - `bool`
 - `null` (value)
 - `Blob` (custom type)

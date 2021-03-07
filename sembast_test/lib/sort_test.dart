@@ -12,7 +12,7 @@ void main() {
 
 void defineTests(DatabaseTestContext ctx) {
   group('sort', () {
-    Database db;
+    late Database db;
 
     setUp(() async {
       db = await setupForTest(ctx, 'sort.db');

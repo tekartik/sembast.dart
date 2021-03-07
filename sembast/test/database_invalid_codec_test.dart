@@ -1,4 +1,3 @@
-// @dart=2.9
 @TestOn('vm')
 library sembast.test.database_codec_test;
 
@@ -17,8 +16,8 @@ void defineTests(FileSystemTestContext ctx) {
   final fs = ctx.fs;
   DatabaseFactory factory = DatabaseFactoryFs(fs);
   // String getDbPath() => ctx.outPath + '.db';
-  String dbPath;
-  var store = StoreRef<int, dynamic>.main();
+  late String dbPath;
+  var store = StoreRef<int, Object?>.main();
 
   Future<String> prepareForDb() async {
     dbPath = dbPathFromName('compat/database_codec.db');
@@ -26,7 +25,7 @@ void defineTests(FileSystemTestContext ctx) {
     return dbPath;
   }
 
-  Future<Database> _prepareOneRecordDatabase({SembastCodec codec}) async {
+  Future<Database> _prepareOneRecordDatabase({SembastCodec? codec}) async {
     await prepareForDb();
     var db = await factory.openDatabase(dbPath, codec: codec);
     await store.add(db, 'test');

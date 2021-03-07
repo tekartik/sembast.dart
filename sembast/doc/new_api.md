@@ -147,6 +147,6 @@ Supported declared value types are:
 - double
 - bool
 - `Map<String, Object?>`
-- `List<dynamic>`
+- `List<Object?>`
 - Blob (custom type)
 - Timestamp (custom type)

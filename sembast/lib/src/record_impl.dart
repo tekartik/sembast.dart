@@ -9,7 +9,7 @@ import 'package:sembast/src/utils.dart';
 ///
 /// Internal Record, either in store or in transaction
 ///
-abstract class SembastRecord extends RecordSnapshot<dynamic, dynamic> {
+abstract class SembastRecord extends RecordSnapshot<Object?, Object?> {
   ///
   /// true if the record has been deleted
   bool get deleted;
@@ -23,7 +23,7 @@ mixin SembastRecordHelperMixin implements SembastRecord {
   ImmutableSembastRecord sembastClone(
       {SembastStore? store,
       dynamic key,
-      RecordRef<dynamic, dynamic>? ref,
+      RecordRef<Object?, Object?>? ref,
       dynamic value,
       required bool deleted}) {
     return ImmutableSembastRecord(ref ?? this.ref, (value ?? this.value) as Map,
@@ -123,7 +123,7 @@ class ImmutableSembastRecord
     final storeName = map[dbStoreNameKey] as String?;
     final storeRef = storeName == null
         ? mainStoreRef
-        : StoreRef<dynamic, dynamic>(storeName);
+        : StoreRef<Object?, Object?>(storeName);
     ref = storeRef.record(map[dbRecordKey]);
     super.value = sanitizeValueIfMap(map[dbRecordValueKey]);
     _deleted = map[dbRecordDeletedKey] == true;
@@ -137,7 +137,7 @@ class ImmutableSembastRecord
   ///
   /// value is null for deleted record
   ///
-  ImmutableSembastRecord(RecordRef<dynamic, dynamic> ref, Object? value,
+  ImmutableSembastRecord(RecordRef<Object?, Object?> ref, Object? value,
       {bool deleted = false}) {
     this.ref = ref;
     super.value = value;

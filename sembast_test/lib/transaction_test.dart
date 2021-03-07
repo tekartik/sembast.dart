@@ -11,7 +11,7 @@ void main() {
 
 void defineTests(DatabaseTestContext ctx) {
   group('transaction', () {
-    Database db;
+    late Database db;
 
     setUp(() async {
       db = await setupForTest(ctx, 'transaction.db');
@@ -118,12 +118,14 @@ void defineTests(DatabaseTestContext ctx) {
       var store = StoreRef<int, String>.main();
       var record = store.record(1);
 
-      await db.transaction((Transaction txn) async {
+      Future<void> _transaction(Transaction txn) async {
         await record.put(txn, 'hi');
         expect(await record.get(txn), 'hi');
 
         throw 'some failure';
-      }).catchError((err) {
+      }
+
+      await db.transaction(_transaction).catchError((Object err) {
         expect(err, 'some failure');
       });
       expect(await record.get(db), isNull);
@@ -134,7 +136,7 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     test('put no await', () async {
-      Transaction transaction;
+      late Transaction transaction;
       await db.transaction((txn) {
         transaction = txn;
       });

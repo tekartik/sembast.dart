@@ -10,7 +10,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     defaults:
       run:
-        working-directory: .
+        working-directory: repo_support
     strategy:
       fail-fast: false
       matrix:

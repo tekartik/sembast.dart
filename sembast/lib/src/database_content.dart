@@ -7,7 +7,7 @@ class StoreContent {
   final StoreRef store;
 
   /// Record with key.
-  final _map = <dynamic, ImmutableSembastRecord>{};
+  final _map = <Object?, ImmutableSembastRecord>{};
 
   /// Store content.
   StoreContent(this.store);

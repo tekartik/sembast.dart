@@ -14,7 +14,7 @@ void main() {
 
 void defineTests(DatabaseTestContext ctx) {
   group('value', () {
-    Database db;
+    late Database db;
 
     var store = StoreRef.main();
     var record = store.record(1);
@@ -30,7 +30,7 @@ void defineTests(DatabaseTestContext ctx) {
       expect(await record.exists(db), isFalse);
       await record.put(db, 1234);
       Future _check() async {
-        final value = await record.get(db) as int;
+        final value = await record.get(db) as int?;
         expect(await record.exists(db), isTrue);
         expect(value, 1234);
       }
@@ -44,7 +44,7 @@ void defineTests(DatabaseTestContext ctx) {
       expect(await record.exists(db), isFalse);
       await record.put(db, 1234.5678);
       Future _check() async {
-        final value = await record.get(db) as double;
+        final value = await record.get(db) as double?;
         expect(await record.exists(db), isTrue);
         expect(value, closeTo(1234.5678, 0.0001));
       }
@@ -58,7 +58,7 @@ void defineTests(DatabaseTestContext ctx) {
       expect(await record.exists(db), isFalse);
       await record.put(db, true);
       Future _check() async {
-        final value = await record.get(db) as bool;
+        final value = await record.get(db) as bool?;
         expect(await record.exists(db), isTrue);
         expect(value, isTrue);
       }
@@ -72,7 +72,7 @@ void defineTests(DatabaseTestContext ctx) {
       expect(await record.exists(db), isFalse);
       await record.put(db, 'hello');
       Future _check() async {
-        final value = await record.get(db) as String;
+        final value = await record.get(db) as String?;
         expect(await record.exists(db), isTrue);
         expect(value, 'hello');
       }
@@ -86,7 +86,7 @@ void defineTests(DatabaseTestContext ctx) {
       expect(await record.exists(db), isFalse);
       await record.put(db, Timestamp(1, 2));
       Future _check() async {
-        final value = await record.get(db) as Timestamp;
+        final value = await record.get(db) as Timestamp?;
         expect(await record.exists(db), isTrue);
         expect(value, Timestamp(1, 2));
       }
@@ -104,7 +104,7 @@ void defineTests(DatabaseTestContext ctx) {
       expect(await record.exists(db), isFalse);
       await record.put(db, Blob.fromList([1, 2]));
       Future _check() async {
-        final value = await record.get(db) as Blob;
+        final value = await record.get(db) as Blob?;
         expect(await record.exists(db), isTrue);
         expect(value, Blob.fromList([1, 2]));
       }
@@ -167,7 +167,7 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     test('Map', () async {
-      final map = <String, dynamic>{
+      final map = <String, Object?>{
         'int': 1234,
         'null': null,
         'double': 1234.5678,
@@ -182,7 +182,7 @@ void defineTests(DatabaseTestContext ctx) {
       expect(await record.exists(db), isFalse);
       await record.put(db, map);
       Future _check() async {
-        final value = await record.get(db) as Map<String, dynamic>;
+        final value = await record.get(db) as Map<String, Object?>?;
         expect(await record.exists(db), isTrue);
         expect(value, map);
       }
@@ -194,95 +194,95 @@ void defineTests(DatabaseTestContext ctx) {
 
     /*
     test('immutable', () async {
-      Map<String, dynamic> map = {'int': 1234};
+      Map<String, Object?> map = {'int': 1234};
       var key = await record.put(db,map);
       map['int'] = 5678;
-      map = (await store.record(key).get(db)) as Map<String, dynamic>;
+      map = (await store.record(key).get(db)) as Map<String, Object?>;
       expect(map, {'int': 1234});
       map['int'] = 5678;
-      map = ((await store.record(key).getSnapshot(db)).value) as Map<String, dynamic>;
+      map = ((await store.record(key).getSnapshot(db)).value) as Map<String, Object?>;
       expect(map, {'int': 1234});
       map['int'] = 5678;
-      map = ((await store.records([key]).get(db)).first) as Map<String, dynamic>;
+      map = ((await store.records([key]).get(db)).first) as Map<String, Object?>;
       expect(map, {'int': 1234});
-      map = ((await store.records([key]).getSnapshots(db)).first.value) as Map<String, dynamic>;
-      expect(map, {'int': 1234});
-      map['int'] = 5678;
-      map = ((await store.query().getSnapshots(db)).first.value) as Map<String, dynamic>;
+      map = ((await store.records([key]).getSnapshots(db)).first.value) as Map<String, Object?>;
       expect(map, {'int': 1234});
       map['int'] = 5678;
-      map = ((await store.query().getSnapshot(db)).value) as Map<String, dynamic>;
+      map = ((await store.query().getSnapshots(db)).first.value) as Map<String, Object?>;
       expect(map, {'int': 1234});
       map['int'] = 5678;
-      map = ((await store.query().getSnapshot(db)).value) as Map<String, dynamic>;
+      map = ((await store.query().getSnapshot(db)).value) as Map<String, Object?>;
       expect(map, {'int': 1234});
       map['int'] = 5678;
-      map = ((await store.findFirst(db)).value) as Map<String, dynamic>;
+      map = ((await store.query().getSnapshot(db)).value) as Map<String, Object?>;
       expect(map, {'int': 1234});
       map['int'] = 5678;
-      map = (await store.record(key).update(db, {'int': 1234})) as Map<String, dynamic>;
+      map = ((await store.findFirst(db)).value) as Map<String, Object?>;
       expect(map, {'int': 1234});
       map['int'] = 5678;
-      map = (await store.record(key).get(db)) as Map<String, dynamic>;
+      map = (await store.record(key).update(db, {'int': 1234})) as Map<String, Object?>;
+      expect(map, {'int': 1234});
+      map['int'] = 5678;
+      map = (await store.record(key).get(db)) as Map<String, Object?>;
       expect(map, {'int': 1234});
       map = (await store.record(key).put(db, {'int': 1234})).value
-          as Map<String, dynamic>;
+          as Map<String, Object?>;
       expect(map, {'int': 1234});
       map['int'] = 5678;
-      map = (await store.record(key).get(db)) as Map<String, dynamic>;
+      map = (await store.record(key).get(db)) as Map<String, Object?>;
       expect(map, {'int': 1234});
       map = (await store.records([key]).put(db, [{'int': 1234}])
       )
           .first
-          .value as Map<String, dynamic>;
+          .value as Map<String, Object?>;
       expect(map, {'int': 1234});
       map['int'] = 5678;
-      map = (await store.record(key).get(db)) as Map<String, dynamic>;
+      map = (await store.record(key).get(db)) as Map<String, Object?>;
       expect(map, {'int': 1234});
 
       await db.transaction((txn) async {
         map['int'] = 5678;
-        map = (await store.record(key).get(txn)) as Map<String, dynamic>;
+        map = (await store.record(key).get(txn)) as Map<String, Object?>;
         expect(map, {'int': 1234});
         map['int'] = 5678;
-        map = ((await store.record(key).getSnapshot(txn)).value) as Map<String, dynamic>;
+        map = ((await store.record(key).getSnapshot(txn)).value) as Map<String, Object?>;
         expect(map, {'int': 1234});
         map['int'] = 5678;
-        map = ((await store.records([key]).get(txn)).first) as Map<String, dynamic>;
+        map = ((await store.records([key]).get(txn)).first) as Map<String, Object?>;
         expect(map, {'int': 1234});
-        map = ((await store.records([key]).getSnapshots(txn)).first.value) as Map<String, dynamic>;
-        expect(map, {'int': 1234});
-        map['int'] = 5678;
-        map = ((await store.query().getSnapshots(txn)).first.value) as Map<String, dynamic>;
+        map = ((await store.records([key]).getSnapshots(txn)).first.value) as Map<String, Object?>;
         expect(map, {'int': 1234});
         map['int'] = 5678;
-        map = ((await store.query().getSnapshot(txn)).value) as Map<String, dynamic>;
+        map = ((await store.query().getSnapshots(txn)).first.value) as Map<String, Object?>;
         expect(map, {'int': 1234});
         map['int'] = 5678;
-        map = ((await store.query().getSnapshot(txn)).value) as Map<String, dynamic>;
+        map = ((await store.query().getSnapshot(txn)).value) as Map<String, Object?>;
         expect(map, {'int': 1234});
         map['int'] = 5678;
-        map = ((await store.findFirst(txn)).value) as Map<String, dynamic>;
+        map = ((await store.query().getSnapshot(txn)).value) as Map<String, Object?>;
         expect(map, {'int': 1234});
         map['int'] = 5678;
-        map = (await store.record(key).update(txn, {'int': 1234})) as Map<String, dynamic>;
+        map = ((await store.findFirst(txn)).value) as Map<String, Object?>;
         expect(map, {'int': 1234});
         map['int'] = 5678;
-        map = (await store.record(key).get(txn)) as Map<String, dynamic>;
+        map = (await store.record(key).update(txn, {'int': 1234})) as Map<String, Object?>;
+        expect(map, {'int': 1234});
+        map['int'] = 5678;
+        map = (await store.record(key).get(txn)) as Map<String, Object?>;
         expect(map, {'int': 1234});
         map = (await store.record(key).put(txn, {'int': 1234})).value
-        as Map<String, dynamic>;
+        as Map<String, Object?>;
         expect(map, {'int': 1234});
         map['int'] = 5678;
-        map = (await store.record(key).get(txn)) as Map<String, dynamic>;
+        map = (await store.record(key).get(txn)) as Map<String, Object?>;
         expect(map, {'int': 1234});
         map = (await store.records([key]).put(txn, [{'int': 1234}])
         )
             .first
-            .value as Map<String, dynamic>;
+            .value as Map<String, Object?>;
         expect(map, {'int': 1234});
         map['int'] = 5678;
-        map = (await store.record(key).get(txn)) as Map<String, dynamic>;
+        map = (await store.record(key).get(txn)) as Map<String, Object?>;
         expect(map, {'int': 1234});
       });
     });

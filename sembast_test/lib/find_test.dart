@@ -12,14 +12,14 @@ void main() {
 
 void defineTests(DatabaseTestContext ctx) {
   List<RecordRef> snapshotsRefs(List<RecordSnapshot> snapshots) =>
-      snapshots.map((snapshot) => snapshot.ref)?.toList(growable: false);
+      snapshots.map((snapshot) => snapshot.ref).toList(growable: false);
 
   group('find', () {
     group('simple_value', () {
-      Database db;
+      late Database db;
 
       Future _tearDown() async {
-        await db?.close();
+        await db.close();
       }
 
       var store = StoreRef<int, String>.main();
@@ -46,7 +46,7 @@ void defineTests(DatabaseTestContext ctx) {
         snapshots = await store.find(db, finder: finder);
         expect(snapshotsRefs(snapshots), [record2]);
         // test the keys and findFirst, assume it is ok then...
-        expect((await store.findFirst(db, finder: finder)).ref, record2);
+        expect((await store.findFirst(db, finder: finder))!.ref, record2);
         expect(await store.findKey(db, finder: finder), record2.key);
         expect(await store.findKeys(db, finder: finder), [record2.key]);
 
@@ -71,7 +71,7 @@ void defineTests(DatabaseTestContext ctx) {
           snapshots = await store.find(txn, finder: finder);
           expect(snapshotsRefs(snapshots), [record4]);
           // test the keys and findFirst, assume it is ok then...
-          expect((await store.findFirst(txn, finder: finder)).ref, record4);
+          expect((await store.findFirst(txn, finder: finder))!.ref, record4);
           expect(await store.findKey(txn, finder: finder), record4.key);
           expect(await store.findKeys(txn, finder: finder), [record4.key]);
 
@@ -249,7 +249,7 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     group('map_values', () {
-      Database db;
+      late Database db;
 
       var store = intMapStoreFactory.store();
       var _records = store.records([1, 2, 3]);
@@ -267,7 +267,7 @@ void defineTests(DatabaseTestContext ctx) {
       });
 
       tearDown(() async {
-        await db?.close();
+        await db.close();
       });
 
       test('limit', () async {
@@ -334,10 +334,10 @@ void defineTests(DatabaseTestContext ctx) {
       });
 
       group('custom_type', () {
-        Database db;
+        late Database db;
 
         tearDown(() async {
-          await db?.close();
+          await db.close();
         });
         var store = intMapStoreFactory.store();
         var _records = store.records([1, 2, 3, 4]);
@@ -365,10 +365,10 @@ void defineTests(DatabaseTestContext ctx) {
         });
       });
       group('sub_field', () {
-        Database db;
+        late Database db;
 
         tearDown(() async {
-          await db?.close();
+          await db.close();
         });
         var store = intMapStoreFactory.store();
         var _records = store.records([1, 2, 3]);
@@ -405,13 +405,12 @@ void defineTests(DatabaseTestContext ctx) {
           await record4.put(db, {});
 
           finder.sortOrders = [SortOrder('path.sub', true)];
-          finder.filter = null;
+          finder.filter = Filter.custom((record) => true);
           snapshots = await store.find(db, finder: finder);
           expect(
               snapshotsRefs(snapshots), [record4, record1, record3, record2]);
           finder.sortOrders = [SortOrder('path.sub', true, true)];
-          finder.filter = null;
-          snapshots = await store.find(db, finder: finder);
+          snapshots = await (store.find(db, finder: finder));
           expect(
               snapshotsRefs(snapshots), [record1, record3, record2, record4]);
         });
@@ -436,7 +435,7 @@ void defineTests(DatabaseTestContext ctx) {
             record4,
           ]);
           finder.sortOrders = [SortOrder('path.sub', false, true)];
-          snapshots = await store.find(db, finder: finder);
+          snapshots = await (store.find(db, finder: finder));
           expect(
               snapshotsRefs(snapshots), [record4, record2, record3, record1]);
         });
@@ -477,12 +476,12 @@ void defineTests(DatabaseTestContext ctx) {
 
           finder.sortOrders = [SortOrder('path.sub', true, true)];
           finder.start = Boundary(values: ['b'], include: true);
-          snapshots = await store.find(db, finder: finder);
+          snapshots = await (store.find(db, finder: finder));
           expect(snapshotsRefs(snapshots), [record3, record2, record4]);
 
           finder.sortOrders = [SortOrder('path.sub', false)];
           finder.start = Boundary(values: ['b'], include: true);
-          snapshots = await store.find(db, finder: finder);
+          snapshots = await (store.find(db, finder: finder));
           expect(snapshotsRefs(snapshots), [record3, record1, record4]);
         });
 
@@ -491,21 +490,21 @@ void defineTests(DatabaseTestContext ctx) {
           finder.sortOrders = [SortOrder('path.sub', true)];
 
           finder.end = Boundary(values: ['b'], include: true);
-          var snapshots = await store.find(db, finder: finder);
+          var snapshots = await (store.find(db, finder: finder));
           expect(snapshotsRefs(snapshots), [record1, record3]);
 
           finder.end = Boundary(values: ['b'], include: false);
-          snapshots = await store.find(db, finder: finder);
+          snapshots = await (store.find(db, finder: finder));
           expect(snapshotsRefs(snapshots), [record1]);
 
           // descending
           finder.sortOrders = [SortOrder('path.sub', false)];
           finder.end = Boundary(values: ['b'], include: true);
-          snapshots = await store.find(db, finder: finder);
+          snapshots = await (store.find(db, finder: finder));
           expect(snapshotsRefs(snapshots), [record2, record3]);
 
           finder.end = Boundary(values: ['b'], include: false);
-          snapshots = await store.find(db, finder: finder);
+          snapshots = await (store.find(db, finder: finder));
           expect(snapshotsRefs(snapshots), [record2]);
         });
 
@@ -515,21 +514,21 @@ void defineTests(DatabaseTestContext ctx) {
 
           finder.start = Boundary(values: ['b'], include: true);
           finder.end = Boundary(values: ['b'], include: true);
-          var snapshots = await store.find(db, finder: finder);
+          var snapshots = await (store.find(db, finder: finder));
           //print(records);
           expect(snapshotsRefs(snapshots), [record3]);
 
           finder.end = Boundary(values: ['b'], include: false);
-          snapshots = await store.find(db, finder: finder);
+          snapshots = await (store.find(db, finder: finder));
           expect(snapshotsRefs(snapshots), []);
         });
       });
 
       group('field_with_dot', () {
-        Database db;
+        late Database db;
 
         tearDown(() async {
-          await db?.close();
+          await db.close();
         });
         var store = intMapStoreFactory.store();
         var _records = store.records([1, 2, 3]);
@@ -549,11 +548,11 @@ void defineTests(DatabaseTestContext ctx) {
         test('sort', () async {
           var finder =
               Finder(sortOrders: [SortOrder(FieldKey.escape('foo.bar'), true)]);
-          var snapshots = await store.find(db, finder: finder);
+          var snapshots = await (store.find(db, finder: finder));
           expect(snapshotsRefs(snapshots), [record1, record3, record2]);
 
           finder.filter = Filter.equals(FieldKey.escape('foo.bar'), 'b');
-          snapshots = await store.find(db, finder: finder);
+          snapshots = await (store.find(db, finder: finder));
           expect(snapshotsRefs(snapshots), [record3]);
         });
 
@@ -562,7 +561,7 @@ void defineTests(DatabaseTestContext ctx) {
               Finder(sortOrders: [SortOrder(FieldKey.escape('foo.bar'), true)]);
 
           finder.start = Boundary(values: ['b'], include: true);
-          var snapshots = await store.find(db, finder: finder);
+          var snapshots = await (store.find(db, finder: finder));
           expect(snapshotsRefs(snapshots), [record3, record2]);
         });
       });
@@ -586,18 +585,18 @@ void defineTests(DatabaseTestContext ctx) {
           {'name': 'Table', 'price': 35}
         ]);
 
-        var snapshot2 = await record2.getSnapshot(db);
+        var snapshot2 = await (record2.getSnapshot(db));
 
         {
           // Sort by price and name
           var finder =
               Finder(sortOrders: [SortOrder('price'), SortOrder('name')]);
-          var snapshot = await store.findFirst(db, finder: finder);
+          var snapshot = await (store.findFirst(db, finder: finder));
           // first is the Deco
-          expect(snapshot['name'], 'Deco');
+          expect(snapshot!['name'], 'Deco');
           expect(await store.findKey(db, finder: finder), record4.key);
 
-          var snapshots = await store.find(db, finder: finder);
+          var snapshots = await (store.find(db, finder: finder));
 
           expect(
               snapshotsRefs(snapshots), [record4, record3, record2, record1]);
@@ -611,7 +610,7 @@ void defineTests(DatabaseTestContext ctx) {
               sortOrders: [SortOrder('price'), SortOrder('name')],
               start: Boundary(values: [10, 'Chair']));
           var snapshot = await store.findFirst(db, finder: finder);
-          expect(snapshot['name'], 'Lamp');
+          expect(snapshot!['name'], 'Lamp');
 
           // You can also specify to look after a given record
           finder = Finder(
@@ -619,13 +618,13 @@ void defineTests(DatabaseTestContext ctx) {
               start: Boundary(record: snapshot));
           snapshot = await store.findFirst(db, finder: finder);
           // After the lamp the more expensive one is the Table
-          expect(snapshot['name'], 'Table');
+          expect(snapshot!['name'], 'Table');
 
           // Next is null
           finder = Finder(
               sortOrders: [SortOrder('price'), SortOrder('name')],
               start: Boundary(record: snapshot));
-          snapshot = await store.findFirst(db, finder: finder);
+          snapshot = await (store.findFirst(db, finder: finder));
           // After the Table, no more result
           expect(snapshot, isNull);
 
@@ -634,7 +633,7 @@ void defineTests(DatabaseTestContext ctx) {
           finder = Finder(
               sortOrders: [SortOrder('price')],
               start: Boundary(record: snapshot2));
-          snapshot = await store.findFirst(db, finder: finder);
+          snapshot = (await store.findFirst(db, finder: finder))!;
           // After the lamp the more expensive one (actually same price
           // but next id) is the Chair
           expect(snapshot['name'], 'Chair');
@@ -658,7 +657,7 @@ void defineTests(DatabaseTestContext ctx) {
 
         {
           Finder finder;
-          RecordSnapshot snapshot;
+          RecordSnapshot? snapshot;
 
           // Next is null
           finder = Finder(
@@ -674,21 +673,21 @@ void defineTests(DatabaseTestContext ctx) {
               sortOrders: [SortOrder('price'), SortOrder(Field.key)],
               start: Boundary(values: [10, 2]));
           snapshot = await store.findFirst(db, finder: finder);
-          expect(snapshot['name'], 'Chair');
+          expect(snapshot!['name'], 'Chair');
 
           // You can also specify to look after a given record
           finder = Finder(
               sortOrders: [SortOrder('price'), SortOrder(Field.key)],
               start: Boundary(record: snapshot));
-          snapshot = await store.findFirst(db, finder: finder);
+          snapshot = await (store.findFirst(db, finder: finder));
           // After the lamp the more expensive one is the Table
-          expect(snapshot['name'], 'Table');
+          expect(snapshot!['name'], 'Table');
 
           // Next is null
           finder = Finder(
               sortOrders: [SortOrder('price'), SortOrder(Field.key)],
               start: Boundary(record: snapshot));
-          snapshot = await store.findFirst(db, finder: finder);
+          snapshot = await (store.findFirst(db, finder: finder));
           // After the lamp the more expensive one is the Table
           expect(snapshot, isNull);
         }

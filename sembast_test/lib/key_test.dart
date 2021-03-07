@@ -12,7 +12,7 @@ void main() {
 void defineTests(DatabaseTestContext ctx) {
   var factory = ctx.factory;
   group('key', () {
-    Database db;
+    late Database db;
 
     setUp(() async {
       db = await setupForTest(ctx, 'key.db');
@@ -34,7 +34,7 @@ void defineTests(DatabaseTestContext ctx) {
       var store = StoreRef.main();
       var value = await store.record(2.0).put(db, 'test');
       expect(value, 'test');
-      expect((await store.findFirst(db)).key, 2.0);
+      expect((await store.findFirst(db))!.key, 2.0);
       expect(await store.record(2.0).get(db), 'test');
       // next will increment (or restart from 1 in js
       final intKey = await store.add(db, 'test') as int;
@@ -60,7 +60,7 @@ void defineTests(DatabaseTestContext ctx) {
       } else {
         expect(key, 3);
         // Tweak to restart from 1 and make sure the existing keys are skipped
-        (db as SembastDatabase).mainStore.lastIntKey = 0;
+        (db as SembastDatabase).mainStore!.lastIntKey = 0;
       }
       key = await store.add(db, 'test');
       if (hasStorageJdb(factory)) {

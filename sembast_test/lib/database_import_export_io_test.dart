@@ -18,7 +18,7 @@ void databaseImportExportIoGroup(DatabaseTestContext ctx) {
     test('migrate to encrypted', () async {
       var nonEncryptedDbPath = dbPathFromName('non_encrypted.db');
       var encryptedDbPath = dbPathFromName('encrypted.db');
-      var store = StoreRef<int, dynamic>.main();
+      var store = StoreRef<int, Object?>.main();
 
       // Prepare
       var db = await factory.openDatabase(nonEncryptedDbPath);

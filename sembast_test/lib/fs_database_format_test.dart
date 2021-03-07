@@ -15,21 +15,21 @@ void main() {
 void defineTests(DatabaseTestContextFs ctx) {
   final fs = ctx.fs;
   //String getDbPath() => ctx.outPath + '.db';
-  String dbPath;
+  String? dbPath;
   var store = StoreRef.main();
 
-  Future<List<Map<String, dynamic>>> exportToMapList() {
-    return fsExportToMapList(fs, dbPath);
+  Future<List<Map<String, Object?>?>> exportToMapList() {
+    return fsExportToMapList(fs, dbPath!);
   }
 
-  Future importFromMapList(List<Map<String, dynamic>> mapList) {
-    return fsImportFromMapList(fs, dbPath, mapList);
+  Future importFromMapList(List<Map<String, Object?>> mapList) {
+    return fsImportFromMapList(fs, dbPath!, mapList);
   }
 
   var factory = ctx.factory;
-  Future<String> prepareForDb() async {
+  Future<String?> prepareForDb() async {
     dbPath = dbPathFromName('fs_database_format.db');
-    await ctx.factory.deleteDatabase(dbPath);
+    await ctx.factory.deleteDatabase(dbPath!);
     return dbPath;
   }
 
@@ -47,7 +47,7 @@ void defineTests(DatabaseTestContextFs ctx) {
 
     test('open_no_version', () async {
       await prepareForDb();
-      var db = await factory.openDatabase(dbPath);
+      var db = await factory.openDatabase(dbPath!);
 
       await db.close();
       expect(await exportToMapList(), [
@@ -60,7 +60,7 @@ void defineTests(DatabaseTestContextFs ctx) {
 
     test('open_version_2', () async {
       await prepareForDb();
-      var db = await factory.openDatabase(dbPath, version: 2);
+      var db = await factory.openDatabase(dbPath!, version: 2);
       await db.close();
 
       expect(await exportToMapList(), [
@@ -71,9 +71,9 @@ void defineTests(DatabaseTestContextFs ctx) {
 
     test('open_no_version_then_2', () async {
       await prepareForDb();
-      var db = await factory.openDatabase(dbPath, version: 1);
+      var db = await factory.openDatabase(dbPath!, version: 1);
       await db.close();
-      db = await factory.openDatabase(dbPath, version: 2);
+      db = await factory.openDatabase(dbPath!, version: 2);
       await db.close();
 
       expect(await exportToMapList(), [
@@ -86,7 +86,7 @@ void defineTests(DatabaseTestContextFs ctx) {
 
     test('1 string record', () async {
       await prepareForDb();
-      var db = await factory.openDatabase(dbPath);
+      var db = await factory.openDatabase(dbPath!);
       await store.record(1).put(db, 'hi');
       await db.close();
       expect(await exportToMapList(), [
@@ -97,14 +97,14 @@ void defineTests(DatabaseTestContextFs ctx) {
 
     test('1 string record delete compact', () async {
       await prepareForDb();
-      var db = await factory.openDatabase(dbPath);
+      var db = await factory.openDatabase(dbPath!);
       await store.record(1).put(db, 'hi');
       await db.close();
       expect(await exportToMapList(), [
         {'version': 1, 'sembast': 1},
         {'key': 1, 'value': 'hi'}
       ]);
-      db = await factory.openDatabase(dbPath);
+      db = await factory.openDatabase(dbPath!);
       await store.record(1).delete(db);
       await db.close();
       expect(await exportToMapList(), [
@@ -112,7 +112,7 @@ void defineTests(DatabaseTestContextFs ctx) {
         {'key': 1, 'value': 'hi'},
         {'key': 1, 'deleted': true}
       ]);
-      db = await factory.openDatabase(dbPath);
+      db = await factory.openDatabase(dbPath!);
       await compact(db);
       await db.close();
       expect(await exportToMapList(), [
@@ -126,7 +126,7 @@ void defineTests(DatabaseTestContextFs ctx) {
         {'version': 1, 'sembast': 1},
         {'key': 1, 'value': 'hi'}
       ]);
-      var db = await factory.openDatabase(dbPath);
+      var db = await factory.openDatabase(dbPath!);
       await db.close();
       expect(await exportToMapList(), [
         {'version': 1, 'sembast': 1},
@@ -142,7 +142,7 @@ void defineTests(DatabaseTestContextFs ctx) {
         {'version': 1, 'sembast': 1},
         {'store': '_main', 'key': 1, 'value': 'hi'}
       ]);
-      var db = await factory.openDatabase(dbPath);
+      var db = await factory.openDatabase(dbPath!);
       expect(await store.record(1).get(db), 'hi');
       await db.close();
 
@@ -151,7 +151,7 @@ void defineTests(DatabaseTestContextFs ctx) {
         {'store': '_main', 'key': 1, 'value': 'hi'}
       ]);
 
-      db = await factory.openDatabase(dbPath);
+      db = await factory.openDatabase(dbPath!);
       await compact(db);
       await db.close();
 

@@ -1,20 +1,30 @@
 library sembast.test.utils_test;
 
 // basically same as the io runner but with extra output
-import 'package:sembast/src/utils.dart';
-import 'test_common.dart';
+import 'package:sembast/sembast_memory.dart';
 import 'package:sembast/src/database_impl.dart' show SembastDatabase;
+import 'package:sembast/src/utils.dart';
+
+import 'test_common.dart';
 
 void main() {
   group('utils', () {
-    var db = SembastDatabase(null);
-    V sanitizeInputValue<V>(dynamic value) {
+    late SembastDatabase db;
+    setUpAll(() async {
+      // Dummy database to access sanitizeInputValue
+      db = (await newDatabaseFactoryMemory().openDatabase('dummy'))
+          as SembastDatabase;
+    });
+    tearDownAll(() async {
+      await db.close();
+    });
+    V? sanitizeInputValue<V>(dynamic value) {
       return db.sanitizeInputValue<V>(value);
     }
 
     test('sanitize_input_map', () {
-      var map = <dynamic, dynamic>{'test': 1};
-      final sanitizedMap = sanitizeInputValue<Map<String, dynamic>>(map);
+      var map = <Object?, Object?>{'test': 1};
+      final sanitizedMap = sanitizeInputValue<Map<String, Object?>>(map);
       sanitizeInputValue<Map<String, Object>>(map);
       expect(sanitizedMap, map);
       try {
@@ -28,8 +38,8 @@ void main() {
     });
 
     test('sanitize_input_list', () {
-      var list = <dynamic>[1];
-      final sanitizedList = sanitizeInputValue<List<dynamic>>(list);
+      var list = <Object?>[1];
+      final sanitizedList = sanitizeInputValue<List<Object?>>(list);
       sanitizeInputValue<List<Object>>(list);
       expect(sanitizedList, list);
       try {
@@ -43,15 +53,15 @@ void main() {
     });
 
     test('sanitize_nested_map', () {
-      var map = <dynamic, dynamic>{
-        'test': <dynamic, List>{
+      var map = <Object?, Object?>{
+        'test': <Object?, List>{
           'sub': [
             {
               'value': {'sub': 'value'}
             }
           ]
         },
-        'list': <dynamic, List<Map<String, dynamic>>>{
+        'list': <Object?, List<Map<String, Object?>>>{
           'sub': [
             {
               'value': {'sub': 'value'},
@@ -60,8 +70,8 @@ void main() {
           ]
         }
       };
-      final sanitizedMap = sanitizeInputValue<Map<String, dynamic>>(map);
-      sanitizeInputValue<Map<String, dynamic>>(map);
+      final sanitizedMap = sanitizeInputValue<Map<String, Object?>>(map);
+      sanitizeInputValue<Map<String, Object?>>(map);
       expect(sanitizedMap, map);
     });
 

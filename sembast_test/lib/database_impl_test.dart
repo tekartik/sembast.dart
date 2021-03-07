@@ -23,21 +23,21 @@ void defineTests(DatabaseTestContext ctx) {
         await factory.deleteDatabase(dbPath2);
         await factory.deleteDatabase(dbPath3);
 
-        var db = await factory.openDatabase(dbPath1);
-        expect((db as SembastDatabase).cooperator, isNotNull);
+        var db = (await factory.openDatabase(dbPath1)) as SembastDatabase;
+        expect(db.cooperator, isNotNull);
         await db.close();
 
         // ignore: invalid_use_of_visible_for_testing_member
         disableSembastCooperator();
 
-        db = await factory.openDatabase(dbPath2);
-        expect((db as SembastDatabase).cooperator, isNull);
+        db = (await factory.openDatabase(dbPath2)) as SembastDatabase;
+        expect(db.cooperator, isNull);
         await db.close();
 
         // ignore: invalid_use_of_visible_for_testing_member
         enableSembastCooperator();
-        db = await factory.openDatabase(dbPath3);
-        expect((db as SembastDatabase).cooperator, isNotNull);
+        db = (await factory.openDatabase(dbPath3)) as SembastDatabase;
+        expect(db.cooperator, isNotNull);
         await db.close();
       });
     });

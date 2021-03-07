@@ -14,9 +14,9 @@ void main() {
     var codec = JsonEncodableCodec(adapters: [sembastTimestampAdapter]);
     group('encode', () {
       test('map', () {
-        expect(codec.encode(<dynamic, dynamic>{'test': Timestamp(1, 2)}),
+        expect(codec.encode(<Object?, Object?>{'test': Timestamp(1, 2)}),
             const TypeMatcher<Map<String, Object?>>());
-        expect(codec.encode(<dynamic, dynamic>{'test': 1}),
+        expect(codec.encode(<Object?, Object?>{'test': 1}),
             const TypeMatcher<Map<String, Object?>>());
       });
       test('custom', () {
@@ -160,7 +160,7 @@ void main() {
         'text',
         true,
         //null,
-        //<dynamic, dynamic>{},
+        //<Object? , Object?>{},
         [],
         [
           {
@@ -188,7 +188,7 @@ void main() {
                 '$value ${identityHashCode(value)} vs ${identityHashCode(encoded)}');
       }
       var notIdenticals = [
-        <dynamic, dynamic>{}, // being cast
+        <Object?, Object?>{}, // being cast
         Timestamp(1, 2),
         [Timestamp(1, 2)],
         <String, Object?>{'test': Timestamp(1, 2)},
@@ -344,7 +344,7 @@ void main() {
         'text',
         true,
         // null,
-        //<dynamic, dynamic>{},
+        //<Object? , Object?>{},
         [],
         [
           {
@@ -375,7 +375,7 @@ void main() {
                 '$value ${identityHashCode(value)} vs ${identityHashCode(encoded)}');
       }
       var notIdenticals = [
-        <dynamic, dynamic>{}, // being cast
+        <Object?, Object?>{}, // being cast
         Blob.fromList([1, 2, 3]),
         Timestamp(1, 2),
         [Timestamp(1, 2)],

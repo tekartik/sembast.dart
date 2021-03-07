@@ -16,17 +16,17 @@ DatabaseTestContextFs get memoryFsDatabaseContext =>
 ///
 /// helper to read a list of string (lines)
 ///
-Future<List<Map<String, dynamic>>> fsExportToMapList(
+Future<List<Map<String, Object?>?>> fsExportToMapList(
         FileSystem fs, String filePath) async =>
     (await fsExportToStringList(fs, filePath))
-        .map((line) => (jsonDecode(line) as Map)?.cast<String, dynamic>())
+        .map((line) => (jsonDecode(line) as Map?)?.cast<String, Object?>())
         .toList(growable: false);
 
 ///
 /// helper to read a list of string (lines)
 ///
 Future fsImportFromMapList(
-    FileSystem fs, String filePath, List<Map<String, dynamic>> mapList) async {
+    FileSystem fs, String filePath, List<Map<String, Object?>> mapList) async {
   var sink = fs.file(filePath).openWrite();
   for (var map in mapList) {
     sink.writeln(jsonEncode(map));

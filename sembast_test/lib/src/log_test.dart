@@ -12,7 +12,7 @@ void main() {
 
 void defineTests(DatabaseTestContext ctx) {
   group('log_level', () {
-    Database db;
+    late Database db;
 
     var store = StoreRef.main();
     var record = store.record(1);

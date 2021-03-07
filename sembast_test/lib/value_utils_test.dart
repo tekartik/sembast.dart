@@ -19,7 +19,7 @@ void main() {
       utils.cloneValue;
     });
     test('cloneMap', () {
-      var existing = <String, dynamic>{
+      var existing = <String, Object?>{
         'test': 1,
         'nested': {
           'sub': 2,
@@ -67,7 +67,7 @@ void main() {
 
       dynamic clone;
       void _test() {
-        expect(clone, const TypeMatcher<List<dynamic>>());
+        expect(clone, const TypeMatcher<List<Object?>>());
         expect(clone, value);
         expect(identical(clone, value), isFalse);
       }
@@ -84,7 +84,7 @@ void main() {
       };
       dynamic clone;
       void _test() {
-        expect(clone, const TypeMatcher<Map<String, dynamic>>());
+        expect(clone, const TypeMatcher<Map<String, Object?>>());
         expect(clone, value);
         expect(identical(clone, value), isFalse);
       }

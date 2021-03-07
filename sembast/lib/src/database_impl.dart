@@ -1418,10 +1418,10 @@ class SembastDatabase extends Object
     _check(value, update);
     if (value is List) {
       try {
-        return value.cast<dynamic>() as V;
+        return value.cast<Object?>() as V;
       } catch (e) {
         throw ArgumentError.value(value, 'type $V not supported',
-            'List must be of type List<dynamic> for type ${value.runtimeType} value $value');
+            'List must be of type List<Object?> for type ${value.runtimeType} value $value');
       }
     } else if (value is Map) {
       try {
