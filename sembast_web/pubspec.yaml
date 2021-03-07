@@ -1,6 +1,6 @@
 name: sembast_web
 description: NoSQL persistent embedded database for the Web on top of IndexedDB
-version: 2.0.0+1
+version: 2.0.0+2
 homepage: https://github.com/tekartik/sembast.dart/tree/master/sembast_web
 
 environment:
