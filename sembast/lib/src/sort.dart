@@ -20,7 +20,7 @@ class Sort {
 
   // When a list has less then [:_INSERTION_SORT_THRESHOLD:] elements it will
   // be sorted by an insertion sort.
-  static const int _INSERTION_SORT_THRESHOLD = 32;
+  static const int _insertionSortThreshold = 32;
 
   /// Constructor.
   Sort(this.cooperator);
@@ -42,7 +42,7 @@ class Sort {
   /// Sorts the list in the interval [:left:] to [:right:] (both inclusive).
   Future _doSort<E>(
       List<E> a, int left, int right, int Function(E a, E b) compare) async {
-    if ((right - left) <= _INSERTION_SORT_THRESHOLD) {
+    if ((right - left) <= _insertionSortThreshold) {
       return _insertionSort(a, left, right, compare);
     } else {
       return _dualPivotQuicksort(a, left, right, compare);
@@ -67,7 +67,7 @@ class Sort {
 
   Future _dualPivotQuicksort<E>(
       List<E> a, int left, int right, int Function(E a, E b) compare) async {
-    assert(right - left > _INSERTION_SORT_THRESHOLD);
+    assert(right - left > _insertionSortThreshold);
 
     // Compute the two pivots by looking at 5 elements.
     final sixth = (right - left + 1) ~/ 6;

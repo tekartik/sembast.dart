@@ -646,7 +646,7 @@ class SembastDatabase extends Object
           _upgrading = true;
           try {
             await transaction((txn) async {
-              var result;
+              Object? result;
               try {
                 // create a transaction during open
                 _openTransaction = txn;
@@ -1037,7 +1037,7 @@ class SembastDatabase extends Object
   }
 
   /// Lazy store operations.
-  final lazyStorageOperations = <Future Function()>[];
+  final lazyStorageOperations = <Future<Object?> Function()>[];
 
   DatabaseExportStat? _exportStat;
 
@@ -1069,7 +1069,7 @@ class SembastDatabase extends Object
     }
     await databaseLock.synchronized(() async {
       if (lazyStorageOperations.isNotEmpty) {
-        var list = List.from(lazyStorageOperations);
+        var list = List<Future<Object?> Function()>.from(lazyStorageOperations);
         // devPrint('operation ${list.length}');
         for (var operation in list) {
           try {
