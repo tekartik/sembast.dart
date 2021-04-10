@@ -4,7 +4,7 @@
 
 - `add` adds a new record and generate a new record key
 - `update` update an existing record
-- `put` will either add or update a record
+- `put` will either create a new record with a user specified key or update a record
 
 ## Use transactions
 
