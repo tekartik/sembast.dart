@@ -5,7 +5,7 @@ import 'package:test/test.dart';
 void main() {
   test('my_unit_test', () async {
     // In memory factory for unit test
-    var factory = databaseFactoryMemory;
+    var factory = newDatabaseFactoryMemory();
 
     // Define the store
     var store = StoreRef<String, String>.main();

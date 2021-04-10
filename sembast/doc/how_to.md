@@ -1,11 +1,12 @@
 # How-to
 
 See some [Usage recommendations](usage_recommendations.md).
+
 ## Unit test
 
-Easiest is to use the `databaseFactoryMemory` to develop and test your database API.
+Whether you're using sembast on Flutter or on the web you can easily mock
+sembast in memory.
 
-Simple unit test:
 ```dart
 import 'package:sembast/sembast.dart';
 import 'package:sembast/sembast_memory.dart';
@@ -14,7 +15,7 @@ import 'package:test/test.dart';
 void main() {
   test('my_unit_test', () async {
     // In memory factory for unit test
-    var factory = databaseFactoryMemory;
+    var factory = newDatabaseFactoryMemory();
 
     // Define the store
     var store = StoreRef<String, String>.main();
