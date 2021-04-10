@@ -132,7 +132,7 @@ void main() {
       expect(compareValueType([1, 2, 3], {}), -1);
       expect(compareValueType({}, [1, 2, 3]), 1);
       expect(compareValueType({}, _Dummy1()), -1);
-      expect(compareValueType(_Dummy1(), _Dummy2()), null);
+      expect(compareValueType(_Dummy1(), _Dummy2()), -1);
     });
   });
 }

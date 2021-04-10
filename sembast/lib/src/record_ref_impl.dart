@@ -64,7 +64,7 @@ extension SembastRecordRefExtension<K, V> on RecordRef<K, V> {
     var client = getClient(databaseClient);
     value = client.sembastDatabase.sanitizeInputValue<V>(value)!;
     return await client.inTransaction((txn) {
-      return client.getSembastStore(store).txnAdd(txn, value, key);
+      return client.getSembastStore(store).txnAdd<K, V>(txn, value, key);
     });
   }
 

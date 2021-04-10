@@ -33,14 +33,15 @@ extension SembastRecordsRefExtension<K, V> on RecordsRef<K, V> {
   /// The list of [values] must match the list of keys.
   ///
   /// Returns a list of the keys, if not inserted, a key is null.
-  Future<List<K>> add(DatabaseClient databaseClient, List<V> values) {
+  Future<List<K?>> add(DatabaseClient databaseClient, List<V> values) {
     if (values.length != keys.length) {
       throw ArgumentError('the list of values must match the list of keys');
     }
     var client = getClient(databaseClient);
     return client.inTransaction((txn) async {
-      return (await client.getSembastStore(store).txnAddAll(txn, values, keys))
-          .cast<K>();
+      return await client
+          .getSembastStore(store)
+          .txnAddAll<K, V>(txn, values, keys);
     });
   }
 
@@ -74,7 +75,7 @@ extension SembastRecordsRefExtension<K, V> on RecordsRef<K, V> {
   ///
   /// Returns the list of updated values, a value being null if the record
   /// does not exist.
-  Future<List<V>> update(DatabaseClient databaseClient, List<V> values) {
+  Future<List<V?>> update(DatabaseClient databaseClient, List<V> values) {
     if (values.length != keys.length) {
       throw ArgumentError('the list of values must match the list of keys');
     }
@@ -83,7 +84,7 @@ extension SembastRecordsRefExtension<K, V> on RecordsRef<K, V> {
       return (await client
               .getSembastStore(store)
               .txnUpdateAll(txn, values, keys))
-          .cast<V>();
+          .cast<V?>();
     });
   }
 
