@@ -148,10 +148,11 @@ class SembastStore {
   }
 
   /// Returns the list of keys
-  Future<List> txnAddAll(SembastTransaction txn, List values, List keys) async {
-    final resultKeys = [];
+  Future<List<K?>> txnAddAll<K, V>(
+      SembastTransaction txn, List<V> values, List<K> keys) async {
+    final resultKeys = <K?>[];
     for (var i = 0; i < values.length; i++) {
-      resultKeys.add(await txnAdd(txn, values[i], keys[i]));
+      resultKeys.add(await txnAdd<K, V>(txn, values[i], keys[i]));
     }
     return resultKeys;
   }

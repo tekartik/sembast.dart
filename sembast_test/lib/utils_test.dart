@@ -25,8 +25,11 @@ void main() {
     test('sanitize_input_map', () {
       var map = <Object?, Object?>{'test': 1};
       final sanitizedMap = sanitizeInputValue<Map<String, Object?>>(map);
-      sanitizeInputValue<Map<String, Object>>(map);
       expect(sanitizedMap, map);
+      try {
+        sanitizeInputValue<Map<String, Object>>(map);
+        fail('should fail');
+      } on ArgumentError catch (_) {}
       try {
         sanitizeInputValue<Map<String, String>>(map);
         fail('should fail');
@@ -40,8 +43,12 @@ void main() {
     test('sanitize_input_list', () {
       var list = <Object?>[1];
       final sanitizedList = sanitizeInputValue<List<Object?>>(list);
-      sanitizeInputValue<List<Object>>(list);
+
       expect(sanitizedList, list);
+      try {
+        sanitizeInputValue<List<Object>>(list);
+        fail('should fail');
+      } on ArgumentError catch (_) {}
       try {
         sanitizeInputValue<List<String>>(list);
         fail('should fail');
