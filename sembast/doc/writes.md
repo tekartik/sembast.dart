@@ -4,7 +4,7 @@
 
 - `add` adds a new record and generate a new record key
 - `update` update an existing record
-- `put` will either add or update a record
+- `put` will either create a new record with a user specified key or update a record
 
 ## Use transactions
 
@@ -14,7 +14,7 @@ will greatly improve performances. See information on transaction [here](transac
 The code below use the Database object `db` but the same can be done with a
 `Store` or `Transaction` object
 
-## Writing data on the main store
+## Adding data
 
 ### Using auto-generated int key
 
@@ -35,7 +35,20 @@ var readMap = await record.get(db);
 expect(readMap, {'value': 'test'});
 ```
 
-Update data:
+### Specify the added key
+
+You can also specify the key of the added record if you don't want to have an auto-generated one.
+Add will fail if the record already exists.
+
+```dart
+// Add the data with a specified key (1234).
+// Fails if the record already exists
+await store.record(1234).add(db, {'value': 'test'});
+```
+
+## Update data
+
+You can update the data of a given record using put or update (update will fail if the record does not exist):
 
 ```dart
  // Update the record

@@ -294,7 +294,7 @@ void defineTests(FileSystemTestContext ctx) {
       test('open read 1', () async {
         await clearOutFolder();
         final file = nameFile('test');
-        var e;
+        Object? e;
         await openRead(file)
             .listen((_) {}, onError: (_) {
               print(_);

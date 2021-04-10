@@ -1,4 +1,3 @@
-// @dart=2.9
 import 'package:process_run/shell.dart';
 import 'package:process_run/which.dart';
 

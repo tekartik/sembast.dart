@@ -122,7 +122,7 @@ class QueryListenerController<K, V> extends _ControllerBase {
 
     var keys = Set.from(records.map((record) => record.key));
     // Remove all matching
-    bool _where(snapshot) {
+    bool _where(RecordSnapshot snapshot) {
       if (keys.contains(snapshot.key)) {
         hasChanges = true;
         return true;

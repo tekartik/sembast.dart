@@ -99,7 +99,7 @@ dynamic _toJsonEncodable(dynamic value, Iterable<SembastTypeAdapter> adapters) {
     if (_looksLikeCustomType(map)) {
       return <String, Object?>{'@': map};
     }
-    var clone;
+    Map<String, Object?>? clone;
     map.forEach((key, item) {
       if (!(key is String)) {
         throw ArgumentError.value(key);
@@ -107,13 +107,13 @@ dynamic _toJsonEncodable(dynamic value, Iterable<SembastTypeAdapter> adapters) {
       var converted = _toJsonEncodable(item, adapters);
       if (!identical(converted, item)) {
         clone ??= Map<String, Object?>.from(map);
-        clone[key] = converted;
+        clone![key] = converted;
       }
     });
     return clone ?? map;
   } else if (value is List) {
     var list = value;
-    var clone;
+    List? clone;
     for (var i = 0; i < list.length; i++) {
       var item = list[i];
       var converted = _toJsonEncodable(item, adapters);
@@ -134,8 +134,10 @@ Object toJsonEncodable(Object value, Iterable<SembastTypeAdapter> adapters) {
   try {
     converted = _toJsonEncodable(value, adapters);
   } on ArgumentError catch (e) {
-    throw ArgumentError.value(e.invalidValue,
-        '${e.invalidValue.runtimeType} in $value', 'not supported');
+    throw ArgumentError.value(
+        e.invalidValue,
+        '${(e.invalidValue as Object?).runtimeType} in $value',
+        'not supported');
   }
 
   /// Ensure root is Map<String, Object?> if only Map
@@ -167,18 +169,18 @@ Object? _fromEncodable(
       }
     }
 
-    var clone;
+    Map<String, Object?>? clone;
     map.forEach((key, item) {
       var converted = _fromEncodable(item as Object?, adapters);
       if (!identical(converted, item)) {
         clone ??= Map<String, Object?>.from(map);
-        clone[key] = converted;
+        clone![key.toString()] = converted;
       }
     });
-    return (clone ?? map) as Object;
+    return clone ?? map;
   } else if (value is List) {
     var list = value;
-    var clone;
+    List? clone;
     for (var i = 0; i < list.length; i++) {
       var item = list[i];
       var converted = _fromEncodable(item as Object?, adapters);
@@ -187,7 +189,7 @@ Object? _fromEncodable(
         clone[i] = converted;
       }
     }
-    return (clone ?? list) as Object;
+    return clone ?? list;
   } else {
     throw ArgumentError.value(value);
   }
@@ -201,7 +203,7 @@ Object fromJsonEncodable(
     converted = _fromEncodable(value, adapters)!;
   } on ArgumentError catch (e) {
     throw ArgumentError.value(e.invalidValue,
-        '${e.invalidValue.runtimeType} in $value', 'not supported');
+        '${(e.invalidValue as Object).runtimeType} in $value', 'not supported');
   }
 
   /// Ensure root is Map<String, Object?> if only Map
