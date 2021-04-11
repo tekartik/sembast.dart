@@ -1,6 +1,7 @@
 library sembast.test.memory_factory_test_;
 
 import 'package:sembast/sembast_memory.dart';
+// ignore_for_file: implementation_imports
 import 'package:sembast/src/memory/database_factory_memory.dart'
     show DatabaseFactoryMemory;
 

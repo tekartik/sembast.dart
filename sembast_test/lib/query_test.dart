@@ -4,6 +4,7 @@ library sembast_test.query_test;
 
 import 'dart:convert';
 
+// ignore_for_file: implementation_imports
 import 'package:sembast/src/common_import.dart';
 import 'package:sembast/src/json_encodable_codec.dart' show JsonEncodableCodec;
 import 'package:sembast/src/type_adapter_impl.dart' show sembastDateTimeAdapter;

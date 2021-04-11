@@ -1,6 +1,7 @@
 library sembast.store_test;
 
 // basically same as the io runner but with extra output
+// ignore_for_file: implementation_imports
 import 'package:sembast/src/cooperator.dart';
 import 'package:sembast/src/sort.dart';
 

@@ -1,3 +1,4 @@
+// ignore_for_file: implementation_imports
 import 'package:sembast/src/api/v2/sembast_memory.dart';
 import 'package:sembast/src/jdb.dart';
 import 'package:sembast/src/sembast_jdb.dart';

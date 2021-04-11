@@ -2,6 +2,7 @@ library sembast.value_utils_test;
 
 // basically same as the io runner but with extra output
 import 'package:sembast/blob.dart';
+// ignore_for_file: implementation_imports
 import 'package:sembast/src/utils.dart' show compareValue, compareValueType;
 import 'package:sembast/timestamp.dart';
 import 'package:sembast/utils/value_utils.dart' as utils;

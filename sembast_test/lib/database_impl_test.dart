@@ -2,6 +2,7 @@ library sembast.database_impl_test;
 
 // basically same as the io runner but with extra output
 import 'package:path/path.dart';
+// ignore: implementation_imports
 import 'package:sembast/src/database_impl.dart' show SembastDatabase;
 
 import 'test_common.dart';

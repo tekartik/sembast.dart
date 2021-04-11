@@ -57,7 +57,9 @@ void encryptIoGroup(FileSystemTestContext ctx) {
       final lines = await readContent(fs, dbPath!);
       // print(lines);
       expect(lines.length, 2);
-      expect(codec.codec?.decode(json.decode(lines.first)['codec'] as String),
+      expect(
+          codec.codec
+              ?.decode((json.decode(lines.first) as Map)['codec'] as String),
           {'signature': 'encrypt'});
       expect(codec.codec?.decode(lines[1]), {'key': 1, 'value': 'test'});
     });
@@ -77,7 +79,9 @@ void encryptIoGroup(FileSystemTestContext ctx) {
         'version': 1,
         'sembast': 1,
       });
-      expect(codec.codec?.decode(json.decode(lines.first)['codec'] as String),
+      expect(
+          codec.codec
+              ?.decode((json.decode(lines.first) as Map)['codec'] as String),
           {'signature': 'encrypt'});
 
       expect(codec.codec?.decode(lines[1]), {'key': 1, 'value': 'test'});

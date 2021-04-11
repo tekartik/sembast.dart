@@ -1,6 +1,7 @@
 library sembast_test.listener_test;
 
 // basically same as the io runner but with extra output
+// ignore_for_file: implementation_imports
 import 'package:sembast/src/common_import.dart';
 import 'package:sembast/src/database_impl.dart';
 import 'package:pedantic/pedantic.dart';
