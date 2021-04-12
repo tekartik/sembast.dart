@@ -130,6 +130,31 @@ void defineTests(DatabaseTestContext ctx) {
           }
         ]
       });
+
+      var filteredExport = {
+        'sembast_export': 1,
+        'version': 1,
+        'stores': [
+          {
+            'name': 'store2',
+            'keys': [1],
+            'values': ['hi']
+          },
+        ]
+      };
+      // export with storeNames
+      expect(await exportDatabase(db, storeNames: ['store2']), filteredExport);
+
+      // import with storeName
+      var exportMap = await exportDatabase(db);
+
+      final importDbPath = dbPathFromName('imported_with_store_names.db');
+      var importedDb = await importDatabase(
+          exportMap, ctx.factory, importDbPath,
+          storeNames: ['store2']);
+      // Check imported data by exporting all
+      expect(await exportDatabase(importedDb), filteredExport);
+      await importedDb.close();
     });
 
     test('three_records', () async {
