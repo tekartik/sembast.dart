@@ -2,6 +2,7 @@ library sembast.test.utils_test;
 
 // basically same as the io runner but with extra output
 import 'package:sembast/sembast_memory.dart';
+// ignore_for_file: implementation_imports
 import 'package:sembast/src/database_impl.dart' show SembastDatabase;
 import 'package:sembast/src/utils.dart';
 

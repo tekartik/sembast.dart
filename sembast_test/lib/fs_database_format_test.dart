@@ -2,6 +2,7 @@ library sembast.database_format_test;
 
 import 'dart:async';
 
+// ignore: implementation_imports
 import 'package:sembast/src/database_impl.dart';
 import 'package:sembast_test/fs_test_common.dart';
 import 'package:sembast_test/test_common_impl.dart';

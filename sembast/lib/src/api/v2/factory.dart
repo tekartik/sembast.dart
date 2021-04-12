@@ -40,5 +40,5 @@ abstract class DatabaseFactory {
 /// one expected.
 ///
 /// Allow to perform migration or data change. Can return a future or not.
-typedef OnVersionChangedFunction = FutureOr<Object?> Function(
+typedef OnVersionChangedFunction = FutureOr<dynamic> Function(
     Database db, int oldVersion, int newVersion);
