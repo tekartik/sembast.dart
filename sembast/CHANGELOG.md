@@ -1,3 +1,7 @@
+## 3.0.1
+
+* Add optional `storeNames` to `exportDatabase` and `importDatabase` 
+
 ## 3.0.0+6
 
 * `nnbd` support, breaking change.
