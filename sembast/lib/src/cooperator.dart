@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:meta/meta.dart';
 import 'package:sembast/src/env_utils.dart';
-import 'package:synchronized/synchronized.dart';
+
 import 'common_import.dart';
 
 /// Device optimized delay
