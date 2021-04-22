@@ -1,6 +1,10 @@
+## 3.0.2
+
+* Fix cooperator so that concurrent sembast access properly pause.
+
 ## 3.0.1
 
-* Add optional `storeNames` to `exportDatabase` and `importDatabase` 
+* Add optional `storeNames` to `exportDatabase` and `importDatabase`
 
 ## 3.0.0+6
 
