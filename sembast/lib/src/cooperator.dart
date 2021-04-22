@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:meta/meta.dart';
 import 'package:sembast/src/env_utils.dart';
+import 'package:synchronized/synchronized.dart';
+import 'common_import.dart';
 
 /// Device optimized delay
 const _cooperatorIoDelayMicrosecondsDefault = 4000;
@@ -42,24 +44,39 @@ class Cooperator {
   /// Timer.
   final _cooperateStopWatch = Stopwatch()..start();
 
+  /// only the first one to pause handle this flag
+  var _paused = false;
+
   /// Need to cooperate every 16 milliseconds.
   bool get needCooperate =>
       cooperateOn &&
-      _cooperateStopWatch.elapsedMicroseconds > cooperatorDelayMicroseconds;
+      (_paused ||
+          _cooperateStopWatch.elapsedMicroseconds >
+              cooperatorDelayMicroseconds);
+
+  /// pause
+  Future<dynamic> get _pause =>
+      Future.delayed(Duration(microseconds: cooperatorPauseMicroseconds));
 
   /// Cooperate if needed.
   FutureOr cooperate() {
     if (needCooperate) {
-      // Just don't make it 0, tested for best performance using Flutter
-      // on a (non-recent) Nexus 5
-      return Future.delayed(Duration(microseconds: cooperatorPauseMicroseconds))
-          .then((_) {
-        // restart after the pause
-        _cooperateStopWatch
-          ..stop()
-          ..reset()
-          ..start();
-      });
+      var wasPaused = _paused;
+
+      // Only the first one paused manipulate the stopwatch
+      if (!wasPaused) {
+        _paused = true;
+        return _pause.then((_) {
+          _cooperateStopWatch
+            ..stop()
+            ..reset()
+            ..start();
+          _paused = false;
+        });
+      } else {
+        // We always pause additional requests
+        return _pause;
+      }
     } else {
       return null;
     }
