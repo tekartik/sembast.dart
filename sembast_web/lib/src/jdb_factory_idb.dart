@@ -1,8 +1,9 @@
 import 'dart:async';
-import 'package:idb_shim/utils/idb_import_export.dart' as import_export;
+
 import 'package:idb_shim/idb_client_memory.dart';
 import 'package:idb_shim/idb_shim.dart';
 import 'package:idb_shim/idb_shim.dart' as idb;
+import 'package:idb_shim/utils/idb_import_export.dart' as import_export;
 import 'package:sembast/sembast.dart';
 import 'package:sembast/src/storage.dart'; // ignore: implementation_imports
 import 'package:sembast_web/src/constant_import.dart';
