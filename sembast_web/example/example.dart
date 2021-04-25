@@ -1,5 +1,5 @@
-import 'package:sembast_web/sembast_web.dart';
 import 'package:sembast/sembast.dart';
+import 'package:sembast_web/sembast_web.dart';
 
 Future main() async {
   // Declare our store (records are mapd, ids are ints)

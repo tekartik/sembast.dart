@@ -1,8 +1,8 @@
 @TestOn('vm || browser')
 library sembast_web.test.sembast_io_api_test;
 
-import 'package:sembast/src/env_utils.dart' show isRunningAsJavascript;
 import 'package:sembast/sembast_io.dart';
+import 'package:sembast/src/env_utils.dart' show isRunningAsJavascript;
 import 'package:test/test.dart';
 
 var testPath = '.dart_tool/sembast_test/sembas_io_api/databases';

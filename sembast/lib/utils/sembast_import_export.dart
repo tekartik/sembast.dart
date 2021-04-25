@@ -19,7 +19,11 @@ const int _exportSignatureVersion = 1;
 ///
 /// Return the data in an exported format that (can be JSONified).
 ///
-Future<Map<String, Object?>> exportDatabase(Database db) {
+/// An optional [storeNames] can specify the list of stores to export. If null
+/// All stores are exported.
+///
+Future<Map<String, Object?>> exportDatabase(Database db,
+    {List<String>? storeNames}) {
   return db.transaction((txn) async {
     var export = <String, Object?>{
       // our export signature
@@ -34,8 +38,13 @@ Future<Map<String, Object?>> exportDatabase(Database db) {
 
     // Make it safe to iterate in an async way
     var sembastDatabase = (txn as SembastTransaction).database;
-    var stores = List<SembastStore>.from(sembastDatabase.getCurrentStores())
-      ..sort((store1, store2) => store1.name.compareTo(store2.name));
+    var stores = List<SembastStore>.from(sembastDatabase.getCurrentStores());
+    // Filter stores
+    if (storeNames != null) {
+      stores.removeWhere((store) => !storeNames.contains(store.name));
+    }
+    stores.sort((store1, store2) => store1.name.compareTo(store2.name));
+
     for (var store in stores) {
       final keys = [];
       final values = [];
@@ -70,9 +79,12 @@ Future<Map<String, Object?>> exportDatabase(Database db) {
 ///
 /// Import the exported data into a new database
 ///
+/// An optional [storeNames] can specify the list of stores to import. If null
+/// All stores are exported.
+///
 Future<Database> importDatabase(
     Map srcData, DatabaseFactory dstFactory, String dstPath,
-    {SembastCodec? codec}) async {
+    {SembastCodec? codec, List<String>? storeNames}) async {
   await dstFactory.deleteDatabase(dstPath);
 
   // check signature
@@ -91,6 +103,13 @@ Future<Database> importDatabase(
     if (storesExport != null) {
       for (var storeExport in storesExport) {
         final storeName = storeExport[_name] as String;
+
+        // Filter store
+        if (storeNames != null) {
+          if (!storeNames.contains(storeName)) {
+            continue;
+          }
+        }
 
         final keys = (storeExport[_keys] as Iterable).toList(growable: false);
         final values = List<Object>.from(storeExport[_values] as Iterable);
