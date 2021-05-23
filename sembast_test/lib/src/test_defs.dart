@@ -6,7 +6,6 @@ import 'dart:convert';
 import 'package:path/path.dart';
 // ignore_for_file: implementation_imports
 import 'package:sembast/src/api/protected/jdb.dart';
-import 'package:sembast/src/api/v2/sembast.dart';
 import 'package:sembast/src/api/v2/sembast_memory.dart';
 
 import 'package:sembast/src/database_factory_mixin.dart';

@@ -3,9 +3,7 @@ library sembast.jdb_factory_memory;
 import 'dart:async';
 
 import 'package:sembast/src/api/protected/jdb.dart';
-import 'package:sembast/src/api/record_ref.dart';
 import 'package:sembast/src/common_import.dart';
-import 'package:sembast/src/database_factory_mixin.dart';
 import 'package:sembast/src/jdb.dart' as jdb;
 import 'package:sembast/src/key_utils.dart';
 import 'package:sembast/src/record_impl.dart';

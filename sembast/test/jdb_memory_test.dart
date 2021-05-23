@@ -1,8 +1,6 @@
 import 'package:sembast/src/api/protected/jdb.dart';
-import 'package:sembast/src/api/v2/sembast.dart';
 import 'package:sembast/src/database_impl.dart';
 import 'package:sembast/src/jdb/jdb_factory_memory.dart';
-import 'package:test/test.dart';
 
 import 'jdb_test_common.dart';
 

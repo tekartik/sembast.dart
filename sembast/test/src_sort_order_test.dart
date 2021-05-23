@@ -2,7 +2,6 @@ library sembast.src_filter_test;
 
 // basically same as the io runner but with extra output
 //import 'package:tekartik_test/test_config.dart';
-import 'package:sembast/src/api/v2/sembast.dart';
 import 'package:sembast/src/record_snapshot_impl.dart';
 import 'package:sembast/src/sort_order_impl.dart';
 

@@ -1,9 +1,5 @@
 library sembast.crud_test;
 
-// basically same as the io runner but with extra output
-// ignore: implementation_imports
-import 'package:sembast/src/api/v2/sembast.dart';
-
 import 'test_common.dart';
 
 void main() {

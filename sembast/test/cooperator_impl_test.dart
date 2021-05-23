@@ -1,6 +1,5 @@
 import 'package:sembast/src/cooperator.dart';
 import 'package:sembast/src/env_utils.dart';
-import 'package:test/test.dart';
 
 import 'test_common.dart';
 

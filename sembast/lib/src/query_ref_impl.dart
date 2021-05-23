@@ -1,6 +1,4 @@
 import 'package:sembast/sembast.dart';
-import 'package:sembast/src/api/query_ref.dart';
-import 'package:sembast/src/api/store_ref.dart';
 import 'package:sembast/src/common_import.dart';
 import 'package:sembast/src/database_impl.dart';
 import 'package:sembast/src/debug_utils.dart';

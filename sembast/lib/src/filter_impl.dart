@@ -1,6 +1,4 @@
 import 'package:sembast/sembast.dart';
-import 'package:sembast/src/api/filter.dart';
-import 'package:sembast/src/api/record_snapshot.dart';
 import 'package:sembast/src/record_snapshot_impl.dart';
 
 /// We can match if record is a map or if we are accessing the key or value
