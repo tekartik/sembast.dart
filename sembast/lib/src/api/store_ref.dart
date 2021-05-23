@@ -1,6 +1,4 @@
 import 'package:sembast/sembast.dart';
-import 'package:sembast/src/api/record_ref.dart';
-import 'package:sembast/src/api/records_ref.dart';
 import 'package:sembast/src/sembast_impl.dart' show dbMainStore;
 import 'package:sembast/src/store_ref_impl.dart';
 

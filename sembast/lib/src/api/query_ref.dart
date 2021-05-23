@@ -1,4 +1,3 @@
-import 'package:sembast/src/api/record_snapshot.dart';
 import 'package:sembast/src/api/sembast.dart';
 
 /// A query on a store.

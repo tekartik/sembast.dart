@@ -1,5 +1,4 @@
 import 'package:sembast/sembast.dart';
-import 'package:sembast/src/api/boundary.dart';
 import 'package:sembast/src/record_impl.dart';
 
 /// Boundary implementation.

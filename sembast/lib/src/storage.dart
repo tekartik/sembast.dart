@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:sembast/src/api/protected/jdb.dart';
-import 'package:sembast/src/jdb.dart';
 import 'package:sembast/src/meta.dart';
 
 /// Base storage

@@ -1,4 +1,3 @@
-import 'package:sembast/src/api/v2/sembast.dart';
 import 'package:sembast/src/record_snapshot_impl.dart';
 import 'package:sembast/src/utils.dart';
 

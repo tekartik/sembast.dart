@@ -4,7 +4,6 @@ library sembast.test.exp_io_est;
 import 'dart:async';
 
 import 'package:path/path.dart';
-import 'package:sembast/src/api/v2/sembast.dart';
 import 'package:sembast/src/api/v2/sembast_io.dart';
 
 import 'test_common.dart';

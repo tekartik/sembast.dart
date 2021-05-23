@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:sembast/sembast.dart';
-import 'package:sembast/src/api/factory.dart';
 import 'package:sembast/src/database_impl.dart';
 import 'package:synchronized/synchronized.dart';
 

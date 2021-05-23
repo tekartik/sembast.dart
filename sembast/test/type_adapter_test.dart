@@ -1,7 +1,6 @@
 library sembast.type_adapter_test;
 
 import 'package:sembast/blob.dart';
-import 'package:sembast/src/sembast_codec.dart';
 import 'package:sembast/src/timestamp_impl.dart';
 import 'package:sembast/src/type_adapter_impl.dart';
 
