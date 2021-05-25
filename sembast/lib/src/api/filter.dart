@@ -102,9 +102,4 @@ extension SembastFilterCombination on Filter {
   ///
   /// Use [Filter.and] to combine more than two filters.
   Filter operator &(Filter other) => SembastCompositeFilter.and([this, other]);
-
-  /// Record must not match this.
-  ///
-  /// Synonym fomr [Filter.not].
-  Filter operator !() => SembastOppositeFilter(this);
 }
