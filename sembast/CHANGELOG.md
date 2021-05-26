@@ -1,3 +1,7 @@
+## 3.0.3
+
+* Add `Filter.not` filter for inverting a filter behavior.
+
 ## 3.0.2
 
 * Fix cooperator so that concurrent sembast access properly pause.
