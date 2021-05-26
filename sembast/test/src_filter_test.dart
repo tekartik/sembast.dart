@@ -103,13 +103,13 @@ void main() {
     });
 
     test('not', () {
-      var filter =
-          Filter.not(Filter.equals('test', 2));
+      var filter = Filter.not(Filter.equals('test', 2));
       expect(_match(filter, {'test': 1}), isTrue);
       expect(_match(filter, {'test': 2}), isFalse);
-      expect(_match(filter, {'test': 3}), isTrue);
+      filter = Filter.not(Filter.not(Filter.equals('test', 2)));
+      expect(_match(filter, {'test': 2}), isTrue);
+      expect(_match(filter, {'test': 1}), isFalse);
     });
-
 
     final alwaysMatchFilter = Filter.custom((_) => true);
     final neverMatchFilter = Filter.custom((_) => false);

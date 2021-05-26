@@ -77,8 +77,7 @@ abstract class Filter {
       SembastCompositeFilter.and(filters);
 
   /// Record must not match the given [filter].
-  factory Filter.not(Filter filter) =>
-      SembastOppositeFilter(filter);
+  factory Filter.not(Filter filter) => SembastOppositeFilter(filter);
 
   /// Filter by [key].
   ///
