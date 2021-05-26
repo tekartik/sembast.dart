@@ -182,6 +182,25 @@ class SembastCompositeFilter extends SembastFilterBase {
   }
 }
 
+/// Opposite filter
+class SembastOppositeFilter extends SembastFilterBase {
+  // ignore: public_member_api_docs
+  Filter filter;
+
+  // ignore: public_member_api_docs
+  SembastOppositeFilter(this.filter);
+
+  @override
+  bool matchesRecord(RecordSnapshot record) {
+    return !(filter as SembastFilterBase).matchesRecord(record);
+  }
+
+  @override
+  String toString() {
+    return 'NOT $filter';
+  }
+}
+
 /// Filter predicate implementation.
 class SembastFilterPredicate extends SembastFilterBase
     with FilterValueMixin, FilterFieldMixin {
