@@ -1,3 +1,7 @@
+## 3.0.4
+
+* Add `databaseMerge` utility to merge records from an existing database.
+
 ## 3.0.3
 
 * Add `Filter.not` filter for inverting a filter behavior.
