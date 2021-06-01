@@ -1,3 +1,8 @@
+## 3.1.0
+
+* Add `StoreRef.addOnChangesListener` and `StoreRef.removeOnChangesListener` to allow
+  tracking changes in transactions.
+
 ## 3.0.4
 
 * Add `databaseMerge` utility to merge records from an existing database.
