@@ -31,3 +31,10 @@ export 'package:sembast/src/sembast_codec.dart'
 export 'package:sembast/src/store_ref_impl.dart' show SembastStoreRefExtension;
 export 'package:sembast/src/type_adapter_impl.dart'
     show sembastDefaultTypeAdapters;
+
+// V3.1
+export 'package:sembast/src/record_change.dart'
+    show
+        RecordChange,
+        TransactionRecordChangeListener,
+        SembastRecordChangeExtension;

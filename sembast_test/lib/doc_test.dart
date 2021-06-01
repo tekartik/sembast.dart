@@ -604,5 +604,52 @@ void defineTests(DatabaseTestContext ctx) {
 
       expect(names, []);
     });
+    test('record change', () async {
+      var database = db = await setupForTest(ctx, 'doc/record_change.db');
+      {
+        var db = database;
+
+        // Create a 'student' and 'enroll' store. A studen can enroll a course.
+        var studentStore = intMapStoreFactory.store('student');
+        var enrollStore = intMapStoreFactory.store('enroll');
+
+        // Setup trigger to delete a record in enroll when a student is deleted
+        studentStore.addOnChangesListener(db, (transaction, changes) async {
+          // For each student deleted, delete the entry in enroll store
+          for (var change in changes) {
+            // newValue is null for deletion
+            if (change.isDelete) {
+              // Delete in enroll, use the transaction!
+              await enrollStore.delete(transaction,
+                  finder:
+                      Finder(filter: Filter.equals('student', change.ref.key)));
+            }
+          }
+        });
+
+        // Add some data
+        var studentId1 = await studentStore.add(db, {'name': 'Jack'});
+        var studentId2 = await studentStore.add(db, {'name': 'Joe'});
+
+        await enrollStore.add(db, {'student': studentId1, 'course': 'Math'});
+        await enrollStore.add(db, {'student': studentId2, 'course': 'French'});
+        await enrollStore.add(db, {'student': studentId1, 'course': 'French'});
+
+        // The initial data in enroll is
+        expect((await enrollStore.find(db)).map((e) => e.value), [
+          {'student': 1, 'course': 'Math'},
+          {'student': 2, 'course': 'French'},
+          {'student': 1, 'course': 'French'}
+        ]);
+
+        // Delete the student
+        await studentStore.record(studentId1).delete(db);
+
+        // Data has been delete in enrollStore too!
+        expect((await enrollStore.find(db)).map((e) => e.value), [
+          {'student': 2, 'course': 'French'},
+        ]);
+      }
+    });
   });
 }
