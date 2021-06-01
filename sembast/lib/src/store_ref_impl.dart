@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:sembast/sembast.dart';
+import 'package:sembast/src/api/protected/database.dart';
 import 'package:sembast/src/database_client_impl.dart';
 import 'package:sembast/src/finder_impl.dart';
 import 'package:sembast/src/query_ref_impl.dart';
@@ -220,6 +223,30 @@ extension SembastStoreRefExtension<K, V> on StoreRef<K, V> {
       return (await client.getSembastStore(this).txnClear(txn, finder: finder))
           .length;
     });
+  }
+
+  /// Listen for changes on a given store.
+  ///
+  /// Note that you can perform changes in the callback using the transaction
+  /// provided. Also note that if you modify and already modified record,
+  /// the callback will be called again.
+  ///
+  /// To use with caution as it has a cost.
+  ///
+  /// Like transaction, it can run multiple times, so limit your changes to the
+  /// database.
+  void addOnChangesListener(
+      Database database, TransactionRecordChangeListener<K, V> onChanges) {
+    (database as SembastDatabase).addOnChangesListener<K, V>(this, onChanges);
+  }
+
+  /// Stop listening for changes.
+  ///
+  /// Make sure the same callback is used than the one used in addOnChangesListener.
+  void removeOnChangesListener(
+      Database database, TransactionRecordChangeListener<K, V> onChanges) {
+    (database as SembastDatabase)
+        .removeOnChangesListener<K, V>(this, onChanges);
   }
 }
 
