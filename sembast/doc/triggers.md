@@ -77,7 +77,7 @@ store will be deleted.
 ```dart
 await studentStore.record(studentId1).delete(db);
 
-// Data has been delete in enrollStore too!
+// Data has been deleted in 'enroll' store too!
 expect((await enrollStore.find(db)).map((e) => e.value), [
   {'student': 2, 'course': 'French'},
 ]);

@@ -17,6 +17,8 @@ export 'package:sembast/src/api/transaction.dart';
 export 'package:sembast/src/cooperator.dart'
     show enableSembastCooperator, disableSembastCooperator;
 
+// ignore_for_file: directives_ordering
+
 // v2.4.3
 export 'package:sembast/src/record_ref_impl.dart'
     show SembastRecordRefExtension;
