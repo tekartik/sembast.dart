@@ -5,6 +5,7 @@ import 'package:sembast/sembast.dart';
 import 'package:sembast/src/api/log_level.dart';
 import 'package:sembast/src/api/protected/jdb.dart';
 import 'package:sembast/src/api/v2/sembast.dart' as v2;
+import 'package:sembast/src/changes_listener.dart';
 import 'package:sembast/src/common_import.dart';
 import 'package:sembast/src/cooperator.dart';
 import 'package:sembast/src/database_client_impl.dart';
@@ -89,6 +90,9 @@ class SembastDatabase extends Object
   /// Closed/clear on open and close
   final listener = DatabaseListener();
 
+  /// Store change listeners
+  final changesListener = DatabaseChangesListener();
+
   @override
   String get path => _storageBase!.path;
 
@@ -147,6 +151,7 @@ class SembastDatabase extends Object
   void _clearTxnData() {
     _txnDroppedStores.clear();
     _txnStoreLastIntKeys.clear();
+    changesListener.txnClearChanges();
 
     // remove temp data in all store
     for (var store in stores) {
@@ -743,6 +748,7 @@ class SembastDatabase extends Object
             _stores.clear();
             _checkMainStore();
             listener.close();
+            changesListener.close();
             _pendingListenerContent.clear();
           }
 
@@ -1009,6 +1015,7 @@ class SembastDatabase extends Object
     return openHelper.lock.synchronized(() async {
       // Cancel listener
       listener.close();
+      changesListener.close();
       // Make sure any pending changes are committed
       await flush();
 
@@ -1163,6 +1170,20 @@ class SembastDatabase extends Object
                 _transactionCleanUp();
               } else {
                 _jdbRevision = status.revision;
+              }
+            }
+          }
+
+          // handle changes, until all done!
+          if (changesListener.isNotEmpty) {
+            while (changesListener.hasChanges) {
+              // Copy the list so that it never changes
+              var storeChangesListeners = List<StoreChangesListeners>.from(
+                  changesListener.storeChangesListeners);
+              for (var storeChangesListener in storeChangesListeners) {
+                if (storeChangesListener.hasChanges) {
+                  await storeChangesListener.handleChanges(currentTransaction!);
+                }
               }
             }
           }
@@ -1431,6 +1452,18 @@ class SembastDatabase extends Object
       }
     }
     return value as V?;
+  }
+
+  /// Listen for changes on a given store.
+  void addOnChangesListener<K, V>(
+      StoreRef<K, V> store, TransactionRecordChangeListener<K, V> onChanges) {
+    changesListener.addStoreChangesListener<K, V>(store, onChanges);
+  }
+
+  /// Stop listening for changes.
+  void removeOnChangesListener<K, V>(
+      StoreRef<K, V> store, TransactionRecordChangeListener<K, V> onChanges) {
+    changesListener.removeStoreChangesListener<K, V>(store, onChanges);
   }
 }
 

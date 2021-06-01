@@ -117,14 +117,22 @@ class SembastStore {
   /// Returns the value
   Future<Object?> txnPutSync(SembastTransaction txn, var value, var key,
       {bool? merge}) async {
+    RecordSnapshot? oldSnapshot;
+    var hasChangesListener = this.hasChangesListener;
     ImmutableSembastRecord? record;
     if (merge == true) {
       record = txnGetRecordSync(txn, key);
+
+      oldSnapshot = record;
+
       //if (record != null) {
       // Always merge to get rid of FieldValue.delete if any
       value = mergeValue(record?.value, value, allowDotsInKeys: true);
       //}
     } else {
+      if (hasChangesListener) {
+        oldSnapshot = txnGetRecordSync(txn, key);
+      }
       // Simple clone the calue
       value = cloneValue(value);
     }
@@ -134,8 +142,17 @@ class SembastStore {
     if (database.logV) {
       print('$txn put $record');
     }
+
+    /// track changes
+    if (hasChangesListener) {
+      database.changesListener.addChange(oldSnapshot, record);
+    }
     return record.value;
   }
+
+  /// True if it has a change listener
+  bool get hasChangesListener =>
+      database.changesListener.hasStoreChangeListener(ref);
 
   /// Returns the list of values
   Future<List> txnPutAll(SembastTransaction txn, List values, List keys,
@@ -163,6 +180,8 @@ class SembastStore {
   Future<Object?> txnUpdate(
       SembastTransaction txn, dynamic value, dynamic key) async {
     await cooperate();
+
+    var hasChangesListener = this.hasChangesListener;
     // Ignore non-existing record
     var existingRecord = txnGetRecordSync(txn, key);
     if (existingRecord == null) {
@@ -172,9 +191,12 @@ class SembastStore {
     var mergedValue = mergeValue(existingRecord.value, value);
     var record = ImmutableSembastRecord(ref.record(key), mergedValue);
 
-    txnPutRecordSync(txn, record);
+    var newSnapshot = txnPutRecordSync(txn, record);
     if (database.logV) {
       print('$txn update $record');
+    }
+    if (hasChangesListener) {
+      database.changesListener.addChange(existingRecord, newSnapshot);
     }
     return record.value;
   }
@@ -570,6 +592,11 @@ class SembastStore {
       // clone and mark as deleted
       var clone = record.sembastCloneAsDeleted();
       await txnPutRecord(txn, clone);
+
+      // Changes listener
+      if (hasChangesListener) {
+        database.changesListener.addChange(record, null);
+      }
       return record.key;
     }
   }
@@ -589,6 +616,10 @@ class SembastStore {
         var clone = record.sembastCloneAsDeleted();
 
         updates.add(clone);
+
+        if (txn.database.changesListener.isNotEmpty) {
+          txn.database.changesListener.addChange(record, null);
+        }
         deletedKeys.add(key);
       } else {
         deletedKeys.add(null);
