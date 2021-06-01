@@ -28,14 +28,14 @@ In each change:
 
 ### Example
 
-Create a 'student' and 'enroll' store. A studen can enroll a course.
+Create a 'student' and 'enroll' store. A student can enroll a course.
 
 ```dart
 var studentStore = intMapStoreFactory.store('student');
 var enrollStore = intMapStoreFactory.store('enroll');
 ```
 
-Setup trigger to delete a record in enroll when a student is deleted
+Setup trigger to delete a record in 'enroll' when a student is deleted
 
 ```dart
 studentStore.addOnChangesListener(db, (transaction, changes) async {
@@ -64,14 +64,14 @@ await enrollStore.add(db, {'student': studentId1, 'course': 'French'});
 
 // The initial data in enroll is
 expect((await enrollStore.find(db)).map((e) => e.value), [
-  {'student': 1, 'course'// : 'Math'},
+  {'student': 1, 'course' : 'Math'},
   {'student': 2, 'course': 'French'},
   {'student': 1, 'course': 'French'}
 ]);
 
 ```
 
-Delete the student. It will trigger the listener and the entry in the enroll
+Delete the student. It will trigger the listener and the entries in the enroll
 store will be deleted.
 
 ```dart
