@@ -26,3 +26,33 @@ One recommendation is to limit your transactions:
 There are 2 ways to do bulk insert:
 - use [`store.addAll`](https://pub.dev/documentation/sembast/latest/sembast/SembastStoreRefExtension/addAll.html)
 - use a [transaction](https://github.com/tekartik/sembast.dart/blob/master/sembast/doc/transactions.md)
+
+## Optimization
+
+### Disable sembast cooperator
+
+sembast has a weird cooperator concept to let other async task run
+even during heavy operations. This is mainly to allow flutter app running without glitches.
+
+In some scenario, you can disable sembast cooperator.
+If you don't need such feature (pure io application), you can call:
+
+```dart
+disableSembastCooperator();
+```
+
+In flutter application, if you decide to open the database during the splash screen before
+calling `runApp`, you can temporarily disable it:
+
+```dart
+Future<void> main() async {
+  // disable cooperator during splash screen
+  disableSembastCooperator();
+  
+  // open you database
+
+  // renable cooperator once open
+  enableSembastCooperator();
+  runApp(MyApp());
+}
+```

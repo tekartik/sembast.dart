@@ -178,9 +178,16 @@ expect(records[1]['name'], 'fish');
 
 ### Listen to changes
 
-Similarly to firestore, you can listen to record, store or query changes.
+Similarly to firestore, you can asynchronously listen to record, store or query changes.
 
 More information [here](https://github.com/tekartik/sembast.dart/blob/master/sembast/doc/new_api.md#listen-to-changes)
+
+### Triggers
+
+For data integrity, you can also track changes during transaction and perform additional operations
+in the same transaction
+
+More information [here](https://github.com/tekartik/sembast.dart/blob/master/sembast/doc/triggers.md)
 
 ### Codec and encryption
 

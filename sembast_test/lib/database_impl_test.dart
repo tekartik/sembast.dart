@@ -28,14 +28,12 @@ void defineTests(DatabaseTestContext ctx) {
         expect(db.cooperator, isNotNull);
         await db.close();
 
-        // ignore: invalid_use_of_visible_for_testing_member
         disableSembastCooperator();
 
         db = (await factory.openDatabase(dbPath2)) as SembastDatabase;
         expect(db.cooperator, isNull);
         await db.close();
 
-        // ignore: invalid_use_of_visible_for_testing_member
         enableSembastCooperator();
         db = (await factory.openDatabase(dbPath3)) as SembastDatabase;
         expect(db.cooperator, isNotNull);

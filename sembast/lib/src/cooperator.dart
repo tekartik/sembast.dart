@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:meta/meta.dart';
 import 'package:sembast/src/env_utils.dart';
 
 import 'common_import.dart';
@@ -112,7 +111,6 @@ bool cooperatorDisabled = false;
 ///
 /// Disable sembast cooperator that prevents heavy algorithms blocking the UI
 /// thread. Should be called before any other call.
-@visibleForTesting
 void disableSembastCooperator() {
   globalCooperator.stop();
   cooperatorDisabled = true;
@@ -122,7 +120,6 @@ void disableSembastCooperator() {
 ///
 /// [delayMicroseconds] specifies at which frequency an heavy algorithm is paused.
 /// [pauseMicroseconds] specifies the duration of the pauseat which frequency an heavy algorithm is paused.
-@visibleForTesting
 void enableSembastCooperator({int? delayMicroseconds, int? pauseMicroseconds}) {
   cooperatorDisabled = false;
   cooperatorDelayMicroseconds =

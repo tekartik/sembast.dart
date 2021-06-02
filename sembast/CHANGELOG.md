@@ -1,4 +1,4 @@
-## 3.1.0+1
+## 3.1.0+2
 
 * Add `StoreRef.addOnChangesListener` and `StoreRef.removeOnChangesListener` to allow
   tracking changes in transactions.
