@@ -26,6 +26,12 @@ In each change:
 - `newSnapshot` is null for item deleted
 - none are null for modification
 
+Warning: setting triggers could have write penalty if your callback is a lenghty
+operation. Tu use with care.
+
+If you modify a record in the callback, the callback will be called again, so make
+sure you don't update indefinitely the same record.
+
 ### Example
 
 Create a 'student' and 'enroll' store. A student can enroll a course.
@@ -51,6 +57,9 @@ studentStore.addOnChangesListener(db, (transaction, changes) async {
   }
 });
 ```
+
+In an application, you would likely considered your database 'ready' when
+triggers are set.
 
 Add some data
 
