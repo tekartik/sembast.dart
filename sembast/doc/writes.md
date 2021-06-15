@@ -99,7 +99,16 @@ await record.update(db, {FieldKey.escape('my.color'): 'red'});
 
 ## Delete records
 
-You can delete one or multiple records using the store `delete` method.
+You can delete a single record by key using the `RecordRef.delete` method.
+
+```dart
+// Record by key.
+var record = store.record(key);
+// Delete the record.
+await record.delete(db);
+```
+
+You can delete one or multiple records using the `StoreRef.delete` method.
 
 ```dart
 // Delete all records with a price greater then 10
