@@ -103,7 +103,8 @@ class JdbFactoryIdb implements jdb.JdbFactory {
       if (meta is Map && meta['sembast'] is int) {
         return true;
       }
-    } catch (_) {} finally {
+    } catch (_) {
+    } finally {
       try {
         db.close();
       } catch (_) {}
