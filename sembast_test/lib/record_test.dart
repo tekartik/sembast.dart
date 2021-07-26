@@ -33,8 +33,10 @@ void defineTests(DatabaseTestContext ctx) {
       expect(record1, isNot(StoreRef.main().record('test')));
       expect(
           StoreRef.main().record('test'),
-          StoreRef.main()
-              .record((StringBuffer()..write('te')..write('st')).toString()));
+          StoreRef.main().record((StringBuffer()
+                ..write('te')
+                ..write('st'))
+              .toString()));
     });
 
     test('put/get timing', () async {
