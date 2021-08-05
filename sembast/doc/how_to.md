@@ -43,11 +43,17 @@ It seems File io write access is not possible in write mode during testWidgets w
                                                      
 What you could do during unittest is to use a different factory: `databaseFactoryMemory`
 
+Also it seems simple call like `await Future.delayed(Duration(milliseconds: 100));` hangs on flutter (See [#268](https://github.com/tekartik/sembast.dart/issues/268))
+so you need to call `disableSembastCooperator()`
+
 ```dart
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sembast/sembast_memory.dart';
 
 Future main() async {
+  // Prevent calling Future.delayed that seems to hang in flutter test
+  disableSembastCooperator();
+
   testWidgets('database', (tester) async {
     var db = await databaseFactoryMemory.openDatabase('database');
     expect(db, isNotNull);
