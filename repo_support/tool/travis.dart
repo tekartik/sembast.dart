@@ -1,5 +1,5 @@
-import 'package:process_run/shell.dart';
 import 'package:path/path.dart';
+import 'package:process_run/shell.dart';
 
 Future main() async {
   var shell = Shell();

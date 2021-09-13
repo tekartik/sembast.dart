@@ -93,10 +93,10 @@ class FileMemoryImpl extends FileSystemEntityMemoryImpl {
         onListen: () async {
           openCount++;
           if (content != null) {
-            content!.forEach((String line) {
+            for (var line in content!) {
               ctlr.add(Uint8List.fromList(line.codeUnits));
               ctlr.add(Uint8List.fromList('\n'.codeUnits));
-            });
+            }
           }
           try {
             await close();
@@ -417,7 +417,7 @@ class FileSystemMemoryImpl {
       throw FileSystemExceptionMemory(
           path, 'Deletion failed', _noSuchPathError);
     }
-    if (!(entityImpl is RootDirectoryMemoryImpl)) {
+    if (entityImpl is! RootDirectoryMemoryImpl) {
       if (entityImpl is DirectoryMemoryImpl) {
         if (recursive != true && (entityImpl.children.isNotEmpty)) {
           throw FileSystemExceptionMemory(path, 'Deletion failed',

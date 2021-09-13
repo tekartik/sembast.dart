@@ -53,9 +53,9 @@ void main() {
       sw.stop();
 
       var tasksElapsedMs = 0;
-      (await Future.wait(futures)).forEach((element) {
+      for (var element in (await Future.wait(futures))) {
         tasksElapsedMs += element as int;
-      });
+      }
       // print('global ${sw.elapsedMilliseconds} vs total tasks $tasksElapsedMs');
       return tasksElapsedMs;
     }

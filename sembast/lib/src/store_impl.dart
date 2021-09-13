@@ -677,7 +677,7 @@ class SembastStore {
 
   @override
   String toString() {
-    return '$name';
+    return name;
   }
 
   /// Clear a store in a transaction.

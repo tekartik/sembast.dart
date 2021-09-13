@@ -13,7 +13,7 @@ final backtickChrCode = '`'.codeUnitAt(0);
 
 /// Check keys.
 bool checkMapKey(key) {
-  if (!(key is String)) {
+  if (key is! String) {
     return false;
   }
   // Cannot contain .
@@ -263,7 +263,7 @@ dynamic cloneValue(dynamic value) {
 /// Sanitize Map type for root value
 dynamic sanitizeValueIfMap(dynamic value) {
   if (value is Map) {
-    if (!(value is Map<String, Object?>)) {
+    if (value is! Map<String, Object?>) {
       return value.cast<String, Object?>();
     }
   }
@@ -381,7 +381,7 @@ void setPartsMapValue<T>(Map map, List<String> parts, T value) {
   for (var i = 0; i < parts.length - 1; i++) {
     final part = parts[i];
     dynamic sub = map[part];
-    if (!(sub is Map)) {
+    if (sub is! Map) {
       sub = <String, Object?>{};
       map[part] = sub;
     }
@@ -452,10 +452,10 @@ dynamic mergeValue(dynamic existingValue, dynamic newValue,
     return existingValue;
   }
 
-  if (!(existingValue is Map)) {
+  if (existingValue is! Map) {
     return _fixValue(newValue);
   }
-  if (!(newValue is Map)) {
+  if (newValue is! Map) {
     return newValue;
   }
 

@@ -61,7 +61,7 @@ Map<String, Object?>? getCodecDecodedSignature(
 void checkCodecEncodedSignature(SembastCodec? codec, String? encodedSignature) {
   if (codec?.signature == null && encodedSignature == null) {
     // Ignore if both signature are null
-    return null;
+    return;
   }
   var rawSignatureMap = getRawSignatureMap(codec);
   var decodedSignature = getCodecDecodedSignature(codec, encodedSignature);

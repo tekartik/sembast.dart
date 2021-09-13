@@ -181,9 +181,9 @@ class FsDatabaseStorage extends DatabaseStorage {
     // devPrint('${file.path} lines $lines');
     final sink = file.openWrite(mode: FileMode.append);
 
-    lines.forEach((String line) {
+    for (var line in lines) {
       sink.writeln(line);
-    });
+    }
 
     return sink.close();
   }

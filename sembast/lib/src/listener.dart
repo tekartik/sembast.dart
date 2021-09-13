@@ -434,14 +434,16 @@ class DatabaseListener {
 
   /// Close and clear listeners.
   void close() {
-    _stores.values.forEach((storeListener) {
-      storeListener._queries.forEach((queryListener) {
+    for (var storeListener in _stores.values) {
+      for (var queryListener in storeListener._queries) {
         queryListener.close();
-      });
-      storeListener._records.values.forEach((recordListeners) {
-        recordListeners.forEach((recordListener) => recordListener.close());
-      });
-    });
+      }
+      for (var recordListeners in storeListener._records.values) {
+        for (var recordListener in recordListeners) {
+          recordListener.close();
+        }
+      }
+    }
     _stores.clear();
   }
 

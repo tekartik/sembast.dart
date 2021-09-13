@@ -14,9 +14,9 @@ dependencies:
   # Dependencies for encryption example
   encrypt: '>=5.0.0-0'
   crypto: '>=3.0.0'
-  pedantic:
 
 dev_dependencies:
+  lints: '>=1.0.1'
   http: '>=0.11.0'
   process_run: '>=0.12.0'
   build_runner: '>=0.9.0'

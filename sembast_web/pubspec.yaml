@@ -4,14 +4,14 @@ version: 2.0.0+2
 homepage: https://github.com/tekartik/sembast.dart/tree/master/sembast_web
 
 environment:
-  sdk: '>=2.12.0-0 <3.0.0'
+  sdk: '>=2.14.0-0 <3.0.0'
 
 dependencies:
   sembast: '>=3.0.0 <5.0.0'
   idb_shim: '>=2.0.0 <4.0.0'
 
 dev_dependencies:
-  pedantic: '>=1.10.0'
+  lints: '>=1.0.1'
   test: '>=1.16.2'
   process_run: '>=0.12.0'
   build_runner: '>=1.11.3'
