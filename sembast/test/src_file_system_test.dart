@@ -94,17 +94,17 @@ void defineTests(FileSystemTestContext ctx) {
 
   Future writeContent(File file, List<String> content) {
     final sink = openWrite(file);
-    content.forEach((String line) {
+    for (var line in content) {
       sink.writeln(line);
-    });
+    }
     return sink.close();
   }
 
   Future appendContent(File file, List<String> content) {
     final sink = openAppend(file);
-    content.forEach((String line) {
+    for (var line in content) {
       sink.writeln(line);
-    });
+    }
     return sink.close();
   }
 

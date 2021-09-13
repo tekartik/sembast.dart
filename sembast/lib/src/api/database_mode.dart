@@ -27,9 +27,9 @@ class DatabaseMode {
   int get hashCode => _mode;
 
   @override
-  bool operator ==(o) {
-    if (o is DatabaseMode) {
-      return o._mode == _mode;
+  bool operator ==(Object other) {
+    if (other is DatabaseMode) {
+      return other._mode == _mode;
     }
     return false;
   }

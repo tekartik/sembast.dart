@@ -2,8 +2,8 @@ library sembast.doc_test;
 
 import 'dart:convert';
 
+import 'package:collection/collection.dart';
 import 'package:pedantic/pedantic.dart';
-
 // ignore: implementation_imports
 import 'package:sembast/src/memory/database_factory_memory.dart';
 import 'package:sembast/utils/database_utils.dart';
@@ -462,6 +462,177 @@ void defineTests(DatabaseTestContext ctx) {
         });
 
         expect(await store.query().getSnapshots(db), hasLength(2));
+      }
+    });
+
+    test('transaction', () async {
+      var path = dbPathFromName('doc/transactions.db');
+      await factory.deleteDatabase(path);
+      {
+        // By default, unless specified a new database has version 1
+        // after being opened. While this value seems odd, it actually enforce
+        // migration during `onVersionChanged`
+        await factory.deleteDatabase(path);
+        var db = await factory.openDatabase(path);
+
+        // Let's assume a store with the following products
+        var store = intMapStoreFactory.store('product');
+        await store.addAll(db, [
+          {'name': 'Lamp', 'price': 10, 'id': 'lamp'},
+          {'name': 'Chair', 'price': 100, 'id': 'chair'},
+          {'name': 'Table', 'price': 250, 'id': 'table'}
+        ]);
+
+        var products1 = [
+          {'name': 'Lamp', 'price': 10, 'id': 'lamp'},
+          {'name': 'Chair', 'price': 100, 'id': 'chair'},
+          {'name': 'Table', 'price': 250, 'id': 'table'}
+        ];
+        //await store.addAll(db, products1);
+
+        Future<List<Map<String, Object?>>> getProductMaps() async {
+          var results = await store
+              .stream(db)
+              .map(((snapshot) => Map<String, Object?>.from(snapshot.value)
+                ..['key'] = snapshot.key))
+              .toList();
+          return results;
+        }
+
+        Future printProducts() async {
+          print(const JsonEncoder.withIndent('  ')
+              .convert(await getProductMaps()));
+        }
+
+        Future<List<Map<String, Object?>>> getProductMapsNoKey() async {
+          var results = await store
+              .stream(db)
+              .map(((snapshot) => Map<String, Object?>.from(snapshot.value)))
+              .toList();
+          return results;
+        }
+
+        {
+          /// Let's assume you want a function to update all your products
+
+          // Update without using transactions
+          Future<void> updateProducts(
+              List<Map<String, Object?>> products) async {
+            // One transaction is created here
+            await store.delete(db);
+            // One transaction is created here
+            await store.addAll(db, products);
+          }
+
+          await updateProducts(
+            [
+              {'name': 'Lamp', 'price': 17, 'id': 'lamp'},
+              {'name': 'Bike', 'price': 999, 'id': 'bike'},
+              {'name': 'Chair', 'price': 100, 'id': 'chair'}
+            ],
+          );
+
+          await updateProducts(products1);
+          // await printProducts();
+          expect(await getProductMapsNoKey(), products1);
+        }
+
+        {
+// Update in a transaction
+          Future<void> updateProducts(
+              List<Map<String, Object?>> products) async {
+            await db.transaction((transaction) async {
+              await store.delete(transaction);
+              await store.addAll(transaction, products);
+            });
+          }
+
+          await updateProducts(products1);
+          // await printProducts();
+          expect(await getProductMapsNoKey(), products1);
+        }
+
+        {
+          await printProducts();
+
+          /// Read products by ids and return a map
+          Future<Map<String, RecordSnapshot<int, Map<String, Object?>>>>
+              getProductsByIds(DatabaseClient db, List<String> ids) async {
+            var snapshots = await store.find(db,
+                finder: Finder(
+                    filter: Filter.or(
+                        ids.map((e) => Filter.equals('id', e)).toList())));
+            return <String, RecordSnapshot<int, Map<String, Object?>>>{
+              for (var snapshot in snapshots)
+                snapshot.value['id']!.toString(): snapshot
+            };
+          }
+
+          /// Update products
+          ///
+          /// - Unmodified records remain untouched
+          /// - Modified records are updated
+          /// - New records are added.
+          /// - Missing one are deleted
+          Future<void> updateProducts(
+              List<Map<String, Object?>> products) async {
+            await db.transaction((transaction) async {
+              var productIds =
+                  products.map((map) => map['id'] as String).toList();
+              var map = await getProductsByIds(db, productIds);
+              // Watch for deleted item
+              var keysToDelete = (await store.findKeys(transaction)).toList();
+              for (var product in products) {
+                var snapshot = map[product['id'] as String];
+                if (snapshot != null) {
+                  // The record current key
+                  var key = snapshot.key;
+                  // Remove from deletion list
+                  keysToDelete.remove(key);
+                  // Don't update if no change
+                  if (const DeepCollectionEquality()
+                      .equals(snapshot.value, product)) {
+                    // no changes
+                    continue;
+                  } else {
+                    // Update product
+                    await store.record(key).put(transaction, product);
+                  }
+                } else {
+                  // Add missing product
+                  await store.add(transaction, product);
+                }
+              }
+              // Delete the one not present any more
+              await store.records(keysToDelete).delete(transaction);
+            });
+          }
+
+          var key1 =
+              (await getProductsByIds(db, ['lamp'])).entries.first.value.key;
+          print(await getProductsByIds(db, ['lamp']));
+          print('key1: $key1');
+
+          var products2 = [
+            {'name': 'Lamp', 'price': 17, 'id': 'lamp'},
+            {'name': 'Bike', 'price': 999, 'id': 'bike'},
+            {'name': 'Chair', 'price': 100, 'id': 'chair'},
+          ];
+
+          await updateProducts(products2);
+
+          var key2 =
+              (await getProductsByIds(db, ['lamp'])).entries.first.value.key;
+          await printProducts();
+          expect(await getProductMapsNoKey(), [
+            {'name': 'Lamp', 'price': 17, 'id': 'lamp'},
+            {'name': 'Chair', 'price': 100, 'id': 'chair'},
+            {'name': 'Bike', 'price': 999, 'id': 'bike'}
+          ]);
+          expect(key1, key2);
+        }
+
+        await db.close();
       }
     });
 

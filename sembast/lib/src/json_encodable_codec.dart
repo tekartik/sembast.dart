@@ -101,7 +101,7 @@ dynamic _toJsonEncodable(dynamic value, Iterable<SembastTypeAdapter> adapters) {
     }
     Map<String, Object?>? clone;
     map.forEach((key, item) {
-      if (!(key is String)) {
+      if (key is! String) {
         throw ArgumentError.value(key);
       }
       var converted = _toJsonEncodable(item, adapters);
@@ -141,7 +141,7 @@ Object toJsonEncodable(Object value, Iterable<SembastTypeAdapter> adapters) {
   }
 
   /// Ensure root is Map<String, Object?> if only Map
-  if (converted is Map && !(converted is Map<String, Object?>)) {
+  if (converted is Map && converted is! Map<String, Object?>) {
     converted = converted.cast<String, Object?>();
   }
   return converted!;
@@ -207,7 +207,7 @@ Object fromJsonEncodable(
   }
 
   /// Ensure root is Map<String, Object?> if only Map
-  if (converted is Map && !(converted is Map<String, Object?>)) {
+  if (converted is Map && converted is! Map<String, Object?>) {
     converted = converted.cast<String, Object?>();
   }
   return converted;

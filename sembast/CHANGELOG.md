@@ -1,3 +1,7 @@
+## 3.1.1
+
+* dart 2.14 lints support
+
 ## 3.1.0+2
 
 * Add `StoreRef.addOnChangesListener` and `StoreRef.removeOnChangesListener` to allow

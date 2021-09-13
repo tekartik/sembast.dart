@@ -19,7 +19,7 @@ void defineTests(DatabaseTestContextFs ctx) {
   String? dbPath;
   var store = StoreRef.main();
 
-  Future<List<Map<String, Object?>?>> exportToMapList() {
+  Future<List<Map<String, Object?>?>> dbFileExportToMapList() {
     return fsExportToMapList(fs, dbPath!);
   }
 
@@ -51,7 +51,7 @@ void defineTests(DatabaseTestContextFs ctx) {
       var db = await factory.openDatabase(dbPath!);
 
       await db.close();
-      expect(await exportToMapList(), [
+      expect(await dbFileExportToMapList(), [
         {'version': 1, 'sembast': 1}
       ]);
       expect(getExportStat(db).lineCount, 1);
@@ -64,7 +64,7 @@ void defineTests(DatabaseTestContextFs ctx) {
       var db = await factory.openDatabase(dbPath!, version: 2);
       await db.close();
 
-      expect(await exportToMapList(), [
+      expect(await dbFileExportToMapList(), [
         {'version': 2, 'sembast': 1}
       ]);
       expect(getExportStat(db).lineCount, 1);
@@ -77,7 +77,7 @@ void defineTests(DatabaseTestContextFs ctx) {
       db = await factory.openDatabase(dbPath!, version: 2);
       await db.close();
 
-      expect(await exportToMapList(), [
+      expect(await dbFileExportToMapList(), [
         {'version': 1, 'sembast': 1},
         {'version': 2, 'sembast': 1}
       ]);
@@ -90,7 +90,7 @@ void defineTests(DatabaseTestContextFs ctx) {
       var db = await factory.openDatabase(dbPath!);
       await store.record(1).put(db, 'hi');
       await db.close();
-      expect(await exportToMapList(), [
+      expect(await dbFileExportToMapList(), [
         {'version': 1, 'sembast': 1},
         {'key': 1, 'value': 'hi'}
       ]);
@@ -101,14 +101,14 @@ void defineTests(DatabaseTestContextFs ctx) {
       var db = await factory.openDatabase(dbPath!);
       await store.record(1).put(db, 'hi');
       await db.close();
-      expect(await exportToMapList(), [
+      expect(await dbFileExportToMapList(), [
         {'version': 1, 'sembast': 1},
         {'key': 1, 'value': 'hi'}
       ]);
       db = await factory.openDatabase(dbPath!);
       await store.record(1).delete(db);
       await db.close();
-      expect(await exportToMapList(), [
+      expect(await dbFileExportToMapList(), [
         {'version': 1, 'sembast': 1},
         {'key': 1, 'value': 'hi'},
         {'key': 1, 'deleted': true}
@@ -116,7 +116,7 @@ void defineTests(DatabaseTestContextFs ctx) {
       db = await factory.openDatabase(dbPath!);
       await compact(db);
       await db.close();
-      expect(await exportToMapList(), [
+      expect(await dbFileExportToMapList(), [
         {'version': 1, 'sembast': 1},
       ]);
     });
@@ -129,7 +129,7 @@ void defineTests(DatabaseTestContextFs ctx) {
       ]);
       var db = await factory.openDatabase(dbPath!);
       await db.close();
-      expect(await exportToMapList(), [
+      expect(await dbFileExportToMapList(), [
         {'version': 1, 'sembast': 1},
         {'key': 1, 'value': 'hi'}
       ]);
@@ -147,7 +147,7 @@ void defineTests(DatabaseTestContextFs ctx) {
       expect(await store.record(1).get(db), 'hi');
       await db.close();
 
-      expect(await exportToMapList(), [
+      expect(await dbFileExportToMapList(), [
         {'version': 1, 'sembast': 1},
         {'store': '_main', 'key': 1, 'value': 'hi'}
       ]);
@@ -156,12 +156,48 @@ void defineTests(DatabaseTestContextFs ctx) {
       await compact(db);
       await db.close();
 
-      expect(await exportToMapList(), [
+      expect(await dbFileExportToMapList(), [
         {'version': 1, 'sembast': 1},
         {'key': 1, 'value': 'hi'}
       ]);
       expect(getExportStat(db).lineCount, 2);
       expect(getExportStat(db).obsoleteLineCount, 0); // don't count meta
+    });
+
+    test('delete all, add all in transaction', () async {
+      await prepareForDb();
+      var db = await factory.openDatabase(dbPath!);
+
+      var store = StoreRef<int, String>.main();
+// Add records
+      await store.addAll(db, ['hi', 'ho']);
+
+// ...
+
+// Instead of doing (that will create 2 transactions)
+      await store.delete(db);
+      await store.addAll(db, ['hi', 'ha']);
+
+// Delete and re-add in transaction
+      await db.transaction((transaction) async {
+        await store.delete(transaction);
+        await store.addAll(transaction, ['hi', 'hu']);
+      });
+      await db.close();
+
+      expect(await dbFileExportToMapList(), [
+        {'version': 1, 'sembast': 1},
+        {'key': 1, 'value': 'hi'},
+        {'key': 2, 'value': 'ho'},
+        {'key': 1, 'deleted': true},
+        {'key': 2, 'deleted': true},
+        {'key': 3, 'value': 'hi'},
+        {'key': 4, 'value': 'ha'},
+        {'key': 3, 'deleted': true},
+        {'key': 4, 'deleted': true},
+        {'key': 5, 'value': 'hi'},
+        {'key': 6, 'value': 'hu'}
+      ]);
     });
   });
 }

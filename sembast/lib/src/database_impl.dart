@@ -1373,7 +1373,7 @@ class SembastDatabase extends Object
     } else if (value is List) {
       return value;
     } else if (value is Map) {
-      if (!(value is Map<String, Object?>)) {
+      if (value is! Map<String, Object?>) {
         // We force the value map type for easy usage
         return value.cast<String, Object?>();
       }
