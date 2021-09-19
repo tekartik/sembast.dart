@@ -21,9 +21,9 @@ Future run({required String dbName, String? store}) async {
 
   dateStore.query().onSnapshots(db).listen((snapshots) {
     write('onSnapshots: ${snapshots.length} item(s)');
-    snapshots.forEach((snapshot) {
+    for (var snapshot in snapshots) {
       write('[${snapshot.key}]: ${snapshot.value}');
-    });
+    }
   });
 
   querySelector('#add')!.onClick.listen((_) async {
