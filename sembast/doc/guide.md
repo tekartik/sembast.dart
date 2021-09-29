@@ -1,5 +1,6 @@
 ## Sembast guide
 
+* [Database factory](factory.md) explained
 * [Open](open.md) a database
 * [Sembast data](sembast_data.md)
   * [Write data](writes.md)
