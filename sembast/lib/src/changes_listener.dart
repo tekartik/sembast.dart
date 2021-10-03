@@ -1,6 +1,5 @@
 import 'package:sembast/sembast.dart';
 import 'package:sembast/src/common_import.dart';
-import 'package:sembast/src/record_change.dart';
 import 'package:sembast/src/transaction_impl.dart';
 
 import 'api/sembast.dart';

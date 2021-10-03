@@ -162,3 +162,63 @@ await db.transaction((txn) async {
   await updateRecords(store, {'age': 5}, where: finder);
 });
 ```
+
+## Add or update example
+
+Let's assume a product store where the unique key is an integer.
+But you want to have a unique 'code' field (each product having a unique code).
+(Although as a side note, it is more clever to use the code as a string key)
+
+```dart
+var store = intMapStoreFactory.store('product');
+
+// Add some data
+await db.transaction((txn) async {
+  await store.add(txn, {'code': '001', 'name': 'Lamp', 'price': 10});
+  await store.add(txn, {'code': '002', 'name': 'Chair', 'price': 25});
+});
+```
+
+Let's write a function that will either add or update a record. To handle
+race conditions and avoid duplicates, this must be done in a transaction:
+
+```dart
+/// Either add or modify records with a given 'code'
+Future<void> addOrUpdateProduct(Map<String, Object?> map) async {
+  // Check if the record exists before adding or updating it.
+  await db.transaction((txn) async {
+    // Look of existing record
+    var existing = await store
+        .query(
+            finder:
+                Finder(filter: Filter.equals('code', map['code'])))
+        .getSnapshot(txn);
+    if (existing == null) {
+      // code not found, add
+      await store.add(txn, map);
+    } else {
+      // Update existing
+      await existing.ref.update(txn, map);
+    }
+  });
+}
+```
+
+Quick test:
+
+```dart
+// Update existing
+await addOrUpdateProduct(
+    {'code': '002', 'name': 'Chair', 'price': 35});
+// Add new
+await addOrUpdateProduct(
+    {'code': '003', 'name': 'Table', 'price': 82});
+
+// Should print:
+// {code: 001, name: Lamp, price: 10}
+// {code: 002, name: Chair, price: 35} - Updated
+// {code: 003, name: Table, price: 82}
+for (var snapshot in await store.query().getSnapshots(db)) {
+  print(snapshot.value);
+}
+```

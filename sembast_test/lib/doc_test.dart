@@ -248,7 +248,7 @@ void defineTests(DatabaseTestContext ctx) {
         // existing remain un changed
         expect(await store.record(key1).get(db!), {'name': 'fish'});
 
-// Read 2 records by key
+        // Read 2 records by key
         var records = await store.records([key2, key3]).get(db!);
         expect(records[0], {'name': 'cat'});
         expect(records[1], {'name': 'dog'});
@@ -359,6 +359,61 @@ void defineTests(DatabaseTestContext ctx) {
       }
     });
 
+    test('Unique field', () async {
+      {
+        db = await setupForTest(ctx, 'doc/unique.db');
+        var database = db!;
+        {
+          var db = database;
+
+          // Let's assume a product where the unique key is an integer
+          // But you want to have a unique code.
+          // (Although as a side note, it is more clever to use the code as the key)
+          var store = intMapStoreFactory.store('product');
+
+          // Add some data
+          await db.transaction((txn) async {
+            await store.add(txn, {'code': '001', 'name': 'Lamp', 'price': 10});
+            await store.add(txn, {'code': '002', 'name': 'Chair', 'price': 25});
+          });
+
+          /// Either add or modify records with a given 'code'
+          Future<void> addOrUpdateProduct(Map<String, Object?> map) async {
+            // Check if the record exists before adding or updating it.
+            await db.transaction((txn) async {
+              // Look of existing record
+              var existing = await store
+                  .query(
+                      finder:
+                          Finder(filter: Filter.equals('code', map['code'])))
+                  .getSnapshot(txn);
+              if (existing == null) {
+                // code not found, add
+                await store.add(txn, map);
+              } else {
+                // Update existing
+                await existing.ref.update(txn, map);
+              }
+            });
+          }
+
+          // Update existing
+          await addOrUpdateProduct(
+              {'code': '002', 'name': 'Chair', 'price': 35});
+          // Add new
+          await addOrUpdateProduct(
+              {'code': '003', 'name': 'Table', 'price': 82});
+
+          // Should print:
+          // {code: 001, name: Lamp, price: 10}
+          // {code: 002, name: Chair, price: 35} - Updated
+          // {code: 003, name: Table, price: 82}
+          for (var snapshot in await store.query().getSnapshots(db)) {
+            print(snapshot.value);
+          }
+        }
+      }
+    });
     test('New 1.15 shop_file_format', () async {
       db = await setupForTest(ctx, 'doc/new_1.15_shop_file_format.db');
       {
