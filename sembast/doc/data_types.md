@@ -13,8 +13,8 @@ Supported key types are:
 Supported value types are:
 - `String`
 - `num` (`int` and `double`)
-- `Map<String, Object?>`
-- `List<Object?>` (`Iterable` is not a supported types, use to `List()` to convert any iterable)
+- `Map<String, Object?>` (`Object?` being any of the supported types)
+- `List<Object?>` (`Object?` being any of the supported types, `Iterable` is not a supported types, use to `toList()` to convert any iterable)
 - `bool`
 - `null` (the record value itself cannot be null)
 - `Blob` (custom type)
