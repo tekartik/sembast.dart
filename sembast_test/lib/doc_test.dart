@@ -1,9 +1,9 @@
 library sembast.doc_test;
 
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:collection/collection.dart';
-import 'package:pedantic/pedantic.dart';
 // ignore: implementation_imports
 import 'package:sembast/src/memory/database_factory_memory.dart';
 import 'package:sembast/utils/database_utils.dart';
