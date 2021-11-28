@@ -12,7 +12,7 @@ abstract class StorageBase {
   bool get supported;
 
   /// Delete the storage.
-  Future delete();
+  Future<void> delete();
 
   /// returns true if the storage exists.
   Future<bool> find();

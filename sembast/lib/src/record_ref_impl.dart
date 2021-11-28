@@ -143,11 +143,11 @@ extension SembastRecordRefExtension<K, V> on RecordRef<K, V> {
         .txnRecordExists(client.sembastTransaction, key);
   }
 
-  /// Delete the record.
-  Future delete(DatabaseClient databaseClient) {
+  /// Delete the record. Returns the key if deleted, null if not found.
+  Future<K?> delete(DatabaseClient databaseClient) {
     var client = getClient(databaseClient);
-    return client.inTransaction((txn) {
-      return client.getSembastStore(store).txnDelete(txn, key);
+    return client.inTransaction((txn) async {
+      return await client.getSembastStore(store).txnDelete(txn, key) as K?;
     });
   }
 }
