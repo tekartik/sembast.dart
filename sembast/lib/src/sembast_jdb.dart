@@ -36,7 +36,7 @@ class SembastStorageJdb extends StorageBase implements StorageJdb {
   bool get supported => true;
 
   @override
-  Future delete() async {
+  Future<void> delete() async {
     try {
       // meta = null;
       await jdbFactory.delete(path);

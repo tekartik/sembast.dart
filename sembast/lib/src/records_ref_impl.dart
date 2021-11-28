@@ -6,11 +6,11 @@ import 'package:sembast/src/database_client_impl.dart';
 /// Provides access helper to data on the store using a given [DatabaseClient].
 extension SembastRecordsRefExtension<K, V> on RecordsRef<K, V> {
   /// Delete records
-  Future delete(DatabaseClient databaseClient) {
+  Future<List<K?>> delete(DatabaseClient databaseClient) async {
     var client = getClient(databaseClient);
-    return client.inTransaction((txn) {
+    return await client.inTransaction((txn) async {
       var sembastStore = client.getSembastStore(store);
-      return sembastStore.txnDeleteAll(txn, keys);
+      return (await sembastStore.txnDeleteAll(txn, keys)).cast<K?>();
     });
   }
 

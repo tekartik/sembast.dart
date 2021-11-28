@@ -38,7 +38,7 @@ class FsDatabaseStorage extends DatabaseStorage {
   String get path => file.path;
 
   @override
-  Future delete() async {
+  Future<void> delete() async {
     if (await file.exists()) {
       try {
         await file.delete(recursive: true);

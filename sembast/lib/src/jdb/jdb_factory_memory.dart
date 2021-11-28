@@ -27,7 +27,7 @@ class JdbFactoryMemory implements jdb.JdbFactory {
   }
 
   @override
-  Future delete(String path) async {
+  Future<void> delete(String path) async {
     _dbs.remove(path);
   }
 
