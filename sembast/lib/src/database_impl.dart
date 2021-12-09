@@ -1138,6 +1138,21 @@ class SembastDatabase extends Object
           // devPrint('transaction ${jdbRevision}');
           actionResult = await Future<T>.sync(() => action(_transaction!));
 
+          // handle changes, until all done!
+          // Do this before building commit entries since record could be added
+          if (changesListener.isNotEmpty) {
+            while (changesListener.hasChanges) {
+              // Copy the list so that it never changes
+              var storeChangesListeners = List<StoreChangesListeners>.from(
+                  changesListener.storeChangesListeners);
+              for (var storeChangesListener in storeChangesListeners) {
+                if (storeChangesListener.hasChanges) {
+                  await storeChangesListener.handleChanges(currentTransaction!);
+                }
+              }
+            }
+          }
+
           // Commit directly on jdb to handle transaction changes
           if (storageJdb != null) {
             var commitEntries = _txnBuildCommitEntries();
@@ -1174,19 +1189,6 @@ class SembastDatabase extends Object
             }
           }
 
-          // handle changes, until all done!
-          if (changesListener.isNotEmpty) {
-            while (changesListener.hasChanges) {
-              // Copy the list so that it never changes
-              var storeChangesListeners = List<StoreChangesListeners>.from(
-                  changesListener.storeChangesListeners);
-              for (var storeChangesListener in storeChangesListeners) {
-                if (storeChangesListener.hasChanges) {
-                  await storeChangesListener.handleChanges(currentTransaction!);
-                }
-              }
-            }
-          }
           // if jdb failed, there will be no records
           commitData = commitInMemory();
         } catch (e) {

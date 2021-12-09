@@ -108,5 +108,17 @@ void main() {
       await record.put(db, 1);
       expect(list.length, 3);
     });
+    test('throw', () async {
+      void onChanges(Transaction txn, List<RecordChange> changes) {
+        throw StateError('no changes allowed');
+      }
+
+      store.addOnChangesListener(db, onChanges);
+      try {
+        await record.add(db, 2);
+        fail('should fail');
+      } on StateError catch (_) {}
+      expect(await record.exists(db), isFalse);
+    });
   });
 }
