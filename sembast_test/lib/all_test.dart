@@ -1,5 +1,7 @@
 library sembast.test_runner;
 
+import 'changes_listener_persistent_test.dart'
+    as changes_listener_persistent_test;
 import 'codec_test.dart' as codec_test;
 import 'crud_impl_test.dart' as crud_impl_test;
 import 'crud_test.dart' as crud_test;
@@ -50,4 +52,5 @@ void defineTests(DatabaseTestContext ctx) {
   codec_test.defineTests(ctx);
   database_import_export_test.defineTests(ctx);
   records_test.defineTests(ctx);
+  changes_listener_persistent_test.defineTests(ctx);
 }
