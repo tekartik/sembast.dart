@@ -1,6 +1,7 @@
-## 3.1.1
+## 3.1.1+1
 
 * dart 2.14 lints support
+* Fix onChanges failing to store added records on jdb storage.
 
 ## 3.1.0+2
 
