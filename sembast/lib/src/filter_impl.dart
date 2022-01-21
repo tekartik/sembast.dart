@@ -1,5 +1,6 @@
 import 'package:sembast/sembast.dart';
 import 'package:sembast/src/record_snapshot_impl.dart';
+import 'package:sembast/src/value_utils.dart';
 
 /// We can match if record is a map or if we are accessing the key or value
 bool canMatch(String? field, dynamic recordValue) =>
@@ -79,20 +80,34 @@ class SembastEqualsFilter extends SembastFilterBase
     if (anyInList == true) {
       if (fieldValue is Iterable) {
         for (var itemValue in fieldValue) {
-          if (itemValue == value) {
+          if (valueAreEquals(itemValue, value)) {
             return true;
           }
         }
       }
       return false;
     } else {
-      return fieldValue == value;
+      return valueAreEquals(fieldValue, value);
     }
   }
 
   @override
   String toString() {
     return '$field == $value';
+  }
+}
+
+/// Not equals filter.
+class SembastNotEqualsFilter extends SembastEqualsFilter {
+  /// Not equals filter.
+  SembastNotEqualsFilter(String field, value, bool? anyInList)
+      : super(field, value, anyInList);
+
+  @override
+  bool matchesRecord(RecordSnapshot record) => !super.matchesRecord(record);
+  @override
+  String toString() {
+    return '$field != $value';
   }
 }
 

@@ -7,13 +7,13 @@ import 'package:sembast/src/filter_impl.dart';
 /// Don't subclass
 abstract class Filter {
   /// [field] value must be equals to [value].
-  factory Filter.equals(String field, value, {bool? anyInList}) {
+  factory Filter.equals(String field, Object? value, {bool? anyInList}) {
     return SembastEqualsFilter(field, value, anyInList);
   }
 
   /// Filter where the [field] value is not equals to the specified value.
-  factory Filter.notEquals(String field, value) {
-    return SembastFilterPredicate(field, FilterOperation.notEquals, value);
+  factory Filter.notEquals(String field, Object? value) {
+    return SembastNotEqualsFilter(field, value, false);
   }
 
   /// Filter where the [field] value is not null.
@@ -23,30 +23,30 @@ abstract class Filter {
   factory Filter.isNull(String field) => Filter.equals(field, null);
 
   /// Filter where the [field] value is less than the specified [value].
-  factory Filter.lessThan(String field, value) {
+  factory Filter.lessThan(String field, Object? value) {
     return SembastFilterPredicate(field, FilterOperation.lessThan, value);
   }
 
   /// Filter where the [field] value is less than or equals to the
   /// specified [value].
-  factory Filter.lessThanOrEquals(String field, value) {
+  factory Filter.lessThanOrEquals(String field, Object? value) {
     return SembastFilterPredicate(
         field, FilterOperation.lessThanOrEquals, value);
   }
 
   /// Filter where the [field] is greater than the specified [value]
-  factory Filter.greaterThan(String field, value) {
+  factory Filter.greaterThan(String field, Object? value) {
     return SembastFilterPredicate(field, FilterOperation.greaterThan, value);
   }
 
   /// Filter where the [field] is less than or equals to the specified [value]
-  factory Filter.greaterThanOrEquals(String field, value) {
+  factory Filter.greaterThanOrEquals(String field, Object? value) {
     return SembastFilterPredicate(
         field, FilterOperation.greaterThanOrEquals, value);
   }
 
   /// Filter where the [field] is in the [list] of values
-  factory Filter.inList(String field, List list) {
+  factory Filter.inList(String field, List<Object> list) {
     return SembastFilterPredicate(field, FilterOperation.inList, list);
   }
 
