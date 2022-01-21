@@ -59,6 +59,48 @@ void main() {
       expect(_match(filter, []), isFalse);
     });
 
+    test('equalsMap', () {
+      var filter = Filter.equals('test', {'sub': 1});
+      var notFilter = Filter.notEquals('test', {'sub': 1});
+
+      void testEquals(Object? value, bool success) {
+        expect(_match(filter, value), success);
+        expect(_match(notFilter, value), !success);
+      }
+
+      testEquals({
+        'test': {'sub': 1}
+      }, true);
+      testEquals({'no_test': null}, false);
+      testEquals({'test': null}, false);
+      testEquals({'test': {}}, false);
+      testEquals({'test': []}, false);
+      testEquals({
+        'test': {'sub': 2}
+      }, false);
+    });
+
+    test('equalsList', () {
+      var filter = Filter.equals('test', [1]);
+      var notFilter = Filter.notEquals('test', [1]);
+
+      void testEquals(Object? value, bool success) {
+        expect(_match(filter, value), success);
+        expect(_match(notFilter, value), !success);
+      }
+
+      testEquals({
+        'test': [1]
+      }, true);
+      testEquals({'no_test': null}, false);
+      testEquals({'test': null}, false);
+      testEquals({'test': {}}, false);
+      testEquals({'test': []}, false);
+      testEquals({
+        'test': [2]
+      }, false);
+    });
+
     test('sub.field', () {
       var filter = Filter.equals('sub.field', 1);
       expect(_match(filter, {'sub.field': 1}), isFalse);
