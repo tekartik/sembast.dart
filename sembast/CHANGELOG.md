@@ -1,3 +1,7 @@
+## 3.1.2
+
+* Add support for list and maps in Filter.equals and Filter.notEquals
+
 ## 3.1.1+1
 
 * dart 2.14 lints support
