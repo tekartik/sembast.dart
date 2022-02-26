@@ -1,3 +1,7 @@
+## 3.2.0-dev.1
+
+* Delete obsolete jdb records on open
+
 ## 3.1.2
 
 * Add support for list and maps in Filter.equals and Filter.notEquals
