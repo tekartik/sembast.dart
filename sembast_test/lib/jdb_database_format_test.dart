@@ -181,6 +181,76 @@ void defineTests(DatabaseTestContextJdb ctx) {
       }
     });
 
+    test('1 string record delete auto compact', () async {
+      await prepareForDb();
+      var db = await factory.openDatabase(dbPath!);
+      try {
+        await store.record(1).put(db, 'hi');
+        expect(await getJdbDatabase(db)!.exportToMap(), {
+          'entries': [
+            {
+              'id': 1,
+              'value': {'key': 1, 'value': 'hi'}
+            }
+          ],
+          'infos': [
+            {
+              'id': 'meta',
+              'value': {'version': 1, 'sembast': 1}
+            },
+            {'id': 'revision', 'value': 1},
+          ]
+        });
+        db = await reOpen(db);
+        var exportStat = getDatabaseExportStat(db);
+        expect(exportStat.compactCount, 0);
+        expect(exportStat.lineCount, 1);
+        expect(exportStat.obsoleteLineCount, 0);
+
+        await store.record(1).delete(db);
+        expect(await getJdbDatabase(db)!.exportToMap(), {
+          'entries': [
+            {
+              'id': 2,
+              'value': {'key': 1, 'deleted': true}
+            }
+          ],
+          'infos': [
+            {
+              'id': 'meta',
+              'value': {'version': 1, 'sembast': 1}
+            },
+            {'id': 'revision', 'value': 2}
+          ]
+        });
+
+        db = await reOpen(db);
+        exportStat = getDatabaseExportStat(db);
+        expect(exportStat.compactCount, 1);
+        expect(exportStat.lineCount, 1);
+        expect(exportStat.obsoleteLineCount, 1);
+        //await compact(db);
+        expect(await getJdbDatabase(db)!.exportToMap(), {
+          'entries': [],
+          'infos': [
+            {'id': 'deltaMinRevision', 'value': 2},
+            {
+              'id': 'meta',
+              'value': {'version': 1, 'sembast': 1}
+            },
+            {'id': 'revision', 'value': 2}
+          ]
+        });
+        db = await reOpen(db);
+        exportStat = getDatabaseExportStat(db);
+        expect(exportStat.compactCount, 0);
+        expect(exportStat.lineCount, 0);
+        expect(exportStat.obsoleteLineCount, 0);
+      } finally {
+        await db.close();
+      }
+    });
+
     test('deltaImport', () async {
       await prepareForDb();
       var db = await factory.openDatabase(dbPath!);
