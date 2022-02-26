@@ -1,6 +1,7 @@
-## 3.2.0-dev.1
+## 3.2.0
 
 * Delete obsolete jdb records on open
+* Requires dart 2.16
 
 ## 3.1.2
 
