@@ -1,3 +1,8 @@
+## 3.2.0
+
+* Delete obsolete jdb records on open
+* Requires dart 2.16
+
 ## 3.1.2
 
 * Add support for list and maps in Filter.equals and Filter.notEquals

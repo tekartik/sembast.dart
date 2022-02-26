@@ -321,6 +321,8 @@ class SembastDatabase extends Object
       // devPrint('compacted: $_exportStat');
     } else if (_storageJdb?.supported ?? false) {
       await _storageJdb!.compact();
+      // Count Not safe but it is just dev stats...
+      _exportStat!.compactCount = _exportStat!.compactCount + 1;
     }
   }
 
@@ -875,6 +877,9 @@ class SembastDatabase extends Object
             }
 
             await jdbFullImport();
+            if (_jdbNeedCompact) {
+              await txnCompact();
+            }
 
             /// Revision update to force reading
             _storageJdbRevisionUpdateSubscription =
@@ -1059,6 +1064,11 @@ class SembastDatabase extends Object
     return (_storageFs != null) &&
         (_exportStat!.obsoleteLineCount > 5 &&
             (_exportStat!.obsoleteLineCount / _exportStat!.lineCount > 0.20));
+  }
+
+  /// For jdb, we compact has soon as we found an empty record
+  bool get _jdbNeedCompact {
+    return _exportStat!.obsoleteLineCount > 0;
   }
 
   @override
