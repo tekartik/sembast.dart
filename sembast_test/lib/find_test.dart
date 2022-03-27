@@ -23,14 +23,14 @@ void defineTests(DatabaseTestContext ctx) {
       }
 
       var store = StoreRef<int, String>.main();
-      final _records = store.records([1, 2, 3]);
+      final records = store.records([1, 2, 3]);
       // Convenient access for test
-      var record1 = _records[0];
-      var record2 = _records[1];
-      var record3 = _records[2];
+      var record1 = records[0];
+      var record2 = records[1];
+      var record3 = records[2];
       setUp(() async {
         db = await setupForTest(ctx, 'find/simple_value.db');
-        return _records.put(db, ['hi', 'ho', 'ha']);
+        return records.put(db, ['hi', 'ho', 'ha']);
       });
 
       tearDown(_tearDown);
@@ -252,14 +252,14 @@ void defineTests(DatabaseTestContext ctx) {
       late Database db;
 
       var store = intMapStoreFactory.store();
-      var _records = store.records([1, 2, 3]);
+      var records = store.records([1, 2, 3]);
       // Convenient access for test
-      var record1 = _records[0];
-      var record2 = _records[1];
-      var record3 = _records[2];
+      var record1 = records[0];
+      var record2 = records[1];
+      var record3 = records[2];
       setUp(() async {
         db = await setupForTest(ctx, 'find/map_values.db');
-        return _records.put(db, [
+        return records.put(db, [
           {'text': 'hi', 'value': 1},
           {'text': 'ho', 'value': 2},
           {'text': 'ha', 'value': 2}
@@ -340,16 +340,16 @@ void defineTests(DatabaseTestContext ctx) {
           await db.close();
         });
         var store = intMapStoreFactory.store();
-        var _records = store.records([1, 2, 3, 4]);
+        var records = store.records([1, 2, 3, 4]);
 
         // Convenient access for test
-        var record1 = _records[0];
-        var record2 = _records[1];
-        var record3 = _records[2];
-        var record4 = _records[3];
+        var record1 = records[0];
+        var record2 = records[1];
+        var record3 = records[2];
+        var record4 = records[3];
         setUp(() async {
           db = await setupForTest(ctx, 'find/custom_type.db');
-          return _records.put(db, [
+          return records.put(db, [
             {'timestamp': Timestamp(0, 3)},
             {'timestamp': Timestamp(0, 1)},
             {'timestamp': null},
@@ -371,14 +371,14 @@ void defineTests(DatabaseTestContext ctx) {
           await db.close();
         });
         var store = intMapStoreFactory.store();
-        var _records = store.records([1, 2, 3]);
+        var records = store.records([1, 2, 3]);
         // Convenient access for test
-        var record1 = _records[0];
-        var record2 = _records[1];
-        var record3 = _records[2];
+        var record1 = records[0];
+        var record2 = records[1];
+        var record3 = records[2];
         setUp(() async {
           db = await setupForTest(ctx, 'find/sub_field.db');
-          return _records.put(db, [
+          return records.put(db, [
             {
               'path': {'sub': 'a'}
             },
@@ -531,14 +531,14 @@ void defineTests(DatabaseTestContext ctx) {
           await db.close();
         });
         var store = intMapStoreFactory.store();
-        var _records = store.records([1, 2, 3]);
+        var records = store.records([1, 2, 3]);
         // Convenient access for test
-        var record1 = _records[0];
-        var record2 = _records[1];
-        var record3 = _records[2];
+        var record1 = records[0];
+        var record2 = records[1];
+        var record3 = records[2];
         setUp(() async {
           db = await setupForTest(ctx, 'find/field_with_dot.db');
-          return _records.put(db, [
+          return records.put(db, [
             {'foo.bar': 'a'},
             {'foo.bar': 'c'},
             {'foo.bar': 'b'},

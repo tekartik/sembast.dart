@@ -3,37 +3,41 @@ import 'dart:convert';
 import 'package:sembast/src/type_adapter_impl.dart';
 import 'package:sembast/src/utils.dart';
 
-class _Encoder extends Converter<Object, Object> {
-  final JsonEncodableCodec codec;
+/// Encoder.
+class JsonEncodableEncoder extends Converter<Object, Object> {
+  final JsonEncodableCodec _codec;
 
-  _Encoder(this.codec);
+  /// Encoder.
+  JsonEncodableEncoder(this._codec);
 
   @override
-  Object convert(Object value) =>
-      toJsonEncodable(value, codec._adapters!.values);
+  Object convert(Object input) =>
+      toJsonEncodable(input, _codec._adapters!.values);
 }
 
-class _Decoder extends Converter<Object, Object> {
-  final JsonEncodableCodec codec;
+/// Decoder.
+class JsonEncodableDecoder extends Converter<Object, Object> {
+  final JsonEncodableCodec _codec;
 
-  _Decoder(this.codec);
+  /// Decoder.
+  JsonEncodableDecoder(this._codec);
 
   @override
-  Object convert(Object value) => fromJsonEncodable(value, codec._adapters);
+  Object convert(Object input) => fromJsonEncodable(input, _codec._adapters);
 }
 
 /// Never null, convert a list to a map.
 Map<String, SembastTypeAdapter> sembastTypeAdaptersToMap(
     Iterable<SembastTypeAdapter>? adapters) {
-  var _adapters = <String, SembastTypeAdapter>{};
+  var adaptersMap = <String, SembastTypeAdapter>{};
   if (adapters != null) {
     for (var adapter in adapters) {
-      assert(_adapters[adapter.name] == null,
+      assert(adaptersMap[adapter.name] == null,
           'Adapter already exists for ${adapter.name}');
-      _adapters[adapter.name] = adapter;
+      adaptersMap[adapter.name] = adapter;
     }
   }
-  return _adapters;
+  return adaptersMap;
 }
 
 /// Codec to/from a json encodable format, custome types being handled
@@ -44,19 +48,19 @@ class JsonEncodableCodec extends Codec<Object, Object> {
   /// Codec with the needed adapters
   JsonEncodableCodec({Iterable<SembastTypeAdapter>? adapters}) {
     _adapters = sembastTypeAdaptersToMap(adapters);
-    _decoder = _Decoder(this);
-    _encoder = _Encoder(this);
+    _decoder = JsonEncodableDecoder(this);
+    _encoder = JsonEncodableEncoder(this);
   }
 
-  late _Decoder _decoder;
+  late JsonEncodableDecoder _decoder;
 
   @override
-  _Decoder get decoder => _decoder;
+  JsonEncodableDecoder get decoder => _decoder;
 
-  late _Encoder _encoder;
+  late JsonEncodableEncoder _encoder;
 
   @override
-  _Encoder get encoder => _encoder;
+  JsonEncodableEncoder get encoder => _encoder;
 
   /// True if the value is one of the supported adapter types.
   bool supportsType(dynamic value) {

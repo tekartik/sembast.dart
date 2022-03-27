@@ -6,7 +6,7 @@ import 'dart:io' as io;
 import 'dart:typed_data';
 
 import 'package:path/path.dart';
-import 'package:path/path.dart' as _path;
+import 'package:path/path.dart' as p;
 import 'package:sembast/src/file_system.dart' as fs;
 import 'package:sembast/src/utils.dart';
 
@@ -135,7 +135,7 @@ class FileSystemIo implements fs.FileSystem {
     if (rootPath != null) {
       return normalize(path);
     } else {
-      return _path.absolute(normalize(path));
+      return p.absolute(normalize(path));
     }
   }
 

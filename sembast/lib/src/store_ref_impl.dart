@@ -176,7 +176,7 @@ extension SembastStoreRefExtension<K, V> on StoreRef<K, V> {
   ///
   Future<K> add(DatabaseClient databaseClient, V value) async {
     final client = getClient(databaseClient);
-    value = client.sembastDatabase.sanitizeInputValue<V>(value)!;
+    value = client.sembastDatabase.sanitizeInputValue<V>(value) as V;
     return await client.inTransaction((txn) async {
       var key = await client.getSembastStore(this).txnAdd<K, V>(txn, value);
       return key as K;
@@ -194,7 +194,7 @@ extension SembastStoreRefExtension<K, V> on StoreRef<K, V> {
     await client.inTransaction((txn) async {
       var store = client.getSembastStore(this);
       for (var value in sanitizedValues) {
-        keys.add((await store.txnAdd<K, V>(txn, value))!);
+        keys.add((await store.txnAdd<K, V>(txn, value)) as K);
       }
     });
     return keys;
@@ -205,7 +205,8 @@ extension SembastStoreRefExtension<K, V> on StoreRef<K, V> {
   /// Return the count updated. [value] is merged to the existing.
   Future<int> update(DatabaseClient databaseClient, V value, {Finder? finder}) {
     final client = getClient(databaseClient);
-    value = client.sembastDatabase.sanitizeInputValue<V>(value, update: true)!;
+    value =
+        client.sembastDatabase.sanitizeInputValue<V>(value, update: true) as V;
     return client.inTransaction((txn) async {
       return (await client
               .getSembastStore(this)

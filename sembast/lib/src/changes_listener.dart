@@ -146,21 +146,21 @@ class DatabaseChangesListener {
   /// Add a store change listener
   void addStoreChangesListener<K, V>(
       StoreRef<K, V> store, TransactionRecordChangeListener<K, V> onChanges) {
-    var _storeChangesListeners = _stores[store];
-    if (_storeChangesListeners == null) {
-      _stores[store] = _storeChangesListeners = StoreChangesListeners();
+    var storeChangesListeners = _stores[store];
+    if (storeChangesListeners == null) {
+      _stores[store] = storeChangesListeners = StoreChangesListeners();
     }
-    _storeChangesListeners.onChanges.add(StoreChangesListener<K, V>(onChanges));
+    storeChangesListeners.onChanges.add(StoreChangesListener<K, V>(onChanges));
   }
 
   /// Add a store change listener
   void removeStoreChangesListener<K, V>(
       StoreRef<K, V> store, TransactionRecordChangeListener<K, V> onChanges) {
-    var _storeChangesListeners = _stores[store];
-    if (_storeChangesListeners != null) {
-      _storeChangesListeners.onChanges
+    var storeChangesListeners = _stores[store];
+    if (storeChangesListeners != null) {
+      storeChangesListeners.onChanges
           .remove(StoreChangesListener<K, V>(onChanges));
-      if (_storeChangesListeners.onChanges.isEmpty) {
+      if (storeChangesListeners.onChanges.isEmpty) {
         _stores.remove(store);
       }
     }

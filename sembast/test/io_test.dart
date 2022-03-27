@@ -70,11 +70,10 @@ void main() {
         await prepareForDb();
 
         await io.File(dbPath!).writeAsString(
-            json.encode({'version': 2, 'sembast': 1}) +
-                '\n' +
-                json.encode({'key': 1, 'value': 'test1'}) +
-                '\n' +
-                json.encode({'key': 2, 'value': 'test2'}));
+            '${json.encode({'version': 2, 'sembast': 1})}\n${json.encode({
+              'key': 1,
+              'value': 'test1'
+            })}\n${json.encode({'key': 2, 'value': 'test2'})}');
         var db = await databaseFactoryIo.openDatabase(dbPath!);
         expect(db.version, 2);
 
