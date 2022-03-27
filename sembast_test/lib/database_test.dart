@@ -119,18 +119,18 @@ void defineTests(DatabaseTestContext ctx) {
 
       test('open_no_version', () async {
         // save to make sure we've been through
-        int? _oldVersion;
-        int? _newVersion;
+        int? localOldVersion;
+        int? localNewVersion;
         void _onVersionChanged(Database db, int oldVersion, int newVersion) {
           expect(db.version, oldVersion);
-          _oldVersion = oldVersion;
-          _newVersion = newVersion;
+          localOldVersion = oldVersion;
+          localNewVersion = newVersion;
         }
 
         var db = await factory.openDatabase(dbPath,
             onVersionChanged: _onVersionChanged);
-        expect(_oldVersion, 0);
-        expect(_newVersion, 1);
+        expect(localOldVersion, 0);
+        expect(localNewVersion, 1);
         expect(db.version, 1);
         expect(db.path, endsWith(dbPath));
         await db.close();
@@ -138,19 +138,19 @@ void defineTests(DatabaseTestContext ctx) {
 
       test('open_version', () async {
         // save to make sure we've been through
-        int? _oldVersion;
-        int? _newVersion;
+        int? localOldVersion;
+        int? localNewVersion;
         void _onVersionChanged(Database db, int oldVersion, int newVersion) {
           expect(db.version, oldVersion);
-          _oldVersion = oldVersion;
-          _newVersion = newVersion;
+          localOldVersion = oldVersion;
+          localNewVersion = newVersion;
         }
 
         var db = await factory.openDatabase(dbPath,
             version: 1, onVersionChanged: _onVersionChanged);
 
-        expect(_oldVersion, 0);
-        expect(_newVersion, 1);
+        expect(localOldVersion, 0);
+        expect(localNewVersion, 1);
         expect(db.version, 1);
         expect(db.path, endsWith(dbPath));
         await db.close();

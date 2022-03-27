@@ -618,7 +618,7 @@ class SembastDatabase extends Object
     // Open is overriden in openHelper
     var mode = openHelper.openMode;
     var version = options.version;
-    var _openMode = mode;
+    var openMode = mode;
     // devPrint('Opening mode ${mode}');
 
     if (_opened) {
@@ -784,7 +784,7 @@ class SembastDatabase extends Object
                     continue;
                   } else {
                     // If a codec is used, we fail
-                    if (_openMode == DatabaseMode.neverFails &&
+                    if (openMode == DatabaseMode.neverFails &&
                         options.codec?.signature == null) {
                       corrupted = true;
                       break;
@@ -802,7 +802,7 @@ class SembastDatabase extends Object
                   try {
                     map = (json.decode(line) as Map?)?.cast<String, Object?>();
                   } on Exception catch (_) {
-                    if (_openMode == DatabaseMode.neverFails) {
+                    if (openMode == DatabaseMode.neverFails) {
                       corrupted = true;
                       if (safeMode ?? false) {
                         // safe mode ignore
@@ -833,7 +833,7 @@ class SembastDatabase extends Object
                       options.codec, meta!.codecSignature);
                 } else {
                   // If a codec is used, we fail
-                  if (_openMode == DatabaseMode.neverFails &&
+                  if (openMode == DatabaseMode.neverFails &&
                       options.codec == null) {
                     corrupted = true;
                     break;

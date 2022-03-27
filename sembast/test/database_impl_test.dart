@@ -78,20 +78,20 @@ void defineTests(DatabaseTestContext ctx) {
         final db =
             await factory.openDatabase(dbPath, version: 1) as SembastDatabase;
 // save to make sure we've been through
-        int? _oldVersion;
-        int? _newVersion;
+        int? localOldVersion;
+        int? localNewVersion;
         void _onVersionChanged(Database db, int oldVersion, int newVersion) {
           expect(db.version, oldVersion);
-          _oldVersion = oldVersion;
-          _newVersion = newVersion;
+          localOldVersion = oldVersion;
+          localNewVersion = newVersion;
         }
 
         return db
             .reOpen(DatabaseOpenOptions(
                 version: 2, onVersionChanged: _onVersionChanged))
             .then((Database db) {
-          expect(_oldVersion, 1);
-          expect(_newVersion, 2);
+          expect(localOldVersion, 1);
+          expect(localNewVersion, 2);
           expect(db.path, dbPath);
           expect(db.version, 2);
           return db.close();

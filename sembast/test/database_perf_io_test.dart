@@ -18,10 +18,10 @@ void main() {
         bool? inTransaction}) async {
       inTransaction ??= transactionCount != null && transactionCount > 0;
       transactionCount ??= inTransaction ? 1 : 0;
-      final _recordContent = bigRecord == true
+      final recordContent = bigRecord == true
           ? List.generate(3000, (i) => '$i').join('')
           : 'some value';
-      recordSize = _recordContent.length;
+      recordSize = recordContent.length;
 
       var dbPath = join('.dart_tool', 'sembast', 'test',
           'perf_${recordCount}_${times}_${recordSize}_$transactionCount.db');
@@ -41,7 +41,7 @@ void main() {
         Future _do(DatabaseClient client, int recordCount, int times) async {
           for (var j = 0; j < times; j++) {
             for (var i = 0; i < recordCount; i++) {
-              await store.record(i).put(client, _recordContent);
+              await store.record(i).put(client, recordContent);
             }
           }
         }
@@ -60,7 +60,7 @@ void main() {
           '$recordCount', '$times',
           inTransaction == true ? '$transactionCount' : ' ',
           // bigRecord == true ? 'BIG': ' ',
-          '${_recordContent.length}',
+          '${recordContent.length}',
           '${sw.elapsedMilliseconds}'
         ];
         //print('$recordCount record(s) $times times: ${sw.elapsed}${inTransaction == true ? ' in transaction' : ''}');

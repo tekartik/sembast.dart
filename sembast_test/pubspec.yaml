@@ -11,11 +11,13 @@ dependencies:
   sembast:
   sembast_web:
   test:
+  collection:
   # Dependencies for encryption example
   encrypt: '>=5.0.0-0'
   crypto: '>=3.0.0'
 
 dev_dependencies:
+  idb_shim:
   lints: '>=1.0.1'
   http: '>=0.11.0'
   process_run: '>=0.12.0'
