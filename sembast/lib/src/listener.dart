@@ -120,7 +120,7 @@ class QueryListenerController<K, V> extends _ControllerBase {
 
     var keys = Set.from(records.map((record) => record.key));
     // Remove all matching
-    bool _where(RecordSnapshot snapshot) {
+    bool whereSnapshot(RecordSnapshot snapshot) {
       if (keys.contains(snapshot.key)) {
         hasChanges = true;
         return true;
@@ -129,7 +129,7 @@ class QueryListenerController<K, V> extends _ControllerBase {
     }
 
     // Remove and reinsert if needed
-    allMatching.removeWhere(_where);
+    allMatching.removeWhere(whereSnapshot);
 
     for (var txnRecord in records) {
       if (!_shouldAdd) {

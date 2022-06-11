@@ -244,7 +244,7 @@ class SembastStore {
   /// Matchin filter and boundaries
   Future forEachRecords(SembastTransaction? txn, Finder? finder,
       bool Function(ImmutableSembastRecord record) action) async {
-    bool _finderMatchesRecord(Finder? finder, ImmutableSembastRecord record) {
+    bool finderMatchesRecord(Finder? finder, ImmutableSembastRecord record) {
       if (record.deleted) {
         return false;
       }
@@ -261,7 +261,7 @@ class SembastStore {
           await cooperate();
         }
 
-        if (_finderMatchesRecord(finder, record)) {
+        if (finderMatchesRecord(finder, record)) {
           if (action(record) == false) {
             return;
           }
@@ -282,7 +282,7 @@ class SembastStore {
           continue;
         }
       }
-      if (_finderMatchesRecord(finder, record)) {
+      if (finderMatchesRecord(finder, record)) {
         if (action(record) == false) {
           return;
         }

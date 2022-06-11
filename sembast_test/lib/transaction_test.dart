@@ -118,14 +118,14 @@ void defineTests(DatabaseTestContext ctx) {
       var store = StoreRef<int, String>.main();
       var record = store.record(1);
 
-      Future<void> _transaction(Transaction txn) async {
+      Future<void> putTransaction(Transaction txn) async {
         await record.put(txn, 'hi');
         expect(await record.get(txn), 'hi');
 
         throw 'some failure';
       }
 
-      await db.transaction(_transaction).catchError((Object err) {
+      await db.transaction(putTransaction).catchError((Object err) {
         expect(err, 'some failure');
       });
       expect(await record.get(db), isNull);

@@ -67,33 +67,33 @@ void main() {
       ];
 
       dynamic clone;
-      void _test() {
+      void checkValue() {
         expect(clone, const TypeMatcher<List<Object?>>());
         expect(clone, value);
         expect(identical(clone, value), isFalse);
       }
 
       clone = utils.cloneValue(value);
-      _test();
+      checkValue();
 
       clone = utils.cloneList(value);
-      _test();
+      checkValue();
     });
     test('cloneValueMap', () {
       var value = {
         't': [1, 2]
       };
       dynamic clone;
-      void _test() {
+      void checkValue() {
         expect(clone, const TypeMatcher<Map<String, Object?>>());
         expect(clone, value);
         expect(identical(clone, value), isFalse);
       }
 
       clone = utils.cloneValue(value);
-      _test();
+      checkValue();
       clone = utils.cloneMap(value);
-      _test();
+      checkValue();
     });
     test('compare', () {
       expect(compareValue('1', '2'), Comparable.compare('1', '2'));

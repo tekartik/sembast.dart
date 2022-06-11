@@ -18,7 +18,7 @@ void defineTests(DatabaseTestContext ctx) {
     group('simple_value', () {
       late Database db;
 
-      Future _tearDown() async {
+      Future dbTearDown() async {
         await db.close();
       }
 
@@ -33,7 +33,7 @@ void defineTests(DatabaseTestContext ctx) {
         return records.put(db, ['hi', 'ho', 'ha']);
       });
 
-      tearDown(_tearDown);
+      tearDown(dbTearDown);
 
       test('equal', () async {
         var finder = Finder(filter: Filter.equals(Field.value, 'hi'));

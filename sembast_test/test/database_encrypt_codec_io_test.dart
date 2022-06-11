@@ -28,7 +28,7 @@ void encryptIoGroup(FileSystemTestContext ctx) {
     return dbPath;
   }
 
-  Future<Database> _prepareOneRecordDatabase({SembastCodec? codec}) async {
+  Future<Database> prepareOneRecordDatabase({SembastCodec? codec}) async {
     await prepareForDb();
     var db = await factory.openDatabase(dbPath!, codec: codec);
     await store.add(db, 'test');
@@ -52,7 +52,7 @@ void encryptIoGroup(FileSystemTestContext ctx) {
       await db.close();
     });
     test('one_record', () async {
-      var db = await _prepareOneRecordDatabase(codec: codec);
+      var db = await prepareOneRecordDatabase(codec: codec);
       await db.close();
       final lines = await readContent(fs, dbPath!);
       // print(lines);
@@ -65,7 +65,7 @@ void encryptIoGroup(FileSystemTestContext ctx) {
     });
 
     test('reopen_and_compact', () async {
-      var db = await _prepareOneRecordDatabase(codec: codec);
+      var db = await prepareOneRecordDatabase(codec: codec);
       await db.close();
 
       db = await factory.openDatabase(dbPath!, codec: codec);
@@ -90,7 +90,7 @@ void encryptIoGroup(FileSystemTestContext ctx) {
     });
 
     test('open with wrong password', () async {
-      var db = await _prepareOneRecordDatabase(codec: codec);
+      var db = await prepareOneRecordDatabase(codec: codec);
       await db.close();
 
       try {
