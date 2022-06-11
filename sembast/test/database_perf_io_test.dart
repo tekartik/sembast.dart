@@ -38,7 +38,7 @@ void main() {
         var sw = Stopwatch();
         sw.start();
 
-        Future _do(DatabaseClient client, int recordCount, int times) async {
+        Future doPut(DatabaseClient client, int recordCount, int times) async {
           for (var j = 0; j < times; j++) {
             for (var i = 0; i < recordCount; i++) {
               await store.record(i).put(client, recordContent);
@@ -49,11 +49,11 @@ void main() {
         if (inTransaction == true) {
           for (var k = 0; k < transactionCount; k++) {
             await db.transaction((Transaction txn) async {
-              await _do(txn, recordCount, times);
+              await doPut(txn, recordCount, times);
             });
           }
         } else {
-          await _do(db, recordCount, times);
+          await doPut(db, recordCount, times);
         }
         sw.stop();
         final rows = <String>[

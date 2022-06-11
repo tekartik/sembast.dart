@@ -281,7 +281,7 @@ class SembastDatabase extends Object
 
       final lines = <String>[];
 
-      Future _addStringLine(String line) async {
+      Future addStringLine(String line) async {
         await cooperate();
         exportStat.lineCount++;
         if (_debugStorage) {
@@ -290,11 +290,11 @@ class SembastDatabase extends Object
         lines.add(line);
       }
 
-      Future _addLine(Map<String, Object?> map) async {
+      Future addLine(Map<String, Object?> map) async {
         String encoded;
         try {
           encoded = encodeRecordMap(map);
-          await _addStringLine(encoded);
+          await addStringLine(encoded);
         } catch (e, st) {
           // useful for debugging...
           print(map);
@@ -305,13 +305,13 @@ class SembastDatabase extends Object
       }
 
       // meta is always json
-      await _addStringLine(json.encode(_meta!.toMap()));
+      await addStringLine(json.encode(_meta!.toMap()));
 
       var stores = getCurrentStores();
       for (var store in stores) {
         final records = getCurrentRecords(store);
         for (var record in records) {
-          await _addLine(record.toDatabaseRowMap());
+          await addLine(record.toDatabaseRowMap());
         }
       }
       await tmpStorage.appendLines(lines);
@@ -379,7 +379,7 @@ class SembastDatabase extends Object
     var commitData = CommitData()..txnRecords = txnRecords;
     // Not record, no commit
     if (txnRecords.isNotEmpty) {
-      void _saveInMemory() {
+      void saveInMemory() {
         for (var record in txnRecords) {
           final exists = setRecordInMemory(record);
           // Try to estimated if compact will be needed
@@ -392,7 +392,7 @@ class SembastDatabase extends Object
         }
       }
 
-      _saveInMemory();
+      saveInMemory();
     }
 
     // Remove dropped store
@@ -647,7 +647,7 @@ class SembastDatabase extends Object
       try {
         Meta? meta;
 
-        Future _handleVersionChanged(int? oldVersion, int? newVersion) async {
+        Future handleVersionChanged(int? oldVersion, int? newVersion) async {
           _upgrading = true;
           try {
             await transaction((txn) async {
@@ -677,7 +677,7 @@ class SembastDatabase extends Object
           // Make sure the changes are committed
         }
 
-        Future _openDone() async {
+        Future openDone() async {
           // make sure mainStore is created
           _checkMainStore();
 
@@ -713,13 +713,13 @@ class SembastDatabase extends Object
           _opened = true;
 
           if (needVersionChanged) {
-            await _handleVersionChanged(oldVersion, version);
+            await handleVersionChanged(oldVersion, version);
           }
           _meta = meta;
         }
 
         //_path = path;
-        Future _findOrCreate() async {
+        Future findOrCreate() async {
           if (mode == DatabaseMode.existing) {
             final found = await _storageBase!.find();
             if (!found) {
@@ -740,9 +740,9 @@ class SembastDatabase extends Object
           }
         }
 
-        await _findOrCreate();
+        await findOrCreate();
         if (_storageBase!.supported) {
-          void _clearBeforeImport() {
+          void clearBeforeImport() {
             // empty stores and meta
             _exportStat = DatabaseExportStat();
             _meta = null;
@@ -758,7 +758,7 @@ class SembastDatabase extends Object
             var corrupted = false;
 
             Future import(Stream<String> lines, {bool? safeMode}) async {
-              _clearBeforeImport();
+              clearBeforeImport();
               var firstLineRead = false;
 
               await for (var line in lines) {
@@ -868,7 +868,7 @@ class SembastDatabase extends Object
               }
             }
           } else if (_storageJdb?.supported ?? false) {
-            _clearBeforeImport();
+            clearBeforeImport();
             var map = await _storageJdb!.readMeta();
 
             if (Meta.isMapMeta(map)) {
@@ -889,13 +889,13 @@ class SembastDatabase extends Object
             _meta = meta;
           }
 
-          return _openDone();
+          return openDone();
         } else {
           // ensure main store exists
           // but do not erase previous data
           _checkMainStore();
           meta = _meta;
-          return _openDone();
+          return openDone();
         }
       } catch (_) {
         // on failure make sure to close the database
@@ -1131,7 +1131,7 @@ class SembastDatabase extends Object
         _transaction = SembastTransaction(this, ++_txnId);
         // To handle dropped stores
 
-        void _transactionCleanUp() {
+        void transactionCleanUp() {
           upgrading = false;
 
           _clearTxnData();
@@ -1192,7 +1192,7 @@ class SembastDatabase extends Object
               if (!status.success!) {
                 reloadData = true;
                 jdbIncrementRevisionStatus = status;
-                _transactionCleanUp();
+                transactionCleanUp();
               } else {
                 _jdbRevision = status.revision;
               }
@@ -1202,7 +1202,7 @@ class SembastDatabase extends Object
           // if jdb failed, there will be no records
           commitData = commitInMemory();
         } catch (e) {
-          _transactionCleanUp();
+          transactionCleanUp();
           rethrow;
         } finally {
           // fs storage only
@@ -1244,7 +1244,7 @@ class SembastDatabase extends Object
           }
         }
 
-        _transactionCleanUp();
+        transactionCleanUp();
 
         return actionResult;
       }).whenComplete(() async {
@@ -1321,7 +1321,7 @@ class SembastDatabase extends Object
             var ctlrs = storeListener.getRecordControllers(record.ref);
             if (ctlrs != null) {
               for (var ctlr in ctlrs) {
-                void _updateRecord() {
+                void updateRecord() {
                   if (debugListener) {
                     print('updating $ctlr: with $record');
                   }
@@ -1334,12 +1334,12 @@ class SembastDatabase extends Object
 
                 if (ctlr.hasInitialData) {
                   // devPrint('adding $record');
-                  _updateRecord();
+                  updateRecord();
                 } else {
                   // postpone after the current lock
                   // ignore: unawaited_futures
                   notificationLock.synchronized(() async {
-                    _updateRecord();
+                    updateRecord();
                   });
                 }
               }
@@ -1349,7 +1349,7 @@ class SembastDatabase extends Object
           // Fix existing queries
           for (var query in List<QueryListenerController>.from(
               storeListener.getQueryListenerControllers())) {
-            Future _updateQuery() async {
+            Future updateQuery() async {
               if (debugListener) {
                 print(
                     'updating $query: with ${storeContent.records.length} records ');
@@ -1362,12 +1362,12 @@ class SembastDatabase extends Object
             }
 
             if (query.hasInitialData) {
-              await _updateQuery();
+              await updateQuery();
             } else {
               // postpone after the current lock
               // ignore: unawaited_futures
               notificationLock.synchronized(() async {
-                await _updateQuery();
+                await updateQuery();
               });
             }
           }

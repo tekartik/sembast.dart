@@ -8,7 +8,7 @@ import 'package:test/test.dart';
 void main() {
   group('encrypt_codec', () {
     group('map', () {
-      void _testCodec(SembastCodec codec) {
+      void testCodec(SembastCodec codec) {
         var encrypted = codec.codec!.encode({'test': 1});
         var encrypted2 = codec.codec!.encode({'test': 1});
 
@@ -21,9 +21,9 @@ void main() {
       }
 
       test('codec', () {
-        _testCodec(getEncryptSembastCodec(password: 'test'));
-        _testCodec(getEncryptSembastCodec(password: ''));
-        _testCodec(getEncryptSembastCodec(
+        testCodec(getEncryptSembastCodec(password: 'test'));
+        testCodec(getEncryptSembastCodec(password: ''));
+        testCodec(getEncryptSembastCodec(
             password:
                 'veryveryveryverylongpasswordveryveryveryverylongpasswordveryveryveryverylongpasswordveryveryveryverylongpassword'));
       });

@@ -52,12 +52,12 @@ void defineTests(DatabaseTestContext ctx) {
       test('open_then_open_no_version_or_same_version', () async {
         final db =
             await factory.openDatabase(dbPath, version: 1) as SembastDatabase;
-        void _onVersionChanged(Database db, int oldVersion, int newVersion) {
+        void onVersionChanged(Database db, int oldVersion, int newVersion) {
           fail('not changed');
         }
 
         return db
-            .reOpen(DatabaseOpenOptions(onVersionChanged: _onVersionChanged))
+            .reOpen(DatabaseOpenOptions(onVersionChanged: onVersionChanged))
             .then((Database db) {
           expect(db.path, dbPath);
           expect(db.version, 1);
@@ -65,7 +65,7 @@ void defineTests(DatabaseTestContext ctx) {
         }).then((_) {
           return db
               .reOpen(DatabaseOpenOptions(
-                  version: 1, onVersionChanged: _onVersionChanged))
+                  version: 1, onVersionChanged: onVersionChanged))
               .then((Database db) {
             expect(db.path, dbPath);
             expect(db.version, 1);
@@ -80,7 +80,7 @@ void defineTests(DatabaseTestContext ctx) {
 // save to make sure we've been through
         int? localOldVersion;
         int? localNewVersion;
-        void _onVersionChanged(Database db, int oldVersion, int newVersion) {
+        void onVersionChanged(Database db, int oldVersion, int newVersion) {
           expect(db.version, oldVersion);
           localOldVersion = oldVersion;
           localNewVersion = newVersion;
@@ -88,7 +88,7 @@ void defineTests(DatabaseTestContext ctx) {
 
         return db
             .reOpen(DatabaseOpenOptions(
-                version: 2, onVersionChanged: _onVersionChanged))
+                version: 2, onVersionChanged: onVersionChanged))
             .then((Database db) {
           expect(localOldVersion, 1);
           expect(localNewVersion, 2);

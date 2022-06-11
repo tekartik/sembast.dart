@@ -29,71 +29,71 @@ void defineTests(DatabaseTestContext ctx) {
     test('int', () async {
       expect(await record.exists(db), isFalse);
       await record.put(db, 1234);
-      Future _check() async {
+      Future checkRecord() async {
         final value = await record.get(db) as int?;
         expect(await record.exists(db), isTrue);
         expect(value, 1234);
       }
 
-      await _check();
+      await checkRecord();
       db = await reOpen(db);
-      await _check();
+      await checkRecord();
     });
 
     test('double', () async {
       expect(await record.exists(db), isFalse);
       await record.put(db, 1234.5678);
-      Future _check() async {
+      Future checkRecord() async {
         final value = await record.get(db) as double?;
         expect(await record.exists(db), isTrue);
         expect(value, closeTo(1234.5678, 0.0001));
       }
 
-      await _check();
+      await checkRecord();
       db = await reOpen(db);
-      await _check();
+      await checkRecord();
     });
 
     test('bool', () async {
       expect(await record.exists(db), isFalse);
       await record.put(db, true);
-      Future _check() async {
+      Future checkRecord() async {
         final value = await record.get(db) as bool?;
         expect(await record.exists(db), isTrue);
         expect(value, isTrue);
       }
 
-      await _check();
+      await checkRecord();
       db = await reOpen(db);
-      await _check();
+      await checkRecord();
     });
 
     test('String', () async {
       expect(await record.exists(db), isFalse);
       await record.put(db, 'hello');
-      Future _check() async {
+      Future checkRecord() async {
         final value = await record.get(db) as String?;
         expect(await record.exists(db), isTrue);
         expect(value, 'hello');
       }
 
-      await _check();
+      await checkRecord();
       db = await reOpen(db);
-      await _check();
+      await checkRecord();
     });
 
     test('Timestamp', () async {
       expect(await record.exists(db), isFalse);
       await record.put(db, Timestamp(1, 2));
-      Future _check() async {
+      Future checkRecord() async {
         final value = await record.get(db) as Timestamp?;
         expect(await record.exists(db), isTrue);
         expect(value, Timestamp(1, 2));
       }
 
-      await _check();
+      await checkRecord();
       db = await reOpen(db);
-      await _check();
+      await checkRecord();
       await record.update(db, Timestamp(1, 3));
       expect(await record.get(db), Timestamp(1, 3));
       db = await reOpen(db);
@@ -103,30 +103,30 @@ void defineTests(DatabaseTestContext ctx) {
     test('Blob', () async {
       expect(await record.exists(db), isFalse);
       await record.put(db, Blob.fromList([1, 2]));
-      Future _check() async {
+      Future checkRecord() async {
         final value = await record.get(db) as Blob?;
         expect(await record.exists(db), isTrue);
         expect(value, Blob.fromList([1, 2]));
       }
 
-      await _check();
+      await checkRecord();
       db = await reOpen(db);
-      await _check();
+      await checkRecord();
     });
 
     test('FieldValue.delete', () async {
       // Merge a non existing record
       expect(await record.exists(db), isFalse);
       await record.put(db, {'test': FieldValue.delete}, merge: true);
-      Future _check() async {
+      Future checkRecord() async {
         final value = await record.get(db);
         expect(await record.exists(db), isTrue);
         expect(value, {});
       }
 
-      await _check();
+      await checkRecord();
       db = await reOpen(db);
-      await _check();
+      await checkRecord();
 
       try {
         await record.put(db, FieldValue.delete);
@@ -181,15 +181,15 @@ void defineTests(DatabaseTestContext ctx) {
       };
       expect(await record.exists(db), isFalse);
       await record.put(db, map);
-      Future _check() async {
+      Future checkRecord() async {
         final value = await record.get(db) as Map<String, Object?>?;
         expect(await record.exists(db), isTrue);
         expect(value, map);
       }
 
-      await _check();
+      await checkRecord();
       db = await reOpen(db);
-      await _check();
+      await checkRecord();
     });
 
     /*

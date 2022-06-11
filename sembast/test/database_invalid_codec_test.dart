@@ -25,7 +25,7 @@ void defineTests(FileSystemTestContext ctx) {
     return dbPath;
   }
 
-  Future<Database> _prepareOneRecordDatabase({SembastCodec? codec}) async {
+  Future<Database> prepareOneRecordDatabase({SembastCodec? codec}) async {
     await prepareForDb();
     var db = await factory.openDatabase(dbPath, codec: codec);
     await store.add(db, 'test');
@@ -34,14 +34,14 @@ void defineTests(FileSystemTestContext ctx) {
 
   test('invalid_codec', () async {
     try {
-      await _prepareOneRecordDatabase(
+      await prepareOneRecordDatabase(
           codec: SembastCodec(signature: 'test', codec: null));
       fail('should fail');
     } on DatabaseException catch (e) {
       expect(e.code, DatabaseException.errInvalidCodec);
     }
     try {
-      await _prepareOneRecordDatabase(
+      await prepareOneRecordDatabase(
           codec: SembastCodec(signature: null, codec: MyJsonCodec()));
       fail('should fail');
     } on DatabaseException catch (e) {

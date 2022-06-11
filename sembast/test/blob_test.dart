@@ -28,25 +28,25 @@ void main() {
       expect(Blob.fromList([1, 2]).compareTo(Blob.fromList([0, 2])),
           greaterThan(0));
     });
-    void _checkBlob(Blob blob, String expectedBase64) {
+    void checkBlob(Blob blob, String expectedBase64) {
       var reason = '$blob';
       expect(blob.toBase64(), expectedBase64, reason: 'timestamp $reason');
     }
 
     test('toBase64', () {
-      _checkBlob(Blob.fromList([0, 0]), 'AAA=');
-      _checkBlob(Blob.fromList([0, 1]), 'AAE=');
-      _checkBlob(
+      checkBlob(Blob.fromList([0, 0]), 'AAA=');
+      checkBlob(Blob.fromList([0, 1]), 'AAE=');
+      checkBlob(
         Blob.fromList([0, 255]),
         'AP8=',
       );
-      _checkBlob(
+      checkBlob(
         Blob.fromList([0, 256]),
         'AAA=',
       );
     });
     test('various', () {
-      void _test(Blob blob) {
+      void testBlob(Blob blob) {
         var other = Blob(blob.bytes);
         expect(other, blob);
         other = Blob.fromBase64(blob.toBase64());
@@ -55,9 +55,9 @@ void main() {
         expect(other, blob);
       }
 
-      _test(Blob.fromList([]));
-      _test(Blob.fromList([0]));
-      _test(Blob.fromList([256]));
+      testBlob(Blob.fromList([]));
+      testBlob(Blob.fromList([0]));
+      testBlob(Blob.fromList([256]));
     });
   });
 }

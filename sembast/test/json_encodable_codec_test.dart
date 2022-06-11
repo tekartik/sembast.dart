@@ -70,7 +70,7 @@ void main() {
     });
     test('all', () {
       var codec = JsonEncodableCodec(adapters: [sembastTimestampAdapter]);
-      void _loop(Object decoded) {
+      void loop(Object decoded) {
         var encoded = codec.encode(decoded);
         try {
           expect(codec.decode(encoded), decoded);
@@ -100,7 +100,7 @@ void main() {
           ]
         },
       ]) {
-        _loop(value);
+        loop(value);
       }
     });
 

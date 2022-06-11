@@ -29,17 +29,17 @@ void defineTests(FileSystemTestContext ctx) {
     return dbPath;
   }
 
-  Future<Database> _prepareOneRecordDatabase({SembastCodec? codec}) async {
+  Future<Database> prepareOneRecordDatabase({SembastCodec? codec}) async {
     await prepareForDb();
     var db = await factory.openDatabase(dbPath!, codec: codec);
     await store.add(db, 'test');
     return db;
   }
 
-  void _commonTests(SembastCodec codec) {
+  void commonTests(SembastCodec codec) {
     test('open_a_non_codec_database', () async {
       // Create a non codec database
-      var db = await _prepareOneRecordDatabase();
+      var db = await prepareOneRecordDatabase();
       await db.close();
 
       // Try to open it using the codec
@@ -53,7 +53,7 @@ void defineTests(FileSystemTestContext ctx) {
 
     test('open_a_codec database', () async {
       // Create a codec encrypted database
-      var db = await _prepareOneRecordDatabase(codec: codec);
+      var db = await prepareOneRecordDatabase(codec: codec);
       await db.close();
 
       // Try to open it without the codec
@@ -83,10 +83,10 @@ void defineTests(FileSystemTestContext ctx) {
       var codec = SembastCodec(signature: 'json', codec: MyJsonCodec());
       var codecAlt = SembastCodec(signature: 'json_alt', codec: MyJsonCodec());
       database_format_test.defineTestsWithCodec(ctx, codec: codec);
-      _commonTests(codec);
+      commonTests(codec);
 
       test('one_record', () async {
-        var db = await _prepareOneRecordDatabase(codec: codec);
+        var db = await prepareOneRecordDatabase(codec: codec);
         await db.close();
         final lines = await readContent(fs, dbPath!);
         expect(lines.length, 2);
@@ -97,7 +97,7 @@ void defineTests(FileSystemTestContext ctx) {
       });
 
       test('wrong_signature', () async {
-        var db = await _prepareOneRecordDatabase(codec: codec);
+        var db = await prepareOneRecordDatabase(codec: codec);
         await db.close();
         try {
           await factory.openDatabase(dbPath!, codec: codecAlt);
@@ -112,16 +112,16 @@ void defineTests(FileSystemTestContext ctx) {
       var codec = SembastCodec(
           signature: 'base64_random', codec: MyCustomRandomCodec());
       database_format_test.defineTestsWithCodec(ctx, codec: codec);
-      _commonTests(codec);
+      commonTests(codec);
     });
 
     group('base64_codec', () {
       var codec = SembastCodec(signature: 'base64', codec: MyCustomCodec());
       database_format_test.defineTestsWithCodec(ctx, codec: codec);
-      _commonTests(codec);
+      commonTests(codec);
 
       test('one_record', () async {
-        var db = await _prepareOneRecordDatabase(codec: codec);
+        var db = await prepareOneRecordDatabase(codec: codec);
         await db.close();
         final lines = await readContent(fs, dbPath!);
         expect(lines.length, 2);
@@ -137,7 +137,7 @@ void defineTests(FileSystemTestContext ctx) {
       });
 
       test('reopen_and_compact', () async {
-        var db = await _prepareOneRecordDatabase(codec: codec);
+        var db = await prepareOneRecordDatabase(codec: codec);
         await db.close();
 
         db = await factory.openDatabase(dbPath!, codec: codec);

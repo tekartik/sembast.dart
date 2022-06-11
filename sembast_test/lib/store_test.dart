@@ -397,7 +397,7 @@ void defineTests(DatabaseTestContext ctx) {
       });
 
       test('put/get/find', () async {
-        Future _test(DatabaseClient client) async {
+        Future testClient(DatabaseClient client) async {
           var record = testStore.record(1);
 
           await record.put(client, {'value': 2});
@@ -437,9 +437,9 @@ void defineTests(DatabaseTestContext ctx) {
           expect(await record.get(client), isNull);
         }
 
-        await _test(db!);
+        await testClient(db!);
         await db!.transaction((txn) async {
-          await _test(txn);
+          await testClient(txn);
         });
       });
 

@@ -358,7 +358,7 @@ void defineTestsWithCodec(FileSystemTestContext ctx, {SembastCodec? codec}) {
       await prepareForDb();
       await writeContent(fs, dbPath!, ['corrupted']);
 
-      Future _deleteFile(String path) {
+      Future deleteFile(String path) {
         return fs.file(path).delete();
       }
 
@@ -368,7 +368,7 @@ void defineTestsWithCodec(FileSystemTestContext ctx, {SembastCodec? codec}) {
             codec: codec, mode: DatabaseMode.create);
         fail('should fail');
       } on FormatException catch (_) {
-        await _deleteFile(dbPath!);
+        await deleteFile(dbPath!);
         db = await factory.openDatabase(dbPath!, codec: codec);
       }
       expect(db.version, 1);

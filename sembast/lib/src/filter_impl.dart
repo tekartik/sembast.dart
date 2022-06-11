@@ -131,7 +131,7 @@ class SembastMatchesFilter extends SembastFilterBase
 
     var fieldValue = record[field];
 
-    bool _matches(dynamic value) {
+    bool matchesValue(dynamic value) {
       if (value is String) {
         return regExp.hasMatch(value);
       }
@@ -141,14 +141,14 @@ class SembastMatchesFilter extends SembastFilterBase
     if (anyInList == true) {
       if (fieldValue is Iterable) {
         for (var itemValue in fieldValue) {
-          if (_matches(itemValue)) {
+          if (matchesValue(itemValue)) {
             return true;
           }
         }
       }
       return false;
     } else {
-      return _matches(fieldValue);
+      return matchesValue(fieldValue);
     }
   }
 
@@ -230,7 +230,7 @@ class SembastFilterPredicate extends SembastFilterBase
 
   @override
   bool matchesRecord(RecordSnapshot record) {
-    int? _safeCompare(dynamic value1, dynamic value2) {
+    int? safeCompare(dynamic value1, dynamic value2) {
       try {
         if (value1 is Comparable && value2 is Comparable) {
           return Comparable.compare(value1, value2);
@@ -239,13 +239,13 @@ class SembastFilterPredicate extends SembastFilterBase
       return null;
     }
 
-    bool _lessThan(dynamic value1, dynamic value2) {
-      var cmp = _safeCompare(value1, value2);
+    bool lessThan(dynamic value1, dynamic value2) {
+      var cmp = safeCompare(value1, value2);
       return cmp != null && cmp < 0;
     }
 
-    bool _greaterThan(dynamic value1, dynamic value2) {
-      var cmp = _safeCompare(value1, value2);
+    bool greaterThan(dynamic value1, dynamic value2) {
+      var cmp = safeCompare(value1, value2);
       return cmp != null && cmp > 0;
     }
 
@@ -259,15 +259,15 @@ class SembastFilterPredicate extends SembastFilterBase
         return fieldValue != value;
       case FilterOperation.lessThan:
         // return _safeCompare(record[field], value) < 0;
-        return _lessThan(fieldValue, value);
+        return lessThan(fieldValue, value);
       case FilterOperation.lessThanOrEquals:
-        return _lessThan(fieldValue, value) || fieldValue == value;
+        return lessThan(fieldValue, value) || fieldValue == value;
       // return _safeCompare(record[field], value) <= 0;
       case FilterOperation.greaterThan:
-        return _greaterThan(fieldValue, value);
+        return greaterThan(fieldValue, value);
       // return _safeCompare(record[field], value) > 0;
       case FilterOperation.greaterThanOrEquals:
-        return _greaterThan(fieldValue, value) || fieldValue == value;
+        return greaterThan(fieldValue, value) || fieldValue == value;
       // return _safeCompare(record[field], value) >= 0;
       case FilterOperation.inList:
         return (value as List).contains(record[field]);
