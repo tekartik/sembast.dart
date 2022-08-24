@@ -1,14 +1,18 @@
 import 'dart:async';
 
 import 'package:sembast/sembast.dart';
+import 'package:sembast/src/api/filter_ref.dart';
 import 'package:sembast/src/api/protected/database.dart';
 import 'package:sembast/src/database_client_impl.dart';
+import 'package:sembast/src/filter_ref_impl.dart';
 import 'package:sembast/src/finder_impl.dart';
 import 'package:sembast/src/query_ref_impl.dart';
 import 'package:sembast/src/record_impl.dart';
 import 'package:sembast/src/record_ref_impl.dart';
 import 'package:sembast/src/record_snapshot_impl.dart';
 import 'package:sembast/src/records_ref_impl.dart';
+
+import 'database_impl.dart';
 
 /// Store implementation.
 class SembastStoreRef<K, V> with StoreRefMixin<K, V> {
@@ -72,6 +76,23 @@ extension SembastStoreRefExtensionImpl<K, V> on StoreRef<K, V> {
         .getSembastStore(this)
         .txnFindRecords(client.sembastTransaction, finder);
   }
+
+  /// Find key set.
+  Future<Set<K>> filterKeys(DatabaseClient databaseClient,
+      {Filter? filter}) async {
+    final client = getClient(databaseClient);
+
+    return (await client
+            .getSembastStore(this)
+            .txnFilterKeys(client.sembastTransaction, filter))
+        .cast<K>();
+  }
+}
+
+/// Internal extension
+extension SembastStoreRefExtensionPrv<K, V> on StoreRef<K, V> {
+  /// Delete the store and its content
+  FilterRef<K, V> filter({Filter? filter}) => SembastFilterRef(this, filter);
 }
 
 /// Store ref public sembast extension.
@@ -170,6 +191,12 @@ extension SembastStoreRefExtension<K, V> on StoreRef<K, V> {
         .getSembastStore(this)
         .txnCount(client.sembastTransaction, filter);
   }
+
+  ///
+  /// onCount stream, called when the number of items changes.
+  ///
+  Stream<int> onCount(Database database, {Filter? filter}) =>
+      SembastFilterRef(this, filter).onCount(database);
 
   ///
   /// Add a record, returns its generated key.

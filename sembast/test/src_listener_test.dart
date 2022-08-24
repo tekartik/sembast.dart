@@ -1,5 +1,6 @@
 // basically same as the io runner but with extra output
 import 'package:sembast/src/listener.dart';
+import 'package:sembast/src/store_ref_impl.dart';
 
 import 'test_common.dart';
 
@@ -29,6 +30,14 @@ void main() {
       dbListener.removeQuery(queryCtrl);
       expect(dbListener.isEmpty, isTrue);
       expect(dbListener.recordHasAnyListener(store.record(1)), isFalse);
+
+      expect(dbListener.getStore(store), isNull);
+      var countCtrl = dbListener.addCount(store.filter(), onListen: null);
+      storeListener = dbListener.getStore(store)!;
+      expect(storeListener.hasQueryListener, isTrue);
+      dbListener.removeQuery(countCtrl);
+      expect(storeListener.hasQueryListener, isFalse);
+      expect(dbListener.getStore(store), isNull);
     });
   });
 }

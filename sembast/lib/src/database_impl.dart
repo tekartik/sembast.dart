@@ -1347,7 +1347,7 @@ class SembastDatabase extends Object
           }
 
           // Fix existing queries
-          for (var query in List<QueryListenerController>.from(
+          for (var query in List<StoreListenerController>.from(
               storeListener.getQueryListenerControllers())) {
             Future updateQuery() async {
               if (debugListener) {
