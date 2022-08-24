@@ -495,15 +495,12 @@ void defineTests(DatabaseTestContext ctx) {
       var completer = Completer();
 
       var sub = store.onCount(db).listen((count) {
-
         if (index == 0) {
           expect(count, 0);
         } else if (index == 1) {
           expect(count, 1);
-
         } else if (index == 2) {
           expect(count, 2);
-
         } else if (index == 3) {
           expect(count, 1);
         }
@@ -536,13 +533,10 @@ void defineTests(DatabaseTestContext ctx) {
       var completer = Completer();
 
       // When starting listening the record does not exists yet
-      var
-              filter = Filter.greaterThan(Field.value, 'test');
-              expect(await store.count(db, filter: filter), 0);
+      var filter = Filter.greaterThan(Field.value, 'test');
+      expect(await store.count(db, filter: filter), 0);
 
       var sub = store.onCount(db, filter: filter).listen((snapshots) {
-
-
         if (index == 0) {
           expect(snapshots, 0);
         } else if (index == 1) {
