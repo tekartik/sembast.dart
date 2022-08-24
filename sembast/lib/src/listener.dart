@@ -94,7 +94,7 @@ class QueryListenerController<K, V> extends StoreListenerControllerBase<K, V> {
       if (debugListener) {
         print('onCancel $this');
       }
-      listener.removeQuery(this);
+      listener.removeStore(this);
       close();
     }, onListen: () {
       if (debugListener) {
@@ -283,7 +283,7 @@ class StoreListener {
   /// Our store.
   final StoreRef store;
   final _records = <Object?, List<RecordListenerController>>{};
-  final _queries = <StoreListenerController>[];
+  final _stores = <StoreListenerController>[];
 
   /// Store listener.
   StoreListener(this.store);
@@ -304,14 +304,14 @@ class StoreListener {
   /// Add a query.
   StoreListenerController<K, V> addQuery<K, V>(
       StoreListenerController<K, V> ctlr) {
-    _queries.add(ctlr);
+    _stores.add(ctlr);
     return ctlr;
   }
 
   /// Remove a query.
-  void removeQuery(StoreListenerController ctlr) {
+  void removeStore(StoreListenerController ctlr) {
     ctlr.close();
-    _queries.remove(ctlr);
+    _stores.remove(ctlr);
   }
 
   /// Remove a record.
@@ -341,18 +341,18 @@ class StoreListener {
 
   /// True if record has a listener.
   bool keyHasAnyListener(dynamic key) =>
-      hasQueryListener || keyHasRecordListener(key);
+      hasStoreListener || keyHasRecordListener(key);
 
   /// True if there is a query listener
-  bool get hasQueryListener => _queries.isNotEmpty;
+  bool get hasStoreListener => _stores.isNotEmpty;
 
   /// Get list of query listeners, never null
-  List<StoreListenerController<K, V>> getQueryListenerControllers<K, V>() {
-    return _queries.cast<StoreListenerController<K, V>>();
+  List<StoreListenerController<K, V>> getStoreListenerControllers<K, V>() {
+    return _stores.cast<StoreListenerController<K, V>>();
   }
 
   /// true if empty.
-  bool get isEmpty => _records.isEmpty && _queries.isEmpty;
+  bool get isEmpty => _records.isEmpty && _stores.isEmpty;
 
   /// Restart listening on the store and its records.
   void restart() {
@@ -361,7 +361,7 @@ class StoreListener {
         recordController.restart();
       }
     }
-    for (var queryController in _queries) {
+    for (var queryController in _stores) {
       queryController.restart();
     }
   }
@@ -450,12 +450,12 @@ class DatabaseListener {
   }
 
   /// remove a query controller.
-  void removeQuery(StoreListenerController ctlr) {
+  void removeStore(StoreListenerController ctlr) {
     ctlr.close();
     var storeRef = ctlr.storeRef;
     var store = _stores[storeRef];
     if (store != null) {
-      store.removeQuery(ctlr);
+      store.removeStore(ctlr);
       if (store.isEmpty) {
         _stores.remove(storeRef);
       }
@@ -479,7 +479,7 @@ class DatabaseListener {
   /// Close and clear listeners.
   void close() {
     for (var storeListener in _stores.values) {
-      for (var queryListener in storeListener._queries) {
+      for (var queryListener in storeListener._stores) {
         queryListener.close();
       }
       for (var recordListeners in storeListener._records.values) {
@@ -542,7 +542,7 @@ class CountListenerController<K, V> extends StoreListenerControllerBase<K, V> {
       if (debugListener) {
         print('onCancel $this');
       }
-      listener.removeQuery(this);
+      listener.removeStore(this);
       close();
     }, onListen: () {
       if (debugListener) {

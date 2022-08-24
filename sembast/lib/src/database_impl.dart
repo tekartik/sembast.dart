@@ -413,7 +413,7 @@ class SembastDatabase extends Object
 
           var listener = this.listener.getStore(store);
           if (listener != null) {
-            if (listener.hasQueryListener) {
+            if (listener.hasStoreListener) {
               var storeListenerContent =
                   _pendingListenerContent.addStore(store);
               storeListenerContent.addAll(records);
@@ -1348,7 +1348,7 @@ class SembastDatabase extends Object
 
           // Fix existing queries
           for (var query in List<StoreListenerController>.from(
-              storeListener.getQueryListenerControllers())) {
+              storeListener.getStoreListenerControllers())) {
             Future updateQuery() async {
               if (debugListener) {
                 print(
