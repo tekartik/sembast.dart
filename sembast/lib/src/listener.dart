@@ -9,6 +9,9 @@ import 'package:sembast/src/record_impl.dart';
 import 'package:sembast/src/sort.dart';
 import 'package:sembast/src/utils.dart';
 
+import 'api/filter_ref.dart';
+import 'filter_ref_impl.dart';
+
 class _ControllerBase {
   static var _lastId = 0;
 
@@ -20,16 +23,44 @@ class _ControllerBase {
   }
 }
 
+/// Query or Count base listener.
+abstract class StoreListenerController<K, V> {
+  /// Store reference.
+  StoreRef<K, V> get storeRef;
+
+  /// True if the initial data has been filled.
+  bool get hasInitialData;
+
+  /// Restart.
+  void restart();
+
+  /// Close.
+  void close();
+
+  /// Update the query with the updated records (including deleted)
+  Future update(
+      Iterable<ImmutableSembastRecord> records, Cooperator? cooperator);
+}
+
+/// Query or Count base listener.
+abstract class StoreListenerControllerBase<K, V> extends _ControllerBase
+    implements StoreListenerController<K, V> {}
+
 /// Query listener controller.
-class QueryListenerController<K, V> extends _ControllerBase {
+class QueryListenerController<K, V> extends StoreListenerControllerBase<K, V> {
   /// onListen to start or restart query.
   void Function()? onListen;
 
   /// The query.
   final SembastQueryRef<K, V> queryRef;
+
+  @override
+  StoreRef<K, V> get storeRef => queryRef.store;
+
   StreamController<List<RecordSnapshot<K, V>>>? _streamController;
 
   /// True when the first data has arrived
+  @override
   bool get hasInitialData => _allMatching != null;
 
   /// true if closed.
@@ -47,6 +78,7 @@ class QueryListenerController<K, V> extends _ControllerBase {
   SembastFilterBase? get filter => finder?.filter as SembastFilterBase?;
 
   /// close controller.
+  @override
   void close() {
     _streamController?.close();
   }
@@ -62,7 +94,7 @@ class QueryListenerController<K, V> extends _ControllerBase {
       if (debugListener) {
         print('onCancel $this');
       }
-      listener.removeQuery(this);
+      listener.removeStore(this);
       close();
     }, onListen: () {
       if (debugListener) {
@@ -80,17 +112,14 @@ class QueryListenerController<K, V> extends _ControllerBase {
   /// Add data to stream, allMatching is already sorted
   Future add(
       List<ImmutableSembastRecord>? allMatching, Cooperator? cooperator) async {
-    if (!_shouldAdd) {
-      return;
-    }
-
     // Filter only
     _allMatching = allMatching;
-    var list = recordsLimit(_allMatching, finder);
 
     if (!_shouldAdd) {
       return;
     }
+
+    var list = recordsLimit(_allMatching, finder);
 
     // devPrint('adding $allMatching / limit $list / $finder');
     _streamController?.add(immutableListToSnapshots<K, V>(list!));
@@ -107,12 +136,12 @@ class QueryListenerController<K, V> extends _ControllerBase {
   /// Update the records.
   ///
   /// We are async safe here
+  @override
   Future update(
       Iterable<ImmutableSembastRecord> records, Cooperator? cooperator) async {
     if (!_shouldAdd) {
       return;
     }
-
     var hasChanges = false;
 
     // Restart from the base we have for efficiency
@@ -132,10 +161,6 @@ class QueryListenerController<K, V> extends _ControllerBase {
     allMatching.removeWhere(whereSnapshot);
 
     for (var txnRecord in records) {
-      if (!_shouldAdd) {
-        return;
-      }
-
       // By default matches if non-deleted
       var matches = !txnRecord.deleted &&
           // Matching boundaries
@@ -153,9 +178,10 @@ class QueryListenerController<K, V> extends _ControllerBase {
       if (cooperator?.needCooperate ?? false) {
         await cooperator!.cooperate();
       }
-    }
-    if (isClosed) {
-      return;
+
+      if (isClosed) {
+        return;
+      }
     }
     if (hasChanges) {
       await add(allMatching, cooperator);
@@ -166,6 +192,7 @@ class QueryListenerController<K, V> extends _ControllerBase {
   String toString() => 'QueryListenerCtlr($_id)';
 
   /// Restart controller.
+  @override
   void restart() {
     if (_shouldAdd) {
       if (debugListener) {
@@ -256,7 +283,7 @@ class StoreListener {
   /// Our store.
   final StoreRef store;
   final _records = <Object?, List<RecordListenerController>>{};
-  final _queries = <QueryListenerController>[];
+  final _stores = <StoreListenerController>[];
 
   /// Store listener.
   StoreListener(this.store);
@@ -275,16 +302,16 @@ class StoreListener {
   }
 
   /// Add a query.
-  QueryListenerController<K, V> addQuery<K, V>(
-      QueryListenerController<K, V> ctlr) {
-    _queries.add(ctlr);
+  StoreListenerController<K, V> addQuery<K, V>(
+      StoreListenerController<K, V> ctlr) {
+    _stores.add(ctlr);
     return ctlr;
   }
 
   /// Remove a query.
-  void removeQuery(QueryListenerController ctlr) {
+  void removeStore(StoreListenerController ctlr) {
     ctlr.close();
-    _queries.remove(ctlr);
+    _stores.remove(ctlr);
   }
 
   /// Remove a record.
@@ -314,18 +341,18 @@ class StoreListener {
 
   /// True if record has a listener.
   bool keyHasAnyListener(dynamic key) =>
-      hasQueryListener || keyHasRecordListener(key);
+      hasStoreListener || keyHasRecordListener(key);
 
   /// True if there is a query listener
-  bool get hasQueryListener => _queries.isNotEmpty;
+  bool get hasStoreListener => _stores.isNotEmpty;
 
   /// Get list of query listeners, never null
-  List<QueryListenerController<K, V>> getQueryListenerControllers<K, V>() {
-    return _queries.cast<QueryListenerController<K, V>>();
+  List<StoreListenerController<K, V>> getStoreListenerControllers<K, V>() {
+    return _stores.cast<StoreListenerController<K, V>>();
   }
 
   /// true if empty.
-  bool get isEmpty => _records.isEmpty && _queries.isEmpty;
+  bool get isEmpty => _records.isEmpty && _stores.isEmpty;
 
   /// Restart listening on the store and its records.
   void restart() {
@@ -334,7 +361,7 @@ class StoreListener {
         recordController.restart();
       }
     }
-    for (var queryController in _queries) {
+    for (var queryController in _stores) {
       queryController.restart();
     }
   }
@@ -381,14 +408,31 @@ class DatabaseListener {
   }
 
   /// Add a query controller.
-  void addQueryController<K, V>(QueryListenerController<K, V> ctlr) {
-    var storeRef = ctlr.queryRef.store;
+  void addQueryController<K, V>(StoreListenerController<K, V> ctlr) {
+    var storeRef = ctlr.storeRef;
     var store = _stores[storeRef];
     if (store == null) {
       store = StoreListener(storeRef);
       _stores[storeRef] = store;
     }
     store.addQuery<K, V>(ctlr);
+  }
+
+  /// Add a count.
+  CountListenerController<K, V> addCount<K, V>(FilterRef<K, V> filterRef,
+      {required void Function()? onListen}) {
+    var ctlr = newCount(filterRef, onListen: onListen);
+    addQueryController(ctlr);
+    return ctlr;
+  }
+
+  /// Create a query.
+  CountListenerController<K, V> newCount<K, V>(FilterRef<K, V> filterRef,
+      {required void Function()? onListen}) {
+    var ctlr = CountListenerController<K, V>(
+        this, filterRef as SembastFilterRef<K, V>,
+        onListen: onListen);
+    return ctlr;
   }
 
   /// Remove a record controller.
@@ -406,12 +450,12 @@ class DatabaseListener {
   }
 
   /// remove a query controller.
-  void removeQuery(QueryListenerController ctlr) {
+  void removeStore(StoreListenerController ctlr) {
     ctlr.close();
-    var storeRef = ctlr.queryRef.store;
+    var storeRef = ctlr.storeRef;
     var store = _stores[storeRef];
     if (store != null) {
-      store.removeQuery(ctlr);
+      store.removeStore(ctlr);
       if (store.isEmpty) {
         _stores.remove(storeRef);
       }
@@ -435,7 +479,7 @@ class DatabaseListener {
   /// Close and clear listeners.
   void close() {
     for (var storeListener in _stores.values) {
-      for (var queryListener in storeListener._queries) {
+      for (var queryListener in storeListener._stores) {
         queryListener.close();
       }
       for (var recordListeners in storeListener._records.values) {
@@ -450,4 +494,146 @@ class DatabaseListener {
   /// True if the record as a listener
   bool recordHasAnyListener(RecordRef record) =>
       getStore(record.store)?.keyHasAnyListener(record.key) ?? false;
+}
+
+/// Query listener controller.
+class CountListenerController<K, V> extends StoreListenerControllerBase<K, V> {
+  /// onListen to start or restart query.
+  void Function()? onListen;
+
+  /// The query.
+
+  final SembastFilterRef<K, V> filterRef;
+
+  /// The filter
+  Filter? get filter => filterRef.filter;
+
+  StreamController<int>? _streamController;
+
+  /// True when the first data has arrived
+  @override
+  bool get hasInitialData => list != null;
+
+  /// true if closed.
+  bool get isClosed => _streamController!.isClosed;
+
+  /// The current list
+  Set<dynamic>? list;
+
+  /// Last count
+  int? lastCount;
+
+  /// The filter.
+  SembastFilterBase? get filterBase => filter as SembastFilterBase?;
+
+  /// close controller.
+  @override
+  void close() {
+    _streamController?.close();
+  }
+
+  /// Query listener controller.
+  CountListenerController(DatabaseListener listener, this.filterRef,
+      {required this.onListen}) {
+    // devPrint('query $queryRef');
+
+    _streamController = StreamController<int>(onCancel: () {
+      // Auto remove
+      if (debugListener) {
+        print('onCancel $this');
+      }
+      listener.removeStore(this);
+      close();
+    }, onListen: () {
+      if (debugListener) {
+        print('onListen $this');
+      }
+      onListen!();
+    });
+  }
+
+  /// stream.
+  Stream<int> get stream => _streamController!.stream;
+
+  bool get _shouldAdd => !isClosed && _streamController!.hasListener;
+
+  /// Add data to stream, allMatching is already sorted
+  void add(Set<dynamic> keys, Cooperator? cooperator) {
+    var changed = list?.length != keys.length;
+    // Filter only
+    list = keys;
+    //var list = recordsLimit(_allMatching, finder);
+
+    // devPrint('adding $allMatching / limit $list / $finder');
+    if (changed && _shouldAdd) {
+      _streamController?.add(keys.length);
+    }
+  }
+
+  /// Add error.
+  void addError(Object error, StackTrace stackTrace) {
+    if (!_shouldAdd) {
+      return;
+    }
+    _streamController!.addError(error, stackTrace);
+  }
+
+  /// Update the records.
+  ///
+  /// We are async safe here
+  @override
+  Future update(
+      Iterable<ImmutableSembastRecord> records, Cooperator? cooperator) async {
+    if (!_shouldAdd) {
+      return;
+    }
+    var keys = Set.from(list!);
+
+    for (var record in records) {
+      if (filterMatchesRecord(filter, record) && !record.deleted) {
+        keys.add(record.key);
+      } else {
+        keys.remove(record.key);
+      }
+    }
+
+    for (var txnRecord in records) {
+      var key = txnRecord.key;
+
+      // By default matches if non-deleted
+      var matches =
+          !txnRecord.deleted && filterMatchesRecord(filter, txnRecord);
+
+      if (matches) {
+        keys.add(key);
+      } else {
+        keys.remove(key);
+      }
+
+      if (cooperator?.needCooperate ?? false) {
+        await cooperator!.cooperate();
+      }
+      if (isClosed) {
+        return;
+      }
+    }
+    add(keys, cooperator);
+  }
+
+  @override
+  String toString() => 'CountListenerCtlr($_id)';
+
+  /// Restart controller.
+  @override
+  void restart() {
+    if (_shouldAdd) {
+      if (debugListener) {
+        print('restarting listener $this');
+      }
+      onListen!();
+    }
+  }
+
+  @override
+  StoreRef<K, V> get storeRef => filterRef.store;
 }

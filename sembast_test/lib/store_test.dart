@@ -1,5 +1,7 @@
 library sembast.store_test;
 
+import 'dart:async';
+
 import 'test_common.dart';
 
 final storeFactory = intMapStoreFactory;
@@ -485,6 +487,93 @@ void defineTests(DatabaseTestContext ctx) {
           null
         ]);
       });
+    });
+    test('onCount', () async {
+      var store = StoreRef<int, String>.main();
+      var record = store.record(1);
+      var index = 0;
+      var completer = Completer();
+
+      var sub = store.onCount(db).listen((count) {
+
+        if (index == 0) {
+          expect(count, 0);
+        } else if (index == 1) {
+          expect(count, 1);
+
+        } else if (index == 2) {
+          expect(count, 2);
+
+        } else if (index == 3) {
+          expect(count, 1);
+        }
+        if (++index == 4) {
+          completer.complete();
+        }
+      });
+      //await Future.delayed(Duration(milliseconds: 1));
+      // create
+      await record.put(db, 'test');
+
+      // add
+      await store.record(2).put(db, 'test3');
+      expect(await store.count(db), 2);
+
+      // update
+      await record.put(db, 'test2');
+
+      // delete
+      await record.delete(db);
+      await completer.future;
+      await sub.cancel();
+      expect(index, 4);
+    });
+
+    test('onCount with filter', () async {
+      var store = StoreRef<int, String>.main();
+      var record = store.record(1);
+      var index = 0;
+      var completer = Completer();
+
+      // When starting listening the record does not exists yet
+      var
+              filter = Filter.greaterThan(Field.value, 'test');
+              expect(await store.count(db, filter: filter), 0);
+
+      var sub = store.onCount(db, filter: filter).listen((snapshots) {
+
+
+        if (index == 0) {
+          expect(snapshots, 0);
+        } else if (index == 1) {
+          expect(snapshots, 1);
+        } else if (index == 2) {
+          expect(snapshots, 2);
+        } else if (index == 3) {
+          expect(snapshots, 1);
+        }
+        if (++index == 4) {
+          completer.complete();
+        }
+      });
+      //await Future.delayed(Duration(milliseconds: 1));
+      // create
+      await record.put(db, 'test2');
+      // add
+      await store.record(2).put(db, 'test1');
+      expect(await store.count(db, filter: filter), 2);
+
+      // update
+      await record.put(db, 'test1');
+
+      // change that does not affect the query
+      await store.record(3).put(db, 'dummy not in query');
+
+      // delete
+      await record.delete(db);
+      await completer.future;
+      await sub.cancel();
+      expect(index, 4);
     });
   });
 }

@@ -581,6 +581,36 @@ class SembastStore {
     return count;
   }
 
+  /// Count records in a transaction.
+  Future<Set> txnFilterKeys(SembastTransaction? txn, Filter? filter) async {
+    Set keys;
+    // no filter optimization
+    if (filter == null) {
+      // Use the current record list
+      keys = recordMap.keys.toSet();
+
+      // Apply any transaction change
+      if (_hasTransactionRecords(txn)) {
+        txnRecords!.forEach((key, value) {
+          var deleted = value.deleted;
+          if (deleted) {
+            keys.remove(key);
+          } else {
+            keys.add(key);
+          }
+        });
+      }
+    } else {
+      keys = {};
+      // There is a filter, count manually
+      await forEachRecords(txn, Finder(filter: filter), (record) {
+        keys.add(record.key);
+        return true;
+      });
+    }
+    return keys;
+  }
+
   /// Delete a record in a transaction.
   Future<Object?> txnDelete(SembastTransaction txn, var key) async {
     var record = txnGetImmutableRecordSync(txn, key);

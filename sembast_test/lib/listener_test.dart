@@ -162,12 +162,26 @@ void defineTests(DatabaseTestContext ctx) {
       expect(database.listener.isNotEmpty, isTrue);
       var ctlr = database.listener
           .getStore(store)!
-          .getQueryListenerControllers()
+          .getStoreListenerControllers()
           .first;
       ctlr.close();
 
       await completer.future;
       // devPrint(list);
+      expect(database.listener.isEmpty, isTrue);
+    });
+
+    test('FilterRef.onCount', () async {
+      var database = getDatabase(db);
+      var store = StoreRef<int, String>.main();
+
+      expect(database.listener.isEmpty, isTrue);
+      var sub = store.onCount(db).listen((snapshot) {});
+      expect(database.listener.isNotEmpty, isTrue);
+      var sub2 = store.onCount(db).listen((snapshot) {});
+      await sub.cancel();
+      expect(database.listener.isNotEmpty, isTrue);
+      await sub2.cancel();
       expect(database.listener.isEmpty, isTrue);
     });
   });

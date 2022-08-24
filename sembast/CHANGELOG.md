@@ -1,3 +1,7 @@
+## 3.3.0-dev.1
+
+* Add `StoreRef.onCount` to track filter count changes.
+
 ## 3.2.0+1
 
 * Delete obsolete jdb records on open
