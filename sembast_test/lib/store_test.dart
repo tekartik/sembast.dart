@@ -569,5 +569,16 @@ void defineTests(DatabaseTestContext ctx) {
       await sub.cancel();
       expect(index, 4);
     });
+
+    test('onCount and close', () async {
+      // Simple code to debug
+      var store = StoreRef('test');
+      var record = store.record(1);
+
+      var countListFuture = store.onCount(db).toList();
+      await record.put(db, 'test');
+      await db.close();
+      expect(await countListFuture, [0, 1]);
+    });
   });
 }

@@ -57,6 +57,8 @@ void defineTests(DatabaseTestContext ctx) {
       // Simple code to debug
       var store = StoreRef('test');
       var record = store.record(1);
+
+      var countListFuture = store.onCount(db).take(3).toList();
       await record.put(db, 'test');
       expect(await store.count(db), 1);
       try {
@@ -69,6 +71,10 @@ void defineTests(DatabaseTestContext ctx) {
         });
       } catch (_) {}
       expect(await store.count(db), 1);
+
+      await record.delete(db);
+      expect(await store.count(db), 0);
+      expect(await countListFuture, [0, 1, 0]);
     });
 
     test('drop_and_add_in_transaction', () async {
