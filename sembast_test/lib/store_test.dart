@@ -576,8 +576,14 @@ void defineTests(DatabaseTestContext ctx) {
       var record = store.record(1);
 
       var countListFuture = store.onCount(db).toList();
+
+      // Make sure to wait for at least two event to fire
+      var waitFor = store.onCount(db).take(2).toList();
       await record.put(db, 'test');
+      await waitFor;
+
       await db.close();
+      // The stream should have been closed
       expect(await countListFuture, [0, 1]);
     });
   });

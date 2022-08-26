@@ -407,8 +407,10 @@ void defineTests(DatabaseTestContext ctx) {
       var future1 = query.onSnapshots(db).first;
       await record1.put(db, 'abcd');
       var future2 = query.onSnapshots(db).first;
+      await future2;
       await record2.put(db, 'ab');
       var future3 = query.onSnapshots(db).first;
+      await future3;
       await record2.put(db, 'abd');
       var future4 = query.onSnapshots(db).first;
       await future4;
