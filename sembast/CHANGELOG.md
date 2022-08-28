@@ -1,4 +1,4 @@
-## 3.3.0-dev.1
+## 3.3.0
 
 * Add `StoreRef.onCount` to track filter count changes.
 
