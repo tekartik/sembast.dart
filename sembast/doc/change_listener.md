@@ -40,3 +40,15 @@ var subscription = query.onSnapshots(db).listen((snapshots) {
 // memory leaks
 unawaited(subscription?.cancel());
 ```
+
+You can listen to all changes in a store
+
+```dart
+// Track every store changes
+var query = store.query();
+var subscription = query.onSnapshots(db).listen((snapshots) {
+  // snapshots always contains the list of all records
+
+  // ...
+});
+```
