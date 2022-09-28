@@ -484,8 +484,7 @@ class SembastDatabase extends Object with SembastDatabaseMin implements Database
     options ??= openOptions;
     await close();
     if (_storageJdb != null) {
-      return openHelper.factory.openDatabase(path,
-          version: options.version, onVersionChanged: options.onVersionChanged, codec: options.codec, mode: options.mode);
+      return openHelper.factory.openDatabase(path, version: options.version, onVersionChanged: options.onVersionChanged, codec: options.codec, mode: options.mode);
     }
     // Reuse same open mode unless specified
     return open(options);
@@ -1244,8 +1243,7 @@ class SembastDatabase extends Object with SembastDatabaseMin implements Database
   SembastDatabase get sembastDatabase => this;
 
   @override
-  Future<T> inTransaction<T>(FutureOr<T> Function(SembastTransaction transaction) action) =>
-      transaction((txn) => action(txn as SembastTransaction));
+  Future<T> inTransaction<T>(FutureOr<T> Function(SembastTransaction transaction) action) => transaction((txn) => action(txn as SembastTransaction));
 
   // Only set during open
   @override
@@ -1399,16 +1397,14 @@ class SembastDatabase extends Object with SembastDatabaseMin implements Database
       try {
         return value.cast<Object?>() as V;
       } catch (e) {
-        throw ArgumentError.value(
-            value, 'type $V not supported', 'List must be of type List<Object?> for type ${value.runtimeType} value $value');
+        throw ArgumentError.value(value, 'type $V not supported', 'List must be of type List<Object?> for type ${value.runtimeType} value $value');
       }
     } else if (value is Map) {
       try {
         // We force the value map type for easy usage
         return value.cast<String, Object?>() as V;
       } catch (e) {
-        throw ArgumentError.value(
-            value, 'type $V not supported', 'Map must be of type Map<String, Object?> for type ${value.runtimeType} value $value');
+        throw ArgumentError.value(value, 'type $V not supported', 'Map must be of type Map<String, Object?> for type ${value.runtimeType} value $value');
       }
     }
     return value as V?;
