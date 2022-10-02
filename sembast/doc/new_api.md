@@ -69,6 +69,8 @@ var subscription = query.onSnapshots(db).listen((snapshots) {
 unawaited(subscription?.cancel());
 ```
 
+More information [here](https://github.com/tekartik/sembast.dart/blob/master/sembast/doc/change_listener.md).
+
 ## New API migration examples
 
 Some examples to migrate your code:
