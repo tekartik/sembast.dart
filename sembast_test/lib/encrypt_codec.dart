@@ -115,3 +115,36 @@ const _encryptCodecSignature = 'encrypt';
 SembastCodec getEncryptSembastCodec({required String password}) => SembastCodec(
     signature: _encryptCodecSignature,
     codec: _EncryptCodec(_generateEncryptPassword(password)));
+
+/// Wrap a factory to always use the codec
+class EncryptedDatabaseFactory implements DatabaseFactory {
+  final DatabaseFactory databaseFactory;
+  late final SembastCodec codec;
+
+  EncryptedDatabaseFactory(
+      {required this.databaseFactory, required String password}) {
+    codec = getEncryptSembastCodec(password: password);
+  }
+
+  @override
+  Future<void> deleteDatabase(String path) =>
+      databaseFactory.deleteDatabase(path);
+
+  @override
+  bool get hasStorage => databaseFactory.hasStorage;
+
+  /// To use with codec, null
+  @override
+  Future<Database> openDatabase(String path,
+      {int? version,
+      OnVersionChangedFunction? onVersionChanged,
+      DatabaseMode? mode,
+      SembastCodec? codec}) {
+    assert(codec == null);
+    return databaseFactory.openDatabase(path,
+        version: version,
+        onVersionChanged: onVersionChanged,
+        mode: mode,
+        codec: this.codec);
+  }
+}

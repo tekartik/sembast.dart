@@ -11,6 +11,16 @@ class MyJsonDecoder extends Converter<String, Object> {
   Object convert(String input) => json.decode(input) as Object;
 }
 
+class MyDecoderThrow extends Converter<String, Object> {
+  @override
+  Object convert(String input) => throw StateError('decoder throw');
+}
+
+class MyEncoderThrow extends Converter<Object?, String> {
+  @override
+  String convert(dynamic input) => throw StateError('encoder throw');
+}
+
 class MyJsonCodec extends Codec<Object?, String> {
   @override
   final Converter<String, Object> decoder = MyJsonDecoder();
@@ -47,6 +57,20 @@ class MyCustomRandomEncoder extends MyCustomEncoder {
     }
     return super.convert(input);
   }
+}
+
+class MyJsonCodecDecoderThrow extends Codec<Object?, String> {
+  @override
+  final Converter<String, Object> decoder = MyDecoderThrow();
+  @override
+  final Converter<Object?, String> encoder = MyJsonEncoder();
+}
+
+class MyJsonCodecEncoderThrow extends Codec<Object?, String> {
+  @override
+  final Converter<String, Object> decoder = MyJsonDecoder();
+  @override
+  final Converter<Object?, String> encoder = MyEncoderThrow();
 }
 
 class MyCustomRandomDecoder extends MyCustomDecoder {
