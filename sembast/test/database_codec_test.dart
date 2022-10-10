@@ -108,6 +108,33 @@ void defineTests(FileSystemTestContext ctx) {
       });
     });
 
+    group('codec_throw', () {
+      var codecDecoderThrow =
+          SembastCodec(signature: 'json', codec: MyJsonCodecDecoderThrow());
+      var codecEncoderThrow =
+          SembastCodec(signature: 'json', codec: MyJsonCodecEncoderThrow());
+
+      test('decode_throw', () async {
+        var db = await prepareOneRecordDatabase(codec: codecDecoderThrow);
+        await db.close();
+
+        db = await factory.openDatabase(dbPath!, codec: codecEncoderThrow);
+        expect((await store.find(db)).map((e) => e.value), ['test']);
+        await db.close();
+
+        await expectLater(
+            factory.openDatabase(dbPath!, codec: codecDecoderThrow),
+            throwsA(isA<Exception>()));
+      });
+      test('encode_throw', () async {
+        await prepareForDb();
+        // If codec fails, the error is transferred
+        await expectLater(
+            factory.openDatabase(dbPath!, codec: codecEncoderThrow),
+            throwsA(isA<StateError>()));
+      });
+    });
+
     group('base64_random_codec', () {
       var codec = SembastCodec(
           signature: 'base64_random', codec: MyCustomRandomCodec());
