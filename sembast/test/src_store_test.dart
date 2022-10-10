@@ -94,5 +94,21 @@ void defineTests(DatabaseTestContext ctx) {
       });
       expect(await record.get(db), 'test2');
     });
+
+    test('generateKey', () async {
+      var store = StoreRef<int, String>('int_key');
+      expect(await store.generateKey(db), 1);
+      expect(await store.generateKey(db), 2);
+      // In transaction
+      await db.transaction((txn) async {
+        expect(await store.generateKey(txn), 3);
+      });
+      var storeString = StoreRef<String, String>('string_key');
+      var key1 = await storeString.generateKey(db);
+      var key2 = await storeString.generateKey(db);
+      expect(key1.length, greaterThan(10));
+      expect(key2.length, greaterThan(10));
+      expect(key1, isNot(key2));
+    });
   });
 }

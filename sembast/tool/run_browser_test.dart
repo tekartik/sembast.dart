@@ -4,6 +4,6 @@ Future main() async {
   var shell = Shell();
 
   await shell.run('''
-pub run test -p chrome -j 1
+dart pub run test -p chrome -j 1
 ''');
 }
