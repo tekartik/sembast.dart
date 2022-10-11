@@ -5,6 +5,6 @@ Future main() async {
 
   await shell.run('''
 # single test: pub run build_runner test -- -p chrome -j 1 test/encrypt_codec_test.dart
-pub run build_runner test -- -p chrome -j 1
+dart pub run build_runner test -- -p chrome -j 1
 ''');
 }

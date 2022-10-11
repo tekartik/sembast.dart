@@ -85,6 +85,23 @@ class SembastStore {
     return key;
   }
 
+  /// Generate a new key (int or string only)
+  Future<K> txnGenerateUniqueKey<K>(SembastTransaction txn) async {
+    late K key;
+    if (K == String) {
+      key = await txnGenerateUniqueStringKey(txn) as K;
+    } else {
+      var intKey = await txnGenerateUniqueIntKey(txn);
+      try {
+        key = intKey as K;
+      } catch (e) {
+        throw ArgumentError(
+            'Invalid key type $K for generating a key. You should either use String or int or generate the key yourself.');
+      }
+    }
+    return key;
+  }
+
   /// add a record in a transaction.
   ///
   /// Return the added key.
@@ -93,19 +110,7 @@ class SembastStore {
     // We allow generating a string key
 
     if (key == null) {
-      // We make sure the key is unique
-
-      if (K == String) {
-        key = await txnGenerateUniqueStringKey(txn) as K;
-      } else {
-        var intKey = await txnGenerateUniqueIntKey(txn);
-        try {
-          key = intKey as K;
-        } catch (e) {
-          throw ArgumentError(
-              'Invalid key type $K for generating a key. You should either use String or int or generate the key yourself.');
-        }
-      }
+      key = await txnGenerateUniqueKey<K>(txn);
     } else if (await txnRecordExists(txn, key)) {
       return null;
     }
