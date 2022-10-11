@@ -1,3 +1,7 @@
+## 3.3.1
+
+* Add `StoreRef.generateKey()` to generate a unique key
+
 ## 3.3.0
 
 * Add `StoreRef.onCount` to track filter count changes.
