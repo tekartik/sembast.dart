@@ -161,10 +161,18 @@ void defineTests(DatabaseTestContext ctx) {
     test('generateKey', () async {
       var store = StoreRef<int, String>('int_key');
       expect(await store.generateKey(db), 1);
-      expect(await store.generateKey(db), 2);
+      // On idb the same key will be generated until a record is added
+      var nextKey = await store.generateKey(db);
+      if (nextKey != 1) {
+        nextKey++;
+      }
+      expect(await store.generateKey(db), nextKey);
       // In transaction
       await db.transaction((txn) async {
-        expect(await store.generateKey(txn), 3);
+        if (nextKey != 1) {
+          nextKey++;
+        }
+        expect(await store.generateKey(txn), nextKey);
       });
       var storeString = StoreRef<String, String>('string_key');
       var key1 = await storeString.generateKey(db);
