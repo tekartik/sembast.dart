@@ -1,6 +1,7 @@
-## 3.3.1
+## 3.3.1+1
 
 * Add `StoreRef.generateKey()` to generate a unique key
+* Fix export with disabled cooperator
 
 ## 3.3.0
 
