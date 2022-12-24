@@ -71,6 +71,28 @@ void defineTests(DatabaseTestContext ctx) {
       });
     });
 
+    test('1_string_record_no_cooperator', () async {
+      disableSembastCooperator();
+      try {
+        final db = await setupForTest(
+            ctx, 'compat/import_export/1_string_record_no_cooperator.db');
+        await store.record(1).put(db, 'hi');
+        await checkExportImport(db, {
+          'sembast_export': 1,
+          'version': 1,
+          'stores': [
+            {
+              'name': '_main',
+              'keys': [1],
+              'values': ['hi']
+            }
+          ]
+        });
+      } finally {
+        enableSembastCooperator();
+      }
+    });
+
     test('1_deleted_record', () async {
       final db =
           await setupForTest(ctx, 'compat/import_export/1_deleted_record.db');
