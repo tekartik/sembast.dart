@@ -127,7 +127,7 @@ class FileMemoryImpl extends FileSystemEntityMemoryImpl {
 
         break;
       case fs.FileMode.read:
-        throw 'mode READ not support for openWrite ${this}';
+        throw 'mode READ not support for openWrite $this';
       default:
         throw FileSystemExceptionMemory(path, 'invalid mode $mode');
     }
@@ -141,7 +141,7 @@ class FileMemoryImpl extends FileSystemEntityMemoryImpl {
   /// Append a line.
   void append(String line) {
     if (closed) {
-      throw '${this} already closed';
+      throw '$this already closed';
     }
     content!.add(line);
   }

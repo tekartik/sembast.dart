@@ -32,10 +32,10 @@ void main() {
 
       Future<String?> prepareForDb() async {
         dbPath = dbPathFromName('compat/io/format.db');
-        await fs
-            .directory(dirname(dbPath!))
-            .create(recursive: true)
-            .catchError((_) {});
+        var dir = fs.directory(dirname(dbPath!));
+        await dir.create(recursive: true).catchError((_) {
+          return dir;
+        });
         try {
           await fs.file(dbPath!).delete();
         } catch (_) {}
