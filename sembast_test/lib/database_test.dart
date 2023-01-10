@@ -19,21 +19,20 @@ void defineTests(DatabaseTestContext ctx) {
     dbPath = dbPathFromName(join('compat', 'database.db'));
 
     group('open', () {
-      Database? db;
+      Database? openedDb;
 
       setUp(() async {
         await factory.deleteDatabase(dbPath);
       });
 
       tearDown(() {
-        return db?.close();
+        return openedDb?.close();
       });
 
       test('open_no_version', () async {
-        var db = await factory.openDatabase(dbPath);
+        var db = openedDb = await factory.openDatabase(dbPath);
         expect(db.version, 1);
         expect(db.path, endsWith(dbPath));
-        await db.close();
       });
 
       test('open_existing_no_version', () async {
@@ -107,14 +106,14 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     group('onVersionChanged', () {
-      Database? db;
+      Database? openedDb;
 
       setUp(() {
         return factory.deleteDatabase(dbPath).then((_) {});
       });
 
       tearDown(() {
-        return db?.close();
+        return openedDb?.close();
       });
 
       test('open_no_version', () async {
@@ -127,13 +126,12 @@ void defineTests(DatabaseTestContext ctx) {
           localNewVersion = newVersion;
         }
 
-        var db = await factory.openDatabase(dbPath,
+        var db = openedDb = await factory.openDatabase(dbPath,
             onVersionChanged: onVersionChanged);
         expect(localOldVersion, 0);
         expect(localNewVersion, 1);
         expect(db.version, 1);
         expect(db.path, endsWith(dbPath));
-        await db.close();
       });
 
       test('open_version', () async {

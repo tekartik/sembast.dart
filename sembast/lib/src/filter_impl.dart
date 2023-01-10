@@ -272,7 +272,7 @@ class SembastFilterPredicate extends SembastFilterBase
       case FilterOperation.inList:
         return (value as List).contains(record[field]);
       default:
-        throw '${this} not supported';
+        throw '$this not supported';
     }
   }
 
@@ -333,7 +333,7 @@ class FilterOperation {
       case FilterOperation.matches:
         return 'MATCHES';
       default:
-        throw '${this} not supported';
+        throw '$this not supported';
     }
   }
 }

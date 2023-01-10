@@ -24,6 +24,7 @@ void defineTests(DatabaseTestContext ctx) {
       });
 
       tearDown(() {
+        // ignore: dead_code
         return db?.close();
       });
 
@@ -46,6 +47,7 @@ void defineTests(DatabaseTestContext ctx) {
       });
 
       tearDown(() {
+        // ignore: dead_code
         return db?.close();
       });
 
@@ -100,7 +102,7 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     group('format', () {
-      Database? db;
+      SembastDatabase? db;
 
       setUp(() {
         return factory.deleteDatabase(dbPath).then((_) {});
@@ -111,17 +113,17 @@ void defineTests(DatabaseTestContext ctx) {
       });
 
       test('export', () async {
-        final db = await factory.openDatabase(dbPath) as SembastDatabase;
+        db = await factory.openDatabase(dbPath) as SembastDatabase;
         expect(
             // ignore: deprecated_member_use
-            db.toJson()['exportStat'],
+            db!.toJson()['exportStat'],
             // ignore: deprecated_member_use, deprecated_member_use_from_same_package
             factory.hasStorage ? isNotNull : isNull);
       });
     });
 
     group('openHelper', () {
-      Database? db;
+      SembastDatabase? db;
 
       setUp(() {
         return factory.deleteDatabase(dbPath).then((_) {});
@@ -132,9 +134,9 @@ void defineTests(DatabaseTestContext ctx) {
       });
 
       test('export', () async {
-        var db = await factory.openDatabase(dbPath) as SembastDatabase;
+        db = await factory.openDatabase(dbPath) as SembastDatabase;
         expect(factory.getExistingDatabaseOpenHelper(dbPath), isNotNull);
-        await db.close();
+        await db?.close();
         expect(factory.getExistingDatabaseOpenHelper(dbPath), isNull);
       });
     });
