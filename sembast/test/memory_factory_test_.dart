@@ -24,7 +24,7 @@ void defineMemoryDatabaseTests(DatabaseTestContext ctx) {
     var dbName = '';
 
     final db = await factory.openDatabase(dbName);
-    var store = StoreRef.main();
+    var store = StoreRef<int, String>.main();
     var key = await store.add(db, 'hi');
     expect(await store.record(key).get(db), 'hi');
 

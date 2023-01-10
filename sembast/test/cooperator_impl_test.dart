@@ -48,7 +48,7 @@ void main() {
       for (var i = 0; i < 5; i++) {
         futures.add(run(i));
       }
-      await Future.delayed(Duration(milliseconds: totalMs));
+      await Future<void>.delayed(Duration(milliseconds: totalMs));
       stop = true;
       sw.stop();
 

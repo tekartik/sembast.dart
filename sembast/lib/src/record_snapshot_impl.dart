@@ -1,9 +1,11 @@
-import 'package:sembast/src/api/sembast.dart';
+import 'package:meta/meta.dart';
 import 'package:sembast/src/record_impl.dart';
 import 'package:sembast/src/utils.dart';
 
+import 'import_common.dart';
+
 /// Record snapshot mixin.
-mixin RecordSnapshotMixin<K, V>
+mixin RecordSnapshotMixin<K extends Key, V extends Value>
     implements RecordSnapshot<K, V>, SembastRecordValue<V> {
   /// Record revision - jdb only
   int? revision;
@@ -42,18 +44,18 @@ mixin RecordSnapshotMixin<K, V>
   }
 
   /// Only for read-only internal access
-  dynamic getRawValue(String field) {
+  Object? getRawValue(String field) {
     if (field == Field.value) {
       return value;
     } else if (field == Field.key) {
       return key;
     } else {
-      return getMapFieldRawValue(value as Map, field);
+      return getMapFieldRawValue<Object?>(value as Map, field);
     }
   }
 
   @override
-  RecordSnapshot<RK, RV> cast<RK, RV>() {
+  RecordSnapshot<RK, RV> cast<RK extends Key, RV extends Value>() {
     if (this is RecordSnapshot<RK, RV>) {
       return this as RecordSnapshot<RK, RV>;
     }
@@ -61,8 +63,18 @@ mixin RecordSnapshotMixin<K, V>
   }
 }
 
+/// Internal helper.
+@protected
+extension SembastRecordSnapshotExt<K extends Key, V extends Value>
+    on RecordSnapshot<K, V> {
+  // Temp Internal helper.
+  // @Deprecated('User key')
+  // Object get keyAsObject => key;
+}
+
 /// Snapshot implementation.
-class SembastRecordSnapshot<K, V> with RecordSnapshotMixin<K, V> {
+class SembastRecordSnapshot<K extends Key, V extends Value>
+    with RecordSnapshotMixin<K, V> {
   /// Snapshot from an immutable record.
   SembastRecordSnapshot.fromRecord(ImmutableSembastRecord record) {
     ref = record.ref.cast<K, V>();
@@ -79,7 +91,8 @@ class SembastRecordSnapshot<K, V> with RecordSnapshotMixin<K, V> {
 /// To use to avoid slow access to protected snapshot.
 ///
 /// Used in filter
-class SembastRecordRawSnapshot<K, V> implements RecordSnapshot<K, V> {
+class SembastRecordRawSnapshot<K extends Key, V extends Value>
+    implements RecordSnapshot<K, V> {
   /// Internal snapshot.
   final RecordSnapshotMixin<K, V> snapshot;
 
@@ -96,7 +109,7 @@ class SembastRecordRawSnapshot<K, V> implements RecordSnapshot<K, V> {
   V get value => snapshot.rawValue;
 
   @override
-  RecordSnapshot<RK, RV> cast<RK, RV>() =>
+  RecordSnapshot<RK, RV> cast<RK extends Key, RV extends Value>() =>
       SembastRecordRawSnapshot<RK, RV>(snapshot.cast<RK, RV>());
 
   @override

@@ -46,9 +46,9 @@ void defineTests(DatabaseTestContext ctx) {
       expect(db.currentTransaction, null);
       await db.transaction((txn) async {
         expect(db.currentTransaction!.id, transactionIdAfterOpen + 1);
-        await Future.value();
+        await Future<void>.value();
         expect(db.currentTransaction!.id, transactionIdAfterOpen + 1);
-        await Future.value();
+        await Future<void>.value();
         expect(db.currentTransaction!.id, transactionIdAfterOpen + 1);
       });
       expect(db.currentTransaction, null);
@@ -58,7 +58,7 @@ void defineTests(DatabaseTestContext ctx) {
       expect(db.currentTransaction, null);
       // ignore: unawaited_futures
       db.transaction((txn) async {
-        await Future.value();
+        await Future<void>.value();
         expect(db.currentTransaction!.id, transactionIdAfterOpen + 1);
       });
       await db.transaction((txn) {

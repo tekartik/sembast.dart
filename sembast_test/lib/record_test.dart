@@ -112,7 +112,7 @@ void defineTests(DatabaseTestContext ctx) {
       var store = StoreRef<int, String>.main();
       var record = store.record(1);
       var index = 0;
-      var completer = Completer();
+      var completer = Completer<void>();
 
       // When starting listening the record does not exists yet
       var sub = record.onSnapshot(db).listen((snapshot) {
@@ -161,8 +161,8 @@ void defineTests(DatabaseTestContext ctx) {
         fail('should timeout');
       } on TimeoutException catch (_) {}
 
-      var completer = Completer();
-      var doneCompleter = Completer();
+      var completer = Completer<void>();
+      var doneCompleter = Completer<void>();
       // Wait for first event before closing the db
       var subscription = record.onSnapshot(db).listen((snapshot) {
         completer.complete();

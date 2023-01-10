@@ -9,7 +9,7 @@ import 'package:sembast/src/database_impl.dart';
 Future main() async {
   var db = await databaseFactoryIo
       .openDatabase(join('example', 'io', 'test_out', 'random.db'));
-  var store = StoreRef.main();
+  var store = StoreRef<int, String>.main();
   // randomly write
 
   final keyCount = 50;

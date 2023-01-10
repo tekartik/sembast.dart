@@ -58,7 +58,7 @@ class JdbEntryMemory implements jdb.JdbReadEntry {
   late int id;
 
   @override
-  Object? value;
+  late Value value;
 
   @override
   late RecordRef record;

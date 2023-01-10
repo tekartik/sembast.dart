@@ -28,7 +28,7 @@ class StoreContent {
   }
 
   /// Get a single record.
-  ImmutableSembastRecord? record(key) => _map[key];
+  ImmutableSembastRecord? record(Object key) => _map[key];
 
   @override
   String toString() => '${store.name} ${records.length}';

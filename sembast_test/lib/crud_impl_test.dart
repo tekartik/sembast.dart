@@ -10,7 +10,7 @@ void defineTests(DatabaseTestContext ctx) {
   group('crud_impl', () {
     late Database db;
 
-    var store = StoreRef.main();
+    var store = StoreRef<int, Object>.main();
 
     setUp(() async {
       db = await setupForTest(ctx, 'crud_impl.db');
@@ -29,7 +29,9 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     test('put_nokey_close_put', () async {
-      expect(await store.add(db, 'hi'), 1);
+      var key = await store.add(db, 'hi');
+      print(key);
+      expect(key, 1);
       db = await reOpen(db);
       expect(await store.add(db, 'hi'), 2);
     });
@@ -53,6 +55,7 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     test('put_close_get_key_string', () async {
+      var store = StoreRef<String, Object>.main();
       var record = store.record('1');
       await record.put(db, 'hi');
       db = await reOpen(db);

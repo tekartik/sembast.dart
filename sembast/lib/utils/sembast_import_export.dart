@@ -46,8 +46,8 @@ Future<Map<String, Object?>> exportDatabase(Database db,
     stores.sort((store1, store2) => store1.name.compareTo(store2.name));
 
     for (var store in stores) {
-      final keys = [];
-      final values = [];
+      final keys = <Object?>[];
+      final values = <Object?>[];
 
       final storeExport = <String, Object?>{
         _name: store.name,
@@ -57,7 +57,7 @@ Future<Map<String, Object?>> exportDatabase(Database db,
 
       for (var record in store.currentRecords) {
         keys.add(record.key);
-        values.add(sembastDatabase.toJsonEncodable(record.value!));
+        values.add(sembastDatabase.toJsonEncodable(record.value));
         if (sembastDatabase.cooperator?.needCooperate ?? false) {
           await sembastDatabase.cooperator!.cooperate();
         }
@@ -117,8 +117,9 @@ Future<Database> importDatabase(
         var store =
             (txn as SembastTransaction).getSembastStore(StoreRef(storeName));
         for (var i = 0; i < keys.length; i++) {
+          var key = keys[i] as Object;
           await store.txnPut(
-              txn, sembastDatabase.fromJsonEncodable(values[i]), keys[i]);
+              txn, sembastDatabase.fromJsonEncodable(values[i]), key);
         }
       }
     }

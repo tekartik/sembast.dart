@@ -76,10 +76,10 @@ void defineTests(DatabaseTestContext ctx) {
           expect(await store.findKeys(txn, finder: finder), [record4.key]);
 
           // But not in db
-          expect(await store.find(db, finder: finder), []);
+          expect(await store.find(db, finder: finder), isEmpty);
           expect(await store.findFirst(db, finder: finder), isNull);
           expect(await store.findKey(db, finder: finder), isNull);
-          expect(await store.findKeys(db, finder: finder), []);
+          expect(await store.findKeys(db, finder: finder), isEmpty);
 
           // delete ho
           await store.record(2).delete(txn);
@@ -189,7 +189,7 @@ void defineTests(DatabaseTestContext ctx) {
         expect(snapshotsRefs(snapshots), [record1, record2, record3]);
         snapshots = await store.find(db,
             finder: Finder(filter: Filter.isNull(Field.value)));
-        expect(snapshotsRefs(snapshots), []);
+        expect(snapshotsRefs(snapshots), isEmpty);
         snapshots = await store.find(db,
             finder: Finder(filter: Filter.notNull(Field.value)));
         expect(snapshotsRefs(snapshots), [record1, record2, record3]);
@@ -520,7 +520,7 @@ void defineTests(DatabaseTestContext ctx) {
 
           finder.end = Boundary(values: ['b'], include: false);
           snapshots = await (store.find(db, finder: finder));
-          expect(snapshotsRefs(snapshots), []);
+          expect(snapshotsRefs(snapshots), isEmpty);
         });
       });
 

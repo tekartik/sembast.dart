@@ -18,7 +18,7 @@ void main() {
 
       // Get the database in a safe way
       var db = await openHelper.getDatabase();
-      await StoreRef.main().record('key').put(db, 'value');
+      await StoreRef<String, String>.main().record('key').put(db, 'value');
 
       var db1 = await openHelper.getDatabase();
       var db2 = await openHelper.getDatabase();

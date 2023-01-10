@@ -42,7 +42,7 @@ void defineTests(DatabaseTestContext ctx) {
       var store = StoreRef<int, String>.main();
       var record = store.record(1);
 
-      var done = Completer();
+      var done = Completer<void>();
       var sub = record.onSnapshot(db).listen((snapshot) {
         // devPrint('onSnapshot: $snapshot');
         if (snapshot?.value == 'test2') {
@@ -60,7 +60,7 @@ void defineTests(DatabaseTestContext ctx) {
       var store = StoreRef<int, String>.main();
       var record = store.record(1);
 
-      var done = Completer();
+      var done = Completer<void>();
       var sub = store.query().onSnapshots(db).listen((snapshots) {
         // devPrint('onSnapshots: $snapshots');
         if (snapshots.isNotEmpty && snapshots.first.value == 'test2') {
@@ -77,7 +77,7 @@ void defineTests(DatabaseTestContext ctx) {
     test('Query.onSnapshots.listen', () async {
       var store = StoreRef<int, String>.main();
 
-      var done = Completer();
+      var done = Completer<void>();
       var sub = store
           .query(finder: Finder(sortOrders: [SortOrder(Field.value)]))
           .onSnapshots(db)
@@ -99,7 +99,7 @@ void defineTests(DatabaseTestContext ctx) {
       var store = StoreRef<int, String>.main();
       var record = store.record(1);
 
-      var completer = Completer();
+      var completer = Completer<void>();
 
       record.onSnapshot(db).listen((snapshot) {
         fail('should be closed');
@@ -132,7 +132,7 @@ void defineTests(DatabaseTestContext ctx) {
       var store = StoreRef<int, String>.main();
       var query = store.query();
 
-      var completer = Completer();
+      var completer = Completer<void>();
       query.onSnapshots(db).listen((snapshots) {
         fail('should be closed');
       }, onDone: () {
@@ -152,7 +152,7 @@ void defineTests(DatabaseTestContext ctx) {
       var query = store.query(
           finder: Finder(filter: Filter.custom((record) => throw 'crash')));
 
-      var completer = Completer();
+      var completer = Completer<void>();
       query.onSnapshots(db).listen((snapshot) {
         fail('should be closed');
       }, onDone: () {

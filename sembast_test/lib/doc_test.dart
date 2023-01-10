@@ -36,7 +36,7 @@ void defineTests(DatabaseTestContext ctx) {
 
       // Simple writes
       {
-        var store = StoreRef.main();
+        var store = StoreRef<String, Object>.main();
 
         await store.record('title').put(db!, 'Simple application');
         await store.record('version').put(db!, 10);
@@ -418,11 +418,10 @@ void defineTests(DatabaseTestContext ctx) {
       db = await setupForTest(ctx, 'doc/new_1.15_shop_file_format.db');
       {
         // Our shop store sample data
-        StoreRef<int?, Map<String, Object?>> store =
-            intMapStoreFactory.store('shop');
+        final store = intMapStoreFactory.store('shop');
 
-        int? lampKey;
-        int? chairKey;
+        late int lampKey;
+        late int chairKey;
         await db!.transaction((txn) async {
           // Add 2 records
           lampKey = await store.add(txn, {'name': 'Lamp', 'price': 10});
@@ -474,11 +473,10 @@ void defineTests(DatabaseTestContext ctx) {
       db = await setupForTest(ctx, 'doc/write_data.db');
       {
         // Our product store.
-        StoreRef<int?, Map<String, Object?>> store =
-            intMapStoreFactory.store('product');
+        final store = intMapStoreFactory.store('product');
 
-        int? lampKey;
-        int? chairKey;
+        late int lampKey;
+        late int chairKey;
         await db!.transaction((txn) async {
           // Add 2 records
           lampKey = await store.add(txn, {'name': 'Lamp', 'price': 10});
@@ -828,7 +826,7 @@ void defineTests(DatabaseTestContext ctx) {
       // Get the list of non-empty store names
       var names = getNonEmptyStoreNames(db!);
 
-      expect(names, []);
+      expect(names, isEmpty);
     });
     test('record change', () async {
       var database = db = await setupForTest(ctx, 'doc/record_change.db');

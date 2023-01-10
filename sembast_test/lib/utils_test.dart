@@ -19,7 +19,7 @@ void main() {
     tearDownAll(() async {
       await db.close();
     });
-    V? sanitizeInputValue<V>(dynamic value) {
+    V? sanitizeInputValue<V extends Object>(RecordValueBase value) {
       return db.sanitizeInputValue<V>(value);
     }
 
@@ -287,13 +287,13 @@ void main() {
     });
 
     test('mapValue', () {
-      var map = {};
-      expect(getPartsMapValue(map, ['test', 'sub']), null);
+      var map = <String, Object?>{};
+      expect(getPartsMapValue<int>(map, ['test', 'sub']), null);
       setPartsMapValue(map, ['test', 'sub'], 1);
       expect(map, {
         'test': {'sub': 1}
       });
-      expect(getPartsMapValue(map, ['test', 'sub']), 1);
+      expect(getPartsMapValue<int>(map, ['test', 'sub']), 1);
       setPartsMapValue(map, ['test', 'sub'], 2);
       expect(map, {
         'test': {'sub': 2}

@@ -150,6 +150,12 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
     // Deleted is an int in jdb
     var deleted = map[_deletedPath] == 1;
     Object? value;
+
+    var key = map[_keyPath] as Key;
+    var entry = jdb.JdbReadEntry()
+      ..id = cwv.key as int
+      ..record = StoreRef(map[_storePath] as String).record(key)
+      ..deleted = deleted;
     if (!deleted) {
       value = map[_valuePath] as Object;
 
@@ -161,13 +167,9 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
       value = (_options?.codec?.jsonEncodableCodec ??
               jdb.sembastDefaultJsonEncodableCodec)
           .decode(value);
-    }
 
-    var entry = jdb.JdbReadEntry()
-      ..id = cwv.key as int
-      ..record = StoreRef(map[_storePath] as String).record(map[_keyPath])
-      ..value = value
-      ..deleted = deleted;
+      entry.value = value;
+    }
     return entry;
   }
 
@@ -190,7 +192,7 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
           print('$_debugPrefix reading entry $entry');
         }
         ctlr.add(entry);
-      }).asFuture();
+      }).asFuture<void>();
 
       await ctlr.close();
     });
@@ -301,7 +303,7 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
       if (!jdbWriteEntry.deleted) {
         value = (_options?.codec?.jsonEncodableCodec ??
                 sembastDefaultJsonEncodableCodec)
-            .encode(jdbWriteEntry.value!);
+            .encode(jdbWriteEntry.value);
         if (_options?.codec?.codec != null) {
           value = _options!.codec!.codec!.encode(value);
         }
@@ -370,7 +372,7 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
           print('$_debugPrefix reading entry after revision $entry');
         }
         ctlr.add(entry);
-      }).asFuture();
+      }).asFuture<void>();
 
       await ctlr.close();
     });
@@ -461,7 +463,7 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
         value = newMap ?? value;
       }
       list.add(<String, Object?>{'id': cwv.key, 'value': value});
-    }).asFuture();
+    }).asFuture<void>();
     return list;
   }
 
@@ -480,7 +482,7 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
         newDeltaMinRevision = revision;
         cwv.delete();
       }
-    }).asFuture();
+    }).asFuture<void>();
     // devPrint('compact $newDeltaMinRevision vs $deltaMinRevision, $currentRevision');
     if (newDeltaMinRevision > deltaMinRevision) {
       await _txnPutDeltaMinRevision(txn, newDeltaMinRevision);

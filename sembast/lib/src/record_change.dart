@@ -1,11 +1,11 @@
 import 'dart:async';
 
-import 'package:sembast/sembast.dart';
+import 'import_common.dart';
 
 /// Record change info streamed during `StoreRef.onChange`.
 ///
 /// Handle both add, update and delete
-abstract class RecordChange<K, V> {
+abstract class RecordChange<K extends Key, V extends Value> {
   /// The previous record snapshot, null for record added.
   RecordSnapshot<K, V>? get oldSnapshot;
 
@@ -13,15 +13,17 @@ abstract class RecordChange<K, V> {
   RecordSnapshot<K, V>? get newSnapshot;
 
   /// Cast if needed
-  RecordChange<RK, RV> cast<RK, RV>();
+  RecordChange<RK, RV> cast<RK extends Key, RV extends Value>();
 }
 
 /// Record change listener
-typedef TransactionRecordChangeListener<K, V> = FutureOr<void> Function(
-    Transaction transaction, List<RecordChange<K, V>> changes);
+typedef TransactionRecordChangeListener<K extends Key, V extends Value>
+    = FutureOr<void> Function(
+        Transaction transaction, List<RecordChange<K, V>> changes);
 
 /// Record change helper.
-extension SembastRecordChangeExtension<K, V> on RecordChange<K, V> {
+extension SembastRecordChangeExtension<K extends Key, V extends Value>
+    on RecordChange<K, V> {
   /// The previous record value, null for record added.
   V? get oldValue => oldSnapshot?.value;
 

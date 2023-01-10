@@ -1,13 +1,14 @@
-import 'package:sembast/sembast.dart';
 import 'package:sembast/src/record_snapshot_impl.dart';
 import 'package:sembast/src/sembast_impl.dart';
 import 'package:sembast/src/store_impl.dart';
 import 'package:sembast/src/utils.dart';
 
+import 'import_common.dart';
+
 ///
 /// Internal Record, either in store or in transaction
 ///
-abstract class SembastRecord extends RecordSnapshot<Object?, Object?> {
+abstract class SembastRecord extends RecordSnapshot<Object, Object> {
   ///
   /// true if the record has been deleted
   bool get deleted;
@@ -21,7 +22,7 @@ mixin SembastRecordHelperMixin implements SembastRecord {
   ImmutableSembastRecord sembastClone(
       {SembastStore? store,
       dynamic key,
-      RecordRef<Object?, Object?>? ref,
+      RecordRef<Object, Object>? ref,
       dynamic value,
       required bool deleted}) {
     return ImmutableSembastRecord(ref ?? this.ref, (value ?? this.value) as Map,
@@ -30,7 +31,7 @@ mixin SembastRecordHelperMixin implements SembastRecord {
 
   /// Clone as deleted.
   ImmutableSembastRecord sembastCloneAsDeleted() {
-    return ImmutableSembastRecord(ref, null, deleted: true);
+    return ImmutableSembastRecord.noValue(ref, deleted: true);
   }
 
   Map<String, Object?> _toBaseMap() {
@@ -51,26 +52,26 @@ mixin SembastRecordHelperMixin implements SembastRecord {
     var map = _toBaseMap();
     // Don't write the value for deleted
     // ...and for null too anyway...
-    if (value != null && !deleted) {
+    if (!deleted) {
       map[dbRecordValueKey] = value;
     }
     return map;
   }
 
   @override
-  int get hashCode => key == null ? 0 : key.hashCode;
+  int get hashCode => key.hashCode;
 
   @override
   bool operator ==(o) {
     if (o is SembastRecord) {
-      return key == null ? false : (key == o.key);
+      return key == o.key;
     }
     return false;
   }
 }
 
 /// Used as an interface
-abstract class SembastRecordValue<V> {
+abstract class SembastRecordValue<V extends Value> {
   /// Raw value/
   late V rawValue;
 }
@@ -84,7 +85,7 @@ mixin SembastRecordMixin implements SembastRecord, SembastRecordValue {
 
   set deleted(bool deleted) => _deleted = deleted;
 
-  set value(value) => rawValue = sanitizeValueIfMap(value);
+  set value(Object value) => rawValue = sanitizeValueIfMap(value);
 }
 
 /// Immutable record in jdb.
@@ -92,7 +93,7 @@ class ImmutableSembastRecordJdb extends ImmutableSembastRecord {
   /// Immutable record in jdb.
   ///
   /// revision needed
-  ImmutableSembastRecordJdb(RecordRef ref, dynamic value,
+  ImmutableSembastRecordJdb(RecordRef ref, Value value,
       {bool deleted = false, required int revision})
       : super(ref, value, deleted: deleted) {
     this.revision = revision;
@@ -101,14 +102,17 @@ class ImmutableSembastRecordJdb extends ImmutableSembastRecord {
 
 /// Immutable record, used in storage
 class ImmutableSembastRecord
-    with SembastRecordMixin, SembastRecordHelperMixin, RecordSnapshotMixin {
+    with
+        SembastRecordMixin,
+        SembastRecordHelperMixin,
+        RecordSnapshotMixin<Object, Object> {
   @override
   set value(dynamic value) {
     throw StateError('Record is immutable. Clone to modify it');
   }
 
   @override
-  Object? get value => immutableValue(super.value);
+  Object get value => immutableValue(super.value);
 
   static var _lastRevision = 0;
 
@@ -117,14 +121,20 @@ class ImmutableSembastRecord
   }
 
   /// Record from row map.
-  ImmutableSembastRecord.fromDatabaseRowMap(Database db, Map map) {
+  ImmutableSembastRecord.fromDatabaseRowMap(Map map) {
     final storeName = map[dbStoreNameKey] as String?;
-    final storeRef = storeName == null
-        ? mainStoreRef
-        : StoreRef<Object?, Object?>(storeName);
-    ref = storeRef.record(map[dbRecordKey]);
-    super.value = sanitizeValueIfMap(map[dbRecordValueKey]);
+    final storeRef =
+        storeName == null ? mainStoreRef : StoreRef<Object, Object>(storeName);
+    var key = map[dbRecordKey] as Key?;
+    var value = map[dbRecordValueKey] as Value?;
+    if (key == null) {
+      throw StateError('Invalid map $map');
+    }
+    ref = storeRef.record(key);
     _deleted = map[dbRecordDeletedKey] == true;
+    if (!deleted) {
+      super.value = sanitizeValueIfMap(value as Value);
+    }
     revision = _makeRevision();
   }
 
@@ -133,16 +143,31 @@ class ImmutableSembastRecord
   /// We know data has been sanitized before
   /// an optional [key]
   ///
-  /// value is null for deleted record
+  /// value is null for deleted record only
   ///
-  ImmutableSembastRecord(RecordRef<Object?, Object?> ref, Object? value,
+  ImmutableSembastRecord(RecordRef<Object, Object> ref, Value? value,
       {bool deleted = false}) {
     this.ref = ref;
-    super.value = value;
     _deleted = deleted;
+    if (!deleted) {
+      super.value = value!;
+    }
     revision = _makeRevision();
   }
 
+  ///
+  /// Create a record at a given [ref] without value (access would crash)
+  ///
+  /// value is null for deleted record
+  ///
+  ImmutableSembastRecord.noValue(RecordRef<Object, Object> ref,
+      {bool deleted = false}) {
+    this.ref = ref;
+    _deleted = deleted;
+    if (deleted) {
+      revision = _makeRevision();
+    }
+  }
   @override
   String toString() {
     var map = toDatabaseRowMap();
@@ -168,16 +193,17 @@ class TxnRecord with SembastRecordHelperMixin implements SembastRecord {
   bool get deleted => record.deleted;
 
   @override
-  dynamic get key => record.key;
+  Object get key => record.key;
 
   @override
-  dynamic get value => record.value;
+  Object get value => record.value;
 
   @override
   RecordRef get ref => record.ref;
 
   @override
-  RecordSnapshot<RK, RV> cast<RK, RV>() => record.cast<RK, RV>();
+  RecordSnapshot<RK, RV> cast<RK extends Key, RV extends Value>() =>
+      record.cast<RK, RV>();
 
   /// non deleted record.
   ImmutableSembastRecord? get nonDeletedRecord => deleted ? null : record;
@@ -216,8 +242,9 @@ RecordSnapshot? makeImmutableRecordSnapshot(RecordSnapshot? record) {
 }
 
 /// create snapshot list.
-List<SembastRecordSnapshot<K, V>> immutableListToSnapshots<K, V>(
-    List<ImmutableSembastRecord> records) {
+List<SembastRecordSnapshot<K, V>>
+    immutableListToSnapshots<K extends Key, V extends Value>(
+        List<ImmutableSembastRecord> records) {
   return records
       .map((immutable) => SembastRecordSnapshot<K, V>.fromRecord(immutable))
       .toList(growable: false);

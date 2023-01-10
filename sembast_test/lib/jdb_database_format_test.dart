@@ -56,7 +56,7 @@ void defineTests(DatabaseTestContextJdb ctx) {
       await prepareForDb();
       var db = await factory.openDatabase(dbPath!);
       expect(await getJdbDatabase(db)!.exportToMap(), {
-        'entries': [],
+        'entries': <Object>[],
         'infos': [
           {
             'id': 'meta',
@@ -74,7 +74,7 @@ void defineTests(DatabaseTestContextJdb ctx) {
       await prepareForDb();
       var db = await factory.openDatabase(dbPath!, version: 2);
       expect(await getJdbDatabase(db)!.exportToMap(), {
-        'entries': [],
+        'entries': <Object>[],
         'infos': [
           {
             'id': 'meta',
@@ -92,7 +92,7 @@ void defineTests(DatabaseTestContextJdb ctx) {
       await db.close();
       db = await factory.openDatabase(dbPath!, version: 2);
       expect(await getJdbDatabase(db)!.exportToMap(), {
-        'entries': [],
+        'entries': <Object>[],
         'infos': [
           {
             'id': 'meta',
@@ -130,6 +130,7 @@ void defineTests(DatabaseTestContextJdb ctx) {
 
     test('1 string record delete compact', () async {
       await prepareForDb();
+      var store = StoreRef<int, String>.main();
       var db = await factory.openDatabase(dbPath!);
       try {
         await store.record(1).put(db, 'hi');
@@ -166,7 +167,7 @@ void defineTests(DatabaseTestContextJdb ctx) {
         });
         await compact(db);
         expect(await getJdbDatabase(db)!.exportToMap(), {
-          'entries': [],
+          'entries': <Object>[],
           'infos': [
             {'id': 'deltaMinRevision', 'value': 2},
             {
@@ -231,7 +232,7 @@ void defineTests(DatabaseTestContextJdb ctx) {
         expect(exportStat.obsoleteLineCount, 1);
         //await compact(db);
         expect(await getJdbDatabase(db)!.exportToMap(), {
-          'entries': [],
+          'entries': <Object>[],
           'infos': [
             {'id': 'deltaMinRevision', 'value': 2},
             {
@@ -315,7 +316,7 @@ void defineTests(DatabaseTestContextJdb ctx) {
             .first;
 
         await dbImportFromMap(db, {
-          'entries': [],
+          'entries': <Object>[],
           'infos': [
             {
               'id': 'meta',
@@ -329,7 +330,7 @@ void defineTests(DatabaseTestContextJdb ctx) {
         await deltaImport(db, 2);
 
         expect(await getJdbDatabase(db)!.exportToMap(), {
-          'entries': [],
+          'entries': <int>[],
           'infos': [
             {'id': 'deltaMinRevision', 'value': 2},
             {

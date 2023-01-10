@@ -818,8 +818,7 @@ class SembastDatabase extends Object
 
                 if (isMapRecord(map!)) {
                   // record?
-                  final record =
-                      ImmutableSembastRecord.fromDatabaseRowMap(this, map);
+                  final record = ImmutableSembastRecord.fromDatabaseRowMap(map);
                   if (_noTxnHasRecord(record)) {
                     _exportStat!.obsoleteLineCount++;
                   }
@@ -1122,6 +1121,7 @@ class SembastDatabase extends Object
         await transactionLock.synchronized(() async {
           var result =
               await txnJdbDeltaImport(jdbIncrementRevisionStatus.revision);
+
           // notify imported right away
           _notifyLazilyJdbImportResult(result);
         });
@@ -1147,7 +1147,6 @@ class SembastDatabase extends Object
         try {
           // devPrint('transaction ${jdbRevision}');
           actionResult = await Future<T>.sync(() => action(_transaction!));
-
           // handle changes, until all done!
           // Do this before building commit entries since record could be added
           if (changesListener.isNotEmpty) {
@@ -1348,7 +1347,7 @@ class SembastDatabase extends Object
 
           // Fix existing queries
           for (var query in List<StoreListenerController>.from(
-              storeListener.getStoreListenerControllers())) {
+              storeListener.getStoreListenerControllers<Object, Object>())) {
             Future updateQuery() async {
               if (debugListener) {
                 print(
@@ -1377,7 +1376,7 @@ class SembastDatabase extends Object
   }
 
   /// Sanitize a value.
-  dynamic sanitizeValue(value) {
+  Value? sanitizeValue(Value? value) {
     if (value == null) {
       return null;
     } else if (value is num || value is String || value is bool) {
@@ -1441,7 +1440,7 @@ class SembastDatabase extends Object
   }
 
   /// Sanitized an input value for the store
-  V? sanitizeInputValue<V>(dynamic value, {bool? update}) {
+  V sanitizeInputValue<V>(Value value, {bool? update}) {
     update ??= false;
     if (update && (value is FieldValue)) {
       throw ArgumentError.value(value, '$value not supported at root');
@@ -1463,17 +1462,17 @@ class SembastDatabase extends Object
             'Map must be of type Map<String, Object?> for type ${value.runtimeType} value $value');
       }
     }
-    return value as V?;
+    return value as V;
   }
 
   /// Listen for changes on a given store.
-  void addOnChangesListener<K, V>(
+  void addOnChangesListener<K extends Key, V extends Value>(
       StoreRef<K, V> store, TransactionRecordChangeListener<K, V> onChanges) {
     changesListener.addStoreChangesListener<K, V>(store, onChanges);
   }
 
   /// Stop listening for changes.
-  void removeOnChangesListener<K, V>(
+  void removeOnChangesListener<K extends Key, V extends Value>(
       StoreRef<K, V> store, TransactionRecordChangeListener<K, V> onChanges) {
     changesListener.removeStoreChangesListener<K, V>(store, onChanges);
   }

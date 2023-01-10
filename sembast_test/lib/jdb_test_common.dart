@@ -32,7 +32,7 @@ Future<void> jdbDatabaseImportFromMap(JdbDatabase jdb, Map map) async {
     return JdbRawWriteEntry(
         deleted: (valueMap['deleted'] as bool?) ?? false,
         value: valueMap['value'],
-        record: store.record(valueMap['key']));
+        record: store.record(valueMap['key'] as Object));
   }).toList(growable: false);
   if (entries?.isNotEmpty ?? false) {
     await jdb.addEntries(entries!);

@@ -130,9 +130,9 @@ void main() {
       expect(compareValueType(Blob.fromList([1, 2, 3]), [1, 2, 3]), -1);
       expect(compareValueType('test', [1, 2, 3]), -1);
       expect(compareValueType([1, 2, 3], 'test'), 1);
-      expect(compareValueType([1, 2, 3], {}), -1);
-      expect(compareValueType({}, [1, 2, 3]), 1);
-      expect(compareValueType({}, _Dummy1()), -1);
+      expect(compareValueType([1, 2, 3], <String, Object>{}), -1);
+      expect(compareValueType(<String, Object>{}, [1, 2, 3]), 1);
+      expect(compareValueType(<String, Object>{}, _Dummy1()), -1);
       expect(compareValueType(_Dummy1(), _Dummy2()), -1);
     });
   });

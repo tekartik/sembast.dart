@@ -1,10 +1,12 @@
-import 'package:sembast/src/api/sembast.dart';
 import 'package:sembast/src/database_client_impl.dart';
+
+import 'import_common.dart';
 
 /// Record ref sembast public extension.
 ///
 /// Provides access helper to data on the store using a given [DatabaseClient].
-extension SembastRecordsRefExtension<K, V> on RecordsRef<K, V> {
+extension SembastRecordsRefExtension<K extends Key, V extends Value>
+    on RecordsRef<K, V> {
   /// Delete records
   Future<List<K?>> delete(DatabaseClient databaseClient) async {
     var client = getClient(databaseClient);
@@ -57,7 +59,7 @@ extension SembastRecordsRefExtension<K, V> on RecordsRef<K, V> {
     return client.inTransaction((txn) async {
       return (await client
               .getSembastStore(store)
-              .txnPutAll(txn, values, keys, merge: merge))
+              .txnPutAll<K, V>(txn, values, keys, merge: merge))
           .cast<V>();
     });
   }
@@ -92,7 +94,8 @@ extension SembastRecordsRefExtension<K, V> on RecordsRef<K, V> {
 }
 
 /// Records ref mixin.
-mixin RecordsRefMixin<K, V> implements RecordsRef<K, V> {
+mixin RecordsRefMixin<K extends Key, V extends Value>
+    implements RecordsRef<K, V> {
   @override
   late StoreRef<K, V> store;
   @override
@@ -106,7 +109,7 @@ mixin RecordsRefMixin<K, V> implements RecordsRef<K, V> {
 
   /// Cast if needed
   @override
-  RecordsRef<RK, RV> cast<RK, RV>() {
+  RecordsRef<RK, RV> cast<RK extends Key, RV extends Value>() {
     if (this is RecordsRef<RK, RV>) {
       return this as RecordsRef<RK, RV>;
     }
@@ -115,7 +118,8 @@ mixin RecordsRefMixin<K, V> implements RecordsRef<K, V> {
 }
 
 /// Records ref implementation.
-class SembastRecordsRef<K, V> with RecordsRefMixin<K, V> {
+class SembastRecordsRef<K extends Key, V extends Value>
+    with RecordsRefMixin<K, V> {
   /// Records ref implementation.
   SembastRecordsRef(StoreRef<K, V> store, Iterable<K> keys) {
     this.store = store;

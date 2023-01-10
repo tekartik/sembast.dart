@@ -25,7 +25,7 @@ const String dbRecordDeletedKey = 'deleted'; // boolean
 const String dbMainStore = '_main'; // main store name;
 
 /// Main store reference.
-final mainStoreRef = StoreRef<Object?, Object?>(dbMainStore);
+final mainStoreRef = StoreRef<Object, Object>(dbMainStore);
 
 /// Jdb revision.
 const String jdbRevisionKey = 'revision';

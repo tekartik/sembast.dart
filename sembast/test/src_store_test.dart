@@ -22,18 +22,18 @@ void defineTests(DatabaseTestContext ctx) {
 
     test('delete', () async {
       expect(db.storeNames, ['_main']);
-      await StoreRef('test').drop(db);
+      await StoreRef<Object, Object>('test').drop(db);
       expect(db.storeNames, ['_main']);
     });
 
     test('delete_main', () async {
       expect(db.storeNames, ['_main']);
-      await StoreRef.main().drop(db);
+      await StoreRef<Object, Object>.main().drop(db);
       expect(db.storeNames, ['_main']);
     });
 
     test('put/delete_store', () async {
-      var store = StoreRef('test');
+      var store = StoreRef<Object, Object>('test');
       var record = store.record(1);
       await record.put(db, 'test');
       expect(db.storeNames, contains('test'));
@@ -44,7 +44,7 @@ void defineTests(DatabaseTestContext ctx) {
 
     test('find_with_limit_optimizations', () async {
       // Simple code to debug
-      var store = StoreRef('test');
+      var store = StoreRef<int, String>('test');
       var record = store.record(1);
       await record.put(db, 'test');
       var record2 = store.record(2);
@@ -55,7 +55,7 @@ void defineTests(DatabaseTestContext ctx) {
 
     test('count_optimization', () async {
       // Simple code to debug
-      var store = StoreRef('test');
+      var store = StoreRef<int, String>('test');
       var record = store.record(1);
 
       var countListFuture = store.onCount(db).take(3).toList();
@@ -78,7 +78,7 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     test('drop_and_add_in_transaction', () async {
-      var store = StoreRef('test');
+      var store = StoreRef<int, String>('test');
       var record = store.record(1);
 
       // Drop non existing store

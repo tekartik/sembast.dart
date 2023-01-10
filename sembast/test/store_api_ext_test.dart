@@ -14,7 +14,7 @@ void main() {
       StoreRef;
 
       // ignore: unnecessary_statements
-      var store = StoreRef.main();
+      var store = StoreRef<int, String>.main();
 
       // ignore: unnecessary_statements
       store.query;
@@ -25,7 +25,7 @@ void main() {
       // ignore: unnecessary_statements
       RecordRef;
       // ignore: unnecessary_statements
-      var store = StoreRef.main();
+      var store = StoreRef<int, String>.main();
 
       var record = store.record(1);
       // ignore: unnecessary_statements

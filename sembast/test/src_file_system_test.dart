@@ -296,11 +296,12 @@ void defineTests(FileSystemTestContext ctx) {
         final file = nameFile('test');
         Object? e;
         await openRead(file)
-            .listen((_) {}, onError: (_) {
-              print(_);
+            .listen((_) {}, onError: (Object e) {
+              print(e);
+              throw e;
             })
-            .asFuture()
-            .catchError((e2) {
+            .asFuture<void>()
+            .catchError((Object e2) {
               // FileSystemException: Cannot open file, path = '/media/ssd/devx/git/sembast.dart/test/out/io/fs/file/open read 1/test' (OS Error: No such file or directory, errno = 2)
               // FileSystemException: Cannot open file, path = 'current/test' (OS Error: No such file or directory, errno = 2)
               e = e2;
@@ -434,7 +435,7 @@ void defineTests(FileSystemTestContext ctx) {
         final lines = <String>[];
         await openReadLines(file).listen((String line) {
           lines.add(line);
-        }).asFuture();
+        }).asFuture<void>();
         expect(lines, ['test']);
       });
 
@@ -453,7 +454,7 @@ void defineTests(FileSystemTestContext ctx) {
         file = nameFile(join('test', 'sub', 'yet another'));
         await openReadLines(file).listen((String line) {
           lines.add(line);
-        }).asFuture();
+        }).asFuture<void>();
         expect(lines, ['test']);
       });
     });

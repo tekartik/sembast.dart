@@ -1,5 +1,6 @@
 library sembast.utils.value_utils;
 
+import 'package:sembast/src/import_common.dart';
 import 'package:sembast/src/utils.dart' as utils;
 
 /// Clone a map to make it writable.
@@ -19,4 +20,4 @@ List<Object?> cloneList(List<Object?> value) =>
 /// Other supported object remains as is.
 ///
 /// This should be used to create a writable object that can be modified.
-dynamic cloneValue(dynamic value) => utils.cloneValue(value);
+Value cloneValue(Value value) => utils.cloneValue(value);

@@ -1,4 +1,3 @@
-import 'package:sembast/sembast.dart';
 import 'package:sembast/src/common_import.dart';
 import 'package:sembast/src/database_impl.dart';
 import 'package:sembast/src/debug_utils.dart';
@@ -6,8 +5,11 @@ import 'package:sembast/src/finder_impl.dart';
 import 'package:sembast/src/listener.dart';
 import 'package:sembast/src/store_ref_impl.dart';
 
+import 'import_common.dart';
+
 /// A query is unique
-class SembastQueryRef<K, V> implements QueryRef<K, V> {
+class SembastQueryRef<K extends Key, V extends Value>
+    implements QueryRef<K, V> {
   /// The store.
   final StoreRef<K, V> store;
 

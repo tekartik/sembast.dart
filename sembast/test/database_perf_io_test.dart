@@ -11,7 +11,7 @@ import 'test_common.dart';
 
 void main() {
   test('perf', () async {
-    Future perf(int recordCount, int times,
+    Future<void> perf(int recordCount, int times,
         {int? recordSize,
         bool? bigRecord,
         int? transactionCount,

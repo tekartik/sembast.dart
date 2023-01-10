@@ -1,4 +1,3 @@
-import 'package:sembast/src/api/sembast.dart';
 import 'package:sembast/src/common_import.dart';
 import 'package:sembast/src/database_client_impl.dart';
 import 'package:sembast/src/database_impl.dart';
@@ -6,8 +5,11 @@ import 'package:sembast/src/debug_utils.dart';
 import 'package:sembast/src/listener.dart';
 import 'package:sembast/src/record_snapshot_impl.dart';
 
+import 'import_common.dart';
+
 /// Record ref mixin.
-mixin RecordRefMixin<K, V> implements RecordRef<K, V> {
+mixin RecordRefMixin<K extends Key, V extends Value>
+    implements RecordRef<K, V> {
   @override
   late StoreRef<K, V> store;
   @override
@@ -18,7 +20,7 @@ mixin RecordRefMixin<K, V> implements RecordRef<K, V> {
 
   /// Cast if needed
   @override
-  RecordRef<RK, RV> cast<RK, RV>() {
+  RecordRef<RK, RV> cast<RK extends Key, RV extends Value>() {
     if (this is RecordRef<RK, RV>) {
       return this as RecordRef<RK, RV>;
     }
@@ -38,7 +40,8 @@ mixin RecordRefMixin<K, V> implements RecordRef<K, V> {
 }
 
 /// Record ref implementation.
-class SembastRecordRef<K, V> with RecordRefMixin<K, V> {
+class SembastRecordRef<K extends Key, V extends Value>
+    with RecordRefMixin<K, V> {
   /// Record ref implementation.
   SembastRecordRef(StoreRef<K, V> store, K key) {
     this.store = store;
@@ -49,7 +52,8 @@ class SembastRecordRef<K, V> with RecordRefMixin<K, V> {
 /// Record ref sembast public extension.
 ///
 /// Provides access helper to data on the store using a given [DatabaseClient].
-extension SembastRecordRefExtension<K, V> on RecordRef<K, V> {
+extension SembastRecordRefExtension<K extends Key, V extends Value>
+    on RecordRef<K, V> {
   /// Create a snapshot of a record with a given value.
   RecordSnapshot<K, V> snapshot(V value) => SembastRecordSnapshot(this, value);
 
@@ -58,9 +62,9 @@ extension SembastRecordRefExtension<K, V> on RecordRef<K, V> {
   /// Returns the key if inserted, null otherwise.
   Future<K?> add(DatabaseClient databaseClient, V value) async {
     var client = getClient(databaseClient);
-    value = client.sembastDatabase.sanitizeInputValue<V>(value) as V;
+    value = client.sembastDatabase.sanitizeInputValue<V>(value);
     return await client.inTransaction((txn) {
-      return client.getSembastStore(store).txnAdd<K, V>(txn, value, key);
+      return client.getSembastStore(store).txnAdd<K>(txn, value, key);
     });
   }
 
@@ -71,8 +75,7 @@ extension SembastRecordRefExtension<K, V> on RecordRef<K, V> {
   /// Returns the updated value.
   Future<V> put(DatabaseClient databaseClient, V value, {bool? merge}) async {
     var client = getClient(databaseClient);
-    value =
-        client.sembastDatabase.sanitizeInputValue<V>(value, update: merge) as V;
+    value = client.sembastDatabase.sanitizeInputValue<V>(value, update: merge);
     return (await client.inTransaction((txn) {
       return client
           .getSembastStore(store)
@@ -88,8 +91,7 @@ extension SembastRecordRefExtension<K, V> on RecordRef<K, V> {
   /// Returns the updated value.
   Future<V?> update(DatabaseClient databaseClient, V value) async {
     var client = getClient(databaseClient);
-    value =
-        client.sembastDatabase.sanitizeInputValue<V>(value, update: true) as V;
+    value = client.sembastDatabase.sanitizeInputValue<V>(value, update: true);
     return await client.inTransaction((txn) {
       return client.getSembastStore(store).txnUpdate(txn, value, key);
     }) as V?;

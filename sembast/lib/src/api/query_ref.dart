@@ -1,7 +1,7 @@
-import 'package:sembast/src/api/sembast.dart';
+import 'package:sembast/src/import_common.dart';
 
 /// A query on a store.
-abstract class QueryRef<K, V> {
+abstract class QueryRef<K extends Key, V extends Value> {
   /// Find multiple records and listen for changes.
   ///
   /// Returns a single subscriber stream that must be cancelled.

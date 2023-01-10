@@ -28,7 +28,7 @@ void defineTests(DatabaseTestContext ctx, int putCount,
         futures.add(store.record(i).put(db, 'value $i'));
         // let it breathe
         //print(i);
-        await Future.delayed(const Duration());
+        await Future<void>.delayed(Duration.zero);
       }
       await Future.wait(futures);
       expect(await store.count(db), putCount);

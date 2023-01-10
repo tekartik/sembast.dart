@@ -149,7 +149,7 @@ void main() {
     });
 
     test('modified', () {
-      var map = {};
+      var map = <String, Object>{};
       expect(identical(map, map), isTrue);
 
       var codec = JsonEncodableCodec(adapters: [sembastTimestampAdapter]);
@@ -161,7 +161,7 @@ void main() {
         true,
         //null,
         //<Object? , Object?>{},
-        [],
+        <Object>[],
         [
           {
             'test': [
@@ -345,7 +345,7 @@ void main() {
         true,
         // null,
         //<Object? , Object?>{},
-        [],
+        <Object>[],
         [
           {
             'test': [

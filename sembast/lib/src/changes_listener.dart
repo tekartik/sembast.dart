@@ -1,11 +1,11 @@
-import 'package:sembast/sembast.dart';
 import 'package:sembast/src/common_import.dart';
 import 'package:sembast/src/transaction_impl.dart';
 
-import 'api/sembast.dart';
+import 'import_common.dart';
 
 /// Transaction record change implementation
-class SembastTransactionRecordChange<K, V> implements RecordChange<K, V> {
+class SembastTransactionRecordChange<K extends Key, V extends Value>
+    implements RecordChange<K, V> {
   @override
   final RecordSnapshot<K, V>? oldSnapshot;
 
@@ -16,7 +16,7 @@ class SembastTransactionRecordChange<K, V> implements RecordChange<K, V> {
   SembastTransactionRecordChange(this.oldSnapshot, this.newSnapshot);
 
   @override
-  RecordChange<RK, RV> cast<RK, RV>() {
+  RecordChange<RK, RV> cast<RK extends Key, RV extends Value>() {
     if (this is RecordChange<RK, RV>) {
       return this as RecordChange<RK, RV>;
     } else {
@@ -27,7 +27,7 @@ class SembastTransactionRecordChange<K, V> implements RecordChange<K, V> {
 }
 
 /// Store change listener.
-class StoreChangesListener<K, V> {
+class StoreChangesListener<K extends Key, V extends Value> {
   /// The listener
   final TransactionRecordChangeListener<K, V> onChangeListener;
 
@@ -144,7 +144,7 @@ class DatabaseChangesListener {
   }
 
   /// Add a store change listener
-  void addStoreChangesListener<K, V>(
+  void addStoreChangesListener<K extends Key, V extends Value>(
       StoreRef<K, V> store, TransactionRecordChangeListener<K, V> onChanges) {
     var storeChangesListeners = _stores[store];
     if (storeChangesListeners == null) {
@@ -154,7 +154,7 @@ class DatabaseChangesListener {
   }
 
   /// Add a store change listener
-  void removeStoreChangesListener<K, V>(
+  void removeStoreChangesListener<K extends Key, V extends Value>(
       StoreRef<K, V> store, TransactionRecordChangeListener<K, V> onChanges) {
     var storeChangesListeners = _stores[store];
     if (storeChangesListeners != null) {

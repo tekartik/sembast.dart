@@ -50,7 +50,7 @@ void main() {
         var db = await databaseFactoryIo.openDatabase(dbPath!);
         expect(db.version, 2);
 
-        await StoreRef.main().record('key').put(db, 'value');
+        await StoreRef<String, String>.main().record('key').put(db, 'value');
 
         //print(await new io.File(dbPath).readAsString());
 
@@ -77,7 +77,7 @@ void main() {
         var db = await databaseFactoryIo.openDatabase(dbPath!);
         expect(db.version, 2);
 
-        await StoreRef.main().add(db, 'value3');
+        await StoreRef<int, String>.main().add(db, 'value3');
 
         //print(await new io.File(dbPath).readAsString());
 

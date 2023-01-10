@@ -6,12 +6,12 @@ import 'package:sembast/src/filter_impl.dart' show filterMatchesRecord;
 
 import 'test_common.dart';
 
-var store = StoreRef.main();
+var store = StoreRef<int, Object>.main();
 var record = store.record(1);
 
-RecordSnapshot snapshot(dynamic value) => record.snapshot(value);
+RecordSnapshot snapshot(Object value) => record.snapshot(value);
 
-bool _match(Filter? filter, dynamic value) {
+bool _match(Filter? filter, Object value) {
   return filterMatchesRecord(filter, snapshot(value));
 }
 
@@ -24,18 +24,18 @@ void main() {
       var filter = Filter.equals('test', 1);
       expect(_match(filter, {'test': 1}), isTrue);
       expect(_match(filter, {'test': null}), isFalse);
-      expect(_match(filter, {'test': {}}), isFalse);
-      expect(_match(filter, {'test': []}), isFalse);
+      expect(_match(filter, {'test': <String, Object>{}}), isFalse);
+      expect(_match(filter, {'test': <int>[]}), isFalse);
       expect(
           _match(filter, {
             'test': [1]
           }),
           isFalse);
       expect(_match(filter, {'no_test': null}), isFalse);
-      expect(_match(filter, {}), isFalse);
-      expect(_match(filter, null), isFalse);
+      expect(_match(filter, <String, Object>{}), isFalse);
+      // expect(_match(filter, null), isFalse);
       expect(_match(filter, 'test'), isFalse);
-      expect(_match(filter, []), isFalse);
+      expect(_match(filter, <Object>[]), isFalse);
 
       filter = Filter.equals('test', 1, anyInList: true);
       expect(
@@ -48,22 +48,22 @@ void main() {
             'test': ['no', 1, true]
           }),
           isTrue);
-      expect(_match(filter, {'test': {}}), isFalse);
+      expect(_match(filter, {'test': <String, Object>{}}), isFalse);
       expect(_match(filter, {'test': 1}), isFalse);
       expect(_match(filter, {'test': null}), isFalse);
-      expect(_match(filter, {'test': []}), isFalse);
+      expect(_match(filter, {'test': <Object>[]}), isFalse);
       expect(_match(filter, {'no_test': null}), isFalse);
-      expect(_match(filter, {}), isFalse);
-      expect(_match(filter, null), isFalse);
+      expect(_match(filter, <String, Object>{}), isFalse);
+      // expect(_match(filter, null), isFalse);
       expect(_match(filter, 'test'), isFalse);
-      expect(_match(filter, []), isFalse);
+      expect(_match(filter, <Object>[]), isFalse);
     });
 
     test('equalsMap', () {
       var filter = Filter.equals('test', {'sub': 1});
       var notFilter = Filter.notEquals('test', {'sub': 1});
 
-      void testEquals(Object? value, bool success) {
+      void testEquals(Object value, bool success) {
         expect(_match(filter, value), success);
         expect(_match(notFilter, value), !success);
       }
@@ -73,8 +73,8 @@ void main() {
       }, true);
       testEquals({'no_test': null}, false);
       testEquals({'test': null}, false);
-      testEquals({'test': {}}, false);
-      testEquals({'test': []}, false);
+      testEquals({'test': <String, Object>{}}, false);
+      testEquals({'test': <Object>[]}, false);
       testEquals({
         'test': {'sub': 2}
       }, false);
@@ -84,7 +84,7 @@ void main() {
       var filter = Filter.equals('test', [1]);
       var notFilter = Filter.notEquals('test', [1]);
 
-      void testEquals(Object? value, bool success) {
+      void testEquals(Object value, bool success) {
         expect(_match(filter, value), success);
         expect(_match(notFilter, value), !success);
       }
@@ -94,8 +94,8 @@ void main() {
       }, true);
       testEquals({'no_test': null}, false);
       testEquals({'test': null}, false);
-      testEquals({'test': {}}, false);
-      testEquals({'test': []}, false);
+      testEquals({'test': <String, Object>{}}, false);
+      testEquals({'test': <Object>[]}, false);
       testEquals({
         'test': [2]
       }, false);
@@ -125,7 +125,7 @@ void main() {
       expect(_match(filter, {'test': 1}), isTrue);
       expect(_match(filter, {'test': 2}), isTrue);
       expect(_match(filter, {'test': 0}), isFalse);
-      expect(_match(filter, {}), isFalse);
+      expect(_match(filter, <String, Object>{}), isFalse);
     });
 
     test('greaterThan', () {
@@ -133,7 +133,7 @@ void main() {
       expect(_match(filter, {'test': 1}), isFalse);
       expect(_match(filter, {'test': 2}), isTrue);
       expect(_match(filter, {'test': 0}), isFalse);
-      expect(_match(filter, {}), isFalse);
+      expect(_match(filter, <String, Object>{}), isFalse);
     });
 
     test('or', () {
@@ -157,39 +157,45 @@ void main() {
     final neverMatchFilter = Filter.custom((_) => false);
 
     test('operator | and &', () {
-      expect(_match(alwaysMatchFilter | alwaysMatchFilter, null), isTrue);
-      expect(_match(alwaysMatchFilter & alwaysMatchFilter, null), isTrue);
-      expect(_match(alwaysMatchFilter | neverMatchFilter, null), isTrue);
-      expect(_match(neverMatchFilter | alwaysMatchFilter, null), isTrue);
-      expect(_match(alwaysMatchFilter & neverMatchFilter, null), isFalse);
-      expect(_match(neverMatchFilter & alwaysMatchFilter, null), isFalse);
+      expect(_match(alwaysMatchFilter | alwaysMatchFilter, 'dummy'), isTrue);
+      expect(_match(alwaysMatchFilter & alwaysMatchFilter, 'dummy'), isTrue);
+      expect(_match(alwaysMatchFilter | neverMatchFilter, 'dummy'), isTrue);
+      expect(_match(neverMatchFilter | alwaysMatchFilter, 'dummy'), isTrue);
+      expect(_match(alwaysMatchFilter & neverMatchFilter, 'dummy'), isFalse);
+      expect(_match(neverMatchFilter & alwaysMatchFilter, 'dummy'), isFalse);
       // precedence
       // Dart's precedence rules specify & to have higher precedence than |
       expect(
-          _match(
-              neverMatchFilter | alwaysMatchFilter & alwaysMatchFilter, null),
+          _match(neverMatchFilter | alwaysMatchFilter & alwaysMatchFilter,
+              'dummy'),
           isTrue);
-      expect(
-          _match(alwaysMatchFilter | neverMatchFilter & neverMatchFilter, null),
-          isTrue);
-      expect(
-          _match(neverMatchFilter | alwaysMatchFilter & neverMatchFilter, null),
-          isFalse);
-      expect(
-          _match(neverMatchFilter | neverMatchFilter & alwaysMatchFilter, null),
-          isFalse);
       expect(
           _match(
-              neverMatchFilter & alwaysMatchFilter | alwaysMatchFilter, null),
+              alwaysMatchFilter | neverMatchFilter & neverMatchFilter, 'dummy'),
           isTrue);
       expect(
-          _match(neverMatchFilter & neverMatchFilter | alwaysMatchFilter, null),
-          isTrue);
-      expect(
-          _match(neverMatchFilter & alwaysMatchFilter | neverMatchFilter, null),
+          _match(
+              neverMatchFilter | alwaysMatchFilter & neverMatchFilter, 'dummy'),
           isFalse);
       expect(
-          _match(alwaysMatchFilter & neverMatchFilter | neverMatchFilter, null),
+          _match(
+              neverMatchFilter | neverMatchFilter & alwaysMatchFilter, 'dummy'),
+          isFalse);
+      expect(
+          _match(neverMatchFilter & alwaysMatchFilter | alwaysMatchFilter,
+              'dummy'),
+          isTrue);
+      expect(
+          _match(
+              neverMatchFilter & neverMatchFilter | alwaysMatchFilter, 'dummy'),
+          isTrue);
+      expect(
+          _match(
+              neverMatchFilter & alwaysMatchFilter | neverMatchFilter, 'dummy'),
+          isFalse);
+      expect(
+          _match(
+              alwaysMatchFilter & neverMatchFilter | neverMatchFilter, 'dummy'),
           isFalse);
     });
 
@@ -211,25 +217,29 @@ void main() {
       expect(_match(filter, {'test': 2}), isFalse);
       expect(_match(filter, {'test': 0}), isTrue);
       expect(_match(filter, {'test': null}), isFalse);
-      expect(_match(filter, {}), isFalse);
+      expect(_match(filter, <String, Object>{}), isFalse);
     });
 
     test('key', () {
+      var store = StoreRef<Object, Object>.main();
       var filter = Filter.byKey(1);
-      expect(_match(filter, null), isTrue);
+      expect(_match(filter, 'dummy'), isTrue);
+      expect(filterMatchesRecord(filter, store.record(1).snapshot('dummy')),
+          isTrue);
       expect(
-          filterMatchesRecord(filter, store.record(1).snapshot(null)), isTrue);
-      expect(filterMatchesRecord(filter, store.record('dummy').snapshot(null)),
+          filterMatchesRecord(filter, store.record('dummy').snapshot('dummy')),
+          isFalse);
+      expect(filterMatchesRecord(filter, store.record(2).snapshot('dummy')),
+          isFalse);
+      filter = Filter.byKey('my_key');
+      expect(
+          filterMatchesRecord(filter, store.record('my_key').snapshot('dummy')),
+          isTrue);
+      expect(_match(filter, 'dummy'), isFalse);
+      expect(filterMatchesRecord(filter, store.record(1).snapshot('dummy')),
           isFalse);
       expect(
-          filterMatchesRecord(filter, store.record(2).snapshot(null)), isFalse);
-      filter = Filter.byKey('my_key');
-      expect(filterMatchesRecord(filter, store.record('my_key').snapshot(null)),
-          isTrue);
-      expect(_match(filter, null), isFalse);
-      expect(
-          filterMatchesRecord(filter, store.record(1).snapshot(null)), isFalse);
-      expect(filterMatchesRecord(filter, store.record('dummy').snapshot(null)),
+          filterMatchesRecord(filter, store.record('dummy').snapshot('dummy')),
           isFalse);
     });
 
@@ -239,14 +249,13 @@ void main() {
       expect(_match(filter, {'test': 2}), isFalse);
       expect(_match(filter, {'test': 0}), isTrue);
       expect(_match(filter, {'test': null}), isFalse);
-      expect(_match(filter, {}), isFalse);
+      expect(_match(filter, <String, Object>{}), isFalse);
     });
 
     test('custom', () {
       var filter = Filter.custom((record) => record['valid'] == true);
       expect(_match(filter, {'valid': true}), isTrue);
       expect(_match(filter, {'valid': false}), isFalse);
-      expect(_match(filter, null), isFalse);
       expect(_match(filter, 'dummy'), isFalse);
       expect(_match(filter, {'valid': 1}), isFalse);
       expect(_match(filter, {'_valid': 1}), isFalse);
@@ -255,24 +264,25 @@ void main() {
     });
 
     test('matches', () {
+      var store = StoreRef<Object, Object>.main();
       var filter = Filter.matches('test', '^f');
       expect(_match(filter, {'test': 'fish'}), isTrue);
       expect(_match(filter, {'test': 'f'}), isTrue);
       expect(_match(filter, {'test': 'e'}), isFalse);
       expect(_match(filter, {'test': 'g'}), isFalse);
       expect(_match(filter, {'test': null}), isFalse);
-      expect(_match(filter, {'test': {}}), isFalse);
-      expect(_match(filter, {'test': []}), isFalse);
+      expect(_match(filter, {'test': <String, Object?>{}}), isFalse);
+      expect(_match(filter, {'test': <Object>[]}), isFalse);
       expect(
           _match(filter, {
             'test': [1]
           }),
           isFalse);
       expect(_match(filter, {'no_test': null}), isFalse);
-      expect(_match(filter, {}), isFalse);
-      expect(_match(filter, null), isFalse);
+      expect(_match(filter, <String, Object>{}), isFalse);
+      expect(_match(filter, 'dummy'), isFalse);
       expect(_match(filter, 'test'), isFalse);
-      expect(_match(filter, []), isFalse);
+      expect(_match(filter, <Object>[]), isFalse);
 
       filter = Filter.matches('test', '^f', anyInList: true);
       expect(
@@ -306,24 +316,24 @@ void main() {
           }),
           isFalse);
 
-      expect(_match(filter, {'test': {}}), isFalse);
+      expect(_match(filter, {'test': <String, Object>{}}), isFalse);
       expect(_match(filter, {'test': 1}), isFalse);
       expect(_match(filter, {'test': null}), isFalse);
-      expect(_match(filter, {'test': []}), isFalse);
+      expect(_match(filter, {'test': <Object>[]}), isFalse);
       expect(_match(filter, {'no_test': null}), isFalse);
-      expect(_match(filter, {}), isFalse);
-      expect(_match(filter, null), isFalse);
+      expect(_match(filter, <String, Object>{}), isFalse);
+      expect(_match(filter, 'dummy'), isFalse);
       expect(_match(filter, 'test'), isFalse);
-      expect(_match(filter, []), isFalse);
+      expect(_match(filter, <Object>[]), isFalse);
 
       /// The key!
       filter = Filter.matches(Field.key, '^f', anyInList: true);
-      expect(filterMatchesRecord(filter, store.record(['f']).snapshot(null)),
+      expect(filterMatchesRecord(filter, store.record(['f']).snapshot('dummy')),
           isTrue);
-      expect(filterMatchesRecord(filter, store.record(['e']).snapshot(null)),
+      expect(filterMatchesRecord(filter, store.record(['e']).snapshot('dummy')),
           isFalse);
-      expect(
-          filterMatchesRecord(filter, store.record(1).snapshot(null)), isFalse);
+      expect(filterMatchesRecord(filter, store.record(1).snapshot('dummy')),
+          isFalse);
     });
   });
 }
