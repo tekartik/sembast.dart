@@ -561,7 +561,7 @@ class SembastDatabase extends Object
   /// an empty store will not be persistent
   ///
   @override
-  SembastStore getSembastStore(StoreRef ref) {
+  SembastStore getSembastStore(StoreRef<Key?, Value?> ref) {
     _checkOpen();
     var store = findStore(ref.name);
     store ??= _addStore(ref.name);

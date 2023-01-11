@@ -56,7 +56,7 @@ class JdbReadEntry extends JdbEntry {
   late int id;
 
   @override
-  late RecordRef record;
+  late RecordRef<Key?, Value?> record;
 
   @override
   late Value value;
@@ -75,7 +75,7 @@ class JdbWriteEntry extends JdbEntry {
 
   // Ref.
   @override
-  RecordRef get record => txnRecord!.ref;
+  RecordRef<Key?, Value?> get record => txnRecord!.ref;
 
   Object? _value;
 
@@ -108,7 +108,7 @@ class JdbRawWriteEntry extends JdbWriteEntry {
   @override
   final bool deleted;
   @override
-  final RecordRef record;
+  final RecordRef<Key?, Value?> record;
 
   /// Raw entry.
   JdbRawWriteEntry(

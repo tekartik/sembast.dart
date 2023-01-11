@@ -281,7 +281,7 @@ class RecordListenerController<K, V> extends _ControllerBase {
 /// Store listener.
 class StoreListener {
   /// Our store.
-  final StoreRef store;
+  final StoreRef<Key?, Value?> store;
   final _records = <Object?, List<RecordListenerController>>{};
   final _stores = <StoreListenerController>[];
 
@@ -471,7 +471,7 @@ class DatabaseListener {
   }
 
   /// Get a store listener.
-  StoreListener? getStore(StoreRef ref) => _stores[ref];
+  StoreListener? getStore(StoreRef<Key?, Value?> ref) => _stores[ref];
 
   /// All store listeners.
   Iterable<StoreRef> get stores => _stores.keys;
@@ -492,7 +492,7 @@ class DatabaseListener {
   }
 
   /// True if the record as a listener
-  bool recordHasAnyListener(RecordRef record) =>
+  bool recordHasAnyListener(RecordRef<Key?, Value?> record) =>
       getStore(record.store)?.keyHasAnyListener(record.key) ?? false;
 }
 

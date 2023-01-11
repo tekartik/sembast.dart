@@ -1,9 +1,10 @@
 import 'dart:async';
 
-import 'package:sembast/sembast.dart';
 import 'package:sembast/src/database_client_impl.dart';
 import 'package:sembast/src/database_impl.dart';
 import 'package:sembast/src/store_impl.dart';
+
+import 'import_common.dart';
 
 /// Transaction implementation.
 class SembastTransaction extends Object
@@ -55,7 +56,7 @@ class SembastTransaction extends Object
   SembastTransaction get sembastTransaction => this;
 
   @override
-  SembastStore getSembastStore(StoreRef ref) =>
+  SembastStore getSembastStore(StoreRef<Key?, Value?> ref) =>
       database.txnGetStore(this, ref.name)!.store;
 }
 
