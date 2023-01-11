@@ -24,7 +24,7 @@ class _ControllerBase {
 }
 
 /// Query or Count base listener.
-abstract class StoreListenerController<K extends Key, V extends Value> {
+abstract class StoreListenerController<K, V> {
   /// Store reference.
   StoreRef<K, V> get storeRef;
 
@@ -43,12 +43,11 @@ abstract class StoreListenerController<K extends Key, V extends Value> {
 }
 
 /// Query or Count base listener.
-abstract class StoreListenerControllerBase<K extends Key, V extends Value>
-    extends _ControllerBase implements StoreListenerController<K, V> {}
+abstract class StoreListenerControllerBase<K, V> extends _ControllerBase
+    implements StoreListenerController<K, V> {}
 
 /// Query listener controller.
-class QueryListenerController<K extends Key, V extends Value>
-    extends StoreListenerControllerBase<K, V> {
+class QueryListenerController<K, V> extends StoreListenerControllerBase<K, V> {
   /// onListen to start or restart query.
   void Function()? onListen;
 
@@ -205,8 +204,7 @@ class QueryListenerController<K extends Key, V extends Value>
 }
 
 /// Record listener controller.
-class RecordListenerController<K extends Key, V extends Value>
-    extends _ControllerBase {
+class RecordListenerController<K, V> extends _ControllerBase {
   /// The record ref.
   final RecordRef<K, V> recordRef;
 
@@ -291,7 +289,7 @@ class StoreListener {
   StoreListener(this.store);
 
   /// Add a record.
-  RecordListenerController<K, V> addRecord<K extends Key, V extends Value>(
+  RecordListenerController<K, V> addRecord<K, V>(
       RecordRef<K, V> recordRef, RecordListenerController<K, V> ctlr) {
     var key = recordRef.key;
     var list = _records[key];
@@ -304,7 +302,7 @@ class StoreListener {
   }
 
   /// Add a query.
-  StoreListenerController<K, V> addQuery<K extends Key, V extends Value>(
+  StoreListenerController<K, V> addQuery<K, V>(
       StoreListenerController<K, V> ctlr) {
     _stores.add(ctlr);
     return ctlr;
@@ -333,9 +331,8 @@ class StoreListener {
   Iterable<Object?> get recordKeys => _records.keys;
 
   /// Get the record listener.
-  List<RecordListenerController<K, V>>?
-      getRecordControllers<K extends Key, V extends Value>(
-          RecordRef<K, V> recordRef) {
+  List<RecordListenerController<K, V>>? getRecordControllers<K, V>(
+      RecordRef<K, V> recordRef) {
     return _records[recordRef.key]?.cast<RecordListenerController<K, V>>();
   }
 
@@ -350,8 +347,7 @@ class StoreListener {
   bool get hasStoreListener => _stores.isNotEmpty;
 
   /// Get list of query listeners, never null
-  List<StoreListenerController<K, V>>
-      getStoreListenerControllers<K extends Key, V extends Value>() {
+  List<StoreListenerController<K, V>> getStoreListenerControllers<K, V>() {
     return _stores.cast<StoreListenerController<K, V>>();
   }
 
@@ -382,8 +378,7 @@ class DatabaseListener {
   bool get isEmpty => _stores.isEmpty;
 
   /// Add a record.
-  RecordListenerController<K, V> addRecord<K extends Key, V extends Value>(
-      RecordRef<K, V> recordRef,
+  RecordListenerController<K, V> addRecord<K, V>(RecordRef<K, V> recordRef,
       {required void Function()? onListen}) {
     var ctlr =
         RecordListenerController<K, V>(this, recordRef, onListen: onListen);
@@ -397,8 +392,7 @@ class DatabaseListener {
   }
 
   /// Add a query.
-  QueryListenerController<K, V> addQuery<K extends Key, V extends Value>(
-      QueryRef<K, V> queryRef,
+  QueryListenerController<K, V> addQuery<K, V>(QueryRef<K, V> queryRef,
       {required void Function()? onListen}) {
     var ctlr = newQuery(queryRef, onListen: onListen);
     addQueryController(ctlr);
@@ -406,8 +400,7 @@ class DatabaseListener {
   }
 
   /// Create a query.
-  QueryListenerController<K, V> newQuery<K extends Key, V extends Value>(
-      QueryRef<K, V> queryRef,
+  QueryListenerController<K, V> newQuery<K, V>(QueryRef<K, V> queryRef,
       {required void Function()? onListen}) {
     var ref = queryRef as SembastQueryRef<K, V>;
     var ctlr = QueryListenerController<K, V>(this, ref, onListen: onListen);
@@ -415,8 +408,7 @@ class DatabaseListener {
   }
 
   /// Add a query controller.
-  void addQueryController<K extends Key, V extends Value>(
-      StoreListenerController<K, V> ctlr) {
+  void addQueryController<K, V>(StoreListenerController<K, V> ctlr) {
     var storeRef = ctlr.storeRef;
     var store = _stores[storeRef];
     if (store == null) {
@@ -427,8 +419,7 @@ class DatabaseListener {
   }
 
   /// Add a count.
-  CountListenerController<K, V> addCount<K extends Key, V extends Value>(
-      FilterRef<K, V> filterRef,
+  CountListenerController<K, V> addCount<K, V>(FilterRef<K, V> filterRef,
       {required void Function()? onListen}) {
     var ctlr = newCount(filterRef, onListen: onListen);
     addQueryController(ctlr);
@@ -436,8 +427,7 @@ class DatabaseListener {
   }
 
   /// Create a query.
-  CountListenerController<K, V> newCount<K extends Key, V extends Value>(
-      FilterRef<K, V> filterRef,
+  CountListenerController<K, V> newCount<K, V>(FilterRef<K, V> filterRef,
       {required void Function()? onListen}) {
     var ctlr = CountListenerController<K, V>(
         this, filterRef as SembastFilterRef<K, V>,
@@ -473,8 +463,8 @@ class DatabaseListener {
   }
 
   /// Get a record controller.
-  List<RecordListenerController<K, V>>?
-      getRecord<K extends Key, V extends Value>(RecordRef<K, V> recordRef) {
+  List<RecordListenerController<K, V>>? getRecord<K, V>(
+      RecordRef<K, V> recordRef) {
     return _stores[recordRef as StoreRef<Object?, Object?>]!
         .getRecordControllers(recordRef)
         ?.cast<RecordListenerController<K, V>>();
@@ -507,8 +497,7 @@ class DatabaseListener {
 }
 
 /// Query listener controller.
-class CountListenerController<K extends Key, V extends Value>
-    extends StoreListenerControllerBase<K, V> {
+class CountListenerController<K, V> extends StoreListenerControllerBase<K, V> {
   /// onListen to start or restart query.
   void Function()? onListen;
 

@@ -15,7 +15,7 @@ import 'database_impl.dart';
 import 'import_common.dart';
 
 /// Store implementation.
-class SembastStoreRef<K extends Key, V extends Value> with StoreRefMixin<K, V> {
+class SembastStoreRef<K, V> with StoreRefMixin<K, V> {
   /// Store implementation.
   SembastStoreRef(String name) {
     this.name = name;
@@ -23,7 +23,7 @@ class SembastStoreRef<K extends Key, V extends Value> with StoreRefMixin<K, V> {
 }
 
 /// Store ref mixin.
-mixin StoreRefMixin<K extends Key, V extends Value> implements StoreRef<K, V> {
+mixin StoreRefMixin<K, V> implements StoreRef<K, V> {
   @override
   late String name;
 
@@ -53,7 +53,7 @@ mixin StoreRefMixin<K extends Key, V extends Value> implements StoreRef<K, V> {
 
   /// Cast if needed
   @override
-  StoreRef<RK, RV> cast<RK extends Key, RV extends Value>() {
+  StoreRef<RK, RV> cast<RK, RV>() {
     if (this is StoreRef<RK, RV>) {
       return this as StoreRef<RK, RV>;
     }
@@ -62,8 +62,7 @@ mixin StoreRefMixin<K extends Key, V extends Value> implements StoreRef<K, V> {
 }
 
 /// Store ref private sembast extension.
-extension SembastStoreRefExtensionImpl<K extends Key, V extends Value>
-    on StoreRef<K, V> {
+extension SembastStoreRefExtensionImpl<K, V> on StoreRef<K, V> {
   /// Find immutables records.
   Future<List<ImmutableSembastRecord>> findImmutableRecords(
       DatabaseClient databaseClient,
@@ -88,8 +87,7 @@ extension SembastStoreRefExtensionImpl<K extends Key, V extends Value>
 }
 
 /// Internal extension
-extension SembastStoreRefExtensionPrv<K extends Key, V extends Value>
-    on StoreRef<K, V> {
+extension SembastStoreRefExtensionPrv<K, V> on StoreRef<K, V> {
   /// Delete the store and its content
   FilterRef<K, V> filter({Filter? filter}) =>
       SembastFilterRef<K, V>(this, filter);
@@ -98,8 +96,7 @@ extension SembastStoreRefExtensionPrv<K extends Key, V extends Value>
 /// Store ref public sembast extension.
 ///
 /// Provides access helper to data on the store using a given [DatabaseClient].
-extension SembastStoreRefExtension<K extends Key, V extends Value>
-    on StoreRef<K, V> {
+extension SembastStoreRefExtension<K, V> on StoreRef<K, V> {
   /// Delete the store and its content
   Future drop(DatabaseClient databaseClient) {
     final client = getClient(databaseClient);
@@ -204,9 +201,10 @@ extension SembastStoreRefExtension<K extends Key, V extends Value>
   ///
   Future<K> add(DatabaseClient databaseClient, V value) {
     final client = getClient(databaseClient);
-    value = client.sembastDatabase.sanitizeInputValue<V>(value);
+    value = client.sembastDatabase.sanitizeInputValue<V>(value as Value);
     return client.inTransaction<K>((txn) async {
-      return (await client.getSembastStore(this).txnAdd<K>(txn, value)) as K;
+      return (await client.getSembastStore(this).txnAdd<K>(txn, value as Value))
+          as K;
     });
   }
 
@@ -235,13 +233,13 @@ extension SembastStoreRefExtension<K extends Key, V extends Value>
   ///
   Future<List<K>> addAll(DatabaseClient databaseClient, List<V> values) async {
     final client = getClient(databaseClient);
-    var sanitizedValues = values
-        .map((value) => client.sembastDatabase.sanitizeInputValue<V>(value));
+    var sanitizedValues = values.map((value) =>
+        client.sembastDatabase.sanitizeInputValue<V>(value as Value));
     var keys = <K>[];
     await client.inTransaction((txn) async {
       var store = client.getSembastStore(this);
       for (var value in sanitizedValues) {
-        keys.add((await store.txnAdd<K>(txn, value)) as K);
+        keys.add((await store.txnAdd<K>(txn, value as Value)) as K);
       }
     });
     return keys;
@@ -252,11 +250,12 @@ extension SembastStoreRefExtension<K extends Key, V extends Value>
   /// Return the count updated. [value] is merged to the existing.
   Future<int> update(DatabaseClient databaseClient, V value, {Finder? finder}) {
     final client = getClient(databaseClient);
-    value = client.sembastDatabase.sanitizeInputValue<V>(value, update: true);
+    value = client.sembastDatabase
+        .sanitizeInputValue<V>(value as Value, update: true);
     return client.inTransaction((txn) async {
       return (await client
               .getSembastStore(this)
-              .txnUpdateWhere(txn, value, finder: finder))
+              .txnUpdateWhere(txn, value as Value, finder: finder))
           .length;
     });
   }
@@ -298,8 +297,7 @@ extension SembastStoreRefExtension<K extends Key, V extends Value>
 }
 
 /// Store factory mixin.
-mixin StoreFactoryMixin<K extends Key, V extends Value>
-    implements StoreFactory<K, V> {
+mixin StoreFactoryMixin<K, V> implements StoreFactory<K, V> {
   @override
   StoreRef<K, V> store([String? name]) {
     if (name == null) {
@@ -311,8 +309,7 @@ mixin StoreFactoryMixin<K extends Key, V extends Value>
 }
 
 /// Store factory base.
-class StoreFactoryBase<K extends Key, V extends Value>
-    with StoreFactoryMixin<K, V> {}
+class StoreFactoryBase<K, V> with StoreFactoryMixin<K, V> {}
 
 /// common `<int, Map<String, Object?>>` factory
 final intMapStoreFactory = StoreFactoryBase<int, Map<String, Object?>>();

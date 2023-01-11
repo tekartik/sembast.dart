@@ -24,7 +24,7 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     test('dynamic', () async {
-      var store = StoreRef.main();
+      var store = StoreRef<Object?, Object?>.main();
       print(store.runtimeType);
       var key = await store.add(db, 'test');
       expect(key, 1);
@@ -33,7 +33,7 @@ void defineTests(DatabaseTestContext ctx) {
     }, skip: 'No longer working with the new Key and Value type');
 
     test('dynamic_rounded', () async {
-      var store = StoreRef.main();
+      var store = StoreRef<Object?, Object?>.main();
       var value = await store.record(2.0).put(db, 'test');
       expect(value, 'test');
       expect((await store.findFirst(db))!.key, 2.0);

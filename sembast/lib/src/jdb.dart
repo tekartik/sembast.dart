@@ -38,7 +38,7 @@ abstract class JdbEntry {
   int get id;
 
   /// Jdb record
-  RecordRef get record;
+  RecordRef<Key?, Value?> get record;
 
   /// True if deleted
   bool get deleted;

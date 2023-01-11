@@ -23,17 +23,17 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     test('equals', () {
-      var record1 = StoreRef.main().record(1);
-      var record2 = StoreRef.main().record(1);
+      var record1 = StoreRef<int?, Object?>.main().record(1);
+      var record2 = StoreRef<int?, Object?>.main().record(1);
       expect(record1, record2);
       expect(record1.hashCode, record2.hashCode);
-      expect(record1, isNot(StoreRef('test').record(1)));
-      expect(record1, isNot(StoreRef.main().record(2)));
-      expect(record1, StoreRef.main().record(1));
-      expect(record1, isNot(StoreRef.main().record('test')));
+      expect(record1, isNot(StoreRef<int, Object?>('test').record(1)));
+      expect(record1, isNot(StoreRef<int, Object?>.main().record(2)));
+      expect(record1, StoreRef<int, Object?>.main().record(1));
+      expect(record1, isNot(StoreRef<String?, Object?>.main().record('test')));
       expect(
-          StoreRef.main().record('test'),
-          StoreRef.main().record((StringBuffer()
+          StoreRef<String, Object>.main().record('test'),
+          StoreRef<String?, Object?>.main().record((StringBuffer()
                 ..write('te')
                 ..write('st'))
               .toString()));

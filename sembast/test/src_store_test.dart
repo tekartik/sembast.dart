@@ -22,18 +22,18 @@ void defineTests(DatabaseTestContext ctx) {
 
     test('delete', () async {
       expect(db.storeNames, ['_main']);
-      await StoreRef<Object, Object>('test').drop(db);
+      await StoreRef<Object?, Object?>('test').drop(db);
       expect(db.storeNames, ['_main']);
     });
 
     test('delete_main', () async {
       expect(db.storeNames, ['_main']);
-      await StoreRef<Object, Object>.main().drop(db);
+      await StoreRef<Object?, Object?>.main().drop(db);
       expect(db.storeNames, ['_main']);
     });
 
     test('put/delete_store', () async {
-      var store = StoreRef<Object, Object>('test');
+      var store = StoreRef<Object?, Object?>('test');
       var record = store.record(1);
       await record.put(db, 'test');
       expect(db.storeNames, contains('test'));
@@ -110,14 +110,14 @@ void defineTests(DatabaseTestContext ctx) {
       expect(key2.length, greaterThan(10));
       expect(key1, isNot(key2));
 
-      // ignore: dead_code
-      if (false) {
-        var storeObject = StoreRef<Object, String>('object_key');
-        try {
-          await storeObject.generateKey(db);
-          fail('should fail');
-        } on ArgumentError catch (_) {}
-      }
+      /*
+      var storeObject = StoreRef<Object, Object>('object_key');
+      expect(await storeObject.generateKey(db), 1);
+      expect(await storeObject.generateKey(db), 2);
+      */
+      var storeDynamic = StoreRef<Object?, Object?>('dynamic_key');
+      expect(await storeDynamic.generateKey(db), 1);
+      expect(await storeDynamic.generateKey(db), 2);
     });
 
     test('generateIntKey', () async {

@@ -27,16 +27,17 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     test('equals', () {
-      var store1 = StoreRef.main();
-      var store2 = StoreRef.main();
+      var store1 = StoreRef<Object?, Object?>.main();
+      var store2 = StoreRef<Object?, Object?>.main();
       expect(store1, store2);
       expect(store1.hashCode, store2.hashCode);
-      expect(store1, isNot(StoreRef('test')));
-      expect(StoreRef('test'), StoreRef('test'));
+      expect(store1, isNot(StoreRef<Object?, Object?>('test')));
+      expect(
+          StoreRef<Object, Object>('test'), StoreRef<Object?, Object?>('test'));
     });
 
     test('clear', () async {
-      final store = StoreRef('test');
+      final store = StoreRef<int, String>('test');
       var record = store.record(1);
       await record.put(db, 'hi');
       await store.delete(db);
@@ -70,7 +71,7 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     test('records', () async {
-      var store = StoreRef('test');
+      var store = StoreRef<Object?, Object?>('test');
       final records = store.records([1, 2]);
       expect((await records.getSnapshots(db)), [null, null]);
       expect((await records.get(db)), [null, null]);
@@ -596,7 +597,7 @@ void defineTests(DatabaseTestContext ctx) {
 
     test('onCount and close', () async {
       // Simple code to debug
-      var store = StoreRef('test');
+      var store = StoreRef<int, String>('test');
       var record = store.record(1);
 
       var countListFuture = store.onCount(db).toList();

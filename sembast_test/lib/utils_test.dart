@@ -19,7 +19,7 @@ void main() {
     tearDownAll(() async {
       await db.close();
     });
-    V? sanitizeInputValue<V extends Object>(RecordValueBase value) {
+    V? sanitizeInputValue<V>(RecordValueBase value) {
       return db.sanitizeInputValue<V>(value);
     }
 
@@ -85,12 +85,12 @@ void main() {
 
     test('sanitize iterable', () {
       try {
-        sanitizeInputValue({
+        sanitizeInputValue<Map>(<String, Object?>{
           'item': [1].map((e) => e)
         });
         fail('should fail');
       } on ArgumentError catch (_) {}
-      sanitizeInputValue({
+      sanitizeInputValue<Map>(<String, Object?>{
         'item': [1].map((e) => e).toList()
       });
     });

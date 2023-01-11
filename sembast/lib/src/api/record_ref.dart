@@ -16,7 +16,7 @@ typedef Value = RecordValueBase;
 ///
 /// An immutable record reference
 ///
-abstract class RecordRef<K extends Key, V extends Value> {
+abstract class RecordRef<K, V> {
   /// Store reference.
   StoreRef<K, V> get store;
 
@@ -24,5 +24,5 @@ abstract class RecordRef<K extends Key, V extends Value> {
   K get key;
 
   /// Cast if needed.
-  RecordRef<RK, RV> cast<RK extends Key, RV extends Value>();
+  RecordRef<RK, RV> cast<RK, RV>();
 }

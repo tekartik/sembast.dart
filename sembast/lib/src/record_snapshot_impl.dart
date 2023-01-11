@@ -5,7 +5,7 @@ import 'package:sembast/src/utils.dart';
 import 'import_common.dart';
 
 /// Record snapshot mixin.
-mixin RecordSnapshotMixin<K extends Key, V extends Value>
+mixin RecordSnapshotMixin<K, V>
     implements RecordSnapshot<K, V>, SembastRecordValue<V> {
   /// Record revision - jdb only
   int? revision;
@@ -55,7 +55,7 @@ mixin RecordSnapshotMixin<K extends Key, V extends Value>
   }
 
   @override
-  RecordSnapshot<RK, RV> cast<RK extends Key, RV extends Value>() {
+  RecordSnapshot<RK, RV> cast<RK, RV>() {
     if (this is RecordSnapshot<RK, RV>) {
       return this as RecordSnapshot<RK, RV>;
     }
@@ -65,16 +65,14 @@ mixin RecordSnapshotMixin<K extends Key, V extends Value>
 
 /// Internal helper.
 @protected
-extension SembastRecordSnapshotExt<K extends Key, V extends Value>
-    on RecordSnapshot<K, V> {
+extension SembastRecordSnapshotExt<K, V> on RecordSnapshot<K, V> {
   // Temp Internal helper.
   // @Deprecated('User key')
   // Object get keyAsObject => key;
 }
 
 /// Snapshot implementation.
-class SembastRecordSnapshot<K extends Key, V extends Value>
-    with RecordSnapshotMixin<K, V> {
+class SembastRecordSnapshot<K, V> with RecordSnapshotMixin<K, V> {
   /// Snapshot from an immutable record.
   SembastRecordSnapshot.fromRecord(ImmutableSembastRecord record) {
     ref = record.ref.cast<K, V>();
@@ -91,8 +89,7 @@ class SembastRecordSnapshot<K extends Key, V extends Value>
 /// To use to avoid slow access to protected snapshot.
 ///
 /// Used in filter
-class SembastRecordRawSnapshot<K extends Key, V extends Value>
-    implements RecordSnapshot<K, V> {
+class SembastRecordRawSnapshot<K, V> implements RecordSnapshot<K, V> {
   /// Internal snapshot.
   final RecordSnapshotMixin<K, V> snapshot;
 
@@ -109,7 +106,7 @@ class SembastRecordRawSnapshot<K extends Key, V extends Value>
   V get value => snapshot.rawValue;
 
   @override
-  RecordSnapshot<RK, RV> cast<RK extends Key, RV extends Value>() =>
+  RecordSnapshot<RK, RV> cast<RK, RV>() =>
       SembastRecordRawSnapshot<RK, RV>(snapshot.cast<RK, RV>());
 
   @override

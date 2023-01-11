@@ -162,7 +162,7 @@ void defineTests(DatabaseTestContext ctx) {
       expect(database.listener.isNotEmpty, isTrue);
       var ctlr = database.listener
           .getStore(store)!
-          .getStoreListenerControllers()
+          .getStoreListenerControllers<int, String>()
           .first;
       ctlr.close();
 

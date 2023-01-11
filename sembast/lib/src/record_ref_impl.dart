@@ -8,8 +8,7 @@ import 'package:sembast/src/record_snapshot_impl.dart';
 import 'import_common.dart';
 
 /// Record ref mixin.
-mixin RecordRefMixin<K extends Key, V extends Value>
-    implements RecordRef<K, V> {
+mixin RecordRefMixin<K, V> implements RecordRef<K, V> {
   @override
   late StoreRef<K, V> store;
   @override
@@ -20,7 +19,7 @@ mixin RecordRefMixin<K extends Key, V extends Value>
 
   /// Cast if needed
   @override
-  RecordRef<RK, RV> cast<RK extends Key, RV extends Value>() {
+  RecordRef<RK, RV> cast<RK, RV>() {
     if (this is RecordRef<RK, RV>) {
       return this as RecordRef<RK, RV>;
     }
@@ -40,8 +39,7 @@ mixin RecordRefMixin<K extends Key, V extends Value>
 }
 
 /// Record ref implementation.
-class SembastRecordRef<K extends Key, V extends Value>
-    with RecordRefMixin<K, V> {
+class SembastRecordRef<K, V> with RecordRefMixin<K, V> {
   /// Record ref implementation.
   SembastRecordRef(StoreRef<K, V> store, K key) {
     this.store = store;
@@ -52,8 +50,7 @@ class SembastRecordRef<K extends Key, V extends Value>
 /// Record ref sembast public extension.
 ///
 /// Provides access helper to data on the store using a given [DatabaseClient].
-extension SembastRecordRefExtension<K extends Key, V extends Value>
-    on RecordRef<K, V> {
+extension SembastRecordRefExtension<K, V> on RecordRef<K, V> {
   /// Create a snapshot of a record with a given value.
   RecordSnapshot<K, V> snapshot(V value) => SembastRecordSnapshot(this, value);
 
@@ -62,9 +59,9 @@ extension SembastRecordRefExtension<K extends Key, V extends Value>
   /// Returns the key if inserted, null otherwise.
   Future<K?> add(DatabaseClient databaseClient, V value) async {
     var client = getClient(databaseClient);
-    value = client.sembastDatabase.sanitizeInputValue<V>(value);
+    value = client.sembastDatabase.sanitizeInputValue<V>(value as Value);
     return await client.inTransaction((txn) {
-      return client.getSembastStore(store).txnAdd<K>(txn, value, key);
+      return client.getSembastStore(store).txnAdd<K>(txn, value as Value, key);
     });
   }
 
@@ -75,11 +72,12 @@ extension SembastRecordRefExtension<K extends Key, V extends Value>
   /// Returns the updated value.
   Future<V> put(DatabaseClient databaseClient, V value, {bool? merge}) async {
     var client = getClient(databaseClient);
-    value = client.sembastDatabase.sanitizeInputValue<V>(value, update: merge);
+    value = client.sembastDatabase
+        .sanitizeInputValue<V>(value as Value, update: merge);
     return (await client.inTransaction((txn) {
       return client
           .getSembastStore(store)
-          .txnPut(txn, value, key, merge: merge);
+          .txnPut(txn, value as Value, key as Key, merge: merge);
     }) as V?)!;
   }
 
@@ -91,9 +89,12 @@ extension SembastRecordRefExtension<K extends Key, V extends Value>
   /// Returns the updated value.
   Future<V?> update(DatabaseClient databaseClient, V value) async {
     var client = getClient(databaseClient);
-    value = client.sembastDatabase.sanitizeInputValue<V>(value, update: true);
+    value = client.sembastDatabase
+        .sanitizeInputValue<V>(value as Value, update: true);
     return await client.inTransaction((txn) {
-      return client.getSembastStore(store).txnUpdate(txn, value, key);
+      return client
+          .getSembastStore(store)
+          .txnUpdate(txn, value as Value, key as Key);
     }) as V?;
   }
 
@@ -108,7 +109,7 @@ extension SembastRecordRefExtension<K extends Key, V extends Value>
 
     var record = await client
         .getSembastStore(store)
-        .txnGetRecord(client.sembastTransaction, key);
+        .txnGetRecord(client.sembastTransaction, key as Key);
     return record?.cast<K, V>();
   }
 
@@ -144,14 +145,15 @@ extension SembastRecordRefExtension<K extends Key, V extends Value>
     var client = getClient(databaseClient);
     return client
         .getSembastStore(store)
-        .txnRecordExists(client.sembastTransaction, key);
+        .txnRecordExists(client.sembastTransaction, key as Key);
   }
 
   /// Delete the record. Returns the key if deleted, null if not found.
   Future<K?> delete(DatabaseClient databaseClient) {
     var client = getClient(databaseClient);
     return client.inTransaction((txn) async {
-      return await client.getSembastStore(store).txnDelete(txn, key) as K?;
+      return await client.getSembastStore(store).txnDelete(txn, key as Key)
+          as K?;
     });
   }
 }

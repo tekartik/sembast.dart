@@ -8,8 +8,7 @@ import 'api/filter_ref.dart';
 import 'import_common.dart';
 
 /// A query is unique
-class SembastFilterRef<K extends Key, V extends Value>
-    implements FilterRef<K, V> {
+class SembastFilterRef<K, V> implements FilterRef<K, V> {
   /// The store.
   final StoreRef<K, V> store;
 

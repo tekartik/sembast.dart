@@ -16,7 +16,7 @@ enum RecordChangeType {
 }
 
 /// Record change information.
-abstract class RecordChange<K extends Key, V extends Value> {
+abstract class RecordChange<K, V> {
   /// The type of change that occurred (added, modified, or removed).
   RecordChangeType get type;
 
@@ -27,5 +27,5 @@ abstract class RecordChange<K extends Key, V extends Value> {
   RecordRef<K, V> get ref;
 
   /// Cast if needed
-  RecordSnapshot<RK, RV> cast<RK extends Key, RV extends Value>();
+  RecordSnapshot<RK, RV> cast<RK, RV>();
 }

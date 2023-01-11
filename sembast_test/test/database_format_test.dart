@@ -57,7 +57,9 @@ void defineTestsWithCodec(FileSystemTestContext ctx, {SembastCodec? codec}) {
   DatabaseFactory factory = DatabaseFactoryFs(fs);
   //String getDbPath() => ctx.outPath + '.db';
   String? dbPath;
-  var store = StoreRef.main();
+
+  /// Worst definition ever on purpose.
+  var store = StoreRef<Object?, Object?>.main();
 
   Future<String?> prepareForDb() async {
     dbPath = dbPathFromName('compat/database_format.db');
@@ -170,7 +172,7 @@ void defineTestsWithCodec(FileSystemTestContext ctx, {SembastCodec? codec}) {
           await factory.openDatabase(dbPath!, codec: codec) as SembastDatabase;
       db.getSembastStore(StoreRef('store1'));
       db.getSembastStore(StoreRef('store2'));
-      await StoreRef('store2').record(1).put(db, 'hi');
+      await StoreRef<int, Object>('store2').record(1).put(db, 'hi');
       await db.close();
       final lines = await readContent(fs, dbPath!);
       expect(lines.length, 2);

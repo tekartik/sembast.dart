@@ -1,6 +1,7 @@
-import 'package:sembast/sembast.dart';
 import 'package:sembast/src/api/protected/database.dart';
 import 'package:sembast/src/value_utils.dart';
+
+import 'import_common.dart';
 
 /// Get the list of non empty store names.
 Iterable<String> getNonEmptyStoreNames(Database database) =>
@@ -28,7 +29,7 @@ Future<void> databaseMerge(Database db,
 /// Merge a given store in a transaction, assuming source database does not change
 Future<void> txnMergeStore(Transaction txn,
     {required Database sourceDatabase, required String storeName}) async {
-  var store = StoreRef<Object, Object>(storeName);
+  var store = StoreRef<Key, Value>(storeName);
   var originalRecords = await store.find(txn);
   var originalMap = <dynamic, RecordSnapshot<Object, Object>>{
     for (var v in originalRecords) v.ref.key: v

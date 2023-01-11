@@ -1350,7 +1350,7 @@ class SembastDatabase extends Object
 
           // Fix existing queries
           for (var query in List<StoreListenerController>.from(
-              storeListener.getStoreListenerControllers<Object, Object>())) {
+              storeListener.getStoreListenerControllers<Key?, Value?>())) {
             Future updateQuery() async {
               if (debugListener) {
                 print(
@@ -1469,13 +1469,13 @@ class SembastDatabase extends Object
   }
 
   /// Listen for changes on a given store.
-  void addOnChangesListener<K extends Key, V extends Value>(
+  void addOnChangesListener<K, V>(
       StoreRef<K, V> store, TransactionRecordChangeListener<K, V> onChanges) {
     changesListener.addStoreChangesListener<K, V>(store, onChanges);
   }
 
   /// Stop listening for changes.
-  void removeOnChangesListener<K extends Key, V extends Value>(
+  void removeOnChangesListener<K, V>(
       StoreRef<K, V> store, TransactionRecordChangeListener<K, V> onChanges) {
     changesListener.removeStoreChangesListener<K, V>(store, onChanges);
   }

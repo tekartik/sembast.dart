@@ -13,7 +13,9 @@ void main() {
 void defineTests(DatabaseTestContext ctx) {
   final factory = ctx.factory;
   String dbPath;
-  var store = StoreRef.main();
+
+  /// worst definition ever, on purpose...
+  var store = StoreRef<Object?, Object?>.main();
 
   group('database', () {
     dbPath = dbPathFromName(join('compat', 'database.db'));

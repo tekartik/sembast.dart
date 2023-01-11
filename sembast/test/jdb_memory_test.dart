@@ -10,7 +10,7 @@ JdbDatabaseMemory getJdbDatabase(Database database) =>
 
 class JdbWriteEntryMock extends JdbWriteEntry {
   @override
-  late RecordRef<Object, Object> record;
+  late RecordRef<Key?, Value?> record;
   dynamic _value;
 
   JdbWriteEntryMock(
@@ -20,8 +20,8 @@ class JdbWriteEntryMock extends JdbWriteEntry {
       dynamic value,
       this.deleted = false}) {
     record = (store == null
-            ? StoreRef<Object, Object>.main()
-            : StoreRef<Object, Object>(store))
+            ? StoreRef<Key?, Value?>.main()
+            : StoreRef<Key?, Value?>(store))
         .record(key);
     _value = value;
 

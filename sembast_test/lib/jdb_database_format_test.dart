@@ -18,7 +18,8 @@ void main() {
 void defineTests(DatabaseTestContextJdb ctx) {
   //String getDbPath() => ctx.outPath + '.db';
   String? dbPath;
-  var store = StoreRef.main();
+  // worst definition ever on purpose
+  var store = StoreRef<Object?, Object?>.main();
 
   var factory = ctx.factory;
   Future<String?> prepareForDb() async {
