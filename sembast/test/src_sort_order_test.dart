@@ -7,7 +7,8 @@ import 'package:sembast/src/sort_order_impl.dart';
 
 import 'test_common.dart';
 
-var store = StoreRef.main();
+// Bad definition on purpose.
+var store = StoreRef<Object?, Object?>.main();
 var record = store.record(1);
 
 void main() {

@@ -20,7 +20,7 @@ class SembastTransaction extends Object
 
   /// make the completer async as the Transaction following
   /// action is not a priority
-  final completer = Completer();
+  final completer = Completer<void>();
 
   /// Constructor.
   SembastTransaction(this.sembastDatabase, this._id);
