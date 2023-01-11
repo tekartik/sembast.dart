@@ -1,4 +1,4 @@
-## 2.1.0-2
+## 2.1.0-3
 
 * Support strict-casts mode
 
