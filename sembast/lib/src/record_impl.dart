@@ -93,7 +93,9 @@ class ImmutableSembastRecordJdb extends ImmutableSembastRecord {
   /// Immutable record in jdb.
   ///
   /// revision needed
-  ImmutableSembastRecordJdb(RecordRef ref, Value value,
+  ///
+  /// [value] can be null for deleted
+  ImmutableSembastRecordJdb(RecordRef ref, Value? value,
       {bool deleted = false, required int revision})
       : super(ref, value, deleted: deleted) {
     this.revision = revision;
@@ -224,7 +226,8 @@ ImmutableSembastRecordJdb makeImmutableRecordJdb(
     return record;
   }
   // no revision
-  return ImmutableSembastRecordJdb(record.ref, cloneValue(record.value),
+  return ImmutableSembastRecordJdb(
+      record.ref, record.deleted ? null : cloneValue(record.value),
       deleted: record.deleted, revision: record.revision!);
 }
 

@@ -911,7 +911,8 @@ class SembastDatabase extends Object
     /// read revision before.
     _jdbRevision = await _storageJdb!.getRevision();
     await for (var entry in _storageJdb!.entries) {
-      var record = ImmutableSembastRecordJdb(entry.record, entry.value,
+      var record = ImmutableSembastRecordJdb(
+          entry.record, entry.deleted ? null : entry.value,
           deleted: entry.deleted, revision: entry.id);
       _exportStat!.lineCount++;
       // Make it fast
@@ -962,7 +963,8 @@ class SembastDatabase extends Object
         for (var entry in entries) {
           // skip transaction empry record
 
-          var record = ImmutableSembastRecordJdb(entry.record, entry.value,
+          var record = ImmutableSembastRecordJdb(
+              entry.record, entry.deleted ? null : entry.value,
               deleted: entry.deleted, revision: entry.id);
 
           if (jdbDeltaLoadRecord(record)) {
@@ -977,7 +979,8 @@ class SembastDatabase extends Object
       _exportStat = DatabaseExportStat();
       var records = <ImmutableSembastRecordJdb>[];
       await for (var entry in _storageJdb!.entries) {
-        var record = ImmutableSembastRecordJdb(entry.record, entry.value,
+        var record = ImmutableSembastRecordJdb(
+            entry.record, entry.deleted ? null : entry.value,
             deleted: entry.deleted, revision: entry.id);
         _exportStat!.lineCount++;
         // Make it fast
