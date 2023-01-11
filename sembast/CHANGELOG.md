@@ -1,3 +1,7 @@
+## 3.4.0-1
+
+* Make sembast more strict on key typing.
+
 ## 3.3.1+1
 
 * Add `StoreRef.generateKey()` to generate a unique key
