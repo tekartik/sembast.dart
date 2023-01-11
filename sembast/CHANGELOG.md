@@ -1,4 +1,4 @@
-## 3.4.0-3
+## 3.4.0-4
 
 * Make sembast more strict on key typing.
 * add `generateIntKey` on StoreRef
