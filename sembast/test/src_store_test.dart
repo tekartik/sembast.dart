@@ -109,6 +109,31 @@ void defineTests(DatabaseTestContext ctx) {
       expect(key1.length, greaterThan(10));
       expect(key2.length, greaterThan(10));
       expect(key1, isNot(key2));
+
+      var storeObject = StoreRef<Object, String>('object_key');
+      await expectLater(
+          () => storeObject.generateKey(db), throwsA(isA<ArgumentError>()));
+    });
+
+    test('generateIntKey', () async {
+      var store = StoreRef<int, String>('int_key');
+      expect(await store.generateIntKey(db), 1);
+      expect(await store.generateIntKey(db), 2);
+      // In transaction
+      await db.transaction((txn) async {
+        expect(await store.generateIntKey(txn), 3);
+      });
+      var storeString = StoreRef<String, String>('string_key');
+      var key1 = await storeString.generateIntKey(db);
+      var key2 = await storeString.generateIntKey(db);
+
+      expect(key1, 1);
+      expect(key2, 2);
+      var storeObject = StoreRef<Object, String>('object_key');
+      key1 = await storeObject.generateIntKey(db);
+      key2 = await storeObject.generateIntKey(db);
+      expect(key1, 1);
+      expect(key2, 2);
     });
   });
 }

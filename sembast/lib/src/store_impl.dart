@@ -86,7 +86,7 @@ class SembastStore {
   }
 
   /// Generate a new key (int or string only)
-  Future<K> txnGenerateUniqueKey<K>(SembastTransaction txn) async {
+  Future<K> txnGenerateUniqueKey<K extends Key>(SembastTransaction txn) async {
     late K key;
     if (K == String) {
       key = await txnGenerateUniqueStringKey(txn) as K;

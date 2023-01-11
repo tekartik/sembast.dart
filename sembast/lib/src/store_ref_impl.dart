@@ -221,6 +221,16 @@ extension SembastStoreRefExtension<K extends Key, V extends Value>
   }
 
   ///
+  /// Generate a new int key.
+  ///
+  Future<int> generateIntKey(DatabaseClient databaseClient) {
+    final client = getClient(databaseClient);
+    return client.inTransaction((txn) {
+      return client.getSembastStore(this).txnGenerateUniqueIntKey(txn);
+    });
+  }
+
+  ///
   /// Add multiple records, returns the list of generated keys.
   ///
   Future<List<K>> addAll(DatabaseClient databaseClient, List<V> values) async {
