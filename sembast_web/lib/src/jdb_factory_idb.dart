@@ -154,7 +154,7 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
     var key = map[_keyPath] as Key;
     var entry = jdb.JdbReadEntry()
       ..id = cwv.key as int
-      ..record = StoreRef(map[_storePath] as String).record(key)
+      ..record = StoreRef<Key?, Value?>(map[_storePath] as String).record(key)
       ..deleted = deleted;
     if (!deleted) {
       value = map[_valuePath] as Object;
