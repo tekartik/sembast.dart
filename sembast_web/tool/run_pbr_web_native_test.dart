@@ -5,7 +5,7 @@ Future main() async {
 
   await shell.run('''
 
-  pub run build_runner test -- -p chrome test/web
+  dart run build_runner test -- -p chrome test/web
 
 ''');
 }
