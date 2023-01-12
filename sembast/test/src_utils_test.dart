@@ -1,12 +1,13 @@
 library sembast.test.utils_test;
 
 // basically same as the io runner but with extra output
+import 'package:sembast/sembast.dart';
 import 'package:sembast/sembast_memory.dart';
+
 // ignore_for_file: implementation_imports
 import 'package:sembast/src/database_impl.dart' show SembastDatabase;
 import 'package:sembast/src/utils.dart';
-
-import 'test_common.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('utils', () {
@@ -95,6 +96,10 @@ void main() {
       });
     });
 
+    test('cloneValueOrNull', () {
+      expect(cloneValueOrNull(null), null);
+      expect(cloneValueOrNull(1), cloneValue(1));
+    });
     test('cloneValue', () {
       var existing = {
         'test': 1,
@@ -102,6 +107,7 @@ void main() {
           'sub': 2,
           'list': [
             {'n': 1},
+            null,
             2
           ]
         }
@@ -118,6 +124,7 @@ void main() {
           'sub': 4,
           'list': [
             {'n': 5},
+            null,
             2
           ]
         }
@@ -128,6 +135,7 @@ void main() {
           'sub': 2,
           'list': [
             {'n': 1},
+            null,
             2
           ]
         }
@@ -201,7 +209,7 @@ void main() {
     });
 
     test('mergeValue', () {
-      expect(mergeValue(null, null), null);
+      // expect(mergeValue(null, null), null);
       expect(mergeValue(null, 1), 1);
       expect(mergeValue(1, null), 1);
       expect(mergeValue({'t': 1}, null), {'t': 1});

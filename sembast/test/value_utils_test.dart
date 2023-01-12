@@ -6,8 +6,7 @@ import 'package:sembast/blob.dart';
 import 'package:sembast/src/utils.dart' show compareValue, compareValueType;
 import 'package:sembast/timestamp.dart';
 import 'package:sembast/utils/value_utils.dart' as utils;
-
-import 'test_common.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('value_utils', () {

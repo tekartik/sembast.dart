@@ -192,6 +192,24 @@ void defineTests(DatabaseTestContext ctx) {
       db = await reOpen(db);
       await checkRecord();
     });
+    test('List', () async {
+      final map = <String, Object?>{
+        'list': [1, 2, 3],
+        'listWithNull': [1, null, 2],
+      };
+      expect(await record.exists(db), isFalse);
+      await record.put(db, map);
+      Future checkRecord() async {
+        final value = await record.get(db) as Map<String, Object?>?;
+        print(value);
+        expect(await record.exists(db), isTrue);
+        expect(value, map);
+      }
+
+      await checkRecord();
+      db = await reOpen(db);
+      await checkRecord();
+    });
 
     /*
     test('immutable', () async {

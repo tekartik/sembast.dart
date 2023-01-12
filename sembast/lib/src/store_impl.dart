@@ -133,8 +133,7 @@ class SembastStore {
 
       oldSnapshot = record;
 
-      //if (record != null) {
-      // Always merge to get rid of FieldValue.delete if any
+      // the value cannot be null
       value = mergeValue(record?.value, value, allowDotsInKeys: true);
       //}
     } else {
