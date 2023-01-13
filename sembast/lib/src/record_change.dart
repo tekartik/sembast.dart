@@ -13,7 +13,7 @@ abstract class RecordChange<K, V> {
   RecordSnapshot<K, V>? get newSnapshot;
 
   /// Cast if needed
-  RecordChange<RK, RV> cast<RK, RV>();
+  RecordChange<RK, RV> cast<RK extends Key?, RV extends Value?>();
 }
 
 /// Record change listener

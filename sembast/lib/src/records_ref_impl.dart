@@ -107,7 +107,7 @@ mixin RecordsRefMixin<K, V> implements RecordsRef<K, V> {
 
   /// Cast if needed
   @override
-  RecordsRef<RK, RV> cast<RK, RV>() {
+  RecordsRef<RK, RV> cast<RK extends Key?, RV extends Value?>() {
     if (this is RecordsRef<RK, RV>) {
       return this as RecordsRef<RK, RV>;
     }

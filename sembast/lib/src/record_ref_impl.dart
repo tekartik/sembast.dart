@@ -19,7 +19,7 @@ mixin RecordRefMixin<K, V> implements RecordRef<K, V> {
 
   /// Cast if needed
   @override
-  RecordRef<RK, RV> cast<RK, RV>() {
+  RecordRef<RK, RV> cast<RK extends Key?, RV extends Value?>() {
     if (this is RecordRef<RK, RV>) {
       return this as RecordRef<RK, RV>;
     }

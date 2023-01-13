@@ -41,5 +41,8 @@ void main() {
       // ignore: unnecessary_statements
       SembastFilterCombination(filter) & filter;
     });
+    test('non inference', () {
+      StoreRef.main();
+    });
   });
 }

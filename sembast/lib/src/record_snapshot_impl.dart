@@ -55,7 +55,7 @@ mixin RecordSnapshotMixin<K, V>
   }
 
   @override
-  RecordSnapshot<RK, RV> cast<RK, RV>() {
+  RecordSnapshot<RK, RV> cast<RK extends Key?, RV extends Value?>() {
     if (this is RecordSnapshot<RK, RV>) {
       return this as RecordSnapshot<RK, RV>;
     }
@@ -106,7 +106,7 @@ class SembastRecordRawSnapshot<K, V> implements RecordSnapshot<K, V> {
   V get value => snapshot.rawValue;
 
   @override
-  RecordSnapshot<RK, RV> cast<RK, RV>() =>
+  RecordSnapshot<RK, RV> cast<RK extends Key?, RV extends Value?>() =>
       SembastRecordRawSnapshot<RK, RV>(snapshot.cast<RK, RV>());
 
   @override

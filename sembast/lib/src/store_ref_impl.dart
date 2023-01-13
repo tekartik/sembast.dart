@@ -53,7 +53,7 @@ mixin StoreRefMixin<K, V> implements StoreRef<K, V> {
 
   /// Cast if needed
   @override
-  StoreRef<RK, RV> cast<RK, RV>() {
+  StoreRef<RK, RV> cast<RK extends Key?, RV extends Value?>() {
     if (this is StoreRef<RK, RV>) {
       return this as StoreRef<RK, RV>;
     }

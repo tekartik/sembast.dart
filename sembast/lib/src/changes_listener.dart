@@ -15,7 +15,7 @@ class SembastTransactionRecordChange<K, V> implements RecordChange<K, V> {
   SembastTransactionRecordChange(this.oldSnapshot, this.newSnapshot);
 
   @override
-  RecordChange<RK, RV> cast<RK, RV>() {
+  RecordChange<RK, RV> cast<RK extends Key?, RV extends Value?>() {
     if (this is RecordChange<RK, RV>) {
       return this as RecordChange<RK, RV>;
     } else {

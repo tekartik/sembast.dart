@@ -110,14 +110,19 @@ void defineTests(DatabaseTestContext ctx) {
       expect(key2.length, greaterThan(10));
       expect(key1, isNot(key2));
 
-      /*
-      var storeObject = StoreRef<Object, Object>('object_key');
-      expect(await storeObject.generateKey(db), 1);
-      expect(await storeObject.generateKey(db), 2);
-      */
+      // ignore: dead_code
+      if (false) {
+        var storeObject = StoreRef<Object, Object>('object_key');
+        expect(await storeObject.generateKey(db), 1);
+        expect(await storeObject.generateKey(db), 2);
+      }
       var storeDynamic = StoreRef<Object?, Object?>('dynamic_key');
       expect(await storeDynamic.generateKey(db), 1);
       expect(await storeDynamic.generateKey(db), 2);
+
+      var storeDynamic2 = StoreRef('dynamic_key2');
+      expect(await storeDynamic2.generateKey(db), 1);
+      expect(await storeDynamic2.generateKey(db), 2);
     });
 
     test('generateIntKey', () async {

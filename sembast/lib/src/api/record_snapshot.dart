@@ -1,7 +1,7 @@
 import 'package:sembast/src/api/record_ref.dart';
 
 /// A read record
-abstract class RecordSnapshot<K, V> {
+abstract class RecordSnapshot<K extends Key?, V extends Value?> {
   /// Its reference
   RecordRef<K, V> get ref;
 
@@ -18,5 +18,5 @@ abstract class RecordSnapshot<K, V> {
   Object? operator [](String field);
 
   /// Cast if needed
-  RecordSnapshot<RK, RV> cast<RK, RV>();
+  RecordSnapshot<RK, RV> cast<RK extends Key?, RV extends Value?>();
 }
