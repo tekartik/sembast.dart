@@ -10,6 +10,8 @@ void main() {
       expect(immutableValue([1]), immutableValueOrNull([1]));
       expect(immutableValue([null]), [null]);
       expect(immutableValue([1, null, 'test']), [1, null, 'test']);
+      expect(immutableValue({'test': 1}), {'test': 1});
+      expect(immutableValue({'test': null}), {'test': null});
     });
   });
 }

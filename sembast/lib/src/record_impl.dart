@@ -71,13 +71,13 @@ mixin SembastRecordHelperMixin implements SembastRecord {
 }
 
 /// Used as an interface
-abstract class SembastRecordValue<V> {
+abstract class SembastRecordValue<V extends Value?> {
   /// Raw value/
   late V rawValue;
 }
 
 /// Sembast record mixin.
-mixin SembastRecordMixin implements SembastRecord, SembastRecordValue<Value?> {
+mixin SembastRecordMixin implements SembastRecord, SembastRecordValue {
   bool? _deleted;
 
   @override
@@ -95,7 +95,7 @@ class ImmutableSembastRecordJdb extends ImmutableSembastRecord {
   /// revision needed
   ///
   /// [value] can be null for deleted
-  ImmutableSembastRecordJdb(RecordRef<Key?, Value?> ref, Value? value,
+  ImmutableSembastRecordJdb(RecordRef ref, Value? value,
       {bool deleted = false, required int revision})
       : super(ref, value, deleted: deleted) {
     this.revision = revision;
@@ -207,7 +207,8 @@ class TxnRecord with SembastRecordHelperMixin implements SembastRecord {
   RecordRef<Key?, Value?> get ref => record.ref;
 
   @override
-  RecordSnapshot<RK, RV> cast<RK, RV>() => record.cast<RK, RV>();
+  RecordSnapshot<RK, RV> cast<RK extends Key?, RV extends Value?>() =>
+      record.cast<RK, RV>();
 
   /// non deleted record.
   ImmutableSembastRecord? get nonDeletedRecord => deleted ? null : record;
