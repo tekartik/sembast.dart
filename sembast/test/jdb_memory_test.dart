@@ -10,23 +10,26 @@ JdbDatabaseMemory getJdbDatabase(Database database) =>
 
 class JdbWriteEntryMock extends JdbWriteEntry {
   @override
-  late RecordRef record;
+  late RecordRef<Key?, Value?> record;
   dynamic _value;
 
   JdbWriteEntryMock(
       {required int id,
       String? store,
-      required dynamic key,
+      required Object key,
       dynamic value,
       this.deleted = false}) {
-    record = (store == null ? StoreRef.main() : StoreRef(store)).record(key);
+    record = (store == null
+            ? StoreRef<Key?, Value?>.main()
+            : StoreRef<Key?, Value?>(store))
+        .record(key);
     _value = value;
 
     this.id = id;
   }
 
   @override
-  dynamic get value => _value;
+  Value get value => _value as Value;
 
   @override
   final bool deleted;
@@ -41,7 +44,7 @@ void main() {
 
       var jdb = getJdbDatabase(db);
       expect(jdb.toDebugMap(), {
-        'entries': [],
+        'entries': <Object>[],
         'infos': [
           {
             'id': 'meta',
@@ -98,7 +101,7 @@ void main() {
       var db = await ctx.open('test');
       var jdb = getJdbDatabase(db);
       expect(jdb.toDebugMap(), {
-        'entries': [],
+        'entries': <Object>[],
         'infos': [
           {
             'id': 'meta',

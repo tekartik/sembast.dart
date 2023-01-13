@@ -82,7 +82,7 @@ abstract class Filter {
   /// Filter by [key].
   ///
   /// Less efficient than using `store.record(key)`.
-  factory Filter.byKey(key) => Filter.equals(Field.key, key);
+  factory Filter.byKey(Object key) => Filter.equals(Field.key, key);
 
   /// Custom filter, use with caution and do not modify record data as it
   /// provides a raw access to the record internal value for efficiency.

@@ -1,18 +1,22 @@
-import 'dart:collection';
 import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:sembast/blob.dart';
-import 'package:sembast/sembast.dart';
 import 'package:sembast/src/common_import.dart';
+import 'package:sembast/src/immutable_utils.dart';
 import 'package:sembast/src/record_impl.dart';
 import 'package:sembast/src/timestamp_impl.dart';
+
+import 'import_common.dart';
+
+// compat
+export 'package:sembast/src/immutable_utils.dart';
 
 /// Backtick char code.
 final backtickChrCode = '`'.codeUnitAt(0);
 
 /// Check keys.
-bool checkMapKey(key) {
+bool checkMapKey(Object? key) {
   if (key is! String) {
     return false;
   }
@@ -24,7 +28,7 @@ bool checkMapKey(key) {
 }
 
 /// Check a value.
-bool checkValue(value) {
+bool checkValue(Object? value) {
   if (value == null) {
     return true;
   } else if (value is num || value is String || value is bool) {
@@ -243,25 +247,32 @@ K cloneKey<K>(K key) {
   throw DatabaseException.badParam('key $key not supported ${key.runtimeType}');
 }
 
-/// True if the value is an array or map.
-bool isValueMutable(dynamic value) {
-  return value is Map || value is Iterable;
+/// Clone a value.
+Value cloneValue(Value value) {
+  if (value is Map) {
+    return value.map<String, Object?>(
+        (key, value) => MapEntry(key as String, cloneValueOrNull(value)));
+  }
+  if (value is Iterable) {
+    return value.map((value) => cloneValueOrNull(value)).toList();
+  }
+  return value;
 }
 
 /// Clone a value.
-dynamic cloneValue(dynamic value) {
+dynamic cloneValueOrNull(dynamic value) {
   if (value is Map) {
     return value.map<String, Object?>(
-        (key, value) => MapEntry(key as String, cloneValue(value)));
+        (key, value) => MapEntry(key as String, cloneValueOrNull(value)));
   }
   if (value is Iterable) {
-    return value.map((value) => cloneValue(value)).toList();
+    return value.map((value) => cloneValueOrNull(value)).toList();
   }
   return value;
 }
 
 /// Sanitize Map type for root value
-dynamic sanitizeValueIfMap(dynamic value) {
+Object sanitizeValueIfMap(Object value) {
   if (value is Map) {
     if (value is! Map<String, Object?>) {
       return value.cast<String, Object?>();
@@ -288,62 +299,6 @@ bool isBasicTypeFieldValueOrNull(dynamic value) {
     return true;
   }
   return false;
-}
-
-/// Make a value immutable.
-Object? immutableValue(Object? value) {
-  if (value is Map) {
-    return ImmutableMap<String, Object?>(value);
-  } else if (value is Iterable) {
-    return ImmutableList(value);
-  }
-  return value;
-}
-
-/// Immutable list.
-class ImmutableList<E> extends ListBase<E> {
-  final List<E> _list;
-
-  @override
-  int get length => _list.length;
-
-  /// Immutable list.
-  ImmutableList(Iterable<E> list) : _list = list.toList(growable: false);
-
-  @override
-  E operator [](int index) => immutableValue(_list[index]) as E;
-
-  @override
-  void operator []=(int index, value) => throw StateError('read only');
-
-  @override
-  set length(int newLength) => throw StateError('read only');
-}
-
-/// Immutable map.
-class ImmutableMap<K, V> extends MapBase<K, V> {
-  final Map<K, V> _map;
-
-  /// raw map.
-  Map<K, V> get rawMap => _map;
-
-  /// Immutable map.
-  ImmutableMap(Map map) : _map = map.cast<K, V>();
-
-  @override
-  V? operator [](Object? key) => immutableValue(_map[key as K]) as V?;
-
-  @override
-  void operator []=(K key, V value) => throw StateError('read only');
-
-  @override
-  void clear() => throw StateError('read only');
-
-  @override
-  Iterable<K> get keys => _map.keys;
-
-  @override
-  V remove(Object? key) => throw StateError('read only');
 }
 
 /// Get value at a given field path.
@@ -443,27 +398,31 @@ void setMapFieldValue<T>(Map map, String field, T value) {
   setPartsMapValue(map, getFieldParts(field), value);
 }
 
-/// Merge an existing value with a new value, Map only!
-dynamic mergeValue(dynamic existingValue, dynamic newValue,
+/// Merge an existing value with a new value, Map only
+///
+/// either [existingValue] or [newValue] must not be null
+Object mergeValue(Object? existingValue, Object? newValue,
     {bool? allowDotsInKeys}) {
+  // both cannot be null.
+  assert(existingValue != null || newValue != null);
   allowDotsInKeys ??= false;
 
   if (newValue == null) {
-    return existingValue;
+    return existingValue!;
   }
 
   if (existingValue is! Map) {
-    return _fixValue(newValue);
+    return _fixValue(newValue) as Object;
   }
   if (newValue is! Map) {
     return newValue;
   }
 
-  final mergedMap = cloneValue(existingValue) as Map<String, Object?>?;
+  final mergedMap = cloneValue(existingValue) as Map<String, Object?>;
   Map? currentMap = mergedMap;
 
   // Here we have the new key and values to merge
-  void merge(key, value) {
+  void merge(Key? key, Value? value) {
     var stringKey = key as String;
     // Handle a.b.c or `` `a.b.c` ``
     List<String> keyParts;

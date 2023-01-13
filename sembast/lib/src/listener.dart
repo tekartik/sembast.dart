@@ -1,4 +1,3 @@
-import 'package:sembast/sembast.dart';
 import 'package:sembast/src/common_import.dart';
 import 'package:sembast/src/cooperator.dart';
 import 'package:sembast/src/debug_utils.dart';
@@ -11,6 +10,7 @@ import 'package:sembast/src/utils.dart';
 
 import 'api/filter_ref.dart';
 import 'filter_ref_impl.dart';
+import 'import_common.dart';
 
 class _ControllerBase {
   static var _lastId = 0;
@@ -147,7 +147,7 @@ class QueryListenerController<K, V> extends StoreListenerControllerBase<K, V> {
     // Restart from the base we have for efficiency
     var allMatching = List<ImmutableSembastRecord>.from(_allMatching!);
 
-    var keys = Set.from(records.map((record) => record.key));
+    var keys = Set<Object?>.from(records.map((record) => record.key));
     // Remove all matching
     bool whereSnapshot(RecordSnapshot snapshot) {
       if (keys.contains(snapshot.key)) {
@@ -281,7 +281,7 @@ class RecordListenerController<K, V> extends _ControllerBase {
 /// Store listener.
 class StoreListener {
   /// Our store.
-  final StoreRef store;
+  final StoreRef<Key?, Value?> store;
   final _records = <Object?, List<RecordListenerController>>{};
   final _stores = <StoreListenerController>[];
 
@@ -471,7 +471,7 @@ class DatabaseListener {
   }
 
   /// Get a store listener.
-  StoreListener? getStore(StoreRef ref) => _stores[ref];
+  StoreListener? getStore(StoreRef<Key?, Value?> ref) => _stores[ref];
 
   /// All store listeners.
   Iterable<StoreRef> get stores => _stores.keys;
@@ -492,7 +492,7 @@ class DatabaseListener {
   }
 
   /// True if the record as a listener
-  bool recordHasAnyListener(RecordRef record) =>
+  bool recordHasAnyListener(RecordRef<Key?, Value?> record) =>
       getStore(record.store)?.keyHasAnyListener(record.key) ?? false;
 }
 
@@ -518,7 +518,7 @@ class CountListenerController<K, V> extends StoreListenerControllerBase<K, V> {
   bool get isClosed => _streamController!.isClosed;
 
   /// The current list
-  Set<dynamic>? list;
+  Set<Object?>? list;
 
   /// Last count
   int? lastCount;
@@ -558,7 +558,7 @@ class CountListenerController<K, V> extends StoreListenerControllerBase<K, V> {
   bool get _shouldAdd => !isClosed && _streamController!.hasListener;
 
   /// Add data to stream, allMatching is already sorted
-  void add(Set<dynamic> keys, Cooperator? cooperator) {
+  void add(Set<Object?> keys, Cooperator? cooperator) {
     var changed = list?.length != keys.length;
     // Filter only
     list = keys;
@@ -587,10 +587,10 @@ class CountListenerController<K, V> extends StoreListenerControllerBase<K, V> {
     if (!_shouldAdd) {
       return;
     }
-    var keys = Set.from(list!);
+    var keys = Set<Object>.from(list!);
 
     for (var record in records) {
-      if (filterMatchesRecord(filter, record) && !record.deleted) {
+      if (!record.deleted && filterMatchesRecord(filter, record)) {
         keys.add(record.key);
       } else {
         keys.remove(record.key);

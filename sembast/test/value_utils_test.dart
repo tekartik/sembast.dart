@@ -6,8 +6,7 @@ import 'package:sembast/blob.dart';
 import 'package:sembast/src/utils.dart' show compareValue, compareValueType;
 import 'package:sembast/timestamp.dart';
 import 'package:sembast/utils/value_utils.dart' as utils;
-
-import 'test_common.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('value_utils', () {
@@ -130,9 +129,9 @@ void main() {
       expect(compareValueType(Blob.fromList([1, 2, 3]), [1, 2, 3]), -1);
       expect(compareValueType('test', [1, 2, 3]), -1);
       expect(compareValueType([1, 2, 3], 'test'), 1);
-      expect(compareValueType([1, 2, 3], {}), -1);
-      expect(compareValueType({}, [1, 2, 3]), 1);
-      expect(compareValueType({}, _Dummy1()), -1);
+      expect(compareValueType([1, 2, 3], <String, Object>{}), -1);
+      expect(compareValueType(<String, Object>{}, [1, 2, 3]), 1);
+      expect(compareValueType(<String, Object>{}, _Dummy1()), -1);
       expect(compareValueType(_Dummy1(), _Dummy2()), -1);
     });
   });

@@ -58,10 +58,10 @@ class JdbEntryMemory implements jdb.JdbReadEntry {
   late int id;
 
   @override
-  Object? value;
+  late Value value;
 
   @override
-  late RecordRef record;
+  late RecordRef<Key?, Value?> record;
 
   @override
   late bool deleted;
@@ -153,11 +153,14 @@ class JdbDatabaseMemory implements jdb.JdbDatabase {
 
   JdbEntryMemory _writeEntryToMemory(jdb.JdbWriteEntry jdbWriteEntry) {
     var record = jdbWriteEntry.record;
+    var deleted = jdbWriteEntry.deleted;
     var entry = JdbEntryMemory()
       ..record = record
-      ..value = jdbWriteEntry.value
       ..id = _nextId
-      ..deleted = jdbWriteEntry.deleted;
+      ..deleted = deleted;
+    if (!deleted) {
+      entry.value = jdbWriteEntry.value;
+    }
     return entry;
   }
 

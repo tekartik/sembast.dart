@@ -13,7 +13,9 @@ void main() {
 void defineTests(DatabaseTestContext ctx) {
   final factory = ctx.factory;
   String dbPath;
-  var store = StoreRef.main();
+
+  /// worst definition ever, on purpose...
+  var store = StoreRef<Object?, Object?>.main();
 
   group('database', () {
     dbPath = dbPathFromName(join('compat', 'database.db'));
@@ -80,7 +82,7 @@ void defineTests(DatabaseTestContext ctx) {
         try {
           // don't await to make sure it gets written at some point
           unawaited(db.transaction((txn) async {
-            await Future.delayed(const Duration(milliseconds: 10));
+            await Future<void>.delayed(const Duration(milliseconds: 10));
             await record.put(txn, 'test');
           }));
           unawaited(db.close());
@@ -89,7 +91,7 @@ void defineTests(DatabaseTestContext ctx) {
           // Do it again
           // don't await to make sure it gets written at some point
           unawaited(db.transaction((txn) async {
-            await Future.delayed(const Duration(milliseconds: 10));
+            await Future<void>.delayed(const Duration(milliseconds: 10));
             await record.put(txn, 'test2');
           }));
           unawaited(db.close());

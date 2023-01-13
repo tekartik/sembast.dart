@@ -26,8 +26,9 @@ void defineMemoryDatabaseTests(DatabaseTestContext ctx) {
     var dbName = sembastInMemoryDatabasePath;
 
     final db = await factory.openDatabase(dbName);
-    var store = StoreRef.main();
+    var store = StoreRef<int, String>.main();
     var key = await store.add(db, 'hi');
+    print('key: $key');
     expect(await store.record(key).get(db), 'hi');
 
     // open null db again should not match

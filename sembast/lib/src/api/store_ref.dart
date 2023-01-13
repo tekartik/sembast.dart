@@ -1,4 +1,4 @@
-import 'package:sembast/sembast.dart';
+import 'package:sembast/src/import_common.dart';
 import 'package:sembast/src/sembast_impl.dart' show dbMainStore;
 import 'package:sembast/src/store_ref_impl.dart';
 
@@ -20,10 +20,10 @@ abstract class StoreRef<K, V> {
   /// A null name means a the main store.
   ///
   /// A name must not start with `_` (besides the main store).
-  factory StoreRef(String name) => SembastStoreRef(name);
+  factory StoreRef(String name) => SembastStoreRef<K, V>(name);
 
   /// A pointer to the main store
-  factory StoreRef.main() => SembastStoreRef(dbMainStore);
+  factory StoreRef.main() => SembastStoreRef<K, V>(dbMainStore);
 
   /// Cast if needed
   StoreRef<RK, RV> cast<RK, RV>();

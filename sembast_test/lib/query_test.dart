@@ -30,7 +30,7 @@ void defineTests(DatabaseTestContext ctx) {
 
     Future expectQueryAndFirstSnapshotKeys(
         Finder? finder, List<int> keys) async {
-      var store = StoreRef<int, Object?>.main();
+      var store = StoreRef<int, Object>.main();
       var results = await store.query(finder: finder).onSnapshots(db).first;
       expect(results.map((e) => e.key), keys);
       results = await store.query(finder: finder).getSnapshots(db);
@@ -86,8 +86,8 @@ void defineTests(DatabaseTestContext ctx) {
       finder = Finder(filter: Filter.equals(Field.value, 'test3'));
       query = store.query(finder: finder);
       await expectQueryAndFirstSnapshotKeys(finder, []);
-      expect(
-          (await query.getSnapshots(db)).map((snapshot) => snapshot.key), []);
+      expect((await query.getSnapshots(db)).map((snapshot) => snapshot.key),
+          isEmpty);
       expect((await query.getSnapshot(db)), isNull);
     });
 
@@ -153,7 +153,7 @@ void defineTests(DatabaseTestContext ctx) {
       var store = StoreRef<int, String>.main();
       var record = store.record(1);
       var index = 0;
-      var completer = Completer();
+      var completer = Completer<void>();
 
       // When starting listening the record does not exists yet
       var query = store.query();
@@ -209,7 +209,7 @@ void defineTests(DatabaseTestContext ctx) {
       var store = StoreRef<int, String>.main();
       var record = store.record(1);
       var index = 0;
-      var completer = Completer();
+      var completer = Completer<void>();
 
       // When starting listening the record does not exists yet
       var query = store.query();
@@ -309,7 +309,7 @@ void defineTests(DatabaseTestContext ctx) {
       var store = StoreRef<int, String>.main();
       var record = store.record(1);
       var index = 0;
-      var completer = Completer();
+      var completer = Completer<void>();
 
       // When starting listening the record does not exists yet
       var query = store.query(
@@ -507,7 +507,7 @@ void defineTests(DatabaseTestContext ctx) {
       expect((await future2)[1].key, record1.key);
       await expectQueryAndFirstSnapshotKeys(finder, [2, 1]);
       expect(results1.map((e) => e.map((e) => e.key)), [
-        [],
+        <int>[],
         [2, 1]
       ]);
       await subscription.cancel();
@@ -537,7 +537,7 @@ void defineTests(DatabaseTestContext ctx) {
       await record2.put(db, 'test0');
       await expectQueryAndFirstSnapshotKeys(finder, [1]);
       expect(results1.map((e) => e.map((e) => e.key).toList()).toList(), [
-        [],
+        <int>[],
         [2],
         [2, 1],
         [1]
@@ -564,7 +564,7 @@ void defineTests(DatabaseTestContext ctx) {
       });
       await expectQueryAndFirstSnapshotKeys(finder, [2]);
       expect(results1.map((e) => e.map((e) => e.key).toList()).toList(), [
-        [],
+        <int>[],
         [2]
       ]);
       await subscription.cancel();
@@ -572,7 +572,7 @@ void defineTests(DatabaseTestContext ctx) {
 
     test('onSnapshots 2 records sort order different types', () async {
       List<RecordSnapshot> results;
-      var store = StoreRef<int, Object?>.main();
+      var store = StoreRef<int, Object>.main();
       var record1 = store.record(1);
       var record2 = store.record(2);
       var finder = Finder(sortOrders: [SortOrder(Field.value)]);
@@ -588,7 +588,7 @@ void defineTests(DatabaseTestContext ctx) {
       results = await store.query(finder: finder).onSnapshots(db).first;
       expect(results.map((e) => e.key), [2, 1]);
       expect(results1.map((e) => e.map((e) => e.key).toList()).toList(), [
-        [],
+        <int>[],
         [2, 1]
       ]);
 
@@ -613,7 +613,7 @@ void defineTests(DatabaseTestContext ctx) {
       results = await store.query(finder: finder).onSnapshots(db).first;
       expect(results.map((e) => e.key), [2]);
       expect(results1.map((e) => e.map((e) => e.key).toList()).toList(), [
-        [],
+        <int>[],
         [2]
       ]);
 
@@ -644,7 +644,7 @@ void defineTests(DatabaseTestContext ctx) {
       results = await store.query(finder: finder).onSnapshots(db).first;
       expect(results.map((e) => e.key), [1]);
       expect(results1.map((e) => e.map((e) => e.key).toList()).toList(), [
-        [],
+        <int>[],
         [1],
         [2],
         [1],
@@ -715,7 +715,7 @@ void defineTests(DatabaseTestContext ctx) {
       });
       await expectQueryAndFirstSnapshotKeys(finder, [2]);
       expect(results1.map((e) => e.map((e) => e.key).toList()).toList(), [
-        [],
+        <int>[],
         [2],
         [4, 3],
         [4, 3],
@@ -786,7 +786,7 @@ void defineTests(DatabaseTestContext ctx) {
       });
       await expectQueryAndFirstSnapshotKeys(finder, [4]);
       expect(results1.map((e) => e.map((e) => e.key).toList()).toList(), [
-        [],
+        <int>[],
         [3],
         [4, 1],
         [3, 4],

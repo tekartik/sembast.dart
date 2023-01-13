@@ -1,4 +1,4 @@
-import 'package:sembast/src/api/sembast.dart';
+import 'package:sembast/src/import_common.dart';
 
 /// A query on a store.
 abstract class QueryRef<K, V> {

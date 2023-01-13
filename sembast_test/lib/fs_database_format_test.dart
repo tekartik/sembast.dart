@@ -17,7 +17,7 @@ void defineTests(DatabaseTestContextFs ctx) {
   final fs = ctx.fs;
   //String getDbPath() => ctx.outPath + '.db';
   String? dbPath;
-  var store = StoreRef.main();
+  var store = StoreRef<int, Object>.main();
 
   Future<List<Map<String, Object?>?>> dbFileExportToMapList() {
     return fsExportToMapList(fs, dbPath!);

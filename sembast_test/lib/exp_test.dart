@@ -23,7 +23,7 @@ void defineTests(DatabaseTestContext ctx) {
 
     test('issue8_1', () async {
       db = await setupForTest(ctx, 'exp/issue8_1');
-      var store = StoreRef.main();
+      var store = StoreRef<int, Map>.main();
       dynamic lastKey;
       var macAddress = '00:0a:95:9d:68:16';
       await db!.transaction((txn) async {
@@ -41,10 +41,10 @@ void defineTests(DatabaseTestContext ctx) {
 
     test('issue8_2', () async {
       var beaconsStoreName = 'beacons';
-      var store = StoreRef(beaconsStoreName);
+      var store = intMapStoreFactory.store(beaconsStoreName);
       db = await setupForTest(ctx, 'exp/issue8_2');
 
-      dynamic key2, key3;
+      late int key2, key3;
       await db!.transaction((txn) async {
         await store.add(txn, {'name': 'beacon1'});
         key2 = await store.add(txn, {'name': 'beacon2'});
@@ -53,7 +53,7 @@ void defineTests(DatabaseTestContext ctx) {
 
       var recordsIds = [key2, key3];
       await db!.transaction((txn) async {
-        final futures = <Future>[];
+        final futures = <Future<Object?>>[];
         for (var key in recordsIds) {
           futures.add(store.record(key).update(txn, {'flushed': true}));
         }

@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:sembast/sembast.dart';
+import 'import_common.dart';
 
 /// Record change info streamed during `StoreRef.onChange`.
 ///

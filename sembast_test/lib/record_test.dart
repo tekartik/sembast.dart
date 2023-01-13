@@ -23,17 +23,17 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     test('equals', () {
-      var record1 = StoreRef.main().record(1);
-      var record2 = StoreRef.main().record(1);
+      var record1 = StoreRef<int?, Object?>.main().record(1);
+      var record2 = StoreRef<int?, Object?>.main().record(1);
       expect(record1, record2);
       expect(record1.hashCode, record2.hashCode);
-      expect(record1, isNot(StoreRef('test').record(1)));
-      expect(record1, isNot(StoreRef.main().record(2)));
-      expect(record1, StoreRef.main().record(1));
-      expect(record1, isNot(StoreRef.main().record('test')));
+      expect(record1, isNot(StoreRef<int, Object?>('test').record(1)));
+      expect(record1, isNot(StoreRef<int, Object?>.main().record(2)));
+      expect(record1, StoreRef<int, Object?>.main().record(1));
+      expect(record1, isNot(StoreRef<String?, Object?>.main().record('test')));
       expect(
-          StoreRef.main().record('test'),
-          StoreRef.main().record((StringBuffer()
+          StoreRef<String, Object>.main().record('test'),
+          StoreRef<String?, Object?>.main().record((StringBuffer()
                 ..write('te')
                 ..write('st'))
               .toString()));
@@ -112,7 +112,7 @@ void defineTests(DatabaseTestContext ctx) {
       var store = StoreRef<int, String>.main();
       var record = store.record(1);
       var index = 0;
-      var completer = Completer();
+      var completer = Completer<void>();
 
       // When starting listening the record does not exists yet
       var sub = record.onSnapshot(db).listen((snapshot) {
@@ -161,8 +161,8 @@ void defineTests(DatabaseTestContext ctx) {
         fail('should timeout');
       } on TimeoutException catch (_) {}
 
-      var completer = Completer();
-      var doneCompleter = Completer();
+      var completer = Completer<void>();
+      var doneCompleter = Completer<void>();
       // Wait for first event before closing the db
       var subscription = record.onSnapshot(db).listen((snapshot) {
         completer.complete();

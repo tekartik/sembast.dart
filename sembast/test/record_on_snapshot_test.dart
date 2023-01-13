@@ -43,7 +43,8 @@ void main() {
       }
 
       var doneFuture = done();
-      unawaited(Future.delayed(const Duration(milliseconds: 2)).then((_) async {
+      unawaited(
+          Future<void>.delayed(const Duration(milliseconds: 2)).then((_) async {
         await record.put(db, 3);
       }));
       await doneFuture;
@@ -57,14 +58,16 @@ void main() {
       }
 
       doneFuture = done();
-      unawaited(Future.delayed(const Duration(milliseconds: 2)).then((_) async {
+      unawaited(
+          Future<void>.delayed(const Duration(milliseconds: 2)).then((_) async {
         await record.put(db, 3);
       }));
       await doneFuture;
 
       await record.put(db, 1);
       doneFuture = done();
-      unawaited(Future.delayed(const Duration(milliseconds: 2)).then((_) async {
+      unawaited(
+          Future<void>.delayed(const Duration(milliseconds: 2)).then((_) async {
         await db.close();
       }));
       try {

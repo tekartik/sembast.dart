@@ -1,10 +1,11 @@
-import 'package:sembast/src/api/sembast.dart';
 import 'package:sembast/src/common_import.dart';
 import 'package:sembast/src/database_client_impl.dart';
 import 'package:sembast/src/database_impl.dart';
 import 'package:sembast/src/debug_utils.dart';
 import 'package:sembast/src/listener.dart';
 import 'package:sembast/src/record_snapshot_impl.dart';
+
+import 'import_common.dart';
 
 /// Record ref mixin.
 mixin RecordRefMixin<K, V> implements RecordRef<K, V> {
@@ -58,9 +59,9 @@ extension SembastRecordRefExtension<K, V> on RecordRef<K, V> {
   /// Returns the key if inserted, null otherwise.
   Future<K?> add(DatabaseClient databaseClient, V value) async {
     var client = getClient(databaseClient);
-    value = client.sembastDatabase.sanitizeInputValue<V>(value) as V;
+    value = client.sembastDatabase.sanitizeInputValue<V>(value as Value);
     return await client.inTransaction((txn) {
-      return client.getSembastStore(store).txnAdd<K, V>(txn, value, key);
+      return client.getSembastStore(store).txnAdd<K>(txn, value as Value, key);
     });
   }
 
@@ -71,12 +72,12 @@ extension SembastRecordRefExtension<K, V> on RecordRef<K, V> {
   /// Returns the updated value.
   Future<V> put(DatabaseClient databaseClient, V value, {bool? merge}) async {
     var client = getClient(databaseClient);
-    value =
-        client.sembastDatabase.sanitizeInputValue<V>(value, update: merge) as V;
+    value = client.sembastDatabase
+        .sanitizeInputValue<V>(value as Value, update: merge);
     return (await client.inTransaction((txn) {
       return client
           .getSembastStore(store)
-          .txnPut(txn, value, key, merge: merge);
+          .txnPut(txn, value as Value, key as Key, merge: merge);
     }) as V?)!;
   }
 
@@ -88,10 +89,12 @@ extension SembastRecordRefExtension<K, V> on RecordRef<K, V> {
   /// Returns the updated value.
   Future<V?> update(DatabaseClient databaseClient, V value) async {
     var client = getClient(databaseClient);
-    value =
-        client.sembastDatabase.sanitizeInputValue<V>(value, update: true) as V;
+    value = client.sembastDatabase
+        .sanitizeInputValue<V>(value as Value, update: true);
     return await client.inTransaction((txn) {
-      return client.getSembastStore(store).txnUpdate(txn, value, key);
+      return client
+          .getSembastStore(store)
+          .txnUpdate(txn, value as Value, key as Key);
     }) as V?;
   }
 
@@ -106,7 +109,7 @@ extension SembastRecordRefExtension<K, V> on RecordRef<K, V> {
 
     var record = await client
         .getSembastStore(store)
-        .txnGetRecord(client.sembastTransaction, key);
+        .txnGetRecord(client.sembastTransaction, key as Key);
     return record?.cast<K, V>();
   }
 
@@ -142,14 +145,15 @@ extension SembastRecordRefExtension<K, V> on RecordRef<K, V> {
     var client = getClient(databaseClient);
     return client
         .getSembastStore(store)
-        .txnRecordExists(client.sembastTransaction, key);
+        .txnRecordExists(client.sembastTransaction, key as Key);
   }
 
   /// Delete the record. Returns the key if deleted, null if not found.
   Future<K?> delete(DatabaseClient databaseClient) {
     var client = getClient(databaseClient);
     return client.inTransaction((txn) async {
-      return await client.getSembastStore(store).txnDelete(txn, key) as K?;
+      return await client.getSembastStore(store).txnDelete(txn, key as Key)
+          as K?;
     });
   }
 }

@@ -38,7 +38,7 @@ abstract class JdbEntry {
   int get id;
 
   /// Jdb record
-  RecordRef get record;
+  RecordRef<Key?, Value?> get record;
 
   /// True if deleted
   bool get deleted;
@@ -46,8 +46,8 @@ abstract class JdbEntry {
   @override
   String toString() => '[$id] $record ${deleted ? ' (deleted)' : ' $value'}';
 
-  /// Jdb value - null if deleted
-  Object? get value;
+  /// Jdb value - don't access if deleted
+  Value get value;
 }
 
 /// Read entry
@@ -56,10 +56,10 @@ class JdbReadEntry extends JdbEntry {
   late int id;
 
   @override
-  late RecordRef record;
+  late RecordRef<Key?, Value?> record;
 
   @override
-  Object? value;
+  late Value value;
 
   @override
   late bool deleted;
@@ -75,16 +75,27 @@ class JdbWriteEntry extends JdbEntry {
 
   // Ref.
   @override
-  RecordRef get record => txnRecord!.ref;
+  RecordRef<Key?, Value?> get record => txnRecord!.ref;
 
   Object? _value;
 
   /// value.
   @override
-  Object? get value => _value ??= txnRecord!.record.value;
+  Value get value {
+    try {
+      return _value ??= txnRecord!.record.value;
+    } catch (e) {
+      print('error $e accessing value for $this');
+      if (deleted) {
+        throw StateError('deleted accessing value for $this');
+      } else {
+        throw StateError('error $e accessing value for $this');
+      }
+    }
+  }
 
   @override
-  String toString() => '[$id] $record $value';
+  String toString() => '[$id] $record $_value';
 
   @override
   bool get deleted => txnRecord!.deleted;
@@ -93,14 +104,19 @@ class JdbWriteEntry extends JdbEntry {
 /// Raw entry.
 class JdbRawWriteEntry extends JdbWriteEntry {
   @override
-  final Object? value;
+  late final Value value;
   @override
   final bool deleted;
   @override
-  final RecordRef record;
+  final RecordRef<Key?, Value?> record;
 
   /// Raw entry.
-  JdbRawWriteEntry({this.value, required this.deleted, required this.record});
+  JdbRawWriteEntry(
+      {required Value? value, required this.deleted, required this.record}) {
+    if (!deleted) {
+      this.value = value as Value;
+    }
+  }
 }
 
 /// Jdb.

@@ -1,8 +1,7 @@
-import 'package:sembast/sembast.dart';
 import 'package:sembast/src/common_import.dart';
 import 'package:sembast/src/transaction_impl.dart';
 
-import 'api/sembast.dart';
+import 'import_common.dart';
 
 /// Transaction record change implementation
 class SembastTransactionRecordChange<K, V> implements RecordChange<K, V> {
@@ -65,7 +64,7 @@ class StoreChangesListeners {
   final _txnNewSnapshot = <RecordSnapshot?>[];
 
   /// Get the record ref.
-  RecordRef getRecordRef(int index) =>
+  RecordRef<Key?, Value?> getRecordRef(int index) =>
       (_txnNewSnapshot[index]?.ref ?? _txnOldSnapshot[index]?.ref)!;
 
   /// True if there is a pending change
@@ -133,7 +132,7 @@ class DatabaseChangesListener {
   }
 
   /// true if it has a change listener for this store
-  bool hasStoreChangeListener(StoreRef ref) =>
+  bool hasStoreChangeListener(StoreRef<Key?, Value?> ref) =>
       isNotEmpty && _stores.containsKey(ref);
 
   /// Clear current transaction changes.

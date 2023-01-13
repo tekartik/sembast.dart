@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:sembast/sembast.dart';
 import 'package:sembast/src/api/filter_ref.dart';
 import 'package:sembast/src/api/protected/database.dart';
 import 'package:sembast/src/database_client_impl.dart';
@@ -13,6 +12,7 @@ import 'package:sembast/src/record_snapshot_impl.dart';
 import 'package:sembast/src/records_ref_impl.dart';
 
 import 'database_impl.dart';
+import 'import_common.dart';
 
 /// Store implementation.
 class SembastStoreRef<K, V> with StoreRefMixin<K, V> {
@@ -29,9 +29,6 @@ mixin StoreRefMixin<K, V> implements StoreRef<K, V> {
 
   @override
   RecordRef<K, V> record(K key) {
-    if (key == null) {
-      throw ArgumentError('Record key cannot be null');
-    }
     return SembastRecordRef<K, V>(this, key);
   }
 
@@ -92,7 +89,8 @@ extension SembastStoreRefExtensionImpl<K, V> on StoreRef<K, V> {
 /// Internal extension
 extension SembastStoreRefExtensionPrv<K, V> on StoreRef<K, V> {
   /// Delete the store and its content
-  FilterRef<K, V> filter({Filter? filter}) => SembastFilterRef(this, filter);
+  FilterRef<K, V> filter({Filter? filter}) =>
+      SembastFilterRef<K, V>(this, filter);
 }
 
 /// Store ref public sembast extension.
@@ -201,12 +199,12 @@ extension SembastStoreRefExtension<K, V> on StoreRef<K, V> {
   ///
   /// Add a record, returns its generated key.
   ///
-  Future<K> add(DatabaseClient databaseClient, V value) async {
+  Future<K> add(DatabaseClient databaseClient, V value) {
     final client = getClient(databaseClient);
-    value = client.sembastDatabase.sanitizeInputValue<V>(value) as V;
-    return await client.inTransaction((txn) async {
-      var key = await client.getSembastStore(this).txnAdd<K, V>(txn, value);
-      return key as K;
+    value = client.sembastDatabase.sanitizeInputValue<V>(value as Value);
+    return client.inTransaction<K>((txn) async {
+      return (await client.getSembastStore(this).txnAdd<K>(txn, value as Value))
+          as K;
     });
   }
 
@@ -221,17 +219,27 @@ extension SembastStoreRefExtension<K, V> on StoreRef<K, V> {
   }
 
   ///
+  /// Generate a new int key.
+  ///
+  Future<int> generateIntKey(DatabaseClient databaseClient) {
+    final client = getClient(databaseClient);
+    return client.inTransaction((txn) {
+      return client.getSembastStore(this).txnGenerateUniqueIntKey(txn);
+    });
+  }
+
+  ///
   /// Add multiple records, returns the list of generated keys.
   ///
   Future<List<K>> addAll(DatabaseClient databaseClient, List<V> values) async {
     final client = getClient(databaseClient);
-    var sanitizedValues = values
-        .map((value) => client.sembastDatabase.sanitizeInputValue<V>(value));
+    var sanitizedValues = values.map((value) =>
+        client.sembastDatabase.sanitizeInputValue<V>(value as Value));
     var keys = <K>[];
     await client.inTransaction((txn) async {
       var store = client.getSembastStore(this);
       for (var value in sanitizedValues) {
-        keys.add((await store.txnAdd<K, V>(txn, value)) as K);
+        keys.add((await store.txnAdd<K>(txn, value as Value)) as K);
       }
     });
     return keys;
@@ -242,12 +250,12 @@ extension SembastStoreRefExtension<K, V> on StoreRef<K, V> {
   /// Return the count updated. [value] is merged to the existing.
   Future<int> update(DatabaseClient databaseClient, V value, {Finder? finder}) {
     final client = getClient(databaseClient);
-    value =
-        client.sembastDatabase.sanitizeInputValue<V>(value, update: true) as V;
+    value = client.sembastDatabase
+        .sanitizeInputValue<V>(value as Value, update: true);
     return client.inTransaction((txn) async {
       return (await client
               .getSembastStore(this)
-              .txnUpdateWhere(txn, value, finder: finder))
+              .txnUpdateWhere(txn, value as Value, finder: finder))
           .length;
     });
   }

@@ -1,10 +1,11 @@
-import 'package:sembast/sembast.dart';
 import 'package:sembast/src/record_impl.dart';
+
+import 'import_common.dart';
 
 /// Store content.
 class StoreContent {
   /// Store ref.
-  final StoreRef store;
+  final StoreRef<Key?, Value?> store;
 
   /// Record with key.
   final _map = <Object?, ImmutableSembastRecord>{};
@@ -28,7 +29,7 @@ class StoreContent {
   }
 
   /// Get a single record.
-  ImmutableSembastRecord? record(key) => _map[key];
+  ImmutableSembastRecord? record(Object key) => _map[key];
 
   @override
   String toString() => '${store.name} ${records.length}';
@@ -61,13 +62,13 @@ class DatabaseContent {
   }
 
   /// Add a store.
-  StoreContent addStore(StoreRef store) {
+  StoreContent addStore(StoreRef<Key?, Value?> store) {
     var content = _map[store] ??= StoreContent(store);
     return content;
   }
 
   /// A given existing store.
-  StoreContent? store(StoreRef store) => _map[store];
+  StoreContent? store(StoreRef<Key?, Value?> store) => _map[store];
 
   @override
   String toString() => '$stores';
@@ -76,7 +77,7 @@ class DatabaseContent {
 /// Cumulated listener content
 class DatabaseListenerContent extends DatabaseContent {
   /// Remove a store content
-  void removeStore(StoreRef store) {
+  void removeStore(StoreRef<Key?, Value?> store) {
     _map.remove(store);
   }
 
@@ -110,7 +111,8 @@ class TxnDatabaseContent extends DatabaseContent {
   }
 
   /// Add transaction records for a give store
-  void addTxnStoreRecords(StoreRef store, Iterable<TxnRecord> records) {
+  void addTxnStoreRecords(
+      StoreRef<Key?, Value?> store, Iterable<TxnRecord> records) {
     addStore(store).addAll(records.map((record) => record.record));
     _records.addAll(records);
   }

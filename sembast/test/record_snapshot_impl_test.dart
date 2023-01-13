@@ -27,7 +27,7 @@ void defineTests(DatabaseTestContext ctx) {
     var record = storeFactory.store('test').record(1);
     var snapshot = SembastRecordSnapshot(
         record,
-        ImmutableMap(<String, Object?>{
+        ImmutableMap<String, Object?>(<String, Object?>{
           'test': {'sub': 1}
         }));
     try {

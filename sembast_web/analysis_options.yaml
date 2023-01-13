@@ -12,8 +12,9 @@ include: package:lints/recommended.yaml
 # See the configuration guide for more
 # https://github.com/dart-lang/sdk/tree/master/pkg/analyzer#configuring-the-analyzer
 analyzer:
-  strong-mode:
-    implicit-casts: false
+  language:
+    strict-casts: true
+    strict-inference: true
   errors:
     # treat missing required parameters as a warning (not a hint)
     missing_required_param: warning

@@ -17,7 +17,7 @@ void defineTests(FileSystemTestContext ctx) {
   DatabaseFactory factory = DatabaseFactoryFs(fs);
   // String getDbPath() => ctx.outPath + '.db';
   late String dbPath;
-  var store = StoreRef<int, Object?>.main();
+  var store = StoreRef<int, Object>.main();
 
   Future<String> prepareForDb() async {
     dbPath = dbPathFromName('compat/database_codec.db');

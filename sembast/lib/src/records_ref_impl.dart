@@ -1,5 +1,6 @@
-import 'package:sembast/src/api/sembast.dart';
 import 'package:sembast/src/database_client_impl.dart';
+
+import 'import_common.dart';
 
 /// Record ref sembast public extension.
 ///
@@ -57,7 +58,7 @@ extension SembastRecordsRefExtension<K, V> on RecordsRef<K, V> {
     return client.inTransaction((txn) async {
       return (await client
               .getSembastStore(store)
-              .txnPutAll(txn, values, keys, merge: merge))
+              .txnPutAll<K, V>(txn, values, keys, merge: merge))
           .cast<V>();
     });
   }

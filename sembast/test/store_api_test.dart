@@ -47,7 +47,7 @@ void main() {
       sembastCodecWithAdapters;
 
       // ignore: unnecessary_statements
-      var store = StoreRef.main();
+      var store = StoreRef<int, String>.main();
 
       // ignore: unnecessary_statements
       store.query;

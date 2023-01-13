@@ -61,7 +61,7 @@ void defineTestsWithCodec(FileSystemTestContext ctx, {SembastCodec? codec}) {
   DatabaseFactory factory = DatabaseFactoryFs(fs);
   //String getDbPath() => ctx.outPath + '.db';
   String? dbPath;
-  var store = StoreRef.main();
+  var store = StoreRef<int, String>.main();
 
   Future<String?> prepareForDb() async {
     dbPath = dbPathFromName('compat/database_format.db');
@@ -173,7 +173,7 @@ void defineTestsWithCodec(FileSystemTestContext ctx, {SembastCodec? codec}) {
       final db = await factory.openDatabase(dbPath!, codec: codec);
       (db as SembastDatabase).getSembastStore(StoreRef('store1'));
       db.getSembastStore(StoreRef('store2'));
-      await StoreRef('store2').record(1).put(db, 'hi');
+      await StoreRef<int, Object>('store2').record(1).put(db, 'hi');
       await db.close();
       final lines = await readContent(fs, dbPath!);
       expect(lines.length, 2);
@@ -197,6 +197,7 @@ void defineTestsWithCodec(FileSystemTestContext ctx, {SembastCodec? codec}) {
     test('1 map record', () async {
       await prepareForDb();
       var db = await factory.openDatabase(dbPath!);
+      var store = intMapStoreFactory.store();
       var record = store.record(1);
       await record.put(db, {'test': 2});
       await db.close();
@@ -211,8 +212,9 @@ void defineTestsWithCodec(FileSystemTestContext ctx, {SembastCodec? codec}) {
     test('1 custom type record', () async {
       await prepareForDb();
       var db = await factory.openDatabase(dbPath!);
+      var store = intMapStoreFactory.store();
       var record = store.record(1);
-      await record.put(db, {'test': Timestamp(1, 2)});
+      await record.put(db, <String, Object?>{'test': Timestamp(1, 2)});
       await db.close();
       var lines = await readContent(fs, dbPath!);
       expect(lines.length, 2);

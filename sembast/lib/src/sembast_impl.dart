@@ -1,4 +1,4 @@
-import 'package:sembast/src/api/sembast.dart';
+import 'import_common.dart';
 
 /// The database version
 const String dbVersionKey = 'version';
@@ -25,7 +25,7 @@ const String dbRecordDeletedKey = 'deleted'; // boolean
 const String dbMainStore = '_main'; // main store name;
 
 /// Main store reference.
-final mainStoreRef = StoreRef<Object?, Object?>(dbMainStore);
+final mainStoreRef = StoreRef<Key, Value>(dbMainStore);
 
 /// Jdb revision.
 const String jdbRevisionKey = 'revision';

@@ -1,6 +1,8 @@
-import 'package:sembast/src/api/sembast.dart';
+import 'package:meta/meta.dart';
 import 'package:sembast/src/record_impl.dart';
 import 'package:sembast/src/utils.dart';
+
+import 'import_common.dart';
 
 /// Record snapshot mixin.
 mixin RecordSnapshotMixin<K, V>
@@ -42,13 +44,13 @@ mixin RecordSnapshotMixin<K, V>
   }
 
   /// Only for read-only internal access
-  dynamic getRawValue(String field) {
+  Object? getRawValue(String field) {
     if (field == Field.value) {
       return value;
     } else if (field == Field.key) {
       return key;
     } else {
-      return getMapFieldRawValue(value as Map, field);
+      return getMapFieldRawValue<Object?>(value as Map, field);
     }
   }
 
@@ -59,6 +61,14 @@ mixin RecordSnapshotMixin<K, V>
     }
     return ref.cast<RK, RV>().snapshot(value as RV);
   }
+}
+
+/// Internal helper.
+@protected
+extension SembastRecordSnapshotExt<K, V> on RecordSnapshot<K, V> {
+  // Temp Internal helper.
+  // @Deprecated('User key')
+  // Object get keyAsObject => key;
 }
 
 /// Snapshot implementation.

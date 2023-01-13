@@ -23,7 +23,8 @@ void main() {
         var finder = SembastFinder(
             sortOrders: [SortOrder(Field.value)],
             start: Boundary(values: [1001]));
-        expect(filterMatchingBoundary(finder, [record1, record2, record3]), []);
+        expect(filterMatchingBoundary(finder, [record1, record2, record3]),
+            <RecordSnapshot>[]);
         finder = SembastFinder(
             sortOrders: [SortOrder(Field.value)],
             start: Boundary(values: [1000]));
@@ -45,7 +46,8 @@ void main() {
         finder = SembastFinder(
             sortOrders: [SortOrder(Field.value)],
             end: Boundary(values: [1000]));
-        expect(filterMatchingBoundary(finder, [record1, record2, record3]), []);
+        expect(filterMatchingBoundary(finder, [record1, record2, record3]),
+            <RecordSnapshot>[]);
         finder = SembastFinder(
             sortOrders: [SortOrder(Field.value)],
             end: Boundary(values: [1000], include: true));

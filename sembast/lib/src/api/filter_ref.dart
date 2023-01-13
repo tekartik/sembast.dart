@@ -1,4 +1,4 @@
-import 'package:sembast/src/api/sembast.dart';
+import 'package:sembast/src/import_common.dart';
 
 /// A filter on a store. Not public.
 abstract class FilterRef<K, V> {

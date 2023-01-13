@@ -1,3 +1,8 @@
+## 3.4.0
+
+* Support strict-casts.
+* add `generateIntKey` on StoreRef
+
 ## 3.3.1+1
 
 * Add `StoreRef.generateKey()` to generate a unique key

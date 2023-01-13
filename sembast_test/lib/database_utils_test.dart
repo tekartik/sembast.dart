@@ -11,16 +11,16 @@ void main() {
 void defineTests(DatabaseTestContext ctx) {
   group('database_utils', () {
     test('getNonEmptyStoreNames', () async {
-      var store = StoreRef('test');
+      var store = StoreRef<Object?, Object?>('test');
       final db = await setupForTest(
           ctx, 'database_utils/get_non_empty_store_names.db');
       var record = store.record(1);
 
-      expect(getNonEmptyStoreNames(db), []);
+      expect(getNonEmptyStoreNames(db), isEmpty);
       await record.put(db, 'test');
       expect(getNonEmptyStoreNames(db), ['test']);
       await store.delete(db);
-      expect(getNonEmptyStoreNames(db), []);
+      expect(getNonEmptyStoreNames(db), isEmpty);
       await db.close();
     });
   });

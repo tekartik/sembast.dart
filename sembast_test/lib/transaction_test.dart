@@ -66,8 +66,8 @@ void defineTests(DatabaseTestContext ctx) {
       var record = store.record(1);
 
       final futures = <Future>[];
-      var completer1 = Completer();
-      var completer2 = Completer();
+      var completer1 = Completer<void>();
+      var completer2 = Completer<void>();
       futures.add(db.transaction((txn) async {
         expect(await record.exists(txn), isFalse);
 
@@ -141,7 +141,7 @@ void defineTests(DatabaseTestContext ctx) {
         transaction = txn;
       });
       try {
-        await StoreRef.main().add(transaction, 'test');
+        await StoreRef<int, String>.main().add(transaction, 'test');
         fail('first put should fail');
       } on StateError catch (_) {}
     });

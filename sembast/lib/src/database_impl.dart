@@ -561,7 +561,7 @@ class SembastDatabase extends Object
   /// an empty store will not be persistent
   ///
   @override
-  SembastStore getSembastStore(StoreRef ref) {
+  SembastStore getSembastStore(StoreRef<Key?, Value?> ref) {
     _checkOpen();
     var store = findStore(ref.name);
     store ??= _addStore(ref.name);
@@ -818,8 +818,7 @@ class SembastDatabase extends Object
 
                 if (isMapRecord(map!)) {
                   // record?
-                  final record =
-                      ImmutableSembastRecord.fromDatabaseRowMap(this, map);
+                  final record = ImmutableSembastRecord.fromDatabaseRowMap(map);
                   if (_noTxnHasRecord(record)) {
                     _exportStat!.obsoleteLineCount++;
                   }
@@ -912,7 +911,8 @@ class SembastDatabase extends Object
     /// read revision before.
     _jdbRevision = await _storageJdb!.getRevision();
     await for (var entry in _storageJdb!.entries) {
-      var record = ImmutableSembastRecordJdb(entry.record, entry.value,
+      var record = ImmutableSembastRecordJdb(
+          entry.record, entry.deleted ? null : entry.value,
           deleted: entry.deleted, revision: entry.id);
       _exportStat!.lineCount++;
       // Make it fast
@@ -963,7 +963,8 @@ class SembastDatabase extends Object
         for (var entry in entries) {
           // skip transaction empry record
 
-          var record = ImmutableSembastRecordJdb(entry.record, entry.value,
+          var record = ImmutableSembastRecordJdb(
+              entry.record, entry.deleted ? null : entry.value,
               deleted: entry.deleted, revision: entry.id);
 
           if (jdbDeltaLoadRecord(record)) {
@@ -978,7 +979,8 @@ class SembastDatabase extends Object
       _exportStat = DatabaseExportStat();
       var records = <ImmutableSembastRecordJdb>[];
       await for (var entry in _storageJdb!.entries) {
-        var record = ImmutableSembastRecordJdb(entry.record, entry.value,
+        var record = ImmutableSembastRecordJdb(
+            entry.record, entry.deleted ? null : entry.value,
             deleted: entry.deleted, revision: entry.id);
         _exportStat!.lineCount++;
         // Make it fast
@@ -1122,6 +1124,7 @@ class SembastDatabase extends Object
         await transactionLock.synchronized(() async {
           var result =
               await txnJdbDeltaImport(jdbIncrementRevisionStatus.revision);
+
           // notify imported right away
           _notifyLazilyJdbImportResult(result);
         });
@@ -1147,7 +1150,6 @@ class SembastDatabase extends Object
         try {
           // devPrint('transaction ${jdbRevision}');
           actionResult = await Future<T>.sync(() => action(_transaction!));
-
           // handle changes, until all done!
           // Do this before building commit entries since record could be added
           if (changesListener.isNotEmpty) {
@@ -1348,7 +1350,7 @@ class SembastDatabase extends Object
 
           // Fix existing queries
           for (var query in List<StoreListenerController>.from(
-              storeListener.getStoreListenerControllers())) {
+              storeListener.getStoreListenerControllers<Key?, Value?>())) {
             Future updateQuery() async {
               if (debugListener) {
                 print(
@@ -1377,7 +1379,7 @@ class SembastDatabase extends Object
   }
 
   /// Sanitize a value.
-  dynamic sanitizeValue(value) {
+  Value? sanitizeValue(Value? value) {
     if (value == null) {
       return null;
     } else if (value is num || value is String || value is bool) {
@@ -1441,7 +1443,7 @@ class SembastDatabase extends Object
   }
 
   /// Sanitized an input value for the store
-  V? sanitizeInputValue<V>(dynamic value, {bool? update}) {
+  V sanitizeInputValue<V>(Value value, {bool? update}) {
     update ??= false;
     if (update && (value is FieldValue)) {
       throw ArgumentError.value(value, '$value not supported at root');
@@ -1463,7 +1465,7 @@ class SembastDatabase extends Object
             'Map must be of type Map<String, Object?> for type ${value.runtimeType} value $value');
       }
     }
-    return value as V?;
+    return value as V;
   }
 
   /// Listen for changes on a given store.

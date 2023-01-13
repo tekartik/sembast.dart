@@ -10,7 +10,7 @@ void defineTests(DatabaseTestContext ctx) {
   group('crud', () {
     late Database db;
 
-    final mainStore = StoreRef.main();
+    final mainStore = StoreRef<int, Object>.main();
 
     setUp(() async {
       db = await setupForTest(ctx, 'crud.db');

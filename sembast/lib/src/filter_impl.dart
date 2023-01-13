@@ -1,6 +1,7 @@
-import 'package:sembast/sembast.dart';
 import 'package:sembast/src/record_snapshot_impl.dart';
 import 'package:sembast/src/value_utils.dart';
+
+import 'import_common.dart';
 
 /// We can match if record is a map or if we are accessing the key or value
 bool canMatch(String? field, dynamic recordValue) =>
@@ -100,11 +101,12 @@ class SembastEqualsFilter extends SembastFilterBase
 /// Not equals filter.
 class SembastNotEqualsFilter extends SembastEqualsFilter {
   /// Not equals filter.
-  SembastNotEqualsFilter(String field, value, bool? anyInList)
+  SembastNotEqualsFilter(String field, Value? value, bool? anyInList)
       : super(field, value, anyInList);
 
   @override
   bool matchesRecord(RecordSnapshot record) => !super.matchesRecord(record);
+
   @override
   String toString() {
     return '$field != $value';

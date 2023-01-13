@@ -14,7 +14,7 @@ void defineTests(DatabaseTestContext ctx) {
   group('log_level', () {
     late Database db;
 
-    var store = StoreRef.main();
+    var store = StoreRef<int, String>.main();
     var record = store.record(1);
     setUp(() async {
       sembastLogLevel = SembastLogLevel.verbose;

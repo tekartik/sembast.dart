@@ -22,18 +22,18 @@ void defineTests(DatabaseTestContext ctx) {
 
     test('delete', () async {
       expect(db.storeNames, ['_main']);
-      await StoreRef('test').drop(db);
+      await StoreRef<Object?, Object?>('test').drop(db);
       expect(db.storeNames, ['_main']);
     });
 
     test('delete_main', () async {
       expect(db.storeNames, ['_main']);
-      await StoreRef.main().drop(db);
+      await StoreRef<Object?, Object?>.main().drop(db);
       expect(db.storeNames, ['_main']);
     });
 
     test('put/delete_store', () async {
-      var store = StoreRef('test');
+      var store = StoreRef<Object?, Object?>('test');
       var record = store.record(1);
       await record.put(db, 'test');
       expect(db.storeNames, contains('test'));
@@ -44,7 +44,7 @@ void defineTests(DatabaseTestContext ctx) {
 
     test('find_with_limit_optimizations', () async {
       // Simple code to debug
-      var store = StoreRef('test');
+      var store = StoreRef<int, String>('test');
       var record = store.record(1);
       await record.put(db, 'test');
       var record2 = store.record(2);
@@ -55,7 +55,7 @@ void defineTests(DatabaseTestContext ctx) {
 
     test('count_optimization', () async {
       // Simple code to debug
-      var store = StoreRef('test');
+      var store = StoreRef<int, String>('test');
       var record = store.record(1);
 
       var countListFuture = store.onCount(db).take(3).toList();
@@ -78,7 +78,7 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     test('drop_and_add_in_transaction', () async {
-      var store = StoreRef('test');
+      var store = StoreRef<int, String>('test');
       var record = store.record(1);
 
       // Drop non existing store
@@ -109,6 +109,36 @@ void defineTests(DatabaseTestContext ctx) {
       expect(key1.length, greaterThan(10));
       expect(key2.length, greaterThan(10));
       expect(key1, isNot(key2));
+
+      /*
+      var storeObject = StoreRef<Object, Object>('object_key');
+      expect(await storeObject.generateKey(db), 1);
+      expect(await storeObject.generateKey(db), 2);
+      */
+      var storeDynamic = StoreRef<Object?, Object?>('dynamic_key');
+      expect(await storeDynamic.generateKey(db), 1);
+      expect(await storeDynamic.generateKey(db), 2);
+    });
+
+    test('generateIntKey', () async {
+      var store = StoreRef<int, String>('int_key');
+      expect(await store.generateIntKey(db), 1);
+      expect(await store.generateIntKey(db), 2);
+      // In transaction
+      await db.transaction((txn) async {
+        expect(await store.generateIntKey(txn), 3);
+      });
+      var storeString = StoreRef<String, String>('string_key');
+      var key1 = await storeString.generateIntKey(db);
+      var key2 = await storeString.generateIntKey(db);
+
+      expect(key1, 1);
+      expect(key2, 2);
+      var storeObject = StoreRef<Object, String>('object_key');
+      key1 = await storeObject.generateIntKey(db);
+      key2 = await storeObject.generateIntKey(db);
+      expect(key1, 1);
+      expect(key2, 2);
     });
   });
 }

@@ -16,7 +16,7 @@ void defineTests(DatabaseTestContext ctx) {
   group('value', () {
     late Database db;
 
-    var store = StoreRef.main();
+    var store = StoreRef<int, Object>.main();
     var record = store.record(1);
     setUp(() async {
       db = await setupForTest(ctx, 'compat/value.db');
@@ -115,13 +115,14 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     test('FieldValue.delete', () async {
+      var store = StoreRef<Object, Object>.main();
       // Merge a non existing record
       expect(await record.exists(db), isFalse);
       await record.put(db, {'test': FieldValue.delete}, merge: true);
       Future checkRecord() async {
         final value = await record.get(db);
         expect(await record.exists(db), isTrue);
-        expect(value, {});
+        expect(value, <String, Object>{});
       }
 
       await checkRecord();
@@ -183,6 +184,24 @@ void defineTests(DatabaseTestContext ctx) {
       await record.put(db, map);
       Future checkRecord() async {
         final value = await record.get(db) as Map<String, Object?>?;
+        expect(await record.exists(db), isTrue);
+        expect(value, map);
+      }
+
+      await checkRecord();
+      db = await reOpen(db);
+      await checkRecord();
+    });
+    test('List', () async {
+      final map = <String, Object?>{
+        'list': [1, 2, 3],
+        'listWithNull': [1, null, 2],
+      };
+      expect(await record.exists(db), isFalse);
+      await record.put(db, map);
+      Future checkRecord() async {
+        final value = await record.get(db) as Map<String, Object?>?;
+        print(value);
         expect(await record.exists(db), isTrue);
         expect(value, map);
       }

@@ -27,16 +27,17 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     test('equals', () {
-      var store1 = StoreRef.main();
-      var store2 = StoreRef.main();
+      var store1 = StoreRef<Object?, Object?>.main();
+      var store2 = StoreRef<Object?, Object?>.main();
       expect(store1, store2);
       expect(store1.hashCode, store2.hashCode);
-      expect(store1, isNot(StoreRef('test')));
-      expect(StoreRef('test'), StoreRef('test'));
+      expect(store1, isNot(StoreRef<Object?, Object?>('test')));
+      expect(
+          StoreRef<Object, Object>('test'), StoreRef<Object?, Object?>('test'));
     });
 
     test('clear', () async {
-      final store = StoreRef('test');
+      final store = StoreRef<int, String>('test');
       var record = store.record(1);
       await record.put(db, 'hi');
       await store.delete(db);
@@ -44,8 +45,8 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     test('put/get', () async {
-      var store1 = StoreRef<int, Object?>('test1');
-      var store2 = StoreRef<int, Object?>('test2');
+      var store1 = StoreRef<int, Object>('test1');
+      var store2 = StoreRef<int, Object>('test2');
       expect(await store1.record(1).put(db, 'hi'), 'hi');
       expect(await store2.record(1).put(db, 'ho'), 'ho');
       expect(await store1.record(1).get(db), 'hi');
@@ -70,7 +71,7 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     test('records', () async {
-      var store = StoreRef('test');
+      var store = StoreRef<Object?, Object?>('test');
       final records = store.records([1, 2]);
       expect((await records.getSnapshots(db)), [null, null]);
       expect((await records.get(db)), [null, null]);
@@ -128,7 +129,7 @@ void defineTests(DatabaseTestContext ctx) {
       } on StateError catch (_) {}
 
       try {
-        (Map.from(snapshot.value)['test'] as Map)['sub'] = 2;
+        (Map<String, Object?>.from(snapshot.value)['test'] as Map)['sub'] = 2;
 
         fail('should fail');
       } on StateError catch (_) {}
@@ -516,7 +517,7 @@ void defineTests(DatabaseTestContext ctx) {
       var store = StoreRef<int, String>.main();
       var record = store.record(1);
       var index = 0;
-      var completer = Completer();
+      var completer = Completer<void>();
 
       var sub = store.onCount(db).listen((count) {
         if (index == 0) {
@@ -554,7 +555,7 @@ void defineTests(DatabaseTestContext ctx) {
       var store = StoreRef<int, String>.main();
       var record = store.record(1);
       var index = 0;
-      var completer = Completer();
+      var completer = Completer<void>();
 
       // When starting listening the record does not exists yet
       var filter = Filter.greaterThan(Field.value, 'test');
@@ -596,7 +597,7 @@ void defineTests(DatabaseTestContext ctx) {
 
     test('onCount and close', () async {
       // Simple code to debug
-      var store = StoreRef('test');
+      var store = StoreRef<int, String>('test');
       var record = store.record(1);
 
       var countListFuture = store.onCount(db).toList();

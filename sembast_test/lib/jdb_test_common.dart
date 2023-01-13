@@ -28,11 +28,13 @@ Future<void> jdbDatabaseImportFromMap(JdbDatabase jdb, Map map) async {
   var entries = (map['entries'] as List?)?.cast<Map>().map((map) {
     var valueMap = map['value'] as Map;
     var storeName = valueMap['store'] as String?;
-    var store = storeName == null ? StoreRef.main() : StoreRef(storeName);
+    var store = storeName == null
+        ? StoreRef<Object, Object>.main()
+        : StoreRef<Object, Object>(storeName);
     return JdbRawWriteEntry(
         deleted: (valueMap['deleted'] as bool?) ?? false,
         value: valueMap['value'],
-        record: store.record(valueMap['key']));
+        record: store.record(valueMap['key'] as Object));
   }).toList(growable: false);
   if (entries?.isNotEmpty ?? false) {
     await jdb.addEntries(entries!);
