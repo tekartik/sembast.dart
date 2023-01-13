@@ -110,6 +110,7 @@ void defineTests(DatabaseTestContext ctx) {
       expect(key2.length, greaterThan(10));
       expect(key1, isNot(key2));
 
+      // ignore: dead_code
       if (false) {
         var storeObject = StoreRef<Object, Object>('object_key');
         expect(await storeObject.generateKey(db), 1);
