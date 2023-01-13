@@ -1,4 +1,4 @@
-## 3.4.0-7
+## 3.4.0
 
 * Support strict-casts.
 * add `generateIntKey` on StoreRef
