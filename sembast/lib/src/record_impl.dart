@@ -138,7 +138,10 @@ class ImmutableSembastRecord
     ref = storeRef.record(key);
     _deleted = map[dbRecordDeletedKey] == true;
     if (!deleted) {
-      super.value = sanitizeValueIfMap(value as Value);
+      if (value == null) {
+        throw StateError('Invalid map $map');
+      }
+      super.value = sanitizeValueIfMap(value);
     }
     revision = _makeRevision();
   }

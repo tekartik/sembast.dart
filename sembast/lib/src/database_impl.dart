@@ -818,11 +818,27 @@ class SembastDatabase extends Object
 
                 if (isMapRecord(map!)) {
                   // record?
-                  final record = ImmutableSembastRecord.fromDatabaseRowMap(map);
-                  if (_noTxnHasRecord(record)) {
-                    _exportStat!.obsoleteLineCount++;
+                  ImmutableSembastRecord record;
+                  try {
+                    // Can crash for key without value
+                    record = ImmutableSembastRecord.fromDatabaseRowMap(map);
+                    if (_noTxnHasRecord(record)) {
+                      _exportStat!.obsoleteLineCount++;
+                    }
+                    loadRecord(record);
+                  } catch (_) {
+                    if (openMode == DatabaseMode.neverFails) {
+                      corrupted = true;
+                      if (safeMode ?? false) {
+                        // safe mode ignore
+                        continue;
+                      } else {
+                        rethrow;
+                      }
+                    } else {
+                      rethrow;
+                    }
                   }
-                  loadRecord(record);
                 } else if (Meta.isMapMeta(map)) {
                   // meta?
                   meta = Meta.fromMap(map);
