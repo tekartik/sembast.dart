@@ -77,6 +77,9 @@ class JdbWriteEntry extends JdbEntry {
   @override
   RecordRef<Key?, Value?> get record => txnRecord!.ref;
 
+  /// Used internally if record since value can be null if data is corrupted
+  Object? get valueOrNull => _value;
+
   Object? _value;
 
   /// value.
