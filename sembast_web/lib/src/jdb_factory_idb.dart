@@ -301,14 +301,14 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
       ///
       Object? value;
       if (!jdbWriteEntry.deleted) {
-        var value = jdbWriteEntry.valueOrNull;
-        if (value == null) {
+        var valueOrNull = jdbWriteEntry.valueOrNull;
+        if (valueOrNull == null) {
           print('Invalid entry $jdbWriteEntry');
           continue;
         }
         value = (_options?.codec?.jsonEncodableCodec ??
                 sembastDefaultJsonEncodableCodec)
-            .encode(jdbWriteEntry.value);
+            .encode(valueOrNull);
         if (_options?.codec?.codec != null) {
           value = _options!.codec!.codec!.encode(value);
         }
