@@ -88,12 +88,11 @@ class JdbWriteEntry extends JdbEntry {
 
   /// Used internally to check for corruption first when importing.
   @override
-  Object? get valueOrNull => _txnRecordNull;
+  Object? get valueOrNull => _txnRecordValueOrNull;
 
-  // Object? get valueOrNull => _value ??= txnRecord!.record.value;
-  Object? get _txnRecordNull => txnRecord!.record.value;
+  Object? get _txnRecordValueOrNull => txnRecord?.record.value;
 
-  /// value.
+  /// Value. Should not be overriden.
   @override
   Value get value {
     try {

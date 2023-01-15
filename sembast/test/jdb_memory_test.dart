@@ -190,6 +190,9 @@ void main() {
       // swap order
       expect(jdbWriteEntry.value, 1);
       expect(jdbWriteEntry.valueOrNull, 1);
+
+      jdbWriteEntry = JdbWriteEntry(txnRecord: null);
+      expect(jdbWriteEntry.valueOrNull, isNull);
     });
     test('JdbWriteEntryMock', () async {
       var jdbWriteEntry = JdbWriteEntryMock(id: 1, key: 2, value: 'test');
