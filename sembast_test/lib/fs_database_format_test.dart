@@ -137,6 +137,29 @@ void defineTests(DatabaseTestContextFs ctx) {
       expect(getExportStat(db).obsoleteLineCount, 0); // don't count meta
     });
 
+    test('read 3 records, 1 without value, 1 deleted', () async {
+      await prepareForDb();
+      await importFromMapList([
+        {'version': 1, 'sembast': 1},
+        {'key': 1, 'value': 'hi'},
+
+        {
+          'key': 2,
+        }, // no value
+        {'key': 3, 'deleted': true},
+        {'key': 4, 'value': 'hi'}
+      ]);
+      var db = await factory.openDatabase(dbPath!);
+      await db.close();
+      expect(await dbFileExportToMapList(), [
+        {'version': 1, 'sembast': 1},
+        {'key': 1, 'value': 'hi'},
+        {'key': 4, 'value': 'hi'}
+      ]);
+      expect(getExportStat(db).lineCount, 3);
+      expect(getExportStat(db).obsoleteLineCount, 0); // don't count meta
+    });
+
     test('read 1 string record _main store', () async {
       await prepareForDb();
       await importFromMapList([

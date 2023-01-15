@@ -388,6 +388,94 @@ void defineTests(DatabaseTestContextJdb ctx) {
       }
     });
 
+    test('import_1_deleted record', () async {
+      await prepareForDb();
+      await importFromMap({
+        'entries': [
+          {
+            'id': 1,
+            'value': {'key': 1, 'deleted': true}
+          }
+        ],
+        'infos': [
+          {
+            'id': 'meta',
+            'value': {'version': 1, 'sembast': 1}
+          }
+        ]
+      });
+      var db = await factory.openDatabase(dbPath!);
+
+      try {
+        //await store.record(1).put(db, 'hi');
+        expect(await getJdbDatabase(db)!.exportToMap(), {
+          'entries': [
+            {
+              'id': 1,
+              'value': {'key': 1, 'deleted': true}
+            }
+          ],
+          'infos': [
+            {
+              'id': 'meta',
+              'value': {'version': 1, 'sembast': 1}
+            },
+          ]
+        });
+      } finally {
+        await db.close();
+      }
+    });
+
+    test('import_complex_no_value_and_duplicates', () async {
+      await prepareForDb();
+      await importFromMap({
+        'entries': [
+          {
+            'id': 1,
+            'value': {'key': 1, 'value': 'ha'}
+          },
+          {
+            'id': 2,
+            'value': {'key': 2}
+          },
+          {
+            'id': 3,
+            'value': {'key': 3, 'value': 'he'}
+          },
+          {
+            'id': 3,
+            'value': {'key': 1, 'value': 'hi'}
+          },
+          {
+            'id': 5,
+            'value': {'key': 4, 'value': 'ho'}
+          }
+        ],
+        'infos': [
+          {
+            'id': 'meta',
+            'value': {'version': 1, 'sembast': 1}
+          }
+        ]
+      });
+      var db = await factory.openDatabase(dbPath!);
+
+      try {
+        //await store.record(1).put(db, 'hi');
+        var exportMap = await getJdbDatabase(db)!.exportToMap();
+        var entriesValues =
+            (exportMap['entries'] as List).map((e) => (e as Map)['value']);
+        expect(entriesValues, [
+          {'key': 3, 'value': 'he'},
+          {'key': 1, 'value': 'hi'},
+          {'key': 4, 'value': 'ho'}
+        ]);
+      } finally {
+        await db.close();
+      }
+    });
+
     test('read 1 string record _main store', () async {
       await prepareForDb();
       await importFromMap({

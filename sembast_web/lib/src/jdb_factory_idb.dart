@@ -301,9 +301,14 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
       ///
       Object? value;
       if (!jdbWriteEntry.deleted) {
+        var valueOrNull = jdbWriteEntry.valueOrNull;
+        if (valueOrNull == null) {
+          print('Invalid entry $jdbWriteEntry');
+          continue;
+        }
         value = (_options?.codec?.jsonEncodableCodec ??
                 sembastDefaultJsonEncodableCodec)
-            .encode(jdbWriteEntry.value);
+            .encode(valueOrNull);
         if (_options?.codec?.codec != null) {
           value = _options!.codec!.codec!.encode(value);
         }
@@ -472,13 +477,13 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
     var txn =
         _idbDatabase.transaction([_infoStore, _entryStore], idbModeReadWrite);
     var deltaMinRevision = await _txnGetDeltaMinRevision(txn);
-    var currentRevision = await _txnGetRevision(txn);
+    var currentRevision = await _txnGetRevision(txn) ?? 0;
     var newDeltaMinRevision = deltaMinRevision;
     var deleteIndex = txn.objectStore(_entryStore).index(_deletedIndex);
     await deleteIndex.openCursor(autoAdvance: true).listen((cwv) {
       assert(cwv.key is int);
       var revision = cwv.primaryKey as int;
-      if (revision > newDeltaMinRevision && revision <= currentRevision!) {
+      if (revision > newDeltaMinRevision && revision <= currentRevision) {
         newDeltaMinRevision = revision;
         cwv.delete();
       }
