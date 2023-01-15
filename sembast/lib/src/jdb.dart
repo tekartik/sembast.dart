@@ -90,7 +90,8 @@ class JdbWriteEntry extends JdbEntry {
   @override
   Object? get valueOrNull => _txnRecordValueOrNull;
 
-  Object? get _txnRecordValueOrNull => txnRecord?.record.value;
+  Object? get _txnRecordValueOrNull =>
+      (txnRecord?.deleted ?? true) ? null : txnRecord?.record.value;
 
   /// Value. Should not be overriden.
   @override

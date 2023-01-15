@@ -191,7 +191,14 @@ void main() {
       expect(jdbWriteEntry.value, 1);
       expect(jdbWriteEntry.valueOrNull, 1);
 
+      // null record
       jdbWriteEntry = JdbWriteEntry(txnRecord: null);
+      expect(jdbWriteEntry.valueOrNull, isNull);
+
+      // deleted record
+      jdbWriteEntry = JdbWriteEntry(
+          txnRecord: TxnRecord(ImmutableSembastRecord.fromDatabaseRowMap(
+              {'key': 1, 'deleted': true})));
       expect(jdbWriteEntry.valueOrNull, isNull);
     });
     test('JdbWriteEntryMock', () async {
