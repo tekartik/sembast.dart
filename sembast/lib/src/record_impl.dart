@@ -133,13 +133,13 @@ class ImmutableSembastRecord
     var key = map[dbRecordKey] as Key?;
     var value = map[dbRecordValueKey] as Value?;
     if (key == null) {
-      throw StateError('Invalid map $map');
+      throw StateError('Invalid map key in map');
     }
     ref = storeRef.record(key);
     _deleted = map[dbRecordDeletedKey] == true;
     if (!deleted) {
       if (value == null) {
-        throw StateError('Invalid map $map');
+        throw StateError('Invalid map value in $map');
       }
       super.value = sanitizeValueIfMap(value);
     }

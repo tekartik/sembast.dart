@@ -427,17 +427,29 @@ void defineTests(DatabaseTestContextJdb ctx) {
       }
     });
 
-    test('import_1_bad record_no_value', () async {
+    test('import_complex_no_value_and_duplicates', () async {
       await prepareForDb();
       await importFromMap({
         'entries': [
           {
             'id': 1,
-            'value': {'key': 1}
+            'value': {'key': 1, 'value': 'ha'}
           },
           {
             'id': 2,
-            'value': {'key': 2, 'value': 'hi'}
+            'value': {'key': 2}
+          },
+          {
+            'id': 3,
+            'value': {'key': 3, 'value': 'he'}
+          },
+          {
+            'id': 3,
+            'value': {'key': 1, 'value': 'hi'}
+          },
+          {
+            'id': 5,
+            'value': {'key': 4, 'value': 'ho'}
           }
         ],
         'infos': [
@@ -451,20 +463,14 @@ void defineTests(DatabaseTestContextJdb ctx) {
 
       try {
         //await store.record(1).put(db, 'hi');
-        expect(await getJdbDatabase(db)!.exportToMap(), {
-          'entries': [
-            {
-              'id': 2,
-              'value': {'key': 2, 'value': 'hi'}
-            }
-          ],
-          'infos': [
-            {
-              'id': 'meta',
-              'value': {'version': 1, 'sembast': 1}
-            },
-          ]
-        });
+        var exportMap = await getJdbDatabase(db)!.exportToMap();
+        var entriesValues =
+            (exportMap['entries'] as List).map((e) => (e as Map)['value']);
+        expect(entriesValues, [
+          {'key': 3, 'value': 'he'},
+          {'key': 1, 'value': 'hi'},
+          {'key': 4, 'value': 'ho'}
+        ]);
       } finally {
         await db.close();
       }

@@ -1190,7 +1190,7 @@ class SembastDatabase extends Object
               // Build Entries
               var entries = <JdbWriteEntry>[];
               for (var record in commitEntries.txnRecords!) {
-                var entry = JdbWriteEntry()..txnRecord = record;
+                var entry = JdbWriteEntry(txnRecord: record);
                 entries.add(entry);
               }
               final infoEntries = <JdbInfoEntry>[

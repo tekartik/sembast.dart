@@ -46,8 +46,11 @@ abstract class JdbEntry {
   @override
   String toString() => '[$id] $record ${deleted ? ' (deleted)' : ' $value'}';
 
-  /// Jdb value - don't access if deleted
-  Value get value;
+  /// Jdb value
+  Value? get value;
+
+  /// Jdb value
+  Value? get valueOrNull;
 }
 
 /// Read entry
@@ -62,6 +65,9 @@ class JdbReadEntry extends JdbEntry {
   late Value value;
 
   @override
+  Value? get valueOrNull => value;
+
+  @override
   late bool deleted;
 }
 
@@ -70,23 +76,28 @@ class JdbWriteEntry extends JdbEntry {
   @override
   late int id;
 
+  /// Write entry, typically from a txn record.
+  JdbWriteEntry({required this.txnRecord});
+
   /// Record
   TxnRecord? txnRecord;
 
-  // Ref.
+  /// record Ref.
   @override
   RecordRef<Key?, Value?> get record => txnRecord!.ref;
 
-  /// Used internally if record since value can be null if data is corrupted
-  Object? get valueOrNull => _value;
+  /// Used internally to check for corruption first when importing.
+  @override
+  Object? get valueOrNull => _txnRecordNull;
 
-  Object? _value;
+  // Object? get valueOrNull => _value ??= txnRecord!.record.value;
+  Object? get _txnRecordNull => txnRecord!.record.value;
 
   /// value.
   @override
   Value get value {
     try {
-      return _value ??= txnRecord!.record.value;
+      return valueOrNull as Value;
     } catch (e) {
       print('error $e accessing value for $this');
       if (deleted) {
@@ -101,9 +112,9 @@ class JdbWriteEntry extends JdbEntry {
   String toString() {
     // print if error is id not initialized, handle it...
     try {
-      return '[$id] $record $_value';
+      return '[$id] $record $valueOrNull';
     } catch (e) {
-      return 'Invalid entry $_value';
+      return 'Invalid entry $valueOrNull';
     }
   }
 
@@ -114,7 +125,7 @@ class JdbWriteEntry extends JdbEntry {
 /// Raw entry.
 class JdbRawWriteEntry extends JdbWriteEntry {
   @override
-  late final Value value;
+  late final Value? valueOrNull;
   @override
   final bool deleted;
   @override
@@ -122,10 +133,9 @@ class JdbRawWriteEntry extends JdbWriteEntry {
 
   /// Raw entry.
   JdbRawWriteEntry(
-      {required Value? value, required this.deleted, required this.record}) {
-    if (!deleted && value != null) {
-      this.value = value;
-    }
+      {required Value? value, required this.deleted, required this.record})
+      : super(txnRecord: null) {
+    valueOrNull = value;
   }
 }
 

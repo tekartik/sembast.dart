@@ -1,6 +1,7 @@
 import 'package:sembast/src/api/protected/jdb.dart';
 import 'package:sembast/src/database_impl.dart';
 import 'package:sembast/src/jdb/jdb_factory_memory.dart';
+import 'package:sembast/src/record_impl.dart';
 
 import 'jdb_test_common.dart';
 
@@ -11,25 +12,26 @@ JdbDatabaseMemory getJdbDatabase(Database database) =>
 class JdbWriteEntryMock extends JdbWriteEntry {
   @override
   late RecordRef<Key?, Value?> record;
-  dynamic _value;
+  late final Object? _valueOrNull;
 
   JdbWriteEntryMock(
       {required int id,
       String? store,
       required Object key,
       dynamic value,
-      this.deleted = false}) {
+      this.deleted = false})
+      : super(txnRecord: null) {
     record = (store == null
             ? StoreRef<Key?, Value?>.main()
             : StoreRef<Key?, Value?>(store))
         .record(key);
-    _value = value;
+    _valueOrNull = value;
 
     this.id = id;
   }
 
   @override
-  Value get value => _value as Value;
+  Value? get valueOrNull => _valueOrNull;
 
   @override
   final bool deleted;
@@ -177,6 +179,41 @@ void main() {
       expect(await db.getRevision(), 0);
 
       db.close();
+    });
+    test('JdbWriteEntry', () async {
+      var txnRecord = TxnRecord(
+          ImmutableSembastRecord.fromDatabaseRowMap({'key': 1, 'value': 1}));
+      var jdbWriteEntry = JdbWriteEntry(txnRecord: txnRecord);
+      expect(jdbWriteEntry.valueOrNull, 1);
+      expect(jdbWriteEntry.value, 1);
+      jdbWriteEntry = JdbWriteEntry(txnRecord: txnRecord);
+      // swap order
+      expect(jdbWriteEntry.value, 1);
+      expect(jdbWriteEntry.valueOrNull, 1);
+    });
+    test('JdbWriteEntryMock', () async {
+      var jdbWriteEntry = JdbWriteEntryMock(id: 1, key: 2, value: 'test');
+      expect(jdbWriteEntry.id, 1);
+      expect(jdbWriteEntry.valueOrNull, 'test');
+
+      expect(jdbWriteEntry.value, 'test');
+      // swap order
+      jdbWriteEntry = JdbWriteEntryMock(id: 1, key: 2, value: 'test');
+      expect(jdbWriteEntry.value, 'test');
+      expect(jdbWriteEntry.valueOrNull, 'test');
+    });
+    test('JdbRawWriteEntry', () async {
+      var store = intMapStoreFactory.store();
+
+      var jdbWriteEntry =
+          JdbRawWriteEntry(deleted: false, value: 2, record: store.record(1));
+      expect(jdbWriteEntry.valueOrNull, 2);
+      expect(jdbWriteEntry.value, 2);
+      jdbWriteEntry =
+          JdbRawWriteEntry(deleted: false, value: 2, record: store.record(1));
+      // swap order
+      expect(jdbWriteEntry.value, 2);
+      expect(jdbWriteEntry.valueOrNull, 2);
     });
   });
 }

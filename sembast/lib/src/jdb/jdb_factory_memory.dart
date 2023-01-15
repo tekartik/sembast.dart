@@ -61,6 +61,9 @@ class JdbEntryMemory implements jdb.JdbReadEntry {
   late Value value;
 
   @override
+  Value? get valueOrNull => value;
+
+  @override
   late RecordRef<Key?, Value?> record;
 
   @override
