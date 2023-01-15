@@ -185,10 +185,14 @@ class JdbDatabaseMemory implements jdb.JdbDatabase {
       // remove existing
       var record = jdbWriteEntry.record;
       _entries.removeWhere((entry) => entry.record == record);
-      var entry = _writeEntryToMemory(jdbWriteEntry);
-      _entries.add(entry);
-      (jdbWriteEntry.txnRecord?.record as ImmutableSembastRecordJdb?)
-          ?.revision = entry.id;
+      try {
+        var entry = _writeEntryToMemory(jdbWriteEntry);
+        _entries.add(entry);
+        (jdbWriteEntry.txnRecord?.record as ImmutableSembastRecordJdb?)
+            ?.revision = entry.id;
+      } catch (e) {
+        print('Error importing $jdbWriteEntry: $e');
+      }
     }
     return _lastEntryId;
   }

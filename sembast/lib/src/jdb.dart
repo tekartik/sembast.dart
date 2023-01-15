@@ -95,7 +95,14 @@ class JdbWriteEntry extends JdbEntry {
   }
 
   @override
-  String toString() => '[$id] $record $_value';
+  String toString() {
+    // print if error is id not initialized, handle it...
+    try {
+      return '[$id] $record $_value';
+    } catch (e) {
+      return 'Invalid entry $_value';
+    }
+  }
 
   @override
   bool get deleted => txnRecord!.deleted;
@@ -113,8 +120,8 @@ class JdbRawWriteEntry extends JdbWriteEntry {
   /// Raw entry.
   JdbRawWriteEntry(
       {required Value? value, required this.deleted, required this.record}) {
-    if (!deleted) {
-      this.value = value as Value;
+    if (!deleted && value != null) {
+      this.value = value;
     }
   }
 }
