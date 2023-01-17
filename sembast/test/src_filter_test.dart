@@ -241,6 +241,8 @@ void main() {
       expect(
           filterMatchesRecord(filter, store.record('dummy').snapshot('dummy')),
           isFalse);
+      filter = Filter.byKey(null);
+      expect(_match(filter, 'dummy'), isFalse);
     });
 
     test('lessThan', () {
