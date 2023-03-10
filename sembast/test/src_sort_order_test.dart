@@ -34,6 +34,18 @@ void main() {
       expect(sortOrder.compareAscending(record1, record2), -1);
     });
 
+    test('sub.0', () {
+      var field = 'my.0';
+      var sortOrder = SembastSortOrder(field);
+      var record1 = SembastRecordSnapshot(record, {
+        'my': [1]
+      });
+      var record2 = SembastRecordSnapshot(record, {
+        'my': [2]
+      });
+      expect(sortOrder.compareAscending(record1, record2), -1);
+    });
+
     test('different type.field', () {
       var field = 'field';
       var sortOrder = SembastSortOrder(field);

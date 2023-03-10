@@ -7,6 +7,7 @@ import 'package:sembast/sembast_memory.dart';
 // ignore_for_file: implementation_imports
 import 'package:sembast/src/database_impl.dart' show SembastDatabase;
 import 'package:sembast/src/utils.dart';
+import 'package:sembast/src/value_utils.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -314,6 +315,32 @@ void main() {
       expect(map, {'test': 1});
     });
 
+    test('mapListValue', () {
+      var map = <String, Object?>{};
+      expect(getPartsMapValue<int>(map, ['test', '0']), null);
+      map['test'] = [1];
+
+      expect(getPartsMapValue<int>(map, ['test', '0']), 1);
+
+      // Complex
+      map['test'] = {
+        'sub': [
+          [
+            {
+              'test': {
+                'sub': [0, 1]
+              }
+            }
+          ]
+        ]
+      };
+
+      expect(
+          getPartsMapValue<int>(
+              map, ['test', 'sub', '0', '0', 'test', 'sub', '1']),
+          1);
+    });
+
     test('backtick', () {
       expect(backtickChrCode, 96);
       expect(isBacktickEnclosed('``'), isTrue);
@@ -337,6 +364,111 @@ void main() {
       expect(mergeValue({'foo.bar': 1}, {'`foo.bar`': 2}), {
         'foo.bar': 2,
       });
+    });
+    test('smartMatch', () {
+      bool match(Object? value) => valuesAreEquals(value, 1);
+      expect(smartMatchPartsMapValue({}, [], match), false);
+      expect(
+          smartMatchPartsMapValue({
+            'test': [1]
+          }, [
+            'test',
+            '@'
+          ], match),
+          isTrue);
+      expect(
+          smartMatchPartsMapValue({
+            'test': [2]
+          }, [
+            'test',
+            '@'
+          ], match),
+          isFalse);
+      expect(
+          smartMatchPartsMapValue({
+            'test': [1]
+          }, [
+            'test',
+            '0'
+          ], match),
+          isTrue);
+      expect(
+          smartMatchPartsMapValue({
+            'test': [1]
+          }, [
+            'test',
+            '1'
+          ], match),
+          isFalse);
+      expect(
+          smartMatchPartsMapValue({
+            'test': [
+              [
+                {
+                  'sub1': {
+                    'sub2': [
+                      [1]
+                    ]
+                  }
+                }
+              ]
+            ]
+          }, [
+            'test',
+            '@',
+            '@',
+            'sub1',
+            'sub2',
+            '@',
+            '@'
+          ], match),
+          isTrue);
+      expect(
+          smartMatchPartsMapValue({
+            'test': [
+              [
+                {
+                  'sub1': {
+                    'sub2': [
+                      [2]
+                    ]
+                  }
+                }
+              ]
+            ]
+          }, [
+            'test',
+            '@',
+            '@',
+            'sub1',
+            'sub2',
+            '@',
+            '@'
+          ], match),
+          isFalse);
+      expect(
+          smartMatchPartsMapValue({
+            'test': [
+              [
+                {
+                  'sub1': {
+                    'sub2': [
+                      [1]
+                    ]
+                  }
+                }
+              ]
+            ]
+          }, [
+            'test',
+            '@',
+            '@',
+            'sub1',
+            'sub2',
+            '@',
+            '0'
+          ], match),
+          isTrue);
     });
   });
 }

@@ -244,6 +244,59 @@ var finder = Finder(filter: Filter.matches('categories', '^f', anyInList: true))
 var record = await store.findFirst(db, finder: finder);
 ```
 
+You can also access fields using index.
+
+```json
+{
+  "name": "Silver",
+  "tag": ['good', 'heavy'],
+}
+```
+
+You can order on a given index tag (here 0 for the first item)
+
+```dart
+var finder = Finder(sortOrders: [SortOrder('tag.0')]);
+```
+
+For `Filter.equals` and `Filter.matches`, you can also specify to look for any item in any list.
+
+```dart
+Filter.equals('tag.@', 'heavy');
+```
+
+is equivalent to
+```dart
+Filter.equals('tag', 'heavy', anyInList: true);
+```
+
+You imagine more complex example, Let's consider the following data:
+
+```dart
+[
+  {
+    'name': 'Lamp',
+    'attributes': [
+      {'tag': 'furniture'},
+      {'tag': 'plastic'}
+    ]
+  },
+  {
+    'name': 'Chair',
+    'attributes': [
+      {'tag': 'wood'},
+      {'tag': 'furniture'}
+    ]
+  },
+]
+```
+
+You can filter for any records that has the furniture attribute using the following filder:
+
+```dart
+Filter.equals('attributes.@.tag', 'furniture');
+```
+
 ### Aggregate functions
 
 There is no now convenient `sum` or `average` functions. 

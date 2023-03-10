@@ -1,3 +1,8 @@
+## 3.4.1-0
+
+* allow accessing an inner list item using a part index (such as `list.0`) and inner map in list (such as `list.0.tag`).
+* Filter.equals/matches also support the wildcard `@` to look for any item in a list.
+
 ## 3.4.0+6
 
 * Support strict-casts.

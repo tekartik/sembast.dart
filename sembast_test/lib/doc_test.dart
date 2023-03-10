@@ -875,5 +875,29 @@ void defineTests(DatabaseTestContext ctx) {
         ]);
       }
     });
+    test('map list', () async {
+      var store = stringMapStoreFactory.store('product');
+      db = await setupForTest(ctx, 'doc/map_list.db');
+      await store.addAll(db!, [
+        {
+          'name': 'Lamp',
+          'attributes': [
+            {'tag': 'furniture'},
+            {'tag': 'plastic'}
+          ]
+        },
+        {
+          'name': 'Chair',
+          'attributes': [
+            {'tag': 'furniture'},
+            {'tag': 'wood'}
+          ]
+        },
+      ]);
+      var records = await store.find(db!,
+          finder:
+              Finder(filter: Filter.equals('attributes.@.tag', 'furniture')));
+      expect(records.length, 2);
+    });
   });
 }

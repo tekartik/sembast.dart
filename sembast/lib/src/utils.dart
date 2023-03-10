@@ -302,11 +302,18 @@ bool isBasicTypeFieldValueOrNull(dynamic value) {
 }
 
 /// Get value at a given field path.
+///
+/// Handle index for iterables
 T? getPartsMapValue<T>(Map map, Iterable<String> parts) {
-  dynamic value = map;
+  Object? value = map;
   for (final part in parts) {
     if (value is Map) {
       value = value[part];
+    } else if (value is List) {
+      var index = int.tryParse(part) ?? -1;
+      if (index >= 0 && index < value.length) {
+        value = value[index];
+      }
     } else {
       return null;
     }
@@ -314,21 +321,62 @@ T? getPartsMapValue<T>(Map map, Iterable<String> parts) {
   return value as T?;
 }
 
-/// Get a raw value at a given field path.
+/// Smart match function
+typedef SmartMatchValueFunction = bool Function(Object? value);
+
+/// Wild card for index
+const smartMatchIndexWildcard = '@';
+bool _smartMatchPartsAnyValue(Object? value, String part,
+    Iterable<String> parts, SmartMatchValueFunction match) {
+  bool matchItem(Object? item) {
+    if (parts.isEmpty) {
+      return match(item);
+    } else {
+      return _smartMatchPartsAnyValue(item, parts.first, parts.skip(1), match);
+    }
+  }
+
+  if (value is List) {
+    if (part == smartMatchIndexWildcard) {
+      for (var item in value) {
+        if (matchItem(item)) {
+          return true;
+        }
+      }
+      return false;
+    } else {
+      var itemIndex = int.tryParse(part) ?? -1;
+      if (itemIndex >= 0 && itemIndex < value.length) {
+        var item = value[itemIndex];
+        return matchItem(item);
+      }
+      return false;
+    }
+  } else if (value is Map) {
+    var item = value[part];
+    return matchItem(item);
+  }
+  return false;
+}
+
+/// Check a value at a given field map
+/// Handle @ for any item in list
+bool smartMatchPartsMapValue(
+    Map map, Iterable<String> parts, SmartMatchValueFunction match) {
+  if (parts.isEmpty) {
+    return false;
+  }
+  return _smartMatchPartsAnyValue(map, parts.first, parts.skip(1), match);
+}
+
+/// Get a raw value at a given field path. Content is mutable so to use
+/// internally only.
 T? getPartsMapRawValue<T>(Map map, Iterable<String> parts) {
   // Allow getting raw value
   if (map is ImmutableMap) {
     map = map.rawMap;
   }
-  dynamic value = map;
-  for (var part in parts) {
-    if (value is Map) {
-      value = value[part];
-    } else {
-      return null;
-    }
-  }
-  return value as T?;
+  return getPartsMapValue(map, parts);
 }
 
 /// Set value at a given field path.
