@@ -40,7 +40,7 @@ Future<void> txnMergeStore(Transaction txn,
   for (var record in sourceRecords) {
     /// Check and remove
     var original = originalMap.remove(record.ref.key);
-    if (!valueAreEquals(original?.value, record.value)) {
+    if (!valuesAreEquals(original?.value, record.value)) {
       // Copy record
       await record.ref.put(txn, record.value);
     }

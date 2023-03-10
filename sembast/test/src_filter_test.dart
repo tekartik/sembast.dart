@@ -110,6 +110,42 @@ void main() {
           }),
           isTrue);
     });
+    test('sub.listfield', () {
+      var filter = Filter.equals('sub.field', 1, anyInList: true);
+      expect(
+          _match(filter, {
+            'sub.field': [1]
+          }),
+          isFalse);
+      expect(
+          _match(filter, {
+            'sub': {
+              'field': [1]
+            }
+          }),
+          isTrue);
+    });
+    test('item_array', () {
+      var filter = Filter.equals('sub.0', 1);
+      expect(_match(filter, {'sub': <Object?>[]}), isFalse);
+      expect(
+          _match(filter, {
+            'sub': [1]
+          }),
+          isTrue);
+      expect(
+          _match(filter, {
+            'sub': {'0': 1}
+          }),
+          isTrue);
+      filter = Filter.equals('sub.@', 1);
+      expect(_match(filter, {'sub': <Object?>[]}), isFalse);
+      expect(
+          _match(filter, {
+            'sub': [1]
+          }),
+          isTrue);
+    });
     test('field_with_dot', () {
       var filter = Filter.equals(FieldKey.escape('sub.field'), 1);
       expect(_match(filter, {'sub.field': 1}), isTrue);

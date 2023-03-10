@@ -38,9 +38,10 @@ mixin RecordSnapshotMixin<K, V>
       return value;
     } else if (field == Field.key) {
       return key;
-    } else {
+    } else if (value is Map) {
       return getMapFieldValue(value as Map, field);
     }
+    return null;
   }
 
   /// Only for read-only internal access
@@ -49,9 +50,10 @@ mixin RecordSnapshotMixin<K, V>
       return value;
     } else if (field == Field.key) {
       return key;
-    } else {
+    } else if (value is Map) {
       return getMapFieldRawValue<Object?>(value as Map, field);
     }
+    return null;
   }
 
   @override

@@ -2,6 +2,7 @@ import 'package:sembast/src/record_snapshot_impl.dart';
 import 'package:sembast/src/value_utils.dart';
 
 import 'import_common.dart';
+import 'utils.dart';
 
 /// We can match if record is a map or if we are accessing the key or value
 bool canMatch(String? field, dynamic recordValue) =>
@@ -44,27 +45,86 @@ class SembastCustomFilter extends SembastFilterBase {
   }
 }
 
+abstract class _FilterAnyInList {
+  bool? get anyInList;
+}
+
+abstract class _FilterValue {
+  Object? get value;
+}
+
+abstract class _FilterField {
+  String get field;
+}
+
 /// Any in list mixin.
-mixin FilterAnyInListMixin implements SembastFilterBase {
+mixin FilterAnyInListMixin implements SembastFilterBase, _FilterAnyInList {
   /// True if it should match any in a list.
+  @override
   bool? anyInList;
 }
 
 /// Value mixin.
-mixin FilterValueMixin implements SembastFilterBase {
+mixin FilterValueMixin implements SembastFilterBase, _FilterValue {
   /// The value.
+  @override
   late Object? value;
 }
 
 /// Field information (name) mixin
-mixin FilterFieldMixin implements SembastFilterBase {
+mixin FilterFieldMixin implements SembastFilterBase, _FilterField {
   /// The field.
+  @override
   late String field;
+}
+
+mixin _FilterSmartMatchMixin implements _FilterAnyInList, _FilterField {
+  bool smartMatchesRecord(
+      RecordSnapshot record, SmartMatchValueFunction match) {
+    var field = this.field;
+    final recordValue = record.value;
+    if (!canMatch(field, recordValue)) {
+      return false;
+    }
+    // for key and value) {
+
+    bool matchValue(Object? value) {
+      if (anyInList ?? false) {
+        if (value is Iterable) {
+          for (var itemValue in value) {
+            if (match(itemValue)) {
+              return true;
+            }
+          }
+        }
+        return false;
+      }
+      return match(value);
+    }
+
+    if (field == Field.value) {
+      return matchValue(recordValue);
+    } else if (field == Field.key) {
+      return matchValue(record.key);
+    } else {
+      // Compat.
+      if (anyInList == true) {
+        field = '$field.$smartMatchIndexWildcard';
+      }
+      // We know it is a map here
+      return smartMatchPartsMapValue(
+          recordValue as Map, getFieldParts(field), match);
+    }
+  }
 }
 
 /// Equals filter.
 class SembastEqualsFilter extends SembastFilterBase
-    with FilterAnyInListMixin, FilterValueMixin, FilterFieldMixin {
+    with
+        FilterAnyInListMixin,
+        FilterValueMixin,
+        FilterFieldMixin,
+        _FilterSmartMatchMixin {
   /// Equals filter.
   SembastEqualsFilter(String field, dynamic value, bool? anyInList) {
     this.field = field;
@@ -74,22 +134,8 @@ class SembastEqualsFilter extends SembastFilterBase
 
   @override
   bool matchesRecord(RecordSnapshot record) {
-    if (!canMatch(field, record.value)) {
-      return false;
-    }
-    var fieldValue = record[field];
-    if (anyInList == true) {
-      if (fieldValue is Iterable) {
-        for (var itemValue in fieldValue) {
-          if (valueAreEquals(itemValue, value)) {
-            return true;
-          }
-        }
-      }
-      return false;
-    } else {
-      return valueAreEquals(fieldValue, value);
-    }
+    bool match(Object? value) => valuesAreEquals(value, this.value);
+    return smartMatchesRecord(record, match);
   }
 
   @override
@@ -115,7 +161,7 @@ class SembastNotEqualsFilter extends SembastEqualsFilter {
 
 /// Matches filter.
 class SembastMatchesFilter extends SembastFilterBase
-    with FilterAnyInListMixin, FilterFieldMixin {
+    with FilterAnyInListMixin, FilterFieldMixin, _FilterSmartMatchMixin {
   /// The regular expression.
   final RegExp regExp;
 
@@ -127,31 +173,14 @@ class SembastMatchesFilter extends SembastFilterBase
 
   @override
   bool matchesRecord(RecordSnapshot record) {
-    if (!canMatch(field, record.value)) {
-      return false;
-    }
-
-    var fieldValue = record[field];
-
-    bool matchesValue(dynamic value) {
+    bool match(Object? value) {
       if (value is String) {
         return regExp.hasMatch(value);
       }
       return false;
     }
 
-    if (anyInList == true) {
-      if (fieldValue is Iterable) {
-        for (var itemValue in fieldValue) {
-          if (matchesValue(itemValue)) {
-            return true;
-          }
-        }
-      }
-      return false;
-    } else {
-      return matchesValue(fieldValue);
-    }
+    return smartMatchesRecord(record, match);
   }
 
   @override

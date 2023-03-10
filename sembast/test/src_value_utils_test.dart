@@ -5,12 +5,12 @@ void main() {
   group('src_value_utils', () {
     test('valueAreEquals', () {
       void checkEquals(Object? object1, Object? object2) {
-        expect(valueAreEquals(object1, object2), isTrue,
+        expect(valuesAreEquals(object1, object2), isTrue,
             reason: '$object1 != $object2');
       }
 
       void checkNotEquals(Object? object1, Object? object2) {
-        expect(valueAreEquals(object1, object2), isFalse,
+        expect(valuesAreEquals(object1, object2), isFalse,
             reason: '$object1 == $object2');
       }
 

@@ -391,14 +391,16 @@ void defineTests(DatabaseTestContext ctx) {
           ]);
         });
 
+        test('equals', () async {
+          var finder = Finder(filter: Filter.equals('path.sub', 'b'));
+          var snapshots = await store.find(db, finder: finder);
+          expect(snapshotsRefs(snapshots), [record3]);
+        });
+
         test('sort', () async {
           var finder = Finder(sortOrders: [SortOrder('path.sub', true)]);
           var snapshots = await store.find(db, finder: finder);
           expect(snapshotsRefs(snapshots), [record1, record3, record2]);
-
-          finder.filter = Filter.equals('path.sub', 'b');
-          snapshots = await store.find(db, finder: finder);
-          expect(snapshotsRefs(snapshots), [record3]);
 
           // Add null sub field
           var record4 = store.record(4);
@@ -693,6 +695,52 @@ void defineTests(DatabaseTestContext ctx) {
         }
 
         await db.close();
+      });
+    });
+    group('sub_list_field', () {
+      late Database db;
+
+      tearDown(() async {
+        await db.close();
+      });
+      var store = intMapStoreFactory.store();
+      var records = store.records([1, 2, 3, 4]);
+      // Convenient access for test
+      var record1 = records[0];
+      var record2 = records[1];
+      var record3 = records[2];
+      var record4 = records[3];
+      setUp(() async {
+        db = await setupForTest(ctx, 'find/sub_map_field.db');
+        return records.put(db, [
+          {
+            'path': [
+              {'sub': 'a'}
+            ]
+          },
+          {
+            'path': [
+              {'sub': 'c'}
+            ]
+          },
+          {
+            'path': [
+              {'sub': 'b'}
+            ]
+          },
+          {'path': []},
+        ]);
+      });
+
+      test('equals', () async {
+        var finder = Finder(filter: Filter.equals('path.@.sub', 'b'));
+        var snapshots = await store.find(db, finder: finder);
+        expect(snapshotsRefs(snapshots), [record3]);
+      });
+      test('sort', () async {
+        var finder = Finder(sortOrders: [SortOrder('path.0.sub')]);
+        var snapshots = await store.find(db, finder: finder);
+        expect(snapshotsRefs(snapshots), [record1, record3, record2, record4]);
       });
     });
   });
