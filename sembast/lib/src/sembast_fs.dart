@@ -169,8 +169,8 @@ class FsDatabaseStorage extends DatabaseStorage {
         }
         ctlr.close();
       });
-    }, onCancel: () {
-      subscription?.cancel();
+    }, onCancel: () async {
+      await subscription?.cancel();
     });
 
     return ctlr.stream;

@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:convert';
 
 import 'package:sembast/sembast.dart';
@@ -862,7 +861,6 @@ class SembastDatabase extends Object
             try {
               await import(_storageFs!.readLines(), safeMode: true);
             } catch (e) {
-              // devPrint('error normal read $e');
               corrupted = true;
               // reading lines normally failed, try safe mode
               await import(_storageFs!.readSafeLines());

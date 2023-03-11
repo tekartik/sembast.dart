@@ -382,7 +382,7 @@ void defineTestsWithCodec(FileSystemTestContext ctx, {SembastCodec? codec}) {
 
     test('corrupted_open_empty', () async {
       await prepareForDb();
-      await writeContent(fs, dbPath!, ['corrupted']);
+      await writeContent(fs, dbPath!, ['corrupted_option_empty']);
       final db = await factory.openDatabase(dbPath!,
           mode: DatabaseMode.empty, codec: codec);
       expect(db.version, 1);

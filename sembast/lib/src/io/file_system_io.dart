@@ -114,13 +114,14 @@ class _FileSystemExceptionIoDefault implements fs.FileSystemException {
 }
 
 Future<T> _wrap<T>(Future<T> future) {
-  return future.catchError((Object e) {
+  return future.catchError((Object e, StackTrace st) {
     if (e is io.FileSystemException) {
-      throw _IoFileSystemException(e);
+      Error.throwWithStackTrace(_IoFileSystemException(e), st);
     } else if (e is fs.FileSystemException) {
-      throw e;
+      Error.throwWithStackTrace(e, st);
     } else {
-      throw _FileSystemExceptionIoDefault('error ${e.toString()}');
+      Error.throwWithStackTrace(
+          _FileSystemExceptionIoDefault('error ${e.toString()}'), st);
     }
   });
 }
