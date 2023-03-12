@@ -359,8 +359,10 @@ bool _smartMatchPartsAnyValue(Object? value, String part,
   return false;
 }
 
-/// Check a value at a given field map
-/// Handle @ for any item in list
+/// Check a value at a given field map.
+/// Handle @ for any item in list.
+///
+/// When match works for null value, behavior is unpredictable.
 bool smartMatchPartsMapValue(
     Map map, Iterable<String> parts, SmartMatchValueFunction match) {
   if (parts.isEmpty) {

@@ -110,6 +110,33 @@ void main() {
           }),
           isTrue);
     });
+    test('sub.field not null', () {
+      var filter = Filter.notEquals('sub.field', null);
+      expect(
+          _match(filter, {
+            'sub': {'field': 1}
+          }),
+          isTrue);
+      expect(
+          _match(filter, {
+            'sub': {'field': null}
+          }),
+          isFalse);
+    });
+    test('sub.field null', () {
+      var filter = Filter.equals('sub.field', null);
+      expect(
+          _match(filter, {
+            'sub': {'field': 1}
+          }),
+          isFalse);
+      expect(
+          _match(filter, {
+            'sub': {'field': null}
+          }),
+          isTrue);
+      expect(_match(filter, {}), isTrue);
+    });
     test('sub.listfield', () {
       var filter = Filter.equals('sub.field', 1, anyInList: true);
       expect(
