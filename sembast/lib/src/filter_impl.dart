@@ -134,6 +134,10 @@ class SembastEqualsFilter extends SembastFilterBase
 
   @override
   bool matchesRecord(RecordSnapshot record) {
+    // Special null handling
+    if (value == null) {
+      return record[field] == null;
+    }
     bool match(Object? value) => valuesAreEquals(value, this.value);
     return smartMatchesRecord(record, match);
   }

@@ -365,6 +365,33 @@ void main() {
         'foo.bar': 2,
       });
     });
+    // Note the special behavior...
+    test('smartMatch null', () {
+      bool match(Object? value) => valuesAreEquals(value, null);
+      expect(smartMatchPartsMapValue({}, [], match), isFalse);
+      expect(smartMatchPartsMapValue({'test': null}, ['test'], match), isTrue);
+      expect(smartMatchPartsMapValue({'test': 1}, ['test'], match), isFalse);
+      // Unpredictable behavior, returns true although the field does not exist
+      expect(smartMatchPartsMapValue({}, ['test'], match), isTrue);
+      expect(
+          smartMatchPartsMapValue({
+            'sub': {'test': null}
+          }, [
+            'sub',
+            'test'
+          ], match),
+          isTrue);
+      expect(
+          smartMatchPartsMapValue({
+            'sub': {'test': 1}
+          }, [
+            'sub',
+            'test'
+          ], match),
+          isFalse);
+      // Unpredictable behavior here, the field is athough null (i.e. not existing)
+      expect(smartMatchPartsMapValue({}, ['sub', 'test'], match), isFalse);
+    });
     test('smartMatch', () {
       bool match(Object? value) => valuesAreEquals(value, 1);
       expect(smartMatchPartsMapValue({}, [], match), false);
