@@ -1,3 +1,7 @@
+## 2.1.1
+
+* Add async codec support.
+
 ## 2.1.0+4
 
 * Support strict-casts mode
