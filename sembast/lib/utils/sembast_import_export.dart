@@ -43,7 +43,7 @@ Future<Map<String, Object?>> exportDatabase(Database db,
 ///
 /// Return the data in an exported format where each item in the list can be JSONified.
 /// If simply encoded as list of json string, it makes it suitable to archive
-/// a mutable export on git file system.
+/// a mutable export on a git file system.
 ///
 /// An optional [storeNames] can specify the list of stores to export. If null
 /// All stores are exported.
@@ -52,7 +52,7 @@ Future<List> exportDatabaseLines(Database db,
     {List<String>? storeNames}) async {
   var lines = <Object>[];
 
-  await _exportDatabase(db, exportMeta: (Model map) {
+  await _exportDatabase(db, storeNames: storeNames, exportMeta: (Model map) {
     lines.add(map);
   }, exportStore: (Model map) {
     lines.add(newModel()..[_store] = map[_name]);
@@ -189,7 +189,8 @@ Future<Database> importDatabaseLines(
   }
   closeCurrentStore();
   mapSrcData[_stores] = stores;
-  return await importDatabase(mapSrcData, dstFactory, dstPath, codec: codec);
+  return await importDatabase(mapSrcData, dstFactory, dstPath,
+      codec: codec, storeNames: storeNames);
 }
 
 void _checkMeta(Map meta) {

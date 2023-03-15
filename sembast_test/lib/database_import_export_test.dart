@@ -193,6 +193,7 @@ void defineTests(DatabaseTestContext ctx) {
       await store.record(1).put(db, 'hi');
       await store2.record(1).put(db, 'hi');
 
+      var exportLines = await exportDatabaseLines(db);
       await checkExportImport(db, {
         'sembast_export': 1,
         'version': 1,
@@ -214,6 +215,15 @@ void defineTests(DatabaseTestContext ctx) {
           }
         ]
       });
+      expect(exportLines, [
+        {'sembast_export': 1, 'version': 1},
+        {'store': '_main'},
+        [1, 'hi'],
+        {'store': 'store2'},
+        [1, 'hi'],
+        {'store': 'store3'},
+        [1, 'hi']
+      ]);
 
       var filteredExport = {
         'sembast_export': 1,
@@ -226,8 +236,16 @@ void defineTests(DatabaseTestContext ctx) {
           },
         ]
       };
+      var filteredExportLines = [
+        {'sembast_export': 1, 'version': 1},
+        {'store': 'store2'},
+        [1, 'hi'],
+      ];
       // export with storeNames
       expect(await exportDatabase(db, storeNames: ['store2']), filteredExport);
+      // export with storeNames
+      expect(await exportDatabaseLines(db, storeNames: ['store2']),
+          filteredExportLines);
 
       // import with storeName
       var exportMap = await exportDatabase(db);
@@ -238,6 +256,13 @@ void defineTests(DatabaseTestContext ctx) {
           storeNames: ['store2']);
       // Check imported data by exporting all
       expect(await exportDatabase(importedDb), filteredExport);
+      await importedDb.close();
+
+      importedDb = await importDatabaseLines(
+          exportLines, ctx.factory, importDbPath,
+          storeNames: ['store2']);
+      // Check imported data by exporting all
+      expect(await exportDatabaseLines(importedDb), filteredExportLines);
       await importedDb.close();
     });
 
@@ -311,7 +336,7 @@ void defineTests(DatabaseTestContext ctx) {
           await deleteForTest(ctx, 'compat/import_export/any_import.db');
       Future<void> checkDb(Database db) async {
         expect(await exportDatabaseLines(db), [
-          {'sembast_export': 1, 'version': 1},
+          {'sembast_export': 1, 'version': 3},
           {'store': '_main'},
           [1, 'hi']
         ]);
@@ -323,13 +348,13 @@ void defineTests(DatabaseTestContext ctx) {
       }
 
       var exportLines = [
-        {'sembast_export': 1, 'version': 1},
+        {'sembast_export': 1, 'version': 3},
         {'store': '_main'},
         [1, 'hi']
       ];
       var exportMap = {
         'sembast_export': 1,
-        'version': 1,
+        'version': 3,
         'stores': [
           {
             'name': '_main',
@@ -337,6 +362,35 @@ void defineTests(DatabaseTestContext ctx) {
             'values': ['hi']
           }
         ]
+      };
+      await testImport(exportLines);
+      await testImport(jsonEncode(exportLines));
+      await testImport(exportLinesToJsonStringList(exportLines));
+      await testImport(exportLinesToJsonStringList(exportLines).join('\n'));
+      await testImport(exportMap);
+      await testImport(jsonEncode(exportMap));
+    });
+
+    test('any_import_empty', () async {
+      var dbPath =
+          await deleteForTest(ctx, 'compat/import_export/any_import_empty.db');
+      Future<void> checkDb(Database db) async {
+        expect(await exportDatabaseLines(db), [
+          {'sembast_export': 1, 'version': 2},
+        ]);
+      }
+
+      Future<void> testImport(Object any) async {
+        var db = await importDatabaseAny(any, ctx.factory, dbPath);
+        await checkDb(db);
+      }
+
+      var exportLines = [
+        {'sembast_export': 1, 'version': 2},
+      ];
+      var exportMap = {
+        'sembast_export': 1,
+        'version': 2,
       };
       await testImport(exportLines);
       await testImport(jsonEncode(exportLines));
