@@ -45,7 +45,7 @@ object (Map, List, num, String, bool and num) to/from a single line String.
 The codec must be able to handle the conversion of a json encodable data to a single line string. (i.e. json being one).
 If your codec requires calling a plugin or an asynchronous operation you have to create an 
 asynchronous codec. One solution is to subclass `AsyncContentCodecBase` (which is a `Codec<Object?, String>` but with
-the synchronous encoding/decoding disabled) where you just to implement:
+the synchronous encoding/decoding disabled) where you just have to implement:
 - `decodeAsync`
 - `encodeAsync`
 
