@@ -36,8 +36,16 @@ FileSystemTestContext get memoryFileSystemContext =>
 String dbPathFromName(String name) =>
     join('.dart_tool', 'sembast', 'test', name);
 
-Future<Database> setupForTest(DatabaseTestContext ctx, String name) {
-  return ctx.open(dbPathFromName(name));
+Future<Database> setupForTest(DatabaseTestContext ctx, String name,
+    {SembastCodec? codec}) {
+  return ctx.open(dbPathFromName(name), codec: codec);
+}
+
+/// Delete the database and returns its full path.
+Future<String> deleteForTest(DatabaseTestContext ctx, String name) async {
+  var dbPath = dbPathFromName(name);
+  await ctx.factory.deleteDatabase(dbPath);
+  return dbPath;
 }
 
 ///

@@ -68,3 +68,11 @@ class MyAsyncCodec extends AsyncContentCodecBase {
   }
 }
 ```
+
+You have to specify a unique signature (not private) when opening the database with an sync codec:
+
+```dart
+// Open the database
+var db = await factory.openDatabase('my_encoded_db.db',
+    codec: SembastCodec(signature: 'my_codec', codec: MyAsyncCodec()));
+```

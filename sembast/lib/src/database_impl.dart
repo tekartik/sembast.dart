@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:meta/meta.dart';
 import 'package:sembast/sembast.dart';
 import 'package:sembast/src/api/log_level.dart';
 import 'package:sembast/src/api/protected/jdb.dart';
@@ -54,11 +55,14 @@ class CommitData extends CommitEntries {
 }
 
 /// Mixin to help on evolution
-mixin SembastDatabaseMin implements Database {}
+// @Deprecated('use SembastDatabaseMixin') // check in sembast sqflite first
+typedef SembastDatabaseMin = SembastDatabaseMixin;
+/// Mixin to help on evolution (renamed from SembastDatabaseMin
+mixin SembastDatabaseMixin implements Database {}
 
 /// Database implementation.
 class SembastDatabase extends Object
-    with SembastDatabaseMin
+    with SembastDatabaseMixin
     implements Database, SembastDatabaseClient {
   // Can be modified by openHelper for test purpose
   /// its open helper.
@@ -1601,4 +1605,11 @@ class JdbImportResult {
 
   /// Import result.
   JdbImportResult({required this.delta});
+}
+
+/// Internal only
+@protected
+extension SembastDatabaseInternalExt on Database {
+  /// current sembast codec.
+  SembastCodec? get sembastCodec => (this as SembastDatabase).openOptions.codec;
 }

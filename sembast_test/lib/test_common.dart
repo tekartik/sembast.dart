@@ -15,9 +15,10 @@ class DatabaseTestContext {
 
   // Delete the existing and open the database
   // ignore: always_require_non_null_named_parameters
-  Future<Database> open(String dbPath, {int? version}) async {
+  Future<Database> open(String dbPath,
+      {int? version, SembastCodec? codec}) async {
     await factory.deleteDatabase(dbPath);
-    return await factory.openDatabase(dbPath, version: version);
+    return await factory.openDatabase(dbPath, version: version, codec: codec);
   }
 }
 

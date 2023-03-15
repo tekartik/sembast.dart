@@ -1,2 +1,6 @@
 export 'package:sembast/src/database_impl.dart'
-    show SembastDatabase, SembastDatabaseMin;
+    show
+        SembastDatabase,
+        SembastDatabaseMin,
+        SembastDatabaseMixin,
+        SembastDatabaseInternalExt;
