@@ -102,7 +102,7 @@ abstract class StorageJdb extends StorageBase {
   /// Revision update to force reading
   Stream<StorageJdbStateUpdate>? get updates;
 
-  /// Revision update to register on open (unregistre on close)
+  /// Revision update to register on open (unregistered) on close)
   Stream<int> get revisionUpdate;
 
   /// Get the entries after

@@ -1,3 +1,7 @@
+## 3.4.2-1
+
+* Add async codec support.
+
 ## 3.4.1+1
 
 * allow accessing an inner list item using a part index (such as `list.0`) and inner map in list (such as `list.0.tag`).

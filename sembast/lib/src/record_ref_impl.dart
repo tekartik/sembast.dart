@@ -65,6 +65,12 @@ extension SembastRecordRefExtension<K, V> on RecordRef<K, V> {
     });
   }
 
+  void _checkValueArgument(Object? value) {
+    if (value == null) {
+      throw ArgumentError.notNull('value');
+    }
+  }
+
   /// Save a record, create if needed.
   ///
   /// if [merge] is true and the field exists, data is merged
@@ -72,6 +78,7 @@ extension SembastRecordRefExtension<K, V> on RecordRef<K, V> {
   /// Returns the updated value.
   Future<V> put(DatabaseClient databaseClient, V value, {bool? merge}) async {
     var client = getClient(databaseClient);
+    _checkValueArgument(value);
     value = client.sembastDatabase
         .sanitizeInputValue<V>(value as Value, update: merge);
     return (await client.inTransaction((txn) {

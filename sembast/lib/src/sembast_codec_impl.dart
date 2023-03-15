@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:sembast/sembast.dart';
+import 'package:sembast/src/async_content_codec.dart';
 import 'package:sembast/src/json_encodable_codec.dart';
 
 /// Sembast codec implementation.
@@ -33,38 +35,29 @@ Map<String, Object?>? getRawSignatureMap(SembastCodec? codec) {
   return null;
 }
 
-/// The encoded signature is a map {'signature': signature} encoded by itself!
-String? getCodecEncodedSignature(SembastCodec? codec) {
+/// Support async codec, could throw
+FutureOr<String?> getCodecEncodedSignature(SembastCodec? codec) {
   if (codec?.signature != null) {
-    return codec!.codec?.encode(getRawSignatureMap(codec)!);
+    return codec!.encodeContent(getRawSignatureMap(codec)!);
   }
   return null;
 }
 
-/// Get codec signature
-Map<String, Object?>? getCodecDecodedSignature(
+/// Support async codec.
+FutureOr<String?> getCodecEncodedSignatureOrNull(SembastCodec? codec) =>
+    getCodecEncodedSignature(codec);
+
+/// Get sync codec signature, never fails.
+FutureOr<Map?> getCodecDecodedSignature(
     SembastCodec? codec, String? encodedSignature) {
   if (codec != null && encodedSignature != null) {
-    try {
-      var result = codec.codec?.decode(encodedSignature);
-      if (result is Map) {
-        return result.cast<String, Object?>();
-      }
-    } catch (_) {}
+    return codec.decodeContent(encodedSignature);
   }
   return null;
 }
 
-/// Throw an error if not matching
-///
-/// We decode the signature to make sure it matches the raw decoded one
-void checkCodecEncodedSignature(SembastCodec? codec, String? encodedSignature) {
-  if (codec?.signature == null && encodedSignature == null) {
-    // Ignore if both signature are null
-    return;
-  }
-  var rawSignatureMap = getRawSignatureMap(codec);
-  var decodedSignature = getCodecDecodedSignature(codec, encodedSignature);
+void _checkSignaturesMatch(
+    Map? rawSignatureMap, String? encodedSignature, Map? decodedSignature) {
   var matches = true;
   if (rawSignatureMap == null) {
     if (encodedSignature != null) {
@@ -90,4 +83,22 @@ void checkCodecEncodedSignature(SembastCodec? codec, String? encodedSignature) {
   if (!matches) {
     throw DatabaseException.invalidCodec('Invalid codec signature');
   }
+}
+
+/// Throw an error if not matching
+///
+/// We decode the signature to make sure it matches the raw decoded one
+Future<void> checkCodecEncodedSignature(
+    SembastCodec? codec, String? encodedSignature) async {
+  if (codec?.signature == null && encodedSignature == null) {
+    // Ignore if both signature are null
+    return;
+  }
+  var rawSignatureMap = getRawSignatureMap(codec);
+  Map? decodedSignature;
+  // We catch any throwing during signature parsing as o
+  try {
+    decodedSignature = await getCodecDecodedSignature(codec, encodedSignature);
+  } catch (_) {}
+  _checkSignaturesMatch(rawSignatureMap, encodedSignature, decodedSignature);
 }

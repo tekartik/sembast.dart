@@ -3,6 +3,7 @@ library sembast.database_format_test;
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:sembast/src/async_content_codec.dart';
 import 'package:sembast/src/database_impl.dart';
 import 'package:sembast/src/sembast_codec_impl.dart';
 import 'package:sembast/src/sembast_fs.dart';
@@ -84,9 +85,9 @@ void defineTestsWithCodec(FileSystemTestContext ctx, {SembastCodec? codec}) {
       expect(lines.length, 1);
       var expected = <String, Object?>{'version': 1, 'sembast': 1};
       if (codec != null) {
-        expected['codec'] = getCodecEncodedSignature(codec);
+        expected['codec'] = await getCodecEncodedSignature(codec);
         var map = json.decode(lines.first) as Map;
-        expect(getCodecDecodedSignature(codec, map['codec'] as String?),
+        expect(await getCodecDecodedSignature(codec, map['codec'] as String?),
             {'signature': codec.signature},
             reason: 'lines: $lines');
       }
@@ -102,9 +103,9 @@ void defineTestsWithCodec(FileSystemTestContext ctx, {SembastCodec? codec}) {
       expect(lines.length, 1);
       var expected = <String, Object?>{'version': 2, 'sembast': 1};
       if (codec != null) {
-        expected['codec'] = getCodecEncodedSignature(codec);
+        expected['codec'] = await getCodecEncodedSignature(codec);
         var map = json.decode(lines.first) as Map;
-        expect(getCodecDecodedSignature(codec, map['codec'] as String?),
+        expect(await getCodecDecodedSignature(codec, map['codec'] as String?),
             {'signature': codec.signature});
       }
       if (!_hasRandomIv(codec)) {
@@ -135,9 +136,9 @@ void defineTestsWithCodec(FileSystemTestContext ctx, {SembastCodec? codec}) {
 
       var expected = <String, Object?>{'version': 2, 'sembast': 1};
       if (codec != null) {
-        expected['codec'] = getCodecEncodedSignature(codec);
+        expected['codec'] = await getCodecEncodedSignature(codec);
         var map = json.decode(lines.last) as Map;
-        expect(getCodecDecodedSignature(codec, map['codec'] as String?),
+        expect(await getCodecDecodedSignature(codec, map['codec'] as String?),
             {'signature': codec.signature});
       }
       if (!_hasRandomIv(codec)) {
@@ -150,11 +151,11 @@ void defineTestsWithCodec(FileSystemTestContext ctx, {SembastCodec? codec}) {
       await db.close();
     });
 
-    dynamic decodeRecord(String line) {
+    Future<Map> decodeRecord(String line) async {
       if (codec?.codec != null) {
-        return codec!.codec!.decode(line);
+        return codec!.codec!.decodeContent(line);
       } else {
-        return json.decode(line);
+        return json.decode(line) as Map;
       }
     }
 
@@ -165,7 +166,7 @@ void defineTestsWithCodec(FileSystemTestContext ctx, {SembastCodec? codec}) {
       await db.close();
       var lines = await readContent(fs, dbPath!);
       expect(lines.length, 2);
-      expect(decodeRecord(lines[1]), {'key': 1, 'value': 'hi'});
+      expect(await decodeRecord(lines[1]), {'key': 1, 'value': 'hi'});
     });
 
     test('1_record_in_2_stores', () async {
@@ -177,8 +178,8 @@ void defineTestsWithCodec(FileSystemTestContext ctx, {SembastCodec? codec}) {
       await db.close();
       final lines = await readContent(fs, dbPath!);
       expect(lines.length, 2);
-      expect(
-          decodeRecord(lines[1]), {'store': 'store2', 'key': 1, 'value': 'hi'});
+      expect(await decodeRecord(lines[1]),
+          {'store': 'store2', 'key': 1, 'value': 'hi'});
     });
 
     test('twice same record', () async {
@@ -190,8 +191,8 @@ void defineTestsWithCodec(FileSystemTestContext ctx, {SembastCodec? codec}) {
       await db.close();
       var lines = await readContent(fs, dbPath!);
       expect(lines.length, 3);
-      expect(decodeRecord(lines[1]), {'key': 1, 'value': 'hi'});
-      expect(decodeRecord(lines[2]), {'key': 1, 'value': 'hi'});
+      expect(await decodeRecord(lines[1]), {'key': 1, 'value': 'hi'});
+      expect(await decodeRecord(lines[2]), {'key': 1, 'value': 'hi'});
     });
 
     test('1 map record', () async {
@@ -237,15 +238,15 @@ void defineTestsWithCodec(FileSystemTestContext ctx, {SembastCodec? codec}) {
       expect(lines.length, 2);
       var expected = <String, Object?>{'version': 2, 'sembast': 1};
       if (codec != null) {
-        expected['codec'] = getCodecEncodedSignature(codec);
+        expected['codec'] = await getCodecEncodedSignature(codec);
         var map = json.decode(lines.first) as Map;
-        expect(getCodecDecodedSignature(codec, map['codec'] as String?),
+        expect(await getCodecDecodedSignature(codec, map['codec'] as String?),
             {'signature': codec.signature});
       }
       if (!_hasRandomIv(codec)) {
         expect(json.decode(lines.first), expected);
       }
-      expect(decodeRecord(lines[1]), {'key': 1, 'value': 'hi'});
+      expect(await decodeRecord(lines[1]), {'key': 1, 'value': 'hi'});
     });
 
     test('1_record_in_open_transaction', () async {
@@ -261,15 +262,15 @@ void defineTestsWithCodec(FileSystemTestContext ctx, {SembastCodec? codec}) {
       expect(lines.length, 2);
       var expected = <String, Object?>{'version': 2, 'sembast': 1};
       if (codec != null) {
-        expected['codec'] = getCodecEncodedSignature(codec);
+        expected['codec'] = await getCodecEncodedSignature(codec);
         var map = json.decode(lines.first) as Map;
-        expect(getCodecDecodedSignature(codec, map['codec'] as String?),
+        expect(await getCodecDecodedSignature(codec, map['codec'] as String?),
             {'signature': codec.signature});
       }
       if (!_hasRandomIv(codec)) {
         expect(json.decode(lines.first), expected);
       }
-      expect(decodeRecord(lines[1]), {'key': 1, 'value': 'hi'});
+      expect(await decodeRecord(lines[1]), {'key': 1, 'value': 'hi'});
     });
 
     test('open_version_1_then_2_then_compact', () async {
@@ -286,9 +287,9 @@ void defineTestsWithCodec(FileSystemTestContext ctx, {SembastCodec? codec}) {
       expect(lines.length, 4);
       var expected = <String, Object?>{'version': 1, 'sembast': 1};
       if (codec != null) {
-        expected['codec'] = getCodecEncodedSignature(codec);
+        expected['codec'] = await getCodecEncodedSignature(codec);
         var map = json.decode(lines.first) as Map;
-        expect(getCodecDecodedSignature(codec, map['codec'] as String?),
+        expect(await getCodecDecodedSignature(codec, map['codec'] as String?),
             {'signature': codec.signature});
       }
       if (!_hasRandomIv(codec)) {
@@ -298,10 +299,10 @@ void defineTestsWithCodec(FileSystemTestContext ctx, {SembastCodec? codec}) {
       var expectedV2 = <String, Object?>{'version': 2, 'sembast': 1};
 
       if (codec != null) {
-        expectedV2['codec'] = getCodecEncodedSignature(codec);
+        expectedV2['codec'] = await getCodecEncodedSignature(codec);
         var line = lines[2];
         var map = json.decode(line) as Map;
-        expect(getCodecDecodedSignature(codec, map['codec'] as String?),
+        expect(await getCodecDecodedSignature(codec, map['codec'] as String?),
             {'signature': codec.signature});
       }
       if (!_hasRandomIv(codec)) {
@@ -323,9 +324,9 @@ void defineTestsWithCodec(FileSystemTestContext ctx, {SembastCodec? codec}) {
       expect(lines.length, 3);
       if (codec != null) {
         var line = lines[0];
-        expectedV2['codec'] = getCodecEncodedSignature(codec);
+        expectedV2['codec'] = await getCodecEncodedSignature(codec);
         var map = json.decode(line) as Map;
-        expect(getCodecDecodedSignature(codec, map['codec'] as String?),
+        expect(await getCodecDecodedSignature(codec, map['codec'] as String?),
             {'signature': codec.signature});
       }
       if (!_hasRandomIv(codec)) {
@@ -349,7 +350,7 @@ void defineTestsWithCodec(FileSystemTestContext ctx, {SembastCodec? codec}) {
         json.encode({
           'version': 2,
           'sembast': 1,
-          'codec': getCodecEncodedSignature(codec)
+          'codec': await getCodecEncodedSignature(codec)
         })
       ]);
       return factory.openDatabase(dbPath!, codec: codec).then((Database db) {
