@@ -57,6 +57,7 @@ class CommitData extends CommitEntries {
 /// Mixin to help on evolution
 // @Deprecated('use SembastDatabaseMixin') // check in sembast sqflite first
 typedef SembastDatabaseMin = SembastDatabaseMixin;
+
 /// Mixin to help on evolution (renamed from SembastDatabaseMin
 mixin SembastDatabaseMixin implements Database {}
 
