@@ -84,6 +84,12 @@ void defineTests(DatabaseTestContext ctx) {
       expect(await record.add(db, 'test'), isNull);
     });
 
+    test('put null', () async {
+      var record = StoreRef<int, String?>.main().record(1);
+      await record.put(db, 'not null');
+      await expectLater(() => record.put(db, null), throwsArgumentError);
+      await record.put(db, 'not null');
+    });
     test('update', () async {
       var record = StoreRef<int, String>.main().record(1);
       expect(await record.update(db, 'test1'), isNull);

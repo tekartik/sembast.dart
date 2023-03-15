@@ -5,7 +5,8 @@ import 'package:sembast/src/sembast_codec_impl.dart';
 
 /// The sembast codec to use to read/write records.
 ///
-/// It uses a user defined [codec] that must convert between a map and a
+/// It uses a user defined [codec] that must convert between a json encodable
+/// object (map, list, num, String, bool, inner null) and a
 /// single line string.
 ///
 /// It must have a public [signature], typically a comprehensive ascii name.

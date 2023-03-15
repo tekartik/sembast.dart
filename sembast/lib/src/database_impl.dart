@@ -4,6 +4,7 @@ import 'package:sembast/sembast.dart';
 import 'package:sembast/src/api/log_level.dart';
 import 'package:sembast/src/api/protected/jdb.dart';
 import 'package:sembast/src/api/v2/sembast.dart' as v2;
+import 'package:sembast/src/async_content_codec.dart';
 import 'package:sembast/src/changes_listener.dart';
 import 'package:sembast/src/common_import.dart';
 import 'package:sembast/src/cooperator.dart';
@@ -15,6 +16,7 @@ import 'package:sembast/src/json_encodable_codec.dart';
 import 'package:sembast/src/listener.dart';
 import 'package:sembast/src/meta.dart';
 import 'package:sembast/src/record_impl.dart';
+import 'package:sembast/src/sembast_codec.dart';
 import 'package:sembast/src/sembast_codec_impl.dart';
 import 'package:sembast/src/sembast_impl.dart';
 import 'package:sembast/src/storage.dart';
@@ -215,18 +217,42 @@ class SembastDatabase extends Object
   }
 
   /// Encode a map before writing it to disk
-  String encodeRecordMap(Map map) => _jsonCodec.encode(toJsonEncodable(map));
+  @Deprecated('use encodeRecordMapAsyncOrSync')
+  String encodeRecordMap(Map map) => encodeRecordMapSync(map);
+
+  /// Encode a map before writing it to disk (async codec only)
+  Future<String> encodeRecordMapAsync(Map map) =>
+      _contentCodec.encodeContentAsync(toJsonEncodable(map) as Map);
+
+  /// Encode a map before writing it to disk
+  String encodeRecordMapSync(Map map) =>
+      _contentCodec.encode(toJsonEncodable(map));
+
+  /// Encode a record map, handling async codec.
+  FutureOr<String> encodeRecordMapAsyncOrSync(Map map) =>
+      _contentCodec.encodeContent(toJsonEncodable(map) as Map);
 
   /// Decode a text.
-  Map<String, Object?>? decodeRecordLineString(String text) {
-    var result = _jsonEncodableCodec.decode(_jsonCodec.decode(text)!);
-    if (result is Map<String, Object?>) {
+  @Deprecated('Sync')
+  Map? decodeRecordLineString(String text) => decodeRecordLineStringSync(text);
+
+  /// For sync codec.
+  Map decodeRecordLineStringSync(String text) {
+    var result = fromJsonEncodable(_contentCodec.decodeContentSync(text));
+    if (result is Map) {
       return result;
     }
+    throw 'Invalid line length ${text.length}';
+  }
+
+  /// For async codec.
+  Future<Map> decodeRecordLineStringAsync(String text) async {
+    var result =
+        fromJsonEncodable(await _contentCodec.decodeContentAsync(text));
     if (result is Map) {
-      return result.cast<String, Object?>();
+      return result;
     }
-    return null;
+    throw 'Invalid line length ${text.length}';
   }
 
   /// Get the list of current store that can be safely iterate even
@@ -289,10 +315,16 @@ class SembastDatabase extends Object
         lines.add(line);
       }
 
-      Future addLine(Map<String, Object?> map) async {
+      var hasAsyncCodec = _contentCodec.isAsyncCodec;
+      Future addLine(Map map) async {
         String encoded;
         try {
-          encoded = encodeRecordMap(map);
+          if (hasAsyncCodec) {
+            encoded = await encodeRecordMapAsync(map);
+          } else {
+            encoded = encodeRecordMapSync(map);
+          }
+
           await addStringLine(encoded);
         } catch (e, st) {
           // useful for debugging...
@@ -442,7 +474,12 @@ class SembastDatabase extends Object
           var map = record.record.toDatabaseRowMap();
           String encoded;
           try {
-            encoded = encodeRecordMap(map);
+            var encodedOrFuture = encodeRecordMapAsyncOrSync(map);
+            if (encodedOrFuture is Future) {
+              encoded = await encodedOrFuture;
+            } else {
+              encoded = encodedOrFuture;
+            }
             if (_debugStorage) {
               print('add: $encoded');
             }
@@ -657,7 +694,8 @@ class SembastDatabase extends Object
 
                 meta = _upgradingMeta = Meta(
                     version: newVersion,
-                    codecSignature: getCodecEncodedSignature(options.codec));
+                    codecSignature:
+                        await getCodecEncodedSignatureOrNull(options.codec));
 
                 // Eventually run onVersionChanged
                 // Change will be committed when the transaction terminates
@@ -684,7 +722,8 @@ class SembastDatabase extends Object
           // so that it is an old value during onVersionChanged
           meta ??= Meta(
               version: 0,
-              codecSignature: getCodecEncodedSignature(options.codec));
+              codecSignature:
+                  await getCodecEncodedSignatureOrNull(options.codec));
 
           _meta ??= meta;
 
@@ -700,7 +739,8 @@ class SembastDatabase extends Object
 
             meta = Meta(
                 version: version,
-                codecSignature: getCodecEncodedSignature(options.codec));
+                codecSignature:
+                    await getCodecEncodedSignatureOrNull(options.codec));
           } else {
             // no specific version requested or same
             if ((version != null) && (version != oldVersion)) {
@@ -756,6 +796,8 @@ class SembastDatabase extends Object
           if (_storageFs?.supported ?? false) {
             var corrupted = false;
 
+            var hasAsyncCodec = _contentCodec.isAsyncCodec;
+
             Future import(Stream<String> lines, {bool? safeMode}) async {
               clearBeforeImport();
               var firstLineRead = false;
@@ -763,7 +805,7 @@ class SembastDatabase extends Object
               await for (var line in lines) {
                 _exportStat!.lineCount++;
 
-                Map<String, Object?>? map;
+                Map? map;
 
                 // Until meta is read, we assume it is json
                 if (!firstLineRead) {
@@ -777,7 +819,7 @@ class SembastDatabase extends Object
                     meta = Meta.fromMap(map!);
 
                     // Check codec signature if any
-                    checkCodecEncodedSignature(
+                    await checkCodecEncodedSignature(
                         options.codec, meta!.codecSignature);
                     firstLineRead = true;
                     continue;
@@ -795,11 +837,15 @@ class SembastDatabase extends Object
 
                 try {
                   // decode record
-                  map = decodeRecordLineString(line);
+                  if (hasAsyncCodec) {
+                    map = await decodeRecordLineStringAsync(line);
+                  } else {
+                    map = decodeRecordLineStringSync(line);
+                  }
                 } on Exception catch (_) {
                   // We can have meta here
                   try {
-                    map = (json.decode(line) as Map?)?.cast<String, Object?>();
+                    map = (json.decode(line) as Map?);
                   } on Exception catch (_) {
                     if (openMode == DatabaseMode.neverFails) {
                       corrupted = true;
@@ -843,7 +889,7 @@ class SembastDatabase extends Object
                   meta = Meta.fromMap(map);
 
                   // Check codec signature if any
-                  checkCodecEncodedSignature(
+                  await checkCodecEncodedSignature(
                       options.codec, meta!.codecSignature);
                 } else {
                   // If a codec is used, we fail
@@ -887,6 +933,10 @@ class SembastDatabase extends Object
             if (Meta.isMapMeta(map)) {
               // meta?
               meta = Meta.fromMap(map!);
+
+              // Check codec signature if any
+              await checkCodecEncodedSignature(
+                  options.codec, meta!.codecSignature);
             }
 
             await jdbFullImport();
@@ -902,13 +952,13 @@ class SembastDatabase extends Object
             _meta = meta;
           }
 
-          return openDone();
+          return await openDone();
         } else {
           // ensure main store exists
           // but do not erase previous data
           _checkMainStore();
           meta = _meta;
-          return openDone();
+          return await openDone();
         }
       } catch (_) {
         // on failure make sure to close the database
@@ -1415,7 +1465,8 @@ class SembastDatabase extends Object
   }
 
   /// Use the one defined or the default one
-  Codec<Object?, String> get _jsonCodec => openOptions.codec?.codec ?? json;
+  Codec<Object?, String> get _contentCodec =>
+      sembastCodecContentCodec(openOptions.codec);
 
   /// Use the one defined or the default one
   JsonEncodableCodec get _jsonEncodableCodec =>

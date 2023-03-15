@@ -39,3 +39,32 @@ if the password is wrong.
 
 Any other custom encryption/codec can be used as long as you provide a way to encode/decode a json encodable 
 object (Map, List, num, String, bool and num) to/from a single line String.
+
+### Create an asynchronous codec
+
+The codec must be able to handle the conversion of a json encodable data to a single line string. (i.e. json being one).
+If your codec requires calling a plugin or an asynchronous operation you have to create an 
+asynchronous codec. One solution is to subclass `AsyncContentCodecBase` (which is a `Codec<Object?, String>` but with
+the synchronous encoding/decoding disabled) where you just to implement:
+- `decodeAsync`
+- `encodeAsync`
+
+```dart
+
+/// My simple asynchronous codec.
+class MyAsyncCodec extends AsyncContentCodecBase {
+  String _reverseString(String text) => text.split('').reversed.join();
+
+  @override
+  Future<Object?> decodeAsync(String encoded) async {
+    // Simple demo, just reverse the json asynchronously.
+    return jsonDecode(_reverseString(encoded));
+  }
+
+  @override
+  Future<String> encodeAsync(Object? input) async {
+    // Simple demo, just reverse the json asynchronously.
+    return _reverseString(jsonEncode(input));
+  }
+}
+```

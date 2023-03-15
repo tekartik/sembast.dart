@@ -82,9 +82,9 @@ void defineTestsWithCodec(FileSystemTestContext ctx, {SembastCodec? codec}) {
       expect(lines.length, 1);
       var expected = <String, Object?>{'version': 1, 'sembast': 1};
       if (codec != null) {
-        expected['codec'] = getCodecEncodedSignature(codec);
+        expected['codec'] = await getCodecEncodedSignature(codec);
         var map = json.decode(lines.first) as Map;
-        expect(getCodecDecodedSignature(codec, map['codec'] as String?),
+        expect(await getCodecDecodedSignature(codec, map['codec'] as String?),
             {'signature': codec.signature},
             reason: 'lines: $lines');
       }
@@ -100,9 +100,9 @@ void defineTestsWithCodec(FileSystemTestContext ctx, {SembastCodec? codec}) {
       expect(lines.length, 1);
       var expected = <String, Object?>{'version': 2, 'sembast': 1};
       if (codec != null) {
-        expected['codec'] = getCodecEncodedSignature(codec);
+        expected['codec'] = await getCodecEncodedSignature(codec);
         var map = json.decode(lines.first) as Map;
-        expect(getCodecDecodedSignature(codec, map['codec'] as String?),
+        expect(await getCodecDecodedSignature(codec, map['codec'] as String?),
             {'signature': codec.signature});
       }
       if (!_hasRandomIv(codec)) {
@@ -133,9 +133,9 @@ void defineTestsWithCodec(FileSystemTestContext ctx, {SembastCodec? codec}) {
 
       var expected = <String, Object?>{'version': 2, 'sembast': 1};
       if (codec != null) {
-        expected['codec'] = getCodecEncodedSignature(codec);
+        expected['codec'] = await getCodecEncodedSignature(codec);
         var map = json.decode(lines.last) as Map;
-        expect(getCodecDecodedSignature(codec, map['codec'] as String?),
+        expect(await getCodecDecodedSignature(codec, map['codec'] as String?),
             {'signature': codec.signature});
       }
       if (!_hasRandomIv(codec)) {
@@ -234,9 +234,9 @@ void defineTestsWithCodec(FileSystemTestContext ctx, {SembastCodec? codec}) {
       expect(lines.length, 2);
       var expected = <String, Object?>{'version': 2, 'sembast': 1};
       if (codec != null) {
-        expected['codec'] = getCodecEncodedSignature(codec);
+        expected['codec'] = await getCodecEncodedSignature(codec);
         var map = json.decode(lines.first) as Map;
-        expect(getCodecDecodedSignature(codec, map['codec'] as String?),
+        expect(await getCodecDecodedSignature(codec, map['codec'] as String?),
             {'signature': codec.signature});
       }
       if (!_hasRandomIv(codec)) {
@@ -258,9 +258,9 @@ void defineTestsWithCodec(FileSystemTestContext ctx, {SembastCodec? codec}) {
       expect(lines.length, 2);
       var expected = <String, Object?>{'version': 2, 'sembast': 1};
       if (codec != null) {
-        expected['codec'] = getCodecEncodedSignature(codec);
+        expected['codec'] = await getCodecEncodedSignature(codec);
         var map = json.decode(lines.first) as Map;
-        expect(getCodecDecodedSignature(codec, map['codec'] as String?),
+        expect(await getCodecDecodedSignature(codec, map['codec'] as String?),
             {'signature': codec.signature});
       }
       if (!_hasRandomIv(codec)) {
@@ -283,9 +283,9 @@ void defineTestsWithCodec(FileSystemTestContext ctx, {SembastCodec? codec}) {
       expect(lines.length, 4);
       var expected = <String, Object?>{'version': 1, 'sembast': 1};
       if (codec != null) {
-        expected['codec'] = getCodecEncodedSignature(codec);
+        expected['codec'] = await getCodecEncodedSignature(codec);
         var map = json.decode(lines.first) as Map;
-        expect(getCodecDecodedSignature(codec, map['codec'] as String?),
+        expect(await getCodecDecodedSignature(codec, map['codec'] as String?),
             {'signature': codec.signature});
       }
       if (!_hasRandomIv(codec)) {
@@ -295,10 +295,10 @@ void defineTestsWithCodec(FileSystemTestContext ctx, {SembastCodec? codec}) {
       var expectedV2 = <String, Object?>{'version': 2, 'sembast': 1};
 
       if (codec != null) {
-        expectedV2['codec'] = getCodecEncodedSignature(codec);
+        expectedV2['codec'] = await getCodecEncodedSignature(codec);
         var line = lines[2];
         var map = json.decode(line) as Map;
-        expect(getCodecDecodedSignature(codec, map['codec'] as String?),
+        expect(await getCodecDecodedSignature(codec, map['codec'] as String?),
             {'signature': codec.signature});
       }
       if (!_hasRandomIv(codec)) {
@@ -320,9 +320,9 @@ void defineTestsWithCodec(FileSystemTestContext ctx, {SembastCodec? codec}) {
       expect(lines.length, 3);
       if (codec != null) {
         var line = lines[0];
-        expectedV2['codec'] = getCodecEncodedSignature(codec);
+        expectedV2['codec'] = await getCodecEncodedSignature(codec);
         var map = json.decode(line) as Map;
-        expect(getCodecDecodedSignature(codec, map['codec'] as String?),
+        expect(await getCodecDecodedSignature(codec, map['codec'] as String?),
             {'signature': codec.signature});
       }
       if (!_hasRandomIv(codec)) {
@@ -346,7 +346,7 @@ void defineTestsWithCodec(FileSystemTestContext ctx, {SembastCodec? codec}) {
         json.encode({
           'version': 2,
           'sembast': 1,
-          'codec': getCodecEncodedSignature(codec)
+          'codec': await getCodecEncodedSignature(codec)
         })
       ]);
       return factory.openDatabase(dbPath!, codec: codec).then((Database db) {

@@ -2,7 +2,7 @@ import 'package:sembast/sembast.dart';
 import 'package:test/test.dart';
 
 void main() {
-  group('store_api', () {
+  group('sembast_api', () {
     test('public', () {
       // What we want public
       // ignore: unnecessary_statements
@@ -45,6 +45,8 @@ void main() {
       sembastCodecDefault;
       // ignore: unnecessary_statements
       sembastCodecWithAdapters;
+      // ignore: unnecessary_statements
+      AsyncContentCodecBase;
 
       // ignore: unnecessary_statements
       var store = StoreRef<int, String>.main();

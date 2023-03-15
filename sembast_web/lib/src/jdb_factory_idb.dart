@@ -1,14 +1,17 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:idb_shim/idb_shim.dart';
 import 'package:idb_shim/idb_shim.dart' as idb;
 import 'package:idb_shim/utils/idb_import_export.dart' as import_export;
 import 'package:sembast/src/storage.dart'; // ignore: implementation_imports
 import 'package:sembast_web/src/constant_import.dart';
+import 'package:sembast_web/src/jdb_entry_encoded.dart';
 import 'package:sembast_web/src/jdb_import.dart' as jdb;
 import 'package:sembast_web/src/jdb_import.dart';
 import 'package:sembast_web/src/sembast_import.dart';
 import 'package:sembast_web/src/web_defs.dart';
+import 'package:synchronized/synchronized.dart';
 
 var _debug = false; // devWarning(true); // false
 const _infoStore = 'info';
@@ -144,32 +147,57 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
   final _revisionUpdateController = StreamController<int>();
   final jdb.DatabaseOpenOptions? _options;
 
+  // It has to be a sync codec
   jdb.JdbReadEntry _entryFromCursor(CursorWithValue cwv) {
+    var entryEncoded = _encodedEntryFromCursor(cwv);
+    Object? value;
+    if (!entryEncoded.deleted) {
+      value = entryEncoded.valueEncoded;
+
+      /// Optionally decode with content codec.
+      if (_contentCodec != null && value is String) {
+        value = _contentCodec!.decodeContentSync<Object>(value);
+      }
+      if (value != null) {
+        /// Deserialize unsupported types (Blob, Timestamp)
+        value = sembastCodecFromJsonEncodable(_sembastCodec, value);
+      }
+    }
+    return _entryFromEncodedEntry(entryEncoded, value);
+  }
+
+  jdb.JdbReadEntry _entryFromEncodedEntry(
+      JdbReadEntryEncoded encoded, Object? value) {
+    var id = encoded.id;
+    var store = StoreRef<Key?, Value?>(encoded.storeName);
+    var record = store.record(encoded.recordKey);
+    var deleted = encoded.deleted;
+    var entry = jdb.JdbReadEntry()
+      ..id = id
+      ..record = record
+      ..deleted = deleted;
+    if (!deleted) {
+      entry.value = value!;
+    }
+    return entry;
+  }
+
+  JdbReadEntryEncoded _encodedEntryFromCursor(CursorWithValue cwv) {
     var map = cwv.value as Map;
 
     // Deleted is an int in jdb
     var deleted = map[_deletedPath] == 1;
-    Object? value;
 
     var key = map[_keyPath] as Key;
-    var entry = jdb.JdbReadEntry()
-      ..id = cwv.key as int
-      ..record = StoreRef<Key?, Value?>(map[_storePath] as String).record(key)
-      ..deleted = deleted;
+    var storeName = map[_storePath] as String;
+    var id = cwv.key as int;
+
+    Object? valueEncoded;
     if (!deleted) {
-      value = map[_valuePath] as Object;
-
-      /// Deserialize unsupported types (Blob, Timestamp)
-      ///
-      if (_options?.codec?.codec != null && value is String) {
-        value = _options!.codec!.codec!.decode(value)!;
-      }
-      value = (_options?.codec?.jsonEncodableCodec ??
-              jdb.sembastDefaultJsonEncodableCodec)
-          .decode(value);
-
-      entry.value = value;
+      valueEncoded = map[_valuePath] as Object;
     }
+    var entry = JdbReadEntryEncoded(id, storeName, key, deleted, valueEncoded);
+
     return entry;
   }
 
@@ -179,25 +207,7 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
   String get _debugPrefix => '[idb-$_id]';
 
   @override
-  Stream<jdb.JdbReadEntry> get entries {
-    late StreamController<jdb.JdbReadEntry> ctlr;
-    ctlr = StreamController<jdb.JdbReadEntry>(onListen: () async {
-      await _idbDatabase
-          .transaction(_entryStore, idbModeReadOnly)
-          .objectStore(_entryStore)
-          .openCursor(autoAdvance: true)
-          .listen((cwv) {
-        var entry = _entryFromCursor(cwv);
-        if (_debug) {
-          print('$_debugPrefix reading entry $entry');
-        }
-        ctlr.add(entry);
-      }).asFuture<void>();
-
-      await ctlr.close();
-    });
-    return ctlr.stream;
-  }
+  Stream<jdb.JdbEntry> get entries => _entries();
 
   /// New in memory database.
   JdbDatabaseIdb(
@@ -253,10 +263,12 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
 
   @override
   Future addEntries(List<jdb.JdbWriteEntry> entries) async {
+    final entriesEncoded = await _encodeEntries(entries);
+
     var txn =
         _idbDatabase.transaction([_entryStore, _infoStore], idbModeReadWrite);
     // var lastEntryId =
-    await _txnAddEntries(txn, entries);
+    await _txnAddEntries(txn, entriesEncoded);
     await txn.completed;
 
     /*
@@ -281,13 +293,13 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
 
   // Return the last entryId
   Future<int?> _txnAddEntries(
-      idb.Transaction txn, List<jdb.JdbWriteEntry> entries) async {
+      idb.Transaction txn, Iterable<JdbWriteEntryEncoded> entries) async {
     var objectStore = txn.objectStore(_entryStore);
     var index = objectStore.index(_recordIndex);
     int? lastEntryId;
     for (var jdbWriteEntry in entries) {
-      var store = jdbWriteEntry.record.store.name;
-      var key = jdbWriteEntry.record.key;
+      var store = jdbWriteEntry.storeName;
+      var key = jdbWriteEntry.recordKey;
 
       var idbKey = await index.getKey([store, key]);
       if (idbKey != null) {
@@ -301,17 +313,7 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
       ///
       Object? value;
       if (!jdbWriteEntry.deleted) {
-        var valueOrNull = jdbWriteEntry.valueOrNull;
-        if (valueOrNull == null) {
-          print('Invalid entry $jdbWriteEntry');
-          continue;
-        }
-        value = (_options?.codec?.jsonEncodableCodec ??
-                sembastDefaultJsonEncodableCodec)
-            .encode(valueOrNull);
-        if (_options?.codec?.codec != null) {
-          value = _options!.codec!.codec!.encode(value);
-        }
+        value = jdbWriteEntry.valueEncoded;
       }
       //if
       lastEntryId = (await objectStore.add(<String, Object?>{
@@ -321,7 +323,7 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
         if (jdbWriteEntry.deleted) _deletedPath: 1
       })) as int;
       // Save the revision in memory!
-      jdbWriteEntry.txnRecord?.record.revision = lastEntryId;
+      jdbWriteEntry.revision = lastEntryId;
       if (_debug) {
         print('$_debugPrefix added entry $lastEntryId $jdbWriteEntry');
       }
@@ -362,27 +364,64 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
     return List.generate(count, (index) => generateStringKey()).toList();
   }
 
-  @override
-  Stream<jdb.JdbEntry> entriesAfterRevision(int revision) {
+  Stream<jdb.JdbEntry> _entries({int? afterRevision}) {
     late StreamController<jdb.JdbEntry> ctlr;
+
+    var hasAsyncCodec = _hasAsyncCodec;
+    var asyncCodecLock = hasAsyncCodec ? Lock() : null;
     ctlr = StreamController<jdb.JdbEntry>(onListen: () async {
-      var keyRange = KeyRange.lowerBound(revision, true);
+      var keyRange = afterRevision == null
+          ? null
+          : KeyRange.lowerBound(afterRevision, true);
+      var asyncCodecFutures = <Future>[];
       await _idbDatabase
           .transaction(_entryStore, idbModeReadOnly)
           .objectStore(_entryStore)
           .openCursor(range: keyRange, autoAdvance: true)
           .listen((cwv) {
-        var entry = _entryFromCursor(cwv);
-        if (_debug) {
-          print('$_debugPrefix reading entry after revision $entry');
-        }
-        ctlr.add(entry);
-      }).asFuture<void>();
+        if (_hasAsyncCodec) {
+          var entry = _encodedEntryFromCursor(cwv);
+          var valueEncoded = entry.valueEncoded;
+          // If there is a codec, it has to be a string, otherwise just
+          // skip it.
 
+          asyncCodecFutures.add(asyncCodecLock!.synchronized(() async {
+            Object? value;
+            if (!entry.deleted) {
+              // The value for a codec is always a string.
+              if (valueEncoded is String) {
+                var encodable =
+                    await _contentCodec!.decodeContentAsync(valueEncoded);
+                value = sembastCodecFromJsonEncodable(_sembastCodec, encodable);
+              } else {
+                // cancel
+                return;
+              }
+              // should not happen
+              var decoded = _entryFromEncodedEntry(entry, value);
+              ctlr.add(decoded);
+            }
+          }));
+        } else {
+          var entry = _entryFromCursor(cwv);
+          if (_debug) {
+            print('$_debugPrefix reading entry after revision $entry');
+          }
+
+          ctlr.add(entry);
+        }
+      }).asFuture<void>();
+      if (hasAsyncCodec) {
+        await Future.wait(asyncCodecFutures);
+      }
       await ctlr.close();
     });
     return ctlr.stream;
   }
+
+  @override
+  Stream<jdb.JdbEntry> entriesAfterRevision(int revision) =>
+      _entries(afterRevision: revision);
 
   @override
   Future<int> getRevision() async {
@@ -397,13 +436,60 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
     _revisionUpdateController.add(revision);
   }
 
+  /// True if it has async codec.
+  bool get _hasAsyncCodec => _contentCodec?.isAsyncCodec ?? false;
+
+  SembastCodec? get _sembastCodec => _options?.codec;
+
+  /// Codec used
+  Codec<Object?, String>? get _contentCodec =>
+      sembastCodecContentCodecOrNull(_options?.codec);
+
+  /// Encode entries, handling async codec if needed.
+  Future<List<JdbWriteEntryEncoded>> _encodeEntries(
+      Iterable<jdb.JdbWriteEntry> entries) async {
+    var encodedList = <JdbWriteEntryEncoded>[];
+    var jsonEncodableCodec = sembastCodecJsonEncodableCodec(_sembastCodec);
+    final hasAsyncCodec = _hasAsyncCodec;
+    var contentCodec = _contentCodec;
+    for (var entry in entries) {
+      Object? valueEncoded;
+      if (!entry.deleted) {
+        var value = entry.valueOrNull;
+        if (value == null) {
+          print('Invalid entry $entry');
+          continue;
+        }
+
+        var encodableValue = jsonEncodableCodec.encode(value);
+
+        /// If a codec is specified, write the value as a string instead.
+        if (contentCodec != null) {
+          if (hasAsyncCodec) {
+            valueEncoded =
+                await contentCodec.encodeContentAsync(encodableValue);
+          } else {
+            valueEncoded = contentCodec.encodeContentSync(encodableValue);
+          }
+        } else {
+          valueEncoded = encodableValue;
+        }
+      }
+      encodedList.add(JdbWriteEntryEncoded(entry, valueEncoded));
+    }
+    return encodedList;
+  }
+
   @override
   Future<StorageJdbWriteResult> writeIfRevision(
       StorageJdbWriteQuery query) async {
+    // Encode before creating the transaction to handle async codec.
+    var encodedList = await _encodeEntries(query.entries);
+
+    var expectedRevision = query.revision ?? 0;
     var txn =
         _idbDatabase.transaction([_infoStore, _entryStore], idbModeReadWrite);
 
-    var expectedRevision = query.revision ?? 0;
     int? readRevision = (await _txnGetRevision(txn)) ?? 0;
     var success = (expectedRevision == readRevision);
 
@@ -412,7 +498,7 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
 
     if (success) {
       if (query.entries.isNotEmpty) {
-        readRevision = await _txnAddEntries(txn, query.entries);
+        readRevision = await _txnAddEntries(txn, encodedList);
         // Set revision info
         if (readRevision != null) {
           await _txnPutRevision(txn, readRevision);

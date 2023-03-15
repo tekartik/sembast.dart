@@ -41,3 +41,7 @@ export 'package:sembast/src/record_change.dart'
         RecordChange,
         TransactionRecordChangeListener,
         SembastRecordChangeExtension;
+
+// V3.4.0+2
+export 'package:sembast/src/async_content_codec.dart'
+    show AsyncContentCodecBase;
