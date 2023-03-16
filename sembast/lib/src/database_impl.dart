@@ -4,6 +4,7 @@ import 'package:meta/meta.dart';
 import 'package:sembast/sembast.dart';
 import 'package:sembast/src/api/log_level.dart';
 import 'package:sembast/src/api/protected/jdb.dart';
+import 'package:sembast/src/api/protected/type.dart';
 import 'package:sembast/src/api/v2/sembast.dart' as v2;
 import 'package:sembast/src/async_content_codec.dart';
 import 'package:sembast/src/changes_listener.dart';
@@ -11,7 +12,6 @@ import 'package:sembast/src/common_import.dart';
 import 'package:sembast/src/cooperator.dart';
 import 'package:sembast/src/database_client_impl.dart';
 import 'package:sembast/src/database_content.dart';
-import 'package:sembast/src/database_factory_mixin.dart';
 import 'package:sembast/src/debug_utils.dart';
 import 'package:sembast/src/json_encodable_codec.dart';
 import 'package:sembast/src/listener.dart';
@@ -25,6 +25,8 @@ import 'package:sembast/src/store_impl.dart';
 import 'package:sembast/src/transaction_impl.dart';
 import 'package:sembast/src/utils.dart';
 import 'package:synchronized/synchronized.dart';
+
+import 'api/protected/database.dart';
 
 final bool _debugStorage = false; // devWarning(true);
 
@@ -55,7 +57,7 @@ class CommitData extends CommitEntries {
 }
 
 /// Mixin to help on evolution
-// @Deprecated('use SembastDatabaseMixin') // check in sembast sqflite first
+@Deprecated('use SembastDatabaseMixin')
 typedef SembastDatabaseMin = SembastDatabaseMixin;
 
 /// Mixin to help on evolution (renamed from SembastDatabaseMin

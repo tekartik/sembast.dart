@@ -1,5 +1,6 @@
+import 'package:sembast/src/api/protected/database.dart';
 import 'package:sembast/src/api/protected/jdb.dart';
-import 'package:sembast/src/database_impl.dart';
+import 'package:sembast/src/api/protected/type.dart';
 import 'package:sembast/src/jdb/jdb_factory_memory.dart';
 import 'package:sembast/src/record_impl.dart';
 
@@ -175,7 +176,8 @@ void main() {
 
     test('jdbDatabase', () async {
       await ctx.jdbFactory.delete('test');
-      var db = (await ctx.jdbFactory.open('test')) as JdbDatabaseMemory;
+      var db = (await ctx.jdbFactory.open('test', DatabaseOpenOptions()))
+          as JdbDatabaseMemory;
       expect(await db.getRevision(), 0);
 
       db.close();

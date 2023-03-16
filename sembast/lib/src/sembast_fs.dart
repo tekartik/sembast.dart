@@ -7,8 +7,7 @@ import 'dart:typed_data';
 import 'package:path/path.dart';
 import 'package:sembast/sembast.dart';
 import 'package:sembast/src/api/log_level.dart';
-import 'package:sembast/src/database_factory_mixin.dart';
-import 'package:sembast/src/database_impl.dart';
+import 'package:sembast/src/api/protected/database.dart';
 import 'package:sembast/src/storage.dart';
 
 import 'common_import.dart';

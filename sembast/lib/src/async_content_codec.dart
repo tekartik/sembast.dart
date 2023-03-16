@@ -74,16 +74,16 @@ extension SembastCodecAsyncSupport on SembastCodec {
   Codec<Object?, String> get _contentCodec => sembastCodecContentCodec(this);
 
   /// Decode a single line of content.
-  FutureOr<T> decodeContent<T extends Object>(String decoded) =>
-      _contentCodec.decodeContent(decoded);
+  FutureOr<T> decodeContent<T extends Object>(String encoded) =>
+      _contentCodec.decodeContent(encoded);
 
   /// Decode a single line of content (sync)
-  T decodeContentSync<T extends Object>(String decoded) =>
-      _contentCodec.decodeContentSync<T>(decoded);
+  T decodeContentSync<T extends Object>(String encoded) =>
+      _contentCodec.decodeContentSync<T>(encoded);
 
   /// Decode a single line of content (async)
-  Future<T> decodeContentAsync<T extends Object>(String decoded) =>
-      _contentCodec.decodeContentAsync<T>(decoded);
+  Future<T> decodeContentAsync<T extends Object>(String encoded) =>
+      _contentCodec.decodeContentAsync<T>(encoded);
 
   /// Encode a content to a single line.
   FutureOr<String> encodeContent(Object value) =>
@@ -110,22 +110,22 @@ extension SembastContentCodecAsyncSupport on Codec<Object?, String> {
       this as AsyncCodec<Object?, String>;
 
   /// Decode a single line of content.
-  FutureOr<T> decodeContent<T extends Object>(String decoded) {
+  FutureOr<T> decodeContent<T extends Object>(String encoded) {
     if (isAsyncCodec) {
-      return decodeContentAsync<T>(decoded);
+      return decodeContentAsync<T>(encoded);
     } else {
-      return decodeContentSync<T>(decoded);
+      return decodeContentSync<T>(encoded);
     }
   }
 
   /// Decode a single line of content (async)
-  Future<T> decodeContentAsync<T extends Object>(String decoded) async {
-    return (await _contentCodecAsync.decodeAsync(decoded)) as T;
+  Future<T> decodeContentAsync<T extends Object>(String encoded) async {
+    return (await _contentCodecAsync.decodeAsync(encoded)) as T;
   }
 
   /// Decode a single line of content (sync)
-  T decodeContentSync<T extends Object>(String decoded) {
-    return _contentCodecSync.decode(decoded) as T;
+  T decodeContentSync<T extends Object>(String encoded) {
+    return _contentCodecSync.decode(encoded) as T;
   }
 
   /// Encode a single line of content.

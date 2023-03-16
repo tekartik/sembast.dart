@@ -1,11 +1,13 @@
+// ignore_for_file: invalid_use_of_visible_for_testing_member
+
 library sembast.database_format_test;
 
 import 'dart:async';
 
+import 'package:sembast/src/api/protected/jdb.dart';
+
 // ignore_for_file: implementation_imports
 import 'package:sembast/src/database_impl.dart';
-import 'package:sembast/src/jdb.dart';
-import 'package:sembast/src/sembast_jdb.dart';
 import 'package:sembast_test/jdb_test_common.dart';
 import 'package:sembast_test/test_common_impl.dart';
 

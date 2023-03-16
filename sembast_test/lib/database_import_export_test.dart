@@ -1,7 +1,6 @@
 library sembast.database_import_export_test;
 
 import 'dart:async';
-import 'dart:convert';
 
 // ignore: implementation_imports
 import 'package:sembast/src/api/protected/database.dart';
@@ -9,6 +8,7 @@ import 'package:sembast/timestamp.dart';
 import 'package:sembast/utils/sembast_import_export.dart';
 import 'package:sembast_test/test_codecs.dart';
 
+import 'src/import_common.dart';
 import 'test_common.dart';
 
 void main() {
@@ -345,6 +345,7 @@ void defineTests(DatabaseTestContext ctx) {
       Future<void> testImport(Object any) async {
         var db = await importDatabaseAny(any, ctx.factory, dbPath);
         await checkDb(db);
+        await db.close();
       }
 
       var exportLines = [
@@ -365,7 +366,16 @@ void defineTests(DatabaseTestContext ctx) {
       };
       await testImport(exportLines);
       await testImport(jsonEncode(exportLines));
+      await testImport(jsonEncode(exportLines));
+      await testImport(jsonEncode(exportLines));
       await testImport(exportLinesToJsonStringList(exportLines));
+      await testImport(exportLines);
+      await testImport(exportLines);
+      await testImport(exportLines);
+      await testImport(exportLines);
+      await testImport(exportLines);
+      await testImport(exportLines);
+      await testImport(exportLines);
       await testImport(exportLinesToJsonStringList(exportLines).join('\n'));
       await testImport(exportMap);
       await testImport(jsonEncode(exportMap));
@@ -383,6 +393,7 @@ void defineTests(DatabaseTestContext ctx) {
       Future<void> testImport(Object any) async {
         var db = await importDatabaseAny(any, ctx.factory, dbPath);
         await checkDb(db);
+        await db.close();
       }
 
       var exportLines = [

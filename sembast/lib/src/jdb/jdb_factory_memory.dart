@@ -2,24 +2,27 @@ library sembast.jdb_factory_memory;
 
 import 'dart:async';
 
+import 'package:sembast/src/api/protected/database.dart';
+import 'package:sembast/src/api/protected/jdb.dart' as jdb;
 import 'package:sembast/src/api/protected/jdb.dart';
-import 'package:sembast/src/common_import.dart';
-import 'package:sembast/src/jdb.dart' as jdb;
+import 'package:sembast/src/api/protected/type.dart';
+
 import 'package:sembast/src/key_utils.dart';
 import 'package:sembast/src/record_impl.dart';
 import 'package:sembast/src/sembast_impl.dart';
 import 'package:sembast/src/storage.dart';
+
+import '../api/record_ref.dart';
 
 /// In memory jdb.
 class JdbFactoryMemory implements jdb.JdbFactory {
   final _dbs = <String, JdbDatabaseMemory>{};
 
   @override
-  Future<jdb.JdbDatabase> open(String path,
-      {DatabaseOpenOptions? options}) async {
+  Future<jdb.JdbDatabase> open(String path, DatabaseOpenOptions options) async {
     var db = _dbs[path];
     if (db == null) {
-      db = JdbDatabaseMemory(this, path);
+      db = JdbDatabaseMemory(this, path, options);
       db._closed = false;
       _dbs[path] = db;
     }
@@ -89,6 +92,8 @@ class JdbEntryMemory implements jdb.JdbReadEntry {
 
 /// In memory database.
 class JdbDatabaseMemory implements jdb.JdbDatabase {
+  @override
+  final DatabaseOpenOptions openOptions;
   int _lastId = 0;
 
   // ignore: unused_field
@@ -129,7 +134,7 @@ class JdbDatabaseMemory implements jdb.JdbDatabase {
   }
 
   /// New in memory database.
-  JdbDatabaseMemory(this._factory, this._path);
+  JdbDatabaseMemory(this._factory, this._path, this.openOptions);
 
   @override
   void close() {

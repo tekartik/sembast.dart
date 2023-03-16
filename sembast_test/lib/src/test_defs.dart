@@ -8,12 +8,11 @@ import 'package:path/path.dart';
 import 'package:sembast/src/api/protected/jdb.dart';
 import 'package:sembast/src/api/v2/sembast_memory.dart';
 
-import 'package:sembast/src/database_factory_mixin.dart';
-import 'package:sembast/src/database_impl.dart';
 import 'package:sembast/src/file_system.dart';
 import 'package:sembast/src/memory/file_system_memory.dart';
 
 import '../test_common.dart';
+import 'import_database.dart';
 
 DatabaseTestContext get memoryDatabaseContext =>
     DatabaseTestContext()..factory = databaseFactoryMemory;
