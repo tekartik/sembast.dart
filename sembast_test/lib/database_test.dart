@@ -246,6 +246,7 @@ void defineTests(DatabaseTestContext ctx) {
             });
           } on TestException catch (_) {}
           // This fails on sqflite...
+          // ignore: dead_code
           if (false) {
             expect(await getExistingDatabaseVersion(factory, dbPath), 1);
           }

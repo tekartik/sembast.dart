@@ -1,6 +1,6 @@
 // ignore_for_file: invalid_use_of_visible_for_testing_member
 
-library sembast.database_format_test;
+library sembast.jdb_database_format_test;
 
 import 'dart:async';
 
@@ -11,6 +11,7 @@ import 'package:sembast/src/database_impl.dart';
 import 'package:sembast_test/jdb_test_common.dart';
 import 'package:sembast_test/test_common_impl.dart';
 
+import 'base64_codec.dart';
 import 'test_common.dart';
 
 void main() {
@@ -24,16 +25,16 @@ void defineTests(DatabaseTestContextJdb ctx) {
   var store = StoreRef<Object?, Object?>.main();
 
   var factory = ctx.factory;
-  Future<String?> prepareForDb() async {
+  Future<String> prepareForDb() async {
     dbPath = dbPathFromName('jdb_database_format.db');
     await ctx.jdbFactory.delete(dbPath!);
-    return dbPath;
+    return dbPath!;
   }
 
   SembastDatabase getSembastDatabase(Database db) => (db as SembastDatabase);
   // StorageJdb getStorageJdb(Database db) => getSembastDatabase(db).storageJdb;
   Future<Map<String, Object?>> exportToMap(Database db) =>
-      getJdbDatabase(db)!.exportToMap();
+      getJdbDatabase(db).exportToMap();
   DatabaseExportStat getExportStat(Database db) =>
       getDatabaseExportStat(getSembastDatabase(db));
   Future compact(Database db) => getSembastDatabase(db).compact();
@@ -45,7 +46,7 @@ void defineTests(DatabaseTestContextJdb ctx) {
   }
 
   Future dbImportFromMap(Database db, Map map) {
-    return jdbDatabaseImportFromMap(getJdbDatabase(db)!, map);
+    return jdbDatabaseImportFromMap(getJdbDatabase(db), map);
   }
 
   group('basic format', () {
@@ -58,7 +59,7 @@ void defineTests(DatabaseTestContextJdb ctx) {
     test('open_no_version', () async {
       await prepareForDb();
       var db = await factory.openDatabase(dbPath!);
-      expect(await getJdbDatabase(db)!.exportToMap(), {
+      expect(await getJdbDatabase(db).exportToMap(), {
         'entries': <Object>[],
         'infos': [
           {
@@ -76,7 +77,7 @@ void defineTests(DatabaseTestContextJdb ctx) {
     test('open_version_2', () async {
       await prepareForDb();
       var db = await factory.openDatabase(dbPath!, version: 2);
-      expect(await getJdbDatabase(db)!.exportToMap(), {
+      expect(await getJdbDatabase(db).exportToMap(), {
         'entries': <Object>[],
         'infos': [
           {
@@ -94,7 +95,7 @@ void defineTests(DatabaseTestContextJdb ctx) {
       var db = await factory.openDatabase(dbPath!, version: 1);
       await db.close();
       db = await factory.openDatabase(dbPath!, version: 2);
-      expect(await getJdbDatabase(db)!.exportToMap(), {
+      expect(await getJdbDatabase(db).exportToMap(), {
         'entries': <Object>[],
         'infos': [
           {
@@ -106,12 +107,12 @@ void defineTests(DatabaseTestContextJdb ctx) {
       await db.close();
     });
 
-    test('1 string record', () async {
+    test('1 string record no codec', () async {
       await prepareForDb();
       var db = await factory.openDatabase(dbPath!);
       try {
         await store.record(1).put(db, 'hi');
-        expect(await getJdbDatabase(db)!.exportToMap(), {
+        expect(await getJdbDatabase(db).exportToMap(), {
           'entries': [
             {
               'id': 1,
@@ -126,6 +127,74 @@ void defineTests(DatabaseTestContextJdb ctx) {
             {'id': 'revision', 'value': 1},
           ]
         });
+        db = await reOpen(db);
+        expect(await store.record(1).get(db), 'hi');
+      } finally {
+        await db.close();
+      }
+    });
+
+    test('1 string record with codec', () async {
+      var codec = SembastBase64Codec();
+      var dbPath = await prepareForDb();
+      var db = await factory.openDatabase(dbPath,
+          codec: SembastCodec(signature: 'custom', codec: codec));
+      try {
+        await store.record(1).put(db, 'hi');
+        expect(await getJdbDatabase(db).exportToMap(), {
+          'entries': [
+            {
+              'id': 1,
+              'value': {'key': 1, 'value': 'ImhpIg=='}
+            }
+          ],
+          'infos': [
+            {
+              'id': 'meta',
+              'value': {
+                'version': 1,
+                'sembast': 1,
+                'codec': 'eyJzaWduYXR1cmUiOiJjdXN0b20ifQ=='
+              }
+            },
+            {'id': 'revision', 'value': 1},
+          ]
+        });
+        db = await reOpen(db);
+        expect(await store.record(1).get(db), 'hi');
+      } finally {
+        await db.close();
+      }
+    });
+
+    test('1 string record with async codec', () async {
+      var codec = SembastBase64CodecAsync();
+      var dbPath = await prepareForDb();
+      var db = await factory.openDatabase(dbPath,
+          version: 2, codec: SembastCodec(signature: 'custom', codec: codec));
+      try {
+        await store.record(1).put(db, 'hi');
+        expect(await getJdbDatabase(db).exportToMap(), {
+          'entries': [
+            {
+              'id': 1,
+              'value': {'key': 1, 'value': 'ImhpIg=='}
+            }
+          ],
+          'infos': [
+            {
+              'id': 'meta',
+              'value': {
+                'version': 2,
+                'sembast': 1,
+                'codec': 'eyJzaWduYXR1cmUiOiJjdXN0b20ifQ=='
+              }
+            },
+            {'id': 'revision', 'value': 1},
+          ]
+        });
+        db = await reOpen(db);
+        expect(await store.record(1).get(db), 'hi');
       } finally {
         await db.close();
       }
@@ -137,7 +206,7 @@ void defineTests(DatabaseTestContextJdb ctx) {
       var db = await factory.openDatabase(dbPath!);
       try {
         await store.record(1).put(db, 'hi');
-        expect(await getJdbDatabase(db)!.exportToMap(), {
+        expect(await getJdbDatabase(db).exportToMap(), {
           'entries': [
             {
               'id': 1,
@@ -153,7 +222,7 @@ void defineTests(DatabaseTestContextJdb ctx) {
           ]
         });
         await store.record(1).delete(db);
-        expect(await getJdbDatabase(db)!.exportToMap(), {
+        expect(await getJdbDatabase(db).exportToMap(), {
           'entries': [
             {
               'id': 2,
@@ -169,7 +238,7 @@ void defineTests(DatabaseTestContextJdb ctx) {
           ]
         });
         await compact(db);
-        expect(await getJdbDatabase(db)!.exportToMap(), {
+        expect(await getJdbDatabase(db).exportToMap(), {
           'entries': <Object>[],
           'infos': [
             {'id': 'deltaMinRevision', 'value': 2},
@@ -190,7 +259,7 @@ void defineTests(DatabaseTestContextJdb ctx) {
       var db = await factory.openDatabase(dbPath!);
       try {
         await store.record(1).put(db, 'hi');
-        expect(await getJdbDatabase(db)!.exportToMap(), {
+        expect(await getJdbDatabase(db).exportToMap(), {
           'entries': [
             {
               'id': 1,
@@ -212,7 +281,7 @@ void defineTests(DatabaseTestContextJdb ctx) {
         expect(exportStat.obsoleteLineCount, 0);
 
         await store.record(1).delete(db);
-        expect(await getJdbDatabase(db)!.exportToMap(), {
+        expect(await getJdbDatabase(db).exportToMap(), {
           'entries': [
             {
               'id': 2,
@@ -234,7 +303,7 @@ void defineTests(DatabaseTestContextJdb ctx) {
         expect(exportStat.lineCount, 1);
         expect(exportStat.obsoleteLineCount, 1);
         //await compact(db);
-        expect(await getJdbDatabase(db)!.exportToMap(), {
+        expect(await getJdbDatabase(db).exportToMap(), {
           'entries': <Object>[],
           'infos': [
             {'id': 'deltaMinRevision', 'value': 2},
@@ -285,7 +354,7 @@ void defineTests(DatabaseTestContextJdb ctx) {
         // db = await factory.openDatabase(dbPath);
         // devPrint('0');
         await deltaImport(db, 2);
-        expect(await getJdbDatabase(db)!.exportToMap(), {
+        expect(await getJdbDatabase(db).exportToMap(), {
           'entries': [
             {
               'id': 2,
@@ -332,7 +401,7 @@ void defineTests(DatabaseTestContextJdb ctx) {
         // A full import will be performed
         await deltaImport(db, 2);
 
-        expect(await getJdbDatabase(db)!.exportToMap(), {
+        expect(await getJdbDatabase(db).exportToMap(), {
           'entries': <int>[],
           'infos': [
             {'id': 'deltaMinRevision', 'value': 2},
@@ -371,7 +440,7 @@ void defineTests(DatabaseTestContextJdb ctx) {
 
       try {
         //await store.record(1).put(db, 'hi');
-        expect(await getJdbDatabase(db)!.exportToMap(), {
+        expect(await getJdbDatabase(db).exportToMap(), {
           'entries': [
             {
               'id': 1,
@@ -410,7 +479,7 @@ void defineTests(DatabaseTestContextJdb ctx) {
 
       try {
         //await store.record(1).put(db, 'hi');
-        expect(await getJdbDatabase(db)!.exportToMap(), {
+        expect(await getJdbDatabase(db).exportToMap(), {
           'entries': [
             {
               'id': 1,
@@ -465,7 +534,7 @@ void defineTests(DatabaseTestContextJdb ctx) {
 
       try {
         //await store.record(1).put(db, 'hi');
-        var exportMap = await getJdbDatabase(db)!.exportToMap();
+        var exportMap = await getJdbDatabase(db).exportToMap();
         var entriesValues =
             (exportMap['entries'] as List).map((e) => (e as Map)['value']);
         expect(entriesValues, [
@@ -536,8 +605,10 @@ void defineTests(DatabaseTestContextJdb ctx) {
       //await compact(db);
       await db.close();
     });
-  });
+  }, solo: true);
 }
 
-JdbDatabase? getJdbDatabase(Database database) =>
-    ((database as SembastDatabase).storageJdb as SembastStorageJdb).jdbDatabase;
+/// You know what you are doing.
+JdbDatabase getJdbDatabase(Database database) =>
+    ((database as SembastDatabase).storageJdb as SembastStorageJdb)
+        .jdbDatabase!;

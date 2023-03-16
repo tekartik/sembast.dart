@@ -1,18 +1,18 @@
 library sembast.jdb_factory_memory;
 
 import 'dart:async';
+import 'dart:math';
 
 import 'package:sembast/src/api/protected/database.dart';
 import 'package:sembast/src/api/protected/jdb.dart' as jdb;
 import 'package:sembast/src/api/protected/jdb.dart';
 import 'package:sembast/src/api/protected/type.dart';
-
+import 'package:sembast/src/api/record_ref.dart';
 import 'package:sembast/src/key_utils.dart';
-import 'package:sembast/src/record_impl.dart';
 import 'package:sembast/src/sembast_impl.dart';
 import 'package:sembast/src/storage.dart';
 
-import '../api/record_ref.dart';
+import '../api/store_ref.dart';
 
 /// In memory jdb.
 class JdbFactoryMemory implements jdb.JdbFactory {
@@ -43,34 +43,28 @@ class JdbFactoryMemory implements jdb.JdbFactory {
   String toString() => 'JdbFactoryMemory(${_dbs.length} dbs)';
 }
 
-/// Simple transaction
-class JdbTransactionEntryMemory extends JdbEntryMemory {
-  /// Debug map.
-  @override
-  Map<String, Object?> exportToMap() {
-    var map = <String, Object?>{'id': id, if (deleted) 'deleted': true};
-    return map;
-  }
-}
-
 bool _isMainStore(String? name) => name == null || name == dbMainStore;
 
 /// In memory entry.
-class JdbEntryMemory implements jdb.JdbReadEntry {
+class JdbEntryMemory implements jdb.JdbReadEntryEncoded {
   @override
-  late int id;
+  final int id;
 
   @override
-  late Value value;
+  final Object? valueEncoded;
+
+  /// The record.
+  final RecordRef<Key?, Value?> record;
 
   @override
-  Value? get valueOrNull => value;
+  final bool deleted;
 
-  @override
-  late RecordRef<Key?, Value?> record;
-
-  @override
-  late bool deleted;
+  /// In memory entry.
+  JdbEntryMemory(
+      {required this.id,
+      required this.valueEncoded,
+      required this.record,
+      required this.deleted});
 
   /// Debug map.
   Map<String, Object?> exportToMap() {
@@ -79,7 +73,7 @@ class JdbEntryMemory implements jdb.JdbReadEntry {
       'value': <String, Object?>{
         if (!_isMainStore(record.store.name)) 'store': record.store.name,
         'key': record.key,
-        if (!deleted) 'value': value,
+        if (!deleted) 'value': valueEncoded,
         if (deleted) 'deleted': true
       }
     };
@@ -88,6 +82,15 @@ class JdbEntryMemory implements jdb.JdbReadEntry {
 
   @override
   String toString() => exportToMap().toString();
+
+  @override
+  Object get recordKey => record.key!;
+
+  @override
+  String get storeName => store.name;
+
+  /// Store.
+  StoreRef<Key?, Value?> get store => record.store;
 }
 
 /// In memory database.
@@ -125,14 +128,6 @@ class JdbDatabaseMemory implements jdb.JdbDatabase {
 
   int _revision = 0;
 
-  @override
-  Stream<jdb.JdbReadEntry> get entries async* {
-    for (var entry in _entries) {
-      _revision = entry.id;
-      yield entry;
-    }
-  }
-
   /// New in memory database.
   JdbDatabaseMemory(this._factory, this._path, this.openOptions);
 
@@ -159,22 +154,21 @@ class JdbDatabaseMemory implements jdb.JdbDatabase {
     _infoEntries[entry.id] = entry;
   }
 
-  JdbEntryMemory _writeEntryToMemory(jdb.JdbWriteEntry jdbWriteEntry) {
+  JdbEntryMemory _writeEntryToMemory(jdb.JdbWriteEntryEncoded jdbWriteEntry) {
     var record = jdbWriteEntry.record;
     var deleted = jdbWriteEntry.deleted;
-    var entry = JdbEntryMemory()
-      ..record = record
-      ..id = _nextId
-      ..deleted = deleted;
-    if (!deleted) {
-      entry.value = jdbWriteEntry.value;
-    }
+    var entry = JdbEntryMemory(
+        record: record,
+        id: _nextId,
+        deleted: deleted,
+        valueEncoded: jdbWriteEntry.valueEncoded);
     return entry;
   }
 
   @override
   Future<int> addEntries(List<jdb.JdbWriteEntry> entries) async {
-    return _addEntries(entries);
+    var entriesEncoded = await encodeEntries(entries);
+    return _addEntries(entriesEncoded);
   }
 
   /// trigger a reload if needed, returns true if up to date
@@ -187,17 +181,15 @@ class JdbDatabaseMemory implements jdb.JdbDatabase {
     return upToDate;
   }
 
-  int _addEntries(List<jdb.JdbWriteEntry> entries) {
+  int _addEntries(List<jdb.JdbWriteEntryEncoded> entries) {
     // devPrint('adding ${entries.length} uptodate $upToDate');
     for (var jdbWriteEntry in entries) {
       // remove existing
-      var record = jdbWriteEntry.record;
-      _entries.removeWhere((entry) => entry.record == record);
+      _entries.removeWhere((entry) => entry.record == jdbWriteEntry.record);
       try {
         var entry = _writeEntryToMemory(jdbWriteEntry);
         _entries.add(entry);
-        (jdbWriteEntry.txnRecord?.record as ImmutableSembastRecordJdb?)
-            ?.revision = entry.id;
+        jdbWriteEntry.revision = entry.id;
       } catch (e) {
         print('Error importing $jdbWriteEntry: $e');
       }
@@ -228,12 +220,27 @@ class JdbDatabaseMemory implements jdb.JdbDatabase {
       List.generate(count, (_) => generateStringKey());
 
   @override
-  Stream<jdb.JdbEntry> entriesAfterRevision(int revision) async* {
-    // Copy the list
-    for (var entry in _entries.toList(growable: false)) {
-      if ((entry.id) > revision) {
-        yield entry;
+  Stream<jdb.JdbEntry> get entries {
+    return _getEntries();
+  }
+
+  @override
+  Stream<jdb.JdbEntry> entriesAfterRevision(int revision) {
+    return _getEntries(afterRevision: revision);
+  }
+
+  Stream<jdb.JdbEntry> _getEntries({int? afterRevision}) async* {
+    for (var entry in _entries) {
+      var revision = entry.id;
+      // Update our incremental var
+      _revision = max(_revision, revision);
+      if (afterRevision != null) {
+        if (revision <= afterRevision) {
+          continue;
+        }
       }
+      var decoded = await decodeReadEntry(entry);
+      yield decoded;
     }
   }
 
@@ -257,7 +264,7 @@ class JdbDatabaseMemory implements jdb.JdbDatabase {
     if (success) {
       // _entries.add(JdbTransactionEntryMemory()..id = _nextId);
       if (query.entries.isNotEmpty) {
-        _addEntries(query.entries);
+        _addEntries(await encodeEntries(query.entries));
       }
       readRevision = _revision = _lastEntryId;
       if (query.infoEntries.isNotEmpty) {

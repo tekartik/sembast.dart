@@ -5,7 +5,11 @@ export 'package:sembast/src/jdb/jdb_database.dart'
 export 'package:sembast/src/jdb/jdb_entry.dart'
     show JdbWriteEntry, JdbEntry, JdbReadEntry, JdbRawWriteEntry, JdbInfoEntry;
 export 'package:sembast/src/jdb/jdb_entry_encoded.dart'
-    show JdbWriteEntryEncoded, JdbReadEntryEncoded;
+    show
+        JdbWriteEntryEncoded,
+        JdbReadEntryEncoded,
+        JdbEntryEncoded,
+        JdbEntryEncodedExtension;
 export 'package:sembast/src/jdb/jdb_exception.dart' show JdbException;
 export 'package:sembast/src/jdb/jdb_factory.dart' show JdbFactory;
 export 'package:sembast/src/json_encodable_codec.dart'

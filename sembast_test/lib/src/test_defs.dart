@@ -75,7 +75,8 @@ void devPrintJson(Map json) {
 }
 
 Future<Database> reOpen(Database db, {DatabaseMode? mode}) {
-  return (db as SembastDatabase).reOpen(DatabaseOpenOptions(mode: mode));
+  return (db as SembastDatabase)
+      .reOpen(DatabaseOpenOptions(mode: mode, codec: db.sembastCodec));
 }
 
 bool hasStorage(DatabaseFactory factory) =>

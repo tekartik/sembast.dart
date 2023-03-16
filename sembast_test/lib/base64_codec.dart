@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:sembast/sembast.dart';
+
 class SembastBase64Encoder extends Converter<Object?, String> {
   @override
   String convert(dynamic input) =>
@@ -18,4 +20,17 @@ class SembastBase64Codec extends Codec<Object?, String> {
   final Converter<String, Object?> decoder = SembastBase64Decoder();
   @override
   final Converter<Object?, String> encoder = SembastBase64Encoder();
+}
+
+class SembastBase64CodecAsync extends AsyncContentCodecBase {
+  final impl = SembastBase64Codec();
+  @override
+  Future<Object?> decodeAsync(String encoded) async {
+    return impl.decode(encoded);
+  }
+
+  @override
+  Future<String> encodeAsync(Object? input) async {
+    return impl.encode(input);
+  }
 }

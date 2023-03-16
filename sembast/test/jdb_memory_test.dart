@@ -10,32 +10,14 @@ JdbDatabaseMemory getJdbDatabase(Database database) =>
     ((database as SembastDatabase).storageJdb as SembastStorageJdb).jdbDatabase
         as JdbDatabaseMemory;
 
-class JdbWriteEntryMock extends JdbWriteEntry {
-  @override
-  late RecordRef<Key?, Value?> record;
-  late final Object? _valueOrNull;
-
+class JdbWriteEntryMock extends JdbRawWriteEntry {
   JdbWriteEntryMock(
-      {required int id,
-      String? store,
-      required Object key,
-      dynamic value,
-      this.deleted = false})
-      : super(txnRecord: null) {
-    record = (store == null
-            ? StoreRef<Key?, Value?>.main()
-            : StoreRef<Key?, Value?>(store))
-        .record(key);
-    _valueOrNull = value;
-
-    this.id = id;
-  }
-
-  @override
-  Value? get valueOrNull => _valueOrNull;
-
-  @override
-  final bool deleted;
+      {required int id, required Object key, dynamic value, bool? deleted})
+      : super(
+            id: id,
+            value: value,
+            deleted: deleted ?? false,
+            record: StoreRef<Key?, Value?>.main().record(key));
 }
 
 void main() {
@@ -192,10 +174,6 @@ void main() {
       // swap order
       expect(jdbWriteEntry.value, 1);
       expect(jdbWriteEntry.valueOrNull, 1);
-
-      // null record
-      jdbWriteEntry = JdbWriteEntry(txnRecord: null);
-      expect(jdbWriteEntry.valueOrNull, isNull);
 
       // deleted record
       jdbWriteEntry = JdbWriteEntry(

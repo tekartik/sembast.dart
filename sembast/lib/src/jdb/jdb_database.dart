@@ -87,6 +87,15 @@ extension JdbDatabaseInternalExt on JdbDatabase {
     return entry;
   }
 
+  /// Decode a raw encoded read entry
+  Future<JdbReadEntry> decodeReadEntry(JdbReadEntryEncoded entryEncoded) async {
+    if (hasAsyncCodec) {
+      return await decodeReadEntryAsync(entryEncoded);
+    } else {
+      return decodeReadEntrySync(entryEncoded);
+    }
+  }
+
   /// Decode a read entry (sync codec)
   JdbReadEntry decodeReadEntrySync(JdbReadEntryEncoded entryEncoded) {
     Object? value;
