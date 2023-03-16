@@ -1,6 +1,7 @@
-## 3.4.3-3
+## 3.4.3-4
 
 * add `exportDatabaseLines`, `exportDatabaseLines`, `importDatabaseAny`
+* Fix async codec support issues.
 
 ## 3.4.2
 
