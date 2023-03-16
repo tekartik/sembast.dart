@@ -25,6 +25,9 @@ class JdbFactoryMemory implements jdb.JdbFactory {
       db = JdbDatabaseMemory(this, path, options);
       db._closed = false;
       _dbs[path] = db;
+    } else {
+      // set the current open options
+      db.openOptions = options;
     }
     return db;
   }
@@ -96,7 +99,7 @@ class JdbEntryMemory implements jdb.JdbReadEntryEncoded {
 /// In memory database.
 class JdbDatabaseMemory implements jdb.JdbDatabase {
   @override
-  final DatabaseOpenOptions openOptions;
+  late DatabaseOpenOptions openOptions;
   int _lastId = 0;
 
   // ignore: unused_field
