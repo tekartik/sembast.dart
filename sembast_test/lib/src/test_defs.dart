@@ -8,12 +8,11 @@ import 'package:path/path.dart';
 import 'package:sembast/src/api/protected/jdb.dart';
 import 'package:sembast/src/api/v2/sembast_memory.dart';
 
-import 'package:sembast/src/database_factory_mixin.dart';
-import 'package:sembast/src/database_impl.dart';
 import 'package:sembast/src/file_system.dart';
 import 'package:sembast/src/memory/file_system_memory.dart';
 
 import '../test_common.dart';
+import 'import_database.dart';
 
 DatabaseTestContext get memoryDatabaseContext =>
     DatabaseTestContext()..factory = databaseFactoryMemory;
@@ -36,8 +35,16 @@ FileSystemTestContext get memoryFileSystemContext =>
 String dbPathFromName(String name) =>
     join('.dart_tool', 'sembast', 'test', name);
 
-Future<Database> setupForTest(DatabaseTestContext ctx, String name) {
-  return ctx.open(dbPathFromName(name));
+Future<Database> setupForTest(DatabaseTestContext ctx, String name,
+    {SembastCodec? codec}) {
+  return ctx.open(dbPathFromName(name), codec: codec);
+}
+
+/// Delete the database and returns its full path.
+Future<String> deleteForTest(DatabaseTestContext ctx, String name) async {
+  var dbPath = dbPathFromName(name);
+  await ctx.factory.deleteDatabase(dbPath);
+  return dbPath;
 }
 
 ///
@@ -68,7 +75,8 @@ void devPrintJson(Map json) {
 }
 
 Future<Database> reOpen(Database db, {DatabaseMode? mode}) {
-  return (db as SembastDatabase).reOpen(DatabaseOpenOptions(mode: mode));
+  return (db as SembastDatabase)
+      .reOpen(DatabaseOpenOptions(mode: mode, codec: db.sembastCodec));
 }
 
 bool hasStorage(DatabaseFactory factory) =>

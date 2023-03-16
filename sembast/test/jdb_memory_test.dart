@@ -1,5 +1,6 @@
+import 'package:sembast/src/api/protected/database.dart';
 import 'package:sembast/src/api/protected/jdb.dart';
-import 'package:sembast/src/database_impl.dart';
+import 'package:sembast/src/api/protected/type.dart';
 import 'package:sembast/src/jdb/jdb_factory_memory.dart';
 import 'package:sembast/src/record_impl.dart';
 
@@ -9,32 +10,14 @@ JdbDatabaseMemory getJdbDatabase(Database database) =>
     ((database as SembastDatabase).storageJdb as SembastStorageJdb).jdbDatabase
         as JdbDatabaseMemory;
 
-class JdbWriteEntryMock extends JdbWriteEntry {
-  @override
-  late RecordRef<Key?, Value?> record;
-  late final Object? _valueOrNull;
-
+class JdbWriteEntryMock extends JdbRawWriteEntry {
   JdbWriteEntryMock(
-      {required int id,
-      String? store,
-      required Object key,
-      dynamic value,
-      this.deleted = false})
-      : super(txnRecord: null) {
-    record = (store == null
-            ? StoreRef<Key?, Value?>.main()
-            : StoreRef<Key?, Value?>(store))
-        .record(key);
-    _valueOrNull = value;
-
-    this.id = id;
-  }
-
-  @override
-  Value? get valueOrNull => _valueOrNull;
-
-  @override
-  final bool deleted;
+      {required int id, required Object key, dynamic value, bool? deleted})
+      : super(
+            id: id,
+            value: value,
+            deleted: deleted ?? false,
+            record: StoreRef<Key?, Value?>.main().record(key));
 }
 
 void main() {
@@ -175,7 +158,8 @@ void main() {
 
     test('jdbDatabase', () async {
       await ctx.jdbFactory.delete('test');
-      var db = (await ctx.jdbFactory.open('test')) as JdbDatabaseMemory;
+      var db = (await ctx.jdbFactory.open('test', DatabaseOpenOptions()))
+          as JdbDatabaseMemory;
       expect(await db.getRevision(), 0);
 
       db.close();
@@ -190,10 +174,6 @@ void main() {
       // swap order
       expect(jdbWriteEntry.value, 1);
       expect(jdbWriteEntry.valueOrNull, 1);
-
-      // null record
-      jdbWriteEntry = JdbWriteEntry(txnRecord: null);
-      expect(jdbWriteEntry.valueOrNull, isNull);
 
       // deleted record
       jdbWriteEntry = JdbWriteEntry(

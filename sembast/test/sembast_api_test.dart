@@ -47,6 +47,10 @@ void main() {
       sembastCodecWithAdapters;
       // ignore: unnecessary_statements
       AsyncContentCodecBase;
+      // ignore: unnecessary_statements
+      RecordKeyBase;
+      // ignore: unnecessary_statements
+      RecordValueBase;
 
       // ignore: unnecessary_statements
       var store = StoreRef<int, String>.main();

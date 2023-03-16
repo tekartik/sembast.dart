@@ -32,7 +32,7 @@ void main() {
     var record = store.record('my_key');
 
     // Open the database
-    var db = await factory.openDatabase('test.db',
+    var db = await factory.openDatabase('my_encoded_db.db',
         codec: SembastCodec(signature: 'my_codec', codec: MyAsyncCodec()));
 
     // Write a record

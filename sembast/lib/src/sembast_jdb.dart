@@ -2,12 +2,10 @@ library sembast.sembast_jdb;
 
 import 'dart:async';
 
-import 'package:sembast/sembast.dart';
 import 'package:sembast/src/api/log_level.dart';
+import 'package:sembast/src/api/protected/database.dart';
+import 'package:sembast/src/api/protected/jdb.dart';
 import 'package:sembast/src/common_import.dart';
-import 'package:sembast/src/database_factory_mixin.dart';
-import 'package:sembast/src/database_impl.dart';
-import 'package:sembast/src/jdb.dart';
 import 'package:sembast/src/storage.dart';
 
 /// meta info key
@@ -22,15 +20,21 @@ class SembastStorageJdb extends StorageBase implements StorageJdb {
   JdbDatabase? jdbDatabase;
 
   /// The open options, null for delete only.
-  DatabaseOpenOptions? options;
+  DatabaseOpenOptions? _optionsOrNull;
+
+  /// Delete never call this.
+  DatabaseOpenOptions get options => _optionsOrNull!;
 
   @override
   final String path;
 
   final bool _logV = databaseStorageLogLevel == SembastLogLevel.verbose;
 
-  /// New storage instance.
-  SembastStorageJdb(this.jdbFactory, this.path, this.options);
+  /// New storage instance. allow null options for delete only.
+  SembastStorageJdb(this.jdbFactory, this.path,
+      {DatabaseOpenOptions? options}) {
+    _optionsOrNull = options;
+  }
 
   @override
   bool get supported => true;
@@ -60,7 +64,7 @@ class SembastStorageJdb extends StorageBase implements StorageJdb {
         if (!await jdbFactory.exists(path)) {
           return false;
         }
-        jdbDatabase = await jdbFactory.open(path, options: options);
+        jdbDatabase = await jdbFactory.open(path, options);
       }
       return true;
     } catch (e) {
@@ -73,7 +77,7 @@ class SembastStorageJdb extends StorageBase implements StorageJdb {
 
   @override
   Future findOrCreate() async {
-    jdbDatabase ??= await jdbFactory.open(path, options: options);
+    jdbDatabase ??= await jdbFactory.open(path, options);
   }
 
   @override
@@ -142,30 +146,6 @@ class SembastStorageJdb extends StorageBase implements StorageJdb {
 
   @override
   Future<int> getDeltaMinRevision() => jdbDatabase!.getDeltaMinRevision();
-}
-
-/// Jdb implementation
-class DatabaseFactoryJdb extends SembastDatabaseFactory
-    with DatabaseFactoryMixin
-    implements DatabaseFactory {
-  /// File system used.
-  final JdbFactory jdbFactory;
-
-  /// Constructor.
-  DatabaseFactoryJdb(this.jdbFactory);
-
-  @override
-  SembastDatabase newDatabase(DatabaseOpenHelper openHelper) => SembastDatabase(
-      openHelper,
-      SembastStorageJdb(jdbFactory, openHelper.path, openHelper.options));
-
-  @override
-  Future doDeleteDatabase(String path) async {
-    return SembastStorageJdb(jdbFactory, path, null).delete();
-  }
-
-  @override
-  bool get hasStorage => true;
 }
 
 /// Write query.

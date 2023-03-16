@@ -1,11 +1,14 @@
 library sembast.database_import_export_test;
 
 import 'dart:async';
-import 'dart:convert';
 
+// ignore: implementation_imports
+import 'package:sembast/src/api/protected/database.dart';
 import 'package:sembast/timestamp.dart';
 import 'package:sembast/utils/sembast_import_export.dart';
+import 'package:sembast_test/test_codecs.dart';
 
+import 'src/import_common.dart';
 import 'test_common.dart';
 
 void main() {
@@ -16,14 +19,46 @@ void defineTests(DatabaseTestContext ctx) {
   group('import_export', () {
     tearDown(() {});
 
+    Future<void> checkExportImportLines(
+        Database db, List expectedExport) async {
+      var codec = db.sembastCodec;
+      var export = await exportDatabaseLines(db);
+      await db.close();
+
+      expect(export, expectedExport);
+      // make sure it is json encodable
+      expect(jsonEncode(export), startsWith('['));
+
+      // import and reexport to test content
+      final importDbPath = dbPathFromName('compat/import_export_lines.db');
+      var importedDb = await importDatabaseLines(
+          export, ctx.factory, importDbPath,
+          codec: codec);
+      expect(await exportDatabaseLines(importedDb), expectedExport);
+
+      await importedDb.close();
+
+      // json round trip and export
+      var jsonExport = json.encode(export);
+      export = (json.decode(jsonExport) as List);
+      importedDb = await importDatabaseLines(export, ctx.factory, importDbPath,
+          codec: codec);
+      expect(await exportDatabaseLines(importedDb), expectedExport);
+      expect(importedDb.sembastCodec, codec);
+      await importedDb.close();
+    }
+
     Future checkExportImport(Database db, Map expectedExport) async {
+      var codec = db.sembastCodec;
       var export = await exportDatabase(db);
       expect(export, expectedExport);
       await db.close();
-
+      // make sure it is json encodable
+      expect(jsonEncode(export), startsWith('{'));
       // import and reexport to test content
       final importDbPath = dbPathFromName('compat/import_export.db');
-      var importedDb = await importDatabase(export, ctx.factory, importDbPath);
+      var importedDb =
+          await importDatabase(export, ctx.factory, importDbPath, codec: codec);
       expect(await exportDatabase(importedDb), expectedExport);
 
       await importedDb.close();
@@ -31,13 +66,15 @@ void defineTests(DatabaseTestContext ctx) {
       // json round trip and export
       var jsonExport = json.encode(export);
       export = (json.decode(jsonExport) as Map).cast<String, Object?>();
-      importedDb = await importDatabase(export, ctx.factory, importDbPath);
+      importedDb =
+          await importDatabase(export, ctx.factory, importDbPath, codec: codec);
       expect(await exportDatabase(importedDb), expectedExport);
       await importedDb.close();
 
       // Reopen normal no version
-      importedDb = await ctx.factory.openDatabase(importDbPath);
+      importedDb = await ctx.factory.openDatabase(importDbPath, codec: codec);
       expect(await exportDatabase(importedDb), expectedExport);
+      expect(importedDb.sembastCodec, codec);
       await importedDb.close();
     }
 
@@ -69,6 +106,31 @@ void defineTests(DatabaseTestContext ctx) {
           }
         ]
       });
+    });
+
+    test('1_string_record_with_codec', () async {
+      var codec = SembastCodec(signature: 'custom', codec: MyCustomCodec());
+      final db = await setupForTest(
+          ctx, 'compat/import_export/1_string_record.db',
+          codec: codec);
+      expect(db.sembastCodec, codec);
+      await store.record(1).put(db, 'hi');
+      await checkExportImport(db, {
+        'sembast_export': 1,
+        'version': 1,
+        'stores': [
+          {
+            'name': '_main',
+            'keys': [1],
+            'values': ['hi']
+          }
+        ]
+      });
+      await checkExportImportLines(db, [
+        {'sembast_export': 1, 'version': 1},
+        {'store': '_main'},
+        [1, 'hi']
+      ]);
     });
 
     test('1_string_record_no_cooperator', () async {
@@ -131,6 +193,7 @@ void defineTests(DatabaseTestContext ctx) {
       await store.record(1).put(db, 'hi');
       await store2.record(1).put(db, 'hi');
 
+      var exportLines = await exportDatabaseLines(db);
       await checkExportImport(db, {
         'sembast_export': 1,
         'version': 1,
@@ -152,6 +215,15 @@ void defineTests(DatabaseTestContext ctx) {
           }
         ]
       });
+      expect(exportLines, [
+        {'sembast_export': 1, 'version': 1},
+        {'store': '_main'},
+        [1, 'hi'],
+        {'store': 'store2'},
+        [1, 'hi'],
+        {'store': 'store3'},
+        [1, 'hi']
+      ]);
 
       var filteredExport = {
         'sembast_export': 1,
@@ -164,8 +236,16 @@ void defineTests(DatabaseTestContext ctx) {
           },
         ]
       };
+      var filteredExportLines = [
+        {'sembast_export': 1, 'version': 1},
+        {'store': 'store2'},
+        [1, 'hi'],
+      ];
       // export with storeNames
       expect(await exportDatabase(db, storeNames: ['store2']), filteredExport);
+      // export with storeNames
+      expect(await exportDatabaseLines(db, storeNames: ['store2']),
+          filteredExportLines);
 
       // import with storeName
       var exportMap = await exportDatabase(db);
@@ -176,6 +256,13 @@ void defineTests(DatabaseTestContext ctx) {
           storeNames: ['store2']);
       // Check imported data by exporting all
       expect(await exportDatabase(importedDb), filteredExport);
+      await importedDb.close();
+
+      importedDb = await importDatabaseLines(
+          exportLines, ctx.factory, importDbPath,
+          storeNames: ['store2']);
+      // Check imported data by exporting all
+      expect(await exportDatabaseLines(importedDb), filteredExportLines);
       await importedDb.close();
     });
 
@@ -223,6 +310,105 @@ void defineTests(DatabaseTestContext ctx) {
           }
         ]
       });
+    });
+
+    test('import_skip_null', () async {
+      var exportLines = [
+        {'sembast_export': 1, 'version': 1},
+        {'store': '_main'},
+        [3, 'ho'],
+        [1, 'hi'],
+        [2, null],
+      ];
+
+      var dbPath =
+          await deleteForTest(ctx, 'compat/import_export/import_skip_null.db');
+      var db = await importDatabaseLines(exportLines, ctx.factory, dbPath);
+      var export = await exportDatabaseLines(db);
+      expect(export.skip(2), [
+        [1, 'hi'],
+        [3, 'ho']
+      ]);
+      await checkExportImportLines(db, export);
+    });
+    test('any_import', () async {
+      var dbPath =
+          await deleteForTest(ctx, 'compat/import_export/any_import.db');
+      Future<void> checkDb(Database db) async {
+        expect(await exportDatabaseLines(db), [
+          {'sembast_export': 1, 'version': 3},
+          {'store': '_main'},
+          [1, 'hi']
+        ]);
+      }
+
+      Future<void> testImport(Object any) async {
+        var db = await importDatabaseAny(any, ctx.factory, dbPath);
+        await checkDb(db);
+        await db.close();
+      }
+
+      var exportLines = [
+        {'sembast_export': 1, 'version': 3},
+        {'store': '_main'},
+        [1, 'hi']
+      ];
+      var exportMap = {
+        'sembast_export': 1,
+        'version': 3,
+        'stores': [
+          {
+            'name': '_main',
+            'keys': [1],
+            'values': ['hi']
+          }
+        ]
+      };
+      await testImport(exportLines);
+      await testImport(jsonEncode(exportLines));
+      await testImport(jsonEncode(exportLines));
+      await testImport(jsonEncode(exportLines));
+      await testImport(exportLinesToJsonStringList(exportLines));
+      await testImport(exportLines);
+      await testImport(exportLines);
+      await testImport(exportLines);
+      await testImport(exportLines);
+      await testImport(exportLines);
+      await testImport(exportLines);
+      await testImport(exportLines);
+      await testImport(exportLinesToJsonStringList(exportLines).join('\n'));
+      await testImport(exportMap);
+      await testImport(jsonEncode(exportMap));
+    });
+
+    test('any_import_empty', () async {
+      var dbPath =
+          await deleteForTest(ctx, 'compat/import_export/any_import_empty.db');
+      Future<void> checkDb(Database db) async {
+        expect(await exportDatabaseLines(db), [
+          {'sembast_export': 1, 'version': 2},
+        ]);
+      }
+
+      Future<void> testImport(Object any) async {
+        var db = await importDatabaseAny(any, ctx.factory, dbPath);
+        await checkDb(db);
+        await db.close();
+      }
+
+      var exportLines = [
+        {'sembast_export': 1, 'version': 2},
+      ];
+      var exportMap = {
+        'sembast_export': 1,
+        'version': 2,
+      };
+      await testImport(exportLines);
+      await testImport(jsonEncode(exportLines));
+      await testImport(exportLinesToJsonStringList(exportLines));
+      await testImport(exportLinesToJsonStringList(exportLines).join('\n'));
+      await testImport(exportMap);
+      await testImport(jsonEncode(exportMap));
     });
   });
 }

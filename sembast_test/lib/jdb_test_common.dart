@@ -1,8 +1,8 @@
 // ignore_for_file: implementation_imports
 import 'package:sembast/src/api/v2/sembast_memory.dart';
-import 'package:sembast/src/jdb.dart';
-import 'package:sembast/src/sembast_jdb.dart';
+import 'package:sembast_test/src/import_database.dart';
 
+import 'src/import_jdb.dart';
 import 'test_common.dart';
 
 class DatabaseTestContextJdb extends DatabaseTestContext {
@@ -17,7 +17,7 @@ DatabaseTestContextJdb get databaseTestContextJdbMemory =>
 ///
 Future<void> jdbImportFromMap(
     JdbFactory jdbFactory, String name, Map map) async {
-  var jdb = await jdbFactory.open(name);
+  var jdb = await jdbFactory.open(name, DatabaseOpenOptions());
   await jdbDatabaseImportFromMap(jdb, map);
   jdb.close();
 }

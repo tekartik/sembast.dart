@@ -32,3 +32,6 @@ test_out
 .idea/
 *.iml
 .vscode/
+
+# local overrides
+pubspec_overrides.yaml

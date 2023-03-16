@@ -29,8 +29,26 @@ Practically I would say that the overhead in size should max at 20%.
 ## Import/Export
 
 There are methods to import/export the database.
+
+### exportDatabase
+
+```dart
+var export = await exportDatabase(db);
+```
+
 As of v1, the export is a jsonified Map (not optimized). Application should not rely on the inner format of 
 the exported data that should only be consumed as a Map by `importDatabase`.
+
+### exportDatabaseLines
+
+As of sembast 3.4.3, the lines export is a list of json encodable item. Encoded in a file as a list of String.
+it makes it suitable for store a mutable export in git.
+
+```dart
+var export = await exportDatabaseLines(db);
+```
+
+`importDatabaseAny()` would work for importing any format, including if encoded to json.
 
 ## Example
 

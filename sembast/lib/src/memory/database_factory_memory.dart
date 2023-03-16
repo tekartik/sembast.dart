@@ -1,13 +1,12 @@
 import 'dart:async';
 
 import 'package:sembast/sembast.dart';
+import 'package:sembast/src/api/protected/database.dart';
+import 'package:sembast/src/api/protected/jdb.dart';
 import 'package:sembast/src/api/v2/sembast_memory.dart';
-import 'package:sembast/src/database_factory_mixin.dart';
-import 'package:sembast/src/database_impl.dart';
 import 'package:sembast/src/jdb/jdb_factory_memory.dart';
 import 'package:sembast/src/memory/file_system_memory.dart';
 import 'package:sembast/src/sembast_fs.dart';
-import 'package:sembast/src/sembast_jdb.dart';
 import 'package:sembast/src/storage.dart';
 
 /// The pure memory factory

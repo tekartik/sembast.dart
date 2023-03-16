@@ -1,6 +1,5 @@
 import 'package:sembast/sembast_memory.dart';
-import 'package:sembast/src/database_factory_mixin.dart';
-import 'package:sembast/src/database_impl.dart';
+import 'package:sembast/src/api/protected/database.dart';
 import 'package:test/test.dart';
 
 class _T1 with DatabaseFactoryMixin {

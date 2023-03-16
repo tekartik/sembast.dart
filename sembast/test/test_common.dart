@@ -1,7 +1,6 @@
+import 'package:sembast/src/api/protected/database.dart';
 import 'package:sembast/src/api/v2/sembast.dart';
 import 'package:sembast/src/cooperator.dart';
-import 'package:sembast/src/database_factory_mixin.dart';
-import 'package:sembast/src/database_impl.dart';
 
 export 'package:sembast/src/api/v2/sembast.dart';
 export 'package:sembast/src/dev_utils.dart';

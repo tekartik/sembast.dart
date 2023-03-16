@@ -1,3 +1,7 @@
+## 2.1.2-2
+
+* Bump sembast dependency.
+
 ## 2.1.1
 
 * Add async codec support.

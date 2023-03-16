@@ -1,3 +1,4 @@
+import 'package:sembast/src/api/protected/type.dart';
 import 'package:sembast/src/api/record_ref.dart';
 import 'package:sembast/src/api/record_snapshot.dart';
 

@@ -1,8 +1,8 @@
 import 'package:idb_shim/idb_client_memory.dart';
 import 'package:idb_shim/utils/idb_import_export.dart';
 import 'package:sembast/sembast.dart';
-import 'package:sembast_web/src/jdb_factory_idb.dart'
-    show JdbFactoryIdb, JdbDatabaseIdb;
+import 'package:sembast_web/src/jdb_database_idb.dart' show JdbDatabaseIdb;
+import 'package:sembast_web/src/jdb_factory_idb.dart' show JdbFactoryIdb;
 import 'package:sembast_web/src/jdb_import.dart';
 import 'package:test/test.dart';
 
@@ -162,7 +162,28 @@ void defineTests(JdbFactoryIdb jdbFactoryIdb) {
 
       test('export', () async {
         var codec =
-            SembastCodec(signature: 'base64', codec: SembaseBase64Codec());
+            SembastCodec(signature: 'base64', codec: SembastBase64Codec());
+        var store = StoreRef<String, String>.main();
+        var record = store.record('key');
+        await factory.deleteDatabase('test');
+        var db = await factory.openDatabase('test', codec: codec);
+        expect(await record.get(db), isNull);
+        await record.put(db, 'value');
+        expect(await record.get(db), 'value');
+        expect(await dbAsJsbDatabaseIdb(db)!.sdbExportDatabase(), export);
+        await db.close();
+
+        db = await factory.openDatabase('test', codec: codec);
+        expect(await record.get(db), 'value');
+        expect(await dbAsJsbDatabaseIdb(db)!.sdbExportDatabase(), export);
+        await record.put(db, 'value2');
+        expect(await record.get(db), 'value2');
+        await db.close();
+      });
+
+      test('async codec', () async {
+        var codec =
+            SembastCodec(signature: 'base64', codec: SembastBase64CodecAsync());
         var store = StoreRef<String, String>.main();
         var record = store.record('key');
         await factory.deleteDatabase('test');
