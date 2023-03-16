@@ -50,7 +50,6 @@ class JdbWriteEntryEncoded implements JdbEntryEncoded {
   }
 }
 
-
 /// Encoded read entry from cursor/transaction. decoded later.
 class JdbReadEntryEncoded implements JdbEntryEncoded {
   /// The entry id.
@@ -70,8 +69,6 @@ class JdbReadEntryEncoded implements JdbEntryEncoded {
   /// encodable is set). Null for deleted.
   @override
   final Object? valueEncoded;
-
-
 
   /// Encoded read entry from cursor. decoded later.
   JdbReadEntryEncoded(
