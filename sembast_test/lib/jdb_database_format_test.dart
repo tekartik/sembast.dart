@@ -605,7 +605,7 @@ void defineTests(DatabaseTestContextJdb ctx) {
       //await compact(db);
       await db.close();
     });
-  }, solo: true);
+  });
 }
 
 /// You know what you are doing.
