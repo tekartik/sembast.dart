@@ -2,6 +2,7 @@ library sembast.utils.value_utils;
 
 import 'package:sembast/src/import_common.dart';
 import 'package:sembast/src/utils.dart' as utils;
+export 'package:sembast/src/json_utils.dart' show jsonEncodableSort;
 
 /// Clone a map to make it writable.
 ///

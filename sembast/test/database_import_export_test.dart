@@ -45,7 +45,7 @@ void defineTests(DatabaseTestContext ctx) {
 
     Future<void> checkExportImportLines(
         Database db, List expectedExport) async {
-      var export = await exportDatabaseLines(db);
+      List export = await exportDatabaseLines(db);
       await db.close();
 
       expect(export, expectedExport);

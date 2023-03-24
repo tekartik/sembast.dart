@@ -1,12 +1,18 @@
 library sembast.value_utils_test;
 
 // basically same as the io runner but with extra output
+import 'dart:convert';
+
 import 'package:sembast/blob.dart';
 // ignore_for_file: implementation_imports
 import 'package:sembast/src/utils.dart' show compareValue, compareValueType;
 import 'package:sembast/timestamp.dart';
 import 'package:sembast/utils/value_utils.dart' as utils;
 import 'package:test/test.dart';
+
+String jsonEncodeSorted(Object value) {
+  return jsonEncode(utils.jsonEncodableSort(value));
+}
 
 void main() {
   group('value_utils', () {
@@ -133,6 +139,19 @@ void main() {
       expect(compareValueType(<String, Object>{}, [1, 2, 3]), 1);
       expect(compareValueType(<String, Object>{}, _Dummy1()), -1);
       expect(compareValueType(_Dummy1(), _Dummy2()), -1);
+    });
+    test('jsonEncodeSorted', () {
+      expect(jsonEncodeSorted({'b': 2, 'a': 1}), '{"a":1,"b":2}');
+      expect(jsonEncodeSorted({'a': 1, 'b': 2}), '{"a":1,"b":2}');
+      expect(
+          jsonEncodeSorted({
+            'sub': [
+              {
+                'inner': {'b': 2, 'a': 1}
+              }
+            ]
+          }),
+          '{"sub":[{"inner":{"a":1,"b":2}}]}');
     });
   });
 }
