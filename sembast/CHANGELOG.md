@@ -1,3 +1,7 @@
+## 3.4.4
+
+* Dart 3 support
+
 ## 3.4.3+1
 
 * add `exportDatabaseLines`, `exportDatabaseLines`, `importDatabaseAny`
