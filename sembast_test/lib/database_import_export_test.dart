@@ -22,7 +22,7 @@ void defineTests(DatabaseTestContext ctx) {
     Future<void> checkExportImportLines(
         Database db, List expectedExport) async {
       var codec = db.sembastCodec;
-      var export = await exportDatabaseLines(db);
+      List export = await exportDatabaseLines(db);
       await db.close();
 
       expect(export, expectedExport);
@@ -381,6 +381,17 @@ void defineTests(DatabaseTestContext ctx) {
       await testImport(jsonEncode(exportMap));
     });
 
+    test('exportLinesToJsonStringList', () {
+      expect(
+          exportLinesToJsonStringList([
+            {'b': 2, 'a': 1},
+            [
+              1,
+              {'b': 2, 'a': 1}
+            ]
+          ]),
+          ['{"a":1,"b":2}', '[1,{"a":1,"b":2}]']);
+    });
     test('any_import_empty', () async {
       var dbPath =
           await deleteForTest(ctx, 'compat/import_export/any_import_empty.db');

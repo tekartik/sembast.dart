@@ -71,6 +71,73 @@ expect(records[0]['name'], 'dog');
 expect(records[1]['name'], 'fish');
 ```
 
+### Simple filter
+
+You can use the `Filter` class to filter records. Simple filter are available:
+* `Filter.equals`
+* `Filter.notEquals`
+* `Filter.isNull`
+* `Filter.noNull`
+* `Filter.lessThan`
+* `Filter.lessThanOrEquals`
+* `Filter.greaterThan`
+* `Filter.greaterThanOrEquals`
+* `Filter.inList`
+* `Filter.matches`
+* `Filter.matchesRegExp`
+* `Filter.custom` (Custom filter, use with caution and do not modify record data as it
+  provides a raw access to the record internal value for efficiency.)
+
+### Composite filters
+
+* `Filter.and`
+* `Filter.or`
+* `Filter.not`
+
+You can combine multiple filters using the operators `&` and `|`:
+
+```dart
+var filterAnd = Filter.greaterThan(Field.value, "hi") &
+    Filter.lessThan(Field.value, "hum");
+var filterOr = Filter.lessThan(Field.value, "hi") |
+    Filter.greaterThan(Field.value, "hum");
+```
+
+If you have more than two filters, you can also use `Filter.or` and `Filter.and`:
+```dart
+var filter = Filter.and([
+  Filter.greaterThan(Field.value, "hi"),
+  Filter.lessThan(Field.value, "hum"),
+  Filter.notEquals(Field.value, "ho"),
+]);
+```
+
+### Example
+
+Let says that you want to find a given `searchText` in either of the fields clientName or
+companyName AND the `date` must be in 2023, and sort the result by date, you could write a filter like this:
+
+```dart
+var startTimestamp = Timestamp.fromDateTime(DateTime(2023));
+var endTimestamp = Timestamp.fromDateTime(DateTime(2024));
+var regExp = RegExp(searchText, caseSensitive: false);
+var filter = Filter.and([
+  Filter.or([
+    Filter.matchesRegExp(
+      'clientName',
+      regExp,
+    ),
+    Filter.matchesRegExp(
+      'companyName',
+      regExp,
+    ),
+  ]),
+  Filter.greaterThanOrEquals('date', startTimestamp),
+  Filter.lessThan('date', endTimestamp),
+]);
+var finder = Finder(filter: filter, sortOrders: [SortOrder('date')]);
+```
+
 ## Finding first
 
 You can limit your query to the first element found
@@ -138,27 +205,6 @@ Or query on it
 
 ```dart
 var finder = Finder(filter: Filter.equals('product.code', 'AF8'));
-```
-
-### Composite filter
-
-You can combine multiple filters using the operators `&` and `|`:
-
-```dart
-var filterAnd = Filter.greaterThan(Field.value, "hi") &
-    Filter.lessThan(Field.value, "hum");
-var filterOr = Filter.lessThan(Field.value, "hi") |
-    Filter.greaterThan(Field.value, "hum");
-```
-
-
-If you have more than two filters, you can also use `Filter.or` and `Filter.and`:
-```dart
-var filter = Filter.and([
-  Filter.greaterThan(Field.value, "hi"),
-  Filter.lessThan(Field.value, "hum"),
-  Filter.notEquals(Field.value, "ho"),
-]);
 ```
 
 ### Using boundaries for paging

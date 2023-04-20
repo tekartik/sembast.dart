@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'package:sembast/src/api/protected/database.dart';
 import 'package:sembast/src/api/sembast.dart';
 import 'package:sembast/src/common_import.dart';
+import 'package:sembast/src/json_utils.dart';
 import 'package:sembast/src/model.dart';
 import 'package:sembast/src/store_impl.dart';
 import 'package:sembast/src/transaction_impl.dart';
@@ -48,7 +49,7 @@ Future<Map<String, Object?>> exportDatabase(Database db,
 /// An optional [storeNames] can specify the list of stores to export. If null
 /// All stores are exported.
 ///
-Future<List> exportDatabaseLines(Database db,
+Future<List<Object>> exportDatabaseLines(Database db,
     {List<String>? storeNames}) async {
   var lines = <Object>[];
 
@@ -308,7 +309,7 @@ Future<Database> importDatabaseAny(
   throw FormatException('invalid export format (${srcData.runtimeType})');
 }
 
-/// Convert export as a list of string.
+/// Convert export as a list of string (export is is a List or non null objects)
 List<String> exportLinesToJsonStringList(List export) {
-  return export.map((e) => jsonEncode(e)).toList();
+  return export.map((e) => jsonEncode(jsonEncodableSort(e as Object))).toList();
 }
