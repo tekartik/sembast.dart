@@ -1,3 +1,7 @@
+## 2.1.3
+
+* Dart 3 support
+
 ## 2.1.2
 
 * Bump sembast dependency.
