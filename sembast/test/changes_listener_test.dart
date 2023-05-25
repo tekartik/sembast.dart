@@ -1,4 +1,6 @@
 // basically same as the io runner but with extra output
+import 'dart:async';
+
 import 'package:sembast/sembast_memory.dart';
 
 import 'test_common.dart';
@@ -23,6 +25,48 @@ void main() {
       expect(list.first.ref, record);
       expect(list.first.oldValue, null);
       expect(list.first.newValue, 2);
+    });
+
+    test('simple in transaction', () async {
+      var list = <List<RecordChange>>[];
+      var inTransaction = false;
+      var records = store.records([2, 3]);
+
+      void onChanges(Transaction txn, List<RecordChange> changes) {
+        expect(inTransaction, isTrue);
+        list.add(changes);
+      }
+
+      store.addOnChangesListener(db, onChanges);
+
+      Future<T> runInTransaction<T>(
+          FutureOr<T> Function(Transaction transaction) action) async {
+        return await db.transaction((txn) async {
+          inTransaction = true;
+          try {
+            return await action(txn);
+          } finally {
+            inTransaction = false;
+          }
+        });
+      }
+
+      await runInTransaction((txn) async {
+        await record.add(txn, 100);
+        await record.update(txn, 101);
+        await record.put(txn, 102);
+        await record.delete(txn);
+
+        await records.add(txn, [201, 202]); // count as 2
+        await records.update(txn, [203, 204]);
+        await records.put(txn, [205, 206]);
+        await records.delete(txn);
+
+        await store.addAll(txn, [301, 302]); // count as 2
+        expect(await store.update(txn, 304), 2);
+        await store.delete(txn);
+        expect(list.length, 13);
+      });
     });
 
     test('add/update/delete', () async {

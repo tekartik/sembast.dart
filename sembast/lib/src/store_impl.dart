@@ -58,8 +58,11 @@ class SembastStore {
   /// Return the value added
   Future<Object?> txnPut(SembastTransaction txn, Value value, Key key,
       {bool? merge}) async {
-    await cooperate();
-    return txnPutSync(txn, value, key, merge: merge);
+    try {
+      return txnPutSync(txn, value, key, merge: merge);
+    } finally {
+      await database.txnPostWriteAndCooperate(txn);
+    }
   }
 
   /// Generate a new int key
@@ -109,22 +112,24 @@ class SembastStore {
   ///
   /// Return the added key.
   Future<K?> txnAdd<K>(SembastTransaction txn, Value value, [Key? key]) async {
-    await cooperate();
     // We allow generating a string key
 
-    if (key == null) {
-      key = await txnGenerateUniqueKey<K>(txn);
-    } else if (await txnRecordExists(txn, key)) {
-      return null;
+    try {
+      if (key == null) {
+        key = await txnGenerateUniqueKey<K>(txn);
+      } else if (await txnRecordExists(txn, key)) {
+        return null;
+      }
+      txnPutSync(txn, value, key as Key);
+      return key as K?;
+    } finally {
+      await database.txnPostWriteAndCooperate(txn);
     }
-
-    await txnPutSync(txn, value, key as Key);
-    return key as K?;
   }
 
   /// Returns the value
-  Future<Value?> txnPutSync(SembastTransaction txn, Value value, Key key,
-      {bool? merge}) async {
+  Value? txnPutSync(SembastTransaction txn, Value value, Key key,
+      {bool? merge}) {
     RecordSnapshot? oldSnapshot;
     var hasChangesListener = this.hasChangesListener;
     ImmutableSembastRecord? record;
@@ -165,12 +170,21 @@ class SembastStore {
   Future<List> txnPutAll<PK, PV>(
       SembastTransaction txn, List<PV> values, List<PK> keys,
       {bool? merge}) async {
-    final resultValues = <Object?>[];
-    for (var i = 0; i < values.length; i++) {
-      resultValues.add(
-          await txnPut(txn, values[i] as Value, keys[i] as Key, merge: merge));
+    try {
+      final resultValues = <Object?>[];
+      for (var i = 0; i < values.length; i++) {
+        resultValues.add(
+            txnPutSync(txn, values[i] as Value, keys[i] as Key, merge: merge));
+        if (needCooperate) {
+          await cooperate();
+        }
+      }
+      return resultValues;
+    } finally {
+      if (database.txnPostWriteNeeded) {
+        await database.txnPostWrite(txn);
+      }
     }
-    return resultValues;
   }
 
   /// Returns the list of keys
@@ -188,8 +202,17 @@ class SembastStore {
   /// Return the value updated
   Future<Object?> txnUpdate<K, V>(
       SembastTransaction txn, V value, K key) async {
-    await cooperate();
+    try {
+      return txnUpdateSync(txn, value, key);
+    } finally {
+      await database.txnPostWriteAndCooperate(txn);
+    }
+  }
 
+  /// Update a record in a transaction.
+  ///
+  /// Return the value updated
+  Object? txnUpdateSync<K, V>(SembastTransaction txn, V value, K key) {
     var hasChangesListener = this.hasChangesListener;
     // Ignore non-existing record
     var existingRecord = txnGetRecordSync(txn, key);
@@ -422,7 +445,9 @@ class SembastStore {
   /// Put a record in a transaction.
   Future<ImmutableSembastRecord> txnPutRecord(
       SembastTransaction txn, ImmutableSembastRecord record) async {
-    await cooperate();
+    if (needCooperate) {
+      await cooperate();
+    }
     return txnPutRecordSync(txn, record);
   }
 
@@ -616,15 +641,23 @@ class SembastStore {
 
   /// Delete a record in a transaction.
   Future<Object?> txnDelete(SembastTransaction txn, Object key) async {
+    try {
+      return txnDeleteSync(txn, key);
+    } finally {
+      await database.txnPostWriteAndCooperate(txn);
+    }
+  }
+
+  /// Delete and register changes.
+  Object? txnDeleteSync(SembastTransaction txn, Object key) {
     var record = txnGetImmutableRecordSync(txn, key);
-    await cooperate();
     if (record == null) {
       return null;
     } else {
       // Do the deletion
       // clone and mark as deleted
       var clone = record.sembastCloneAsDeleted();
-      await txnPutRecord(txn, clone);
+      txnPutRecordSync(txn, clone);
 
       // Changes listener
       if (hasChangesListener) {
@@ -637,31 +670,34 @@ class SembastStore {
   /// Delete multiple records in a transaction.
   Future<List> txnDeleteAll(
       SembastTransaction txn, Iterable<Object?> keys) async {
-    final updates = <ImmutableSembastRecord>[];
     final deletedKeys = <Object?>[];
+    try {
+      final updates = <ImmutableSembastRecord>[];
+      // make it safe in a async way
+      keys = List<Object?>.from(keys, growable: false);
+      for (var key in keys) {
+        await cooperate();
+        var record = txnGetImmutableRecordSync(txn, key as Object);
+        if (record != null && !record.deleted) {
+          // Clone and mark deleted
+          var clone = record.sembastCloneAsDeleted();
 
-    // make it safe in a async way
-    keys = List<Object?>.from(keys, growable: false);
-    for (var key in keys) {
-      await cooperate();
-      var record = txnGetImmutableRecordSync(txn, key as Object);
-      if (record != null && !record.deleted) {
-        // Clone and mark deleted
-        var clone = record.sembastCloneAsDeleted();
+          updates.add(clone);
 
-        updates.add(clone);
-
-        if (txn.database.changesListener.isNotEmpty) {
-          txn.database.changesListener.addChange(record, null);
+          if (txn.database.changesListener.isNotEmpty) {
+            txn.database.changesListener.addChange(record, null);
+          }
+          deletedKeys.add(key);
+        } else {
+          deletedKeys.add(null);
         }
-        deletedKeys.add(key);
-      } else {
-        deletedKeys.add(null);
       }
-    }
 
-    if (updates.isNotEmpty) {
-      await database.txnPutRecords(txn, updates);
+      if (updates.isNotEmpty) {
+        await database.txnPutRecords(txn, updates);
+      }
+    } finally {
+      await database.txnPostWriteAndCooperate(txn);
     }
     return deletedKeys;
   }
@@ -670,8 +706,15 @@ class SembastStore {
   Future<List> txnUpdateAll<K, V>(
       SembastTransaction txn, List<V> values, List<K> keys) async {
     final resultValues = <Object?>[];
-    for (var i = 0; i < values.length; i++) {
-      resultValues.add(await txnUpdate(txn, values[i] as Value, keys[i]));
+    try {
+      for (var i = 0; i < values.length; i++) {
+        resultValues.add(txnUpdateSync(txn, values[i] as Value, keys[i]));
+        if (needCooperate) {
+          await cooperate();
+        }
+      }
+    } finally {
+      await database.txnPostWrite(txn);
     }
     return resultValues;
   }
@@ -737,8 +780,17 @@ class SembastStore {
   Future<List> txnUpdateWhere(SembastTransaction txn, Value value,
       {Finder? finder}) async {
     var keys = await txnFindKeys(txn, finder);
-    for (var key in keys) {
-      await txnPut(txn, value, key as Object, merge: true);
+    try {
+      for (var key in keys) {
+        txnPutSync(txn, value, key as Object, merge: true);
+        if (needCooperate) {
+          await cooperate();
+        }
+      }
+    } finally {
+      if (database.txnPostWriteNeeded) {
+        await database.txnPostWrite(txn);
+      }
     }
     return keys;
   }

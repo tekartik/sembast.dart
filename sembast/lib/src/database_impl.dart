@@ -1221,20 +1221,6 @@ class SembastDatabase extends Object
         try {
           // devPrint('transaction ${jdbRevision}');
           actionResult = await Future<T>.sync(() => action(_transaction!));
-          // handle changes, until all done!
-          // Do this before building commit entries since record could be added
-          if (changesListener.isNotEmpty) {
-            while (changesListener.hasChanges) {
-              // Copy the list so that it never changes
-              var storeChangesListeners = List<StoreChangesListeners>.from(
-                  changesListener.storeChangesListeners);
-              for (var storeChangesListener in storeChangesListeners) {
-                if (storeChangesListener.hasChanges) {
-                  await storeChangesListener.handleChanges(currentTransaction!);
-                }
-              }
-            }
-          }
 
           // Commit directly on jdb to handle transaction changes
           if (storageJdb != null) {
@@ -1330,6 +1316,37 @@ class SembastDatabase extends Object
       });
     } while (reloadData);
     return result;
+  }
+
+  /// Sync way to know if post write is needed
+  bool get txnPostWriteNeeded => changesListener.isNotEmpty;
+
+  /// To call only when txnPostWriteNeeded is true
+  Future<void> txnPostWrite(SembastTransaction txn) async {
+    if (txnPostWriteNeeded) {
+      await _txnHandleChanges(txn);
+    }
+  }
+
+  /// To call after a write when cooperate is needed
+  Future<void> txnPostWriteAndCooperate(SembastTransaction txn) async {
+    if (txnPostWriteNeeded) {
+      await txnPostWrite(txn);
+    }
+    await cooperate();
+  }
+
+  Future<void> _txnHandleChanges(SembastTransaction txn) async {
+    while (changesListener.hasChanges) {
+      // Copy the list so that it never changes
+      var storeChangesListeners = List<StoreChangesListeners>.from(
+          changesListener.storeChangesListeners);
+      for (var storeChangesListener in storeChangesListeners) {
+        if (storeChangesListener.hasChanges) {
+          await storeChangesListener.handleChanges(txn);
+        }
+      }
+    }
   }
 
   /// Lazily notify listeners
