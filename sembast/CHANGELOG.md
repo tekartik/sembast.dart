@@ -1,3 +1,7 @@
+## 3.4.5
+
+* Fix store/record change listener timing, now triggered before the end of the transaction callback.
+
 ## 3.4.4
 
 * Dart 3 support
