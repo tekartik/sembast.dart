@@ -23,6 +23,10 @@ class SembastTransactionRecordChange<K, V> implements RecordChange<K, V> {
           oldSnapshot?.cast<RK, RV>(), newSnapshot?.cast<RK, RV>());
     }
   }
+
+  @override
+  String toString() =>
+      'RecordChange(${isAdd ? 'add' : (isDelete ? 'delete' : (isUpdate ? 'update' : ''))}: $oldSnapshot => $newSnapshot)';
 }
 
 /// Store change listener.

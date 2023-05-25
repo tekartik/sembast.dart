@@ -56,21 +56,59 @@ void defineTests(DatabaseTestContext ctx) {
       await sub.cancel();
     });
 
-    test('Store.onSnapshots.listen', () async {
+    test('Store.onSnapshots.listen add', () async {
       var store = StoreRef<int, String>.main();
       var record = store.record(1);
 
       var done = Completer<void>();
+      var snapshotLists = <List>[];
       var sub = store.query().onSnapshots(db).listen((snapshots) {
-        // devPrint('onSnapshots: $snapshots');
-        if (snapshots.isNotEmpty && snapshots.first.value == 'test2') {
+        snapshotLists.add(snapshots);
+        if (snapshots.isNotEmpty) {
           done.complete();
         }
       });
       unawaited(record.add(db, 'test1'));
-      unawaited(record.delete(db));
-      unawaited(record.add(db, 'test2'));
       await done.future;
+      expect(snapshotLists.length, 2);
+      await sub.cancel();
+    });
+
+    test('Store.onSnapshots.listen delete', () async {
+      var store = StoreRef<int, String>.main();
+      var record = store.record(1);
+
+      var done = Completer<void>();
+      var snapshotLists = <List>[];
+      await record.add(db, 'test1');
+      var sub = store.query().onSnapshots(db).listen((snapshots) {
+        snapshotLists.add(snapshots);
+        if (snapshots.isEmpty) {
+          done.complete();
+        }
+      });
+      unawaited(record.delete(db));
+      await done.future;
+      expect(snapshotLists.length, 2);
+      await sub.cancel();
+    });
+
+    test('Store.onSnapshots.listen put', () async {
+      var store = StoreRef<int, String>.main();
+      var record = store.record(1);
+
+      var done = Completer<void>();
+      var snapshotLists = <List>[];
+      await record.add(db, 'test1');
+      var sub = store.query().onSnapshots(db).listen((snapshots) {
+        snapshotLists.add(snapshots);
+        if (snapshots.first.value == 'test2') {
+          done.complete();
+        }
+      });
+      unawaited(record.put(db, 'test2'));
+      await done.future;
+      expect(snapshotLists.length, 2);
       await sub.cancel();
     });
 
