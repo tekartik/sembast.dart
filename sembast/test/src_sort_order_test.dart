@@ -53,5 +53,20 @@ void main() {
       var record2 = SembastRecordSnapshot(record, {'field': '2'});
       expect(sortOrder.compareAscending(record1, record2), -1);
     });
+
+    test('custom', () {
+      var field = Field.value;
+      var record1 = SembastRecordSnapshot(record, '9');
+      var record2 = SembastRecordSnapshot(record, '10');
+
+      var sortOrder = SembastSortOrder(field);
+      var sortOrderParseInt = SortOrder<String>.custom(
+              field,
+              (value1, value2) =>
+                  int.parse(value1).compareTo(int.parse(value2)))
+          as SembastSortOrder<String>;
+      expect(sortOrder.compareAscending(record1, record2), greaterThan(0));
+      expect(sortOrderParseInt.compareAscending(record1, record2), -1);
+    });
   });
 }

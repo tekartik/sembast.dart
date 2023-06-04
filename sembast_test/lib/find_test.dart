@@ -362,6 +362,29 @@ void defineTests(DatabaseTestContext ctx) {
           var snapshots = await store.find(db, finder: finder);
           expect(
               snapshotsRefs(snapshots), [record3, record2, record4, record1]);
+
+          // Custom sort order, reverting twice
+          finder = Finder(sortOrders: [
+            SortOrder<Timestamp>.custom(
+                'timestamp',
+                (timestamp1, timestamp2) => timestamp1.compareTo(timestamp2),
+                true)
+          ]);
+          snapshots = await store.find(db, finder: finder);
+          expect(
+              snapshotsRefs(snapshots), [record3, record2, record4, record1]);
+
+          // Custom sort order, reverting twice
+          finder = Finder(sortOrders: [
+            SortOrder<Timestamp>.custom(
+                'timestamp',
+                (timestamp1, timestamp2) => timestamp2.compareTo(timestamp1),
+                false,
+                true)
+          ]);
+          snapshots = await store.find(db, finder: finder);
+          expect(
+              snapshotsRefs(snapshots), [record3, record2, record4, record1]);
         });
       });
       group('sub_field', () {
