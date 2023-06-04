@@ -1,3 +1,7 @@
+## 3.4.6
+
+* Add `SortOrder.custom` to allow custom sort order comparison function.
+
 ## 3.4.5
 
 * Fix store/record change listener timing, now triggered before the end of the transaction callback.
