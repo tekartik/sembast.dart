@@ -1,6 +1,11 @@
-## 3.4.6
+## 3.4.7
+
+* Export 'Database.compact()' as a class extension.
+
+## 3.4.6+1
 
 * Add `SortOrder.custom` to allow custom sort order comparison function.
+* Export `generateStringKey` in new `key_utils.dart`
 
 ## 3.4.5
 
