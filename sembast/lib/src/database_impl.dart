@@ -1630,6 +1630,11 @@ class JdbImportResult {
 /// Internal only
 @protected
 extension SembastDatabaseInternalExt on Database {
+  SembastDatabase get _sembastDatabase => this as SembastDatabase;
+
   /// current sembast codec.
-  SembastCodec? get sembastCodec => (this as SembastDatabase).openOptions.codec;
+  SembastCodec? get sembastCodec => _sembastDatabase.openOptions.codec;
+
+  /// Export/compact stat (debugging only)
+  DatabaseExportStat? get exportStat => _sembastDatabase._exportStat;
 }
