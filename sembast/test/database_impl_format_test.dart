@@ -65,7 +65,7 @@ void defineTests(FileSystemTestContext ctx) {
 
     test('compact_and_write', () async {
       await prepareForDb();
-      final db = await factory.openDatabase(dbPath!) as SembastDatabase;
+      final db = await factory.openDatabase(dbPath!);
       await store.record(1).put(db, 'test1');
       await db.compact();
       await store.record(2).put(db, 'test2');

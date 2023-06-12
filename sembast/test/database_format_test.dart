@@ -318,7 +318,7 @@ void defineTestsWithCodec(FileSystemTestContext ctx, {SembastCodec? codec}) {
       expect(await record1.get(db), 'test1');
       expect(await record2.get(db), 'test2');
       expect((await readContent(fs, dbPath!)).length, 4);
-      await (db as SembastDatabase).compact();
+      await db.compact();
 
       lines = await readContent(fs, dbPath!);
       expect(lines.length, 3);

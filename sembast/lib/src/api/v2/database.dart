@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:sembast/src/api/client.dart';
+import 'package:sembast/src/api/protected/database.dart';
 import 'package:sembast/src/api/transaction.dart';
 
 export 'package:sembast/src/api/field.dart';
@@ -26,4 +27,15 @@ abstract class Database implements DatabaseClient {
   /// Close the database
   ///
   Future close();
+}
+
+/// Database extension methods.
+extension DatabaseExtension on Database {
+  /// Compact the database.
+  ///
+  /// Behavior depends on the implementation. On sembast io, the file
+  /// will be rewritten removing obsolete lines. On sembast_web
+  /// and sembast_sqflite, data will be
+  /// read againt to handle external changes.
+  Future compact() => (this as SembastDatabase).compact();
 }
