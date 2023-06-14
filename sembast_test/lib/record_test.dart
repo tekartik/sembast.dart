@@ -75,6 +75,45 @@ void defineTests(DatabaseTestContext ctx) {
       expect(await future4, isNull);
     });
 
+    void expectSnapshot<K, V>(RecordSnapshot<K, V> snapshot, K key, V value) {
+      expect(snapshot.key, key);
+      expect(snapshot.value, value);
+    }
+
+    test('put/get_sync ', () async {
+      var store = StoreRef<int, String>.main();
+      var record = store.record(1);
+      var records = store.records([1]);
+      expect(record.existsSync(db), isFalse);
+      expect(record.getSync(db), isNull);
+      expect(record.getSnapshotSync(db), isNull);
+      expect(records.getSnapshotsSync(db), [null]);
+      var step1 = Completer<void>();
+      var step2 = Completer<void>();
+
+      var txnFuture = db.transaction((txn) async {
+        await record.put(txn, 'test');
+        step1.complete();
+        expect(record.existsSync(txn), isTrue);
+        expect(record.getSync(txn), 'test');
+        expectSnapshot(record.getSnapshotSync(txn)!, 1, 'test');
+        expectSnapshot(records.getSnapshotsSync(txn).first!, 1, 'test');
+        await step2.future;
+      });
+      expect(record.existsSync(db), isFalse);
+      expect(record.getSync(db), isNull);
+      expect(record.getSnapshotSync(db), isNull);
+      expect(records.getSnapshotsSync(db), [null]);
+      await step1.future;
+      step2.complete();
+
+      await txnFuture;
+      expect(record.existsSync(db), isTrue);
+      expect(record.getSync(db), 'test');
+      expectSnapshot(record.getSnapshotSync(db)!, 1, 'test');
+      expectSnapshot(records.getSnapshotsSync(db).first!, 1, 'test');
+    });
+
     test('add', () async {
       var record = StoreRef<int, String>.main().record(1);
       expect(await record.add(db, 'test'), 1);

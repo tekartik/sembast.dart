@@ -25,6 +25,15 @@ extension SembastRecordsRefExtension<K, V> on RecordsRef<K, V> {
         .txnGetRecordSnapshots(client.sembastTransaction, this);
   }
 
+  /// Get all records snapshot synchronously.
+  List<RecordSnapshot<K, V>?> getSnapshotsSync(DatabaseClient databaseClient) {
+    var client = getClient(databaseClient);
+
+    return client
+        .getSembastStore(store)
+        .txnGetRecordSnapshotsSync(client.sembastTransaction, this);
+  }
+
   /// Create records that don't exist.
   ///
   /// The list of [values] must match the list of keys.
@@ -90,6 +99,11 @@ extension SembastRecordsRefExtension<K, V> on RecordsRef<K, V> {
       (await getSnapshots(client))
           .map((snapshot) => snapshot?.value)
           .toList(growable: false);
+
+  /// Get all records values synchronously.
+  List<V?> getSync(DatabaseClient client) => (getSnapshotsSync(client))
+      .map((snapshot) => snapshot?.value)
+      .toList(growable: false);
 }
 
 /// Records ref mixin.
