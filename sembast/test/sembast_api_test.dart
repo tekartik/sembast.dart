@@ -1,66 +1,57 @@
+// ignore_for_file: unnecessary_statements
+
 import 'package:sembast/sembast.dart';
 import 'package:test/test.dart';
+
+var store = StoreRef<int, String>.main();
+var record = store.record(1);
+var records = store.records([1, 2]);
 
 void main() {
   group('sembast_api', () {
     test('public', () {
       // What we want public
-      // ignore: unnecessary_statements
       StoreRef;
-      // ignore: unnecessary_statements
       RecordRef;
-      // ignore: unnecessary_statements
       Database;
-      // ignore: unnecessary_statements
       Transaction;
-      // ignore: unnecessary_statements
       RecordSnapshot;
-      // ignore: unnecessary_statements
       RecordsRef;
-      // ignore: unnecessary_statements
       intMapStoreFactory;
-      // ignore: unnecessary_statements
       stringMapStoreFactory;
-      // ignore: unnecessary_statements
       SortOrder;
-      // ignore: unnecessary_statements
       Finder;
-      // ignore: unnecessary_statements
       Filter;
-      // ignore: unnecessary_statements
       Boundary;
-      // ignore: unnecessary_statements
       SembastCodec;
-      // ignore: unnecessary_statements
       QueryRef;
-      // ignore: unnecessary_statements
       FieldValue;
-      // ignore: unnecessary_statements
       FieldKey;
-      // ignore: unnecessary_statements
       Field;
-      // ignore: unnecessary_statements
       sembastDefaultTypeAdapters;
-      // ignore: unnecessary_statements
       sembastCodecDefault;
-      // ignore: unnecessary_statements
       sembastCodecWithAdapters;
-      // ignore: unnecessary_statements
       AsyncContentCodecBase;
-      // ignore: unnecessary_statements
       RecordKeyBase;
-      // ignore: unnecessary_statements
       RecordValueBase;
 
-      // ignore: unnecessary_statements
       var store = StoreRef<int, String>.main();
-
-      // ignore: unnecessary_statements
       store.query;
-
-      var record = store.record(1);
-      // ignore: unnecessary_statements
       record.get;
+
+      // 2023-06-15 v3.4.8-1
+      SembastRecordRefExtension(record).getSync;
+      SembastRecordRefExtension(record).getSnapshotSync;
+      SembastRecordRefExtension(record).existsSync;
+
+      SembastRecordsRefExtension(records).getSync;
+      SembastRecordsRefExtension(records).getSnapshotsSync;
+      SembastRecordsRefExtension(records).onSnapshots;
+
+      SembastStoreRefCommonExtension(store).recordsFromRefs;
+      SembastRecordsRefCommonExtension(records).refs;
+      SembastRecordsRefCommonExtension(records).length;
+      SembastRecordsRefCommonExtension(records)[0];
     });
   });
 }

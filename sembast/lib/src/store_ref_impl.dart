@@ -93,6 +93,14 @@ extension SembastStoreRefExtensionPrv<K, V> on StoreRef<K, V> {
       SembastFilterRef<K, V>(this, filter);
 }
 
+/// Store ref common public sembast extension (no db access).
+extension SembastStoreRefCommonExtension<K, V> on StoreRef<K, V> {
+  /// Records ref from a list of record refs.
+  RecordsRef<K, V> recordsFromRefs(List<RecordRef<K, V>> refs) {
+    return records(refs.map((e) => e.key).toList());
+  }
+}
+
 /// Store ref public sembast extension.
 ///
 /// Provides access helper to data on the store using a given [DatabaseClient].

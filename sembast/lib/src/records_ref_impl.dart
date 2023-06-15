@@ -1,11 +1,30 @@
+import 'dart:async';
+
 import 'package:sembast/src/database_client_impl.dart';
+import 'package:sembast/src/stream_utils.dart';
 
 import 'import_common.dart';
+
+/// Record ref common extension.
+extension SembastRecordsRefCommonExtension<K, V> on RecordsRef<K, V> {
+  /// The number of records referenced.
+  int get length => keys.length;
+
+  /// Record ref at a given index.
+  RecordRef<K, V> operator [](int index) => store.record(keys[index]);
+
+  /// Get all records references.
+  List<RecordRef<K, V>> get refs =>
+      keys.map((key) => store.record(key)).toList();
+}
 
 /// Record ref sembast public extension.
 ///
 /// Provides access helper to data on the store using a given [DatabaseClient].
 extension SembastRecordsRefExtension<K, V> on RecordsRef<K, V> {
+  /// The number of records referenced.
+  int get length => keys.length;
+
   /// Delete records
   Future<List<K?>> delete(DatabaseClient databaseClient) async {
     var client = getClient(databaseClient);
@@ -104,6 +123,14 @@ extension SembastRecordsRefExtension<K, V> on RecordsRef<K, V> {
   List<V?> getSync(DatabaseClient client) => (getSnapshotsSync(client))
       .map((snapshot) => snapshot?.value)
       .toList(growable: false);
+
+  /// Get a stream of a record snapshots from the database.
+  ///
+  /// It allows listening to multiple records. First emit happens when all
+  /// snapshot are checked first (but can be null).
+  Stream<List<RecordSnapshot<K, V>?>> onSnapshots(Database database) {
+    return streamJoinAll(refs.map((e) => e.onSnapshot(database)).toList());
+  }
 }
 
 /// Records ref mixin.
@@ -112,9 +139,6 @@ mixin RecordsRefMixin<K, V> implements RecordsRef<K, V> {
   late StoreRef<K, V> store;
   @override
   late List<K> keys;
-
-  @override
-  RecordRef<K, V> operator [](int index) => store.record(keys[index]);
 
   @override
   String toString() => 'Records(${store.name}, $keys)';

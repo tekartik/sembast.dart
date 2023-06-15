@@ -1,3 +1,10 @@
+## 3.4.8-2
+
+* Add `RecordRef.getSync()`, `RecordRef.getSnapshotSync()`, `RecordRef.existsSync()` synchronous API extension.
+* Add `RecordsRef.getSync()`, `RecordsRef.getSnapshotSync()` synchronous API extension.
+* Add `RecordsRef.onSnapshots()` watcher extension.
+
+
 ## 3.4.7
 
 * Export 'Database.compact()' as a class extension.
