@@ -1,6 +1,7 @@
 // ignore_for_file: unnecessary_statements
 
 import 'package:sembast/sembast.dart';
+import 'package:sembast/utils/value_utils.dart';
 import 'package:test/test.dart';
 
 var store = StoreRef<int, String>.main();
@@ -52,6 +53,8 @@ void main() {
       SembastRecordsRefCommonExtension(records).refs;
       SembastRecordsRefCommonExtension(records).length;
       SembastRecordsRefCommonExtension(records)[0];
+
+      valuesCompare;
     });
   });
 }

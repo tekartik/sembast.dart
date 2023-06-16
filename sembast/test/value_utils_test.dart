@@ -23,6 +23,8 @@ void main() {
       utils.cloneList;
       // ignore: unnecessary_statements
       utils.cloneValue;
+      // ignore: unnecessary_statements
+      utils.valuesCompare;
     });
     test('cloneMap', () {
       var existing = <String, Object?>{
@@ -121,6 +123,9 @@ void main() {
       expect(compareValue(true, false), greaterThan(0));
       expect(compareValue(null, true), lessThan(0));
       expect(compareValue(false, null), greaterThan(0));
+    });
+    test('compare any', () {
+      expect(utils.valuesCompare(null, true), -1);
     });
     test('compare value type', () {
       expect(compareValueType(null, true), -1);
