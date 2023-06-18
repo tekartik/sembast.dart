@@ -70,16 +70,25 @@ void defineTests(DatabaseTestContext ctx) {
           // Present in transaction
           snapshots = await store.find(txn, finder: finder);
           expect(snapshotsRefs(snapshots), [record4]);
+          snapshots = store.findSync(txn, finder: finder);
+          expect(snapshotsRefs(snapshots), [record4]);
           // test the keys and findFirst, assume it is ok then...
           expect((await store.findFirst(txn, finder: finder))!.ref, record4);
+          expect((store.findFirstSync(txn, finder: finder))!.ref, record4);
           expect(await store.findKey(txn, finder: finder), record4.key);
+          expect(store.findKeySync(txn, finder: finder), record4.key);
           expect(await store.findKeys(txn, finder: finder), [record4.key]);
+          expect(store.findKeysSync(txn, finder: finder), [record4.key]);
 
           // But not in db
           expect(await store.find(db, finder: finder), isEmpty);
           expect(await store.findFirst(db, finder: finder), isNull);
           expect(await store.findKey(db, finder: finder), isNull);
           expect(await store.findKeys(db, finder: finder), isEmpty);
+          expect(store.findSync(db, finder: finder), isEmpty);
+          expect(store.findFirstSync(db, finder: finder), isNull);
+          expect(store.findKeySync(db, finder: finder), isNull);
+          expect(store.findKeysSync(db, finder: finder), isEmpty);
 
           // delete ho
           await store.record(2).delete(txn);
@@ -278,15 +287,20 @@ void defineTests(DatabaseTestContext ctx) {
         finder = Finder(limit: 4);
         snapshots = await store.find(db, finder: finder);
         expect(snapshotsRefs(snapshots), [record1, record2, record3]);
+        snapshots = store.findSync(db, finder: finder);
+        expect(snapshotsRefs(snapshots), [record1, record2, record3]);
       });
 
       test('offset', () async {
+        print(await store.find(db));
         var finder = Finder(offset: 1);
         var snapshots = await store.find(db, finder: finder);
         expect(snapshotsRefs(snapshots), [record2, record3]);
 
         finder = Finder(offset: 4);
         snapshots = await store.find(db, finder: finder);
+        expect(snapshots.length, 0);
+        snapshots = store.findSync(db, finder: finder);
         expect(snapshots.length, 0);
       });
 
@@ -436,6 +450,9 @@ void defineTests(DatabaseTestContext ctx) {
               snapshotsRefs(snapshots), [record4, record1, record3, record2]);
           finder.sortOrders = [SortOrder('path.sub', true, true)];
           snapshots = await (store.find(db, finder: finder));
+          expect(
+              snapshotsRefs(snapshots), [record1, record3, record2, record4]);
+          snapshots = store.findSync(db, finder: finder);
           expect(
               snapshotsRefs(snapshots), [record1, record3, record2, record4]);
         });

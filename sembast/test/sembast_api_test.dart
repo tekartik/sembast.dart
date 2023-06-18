@@ -40,13 +40,16 @@ void main() {
       store.query;
       record.get;
 
+      store.count;
+      store.find;
+      store.findFirst;
       // 2023-06-15 v3.4.8-1
-      SembastRecordRefExtension(record).getSync;
-      SembastRecordRefExtension(record).getSnapshotSync;
-      SembastRecordRefExtension(record).existsSync;
+      SembastRecordRefSyncExtension(record).getSync;
+      SembastRecordRefSyncExtension(record).getSnapshotSync;
+      SembastRecordRefSyncExtension(record).existsSync;
 
-      SembastRecordsRefExtension(records).getSync;
-      SembastRecordsRefExtension(records).getSnapshotsSync;
+      SembastRecordsRefSyncExtension(records).getSync;
+      SembastRecordsRefSyncExtension(records).getSnapshotsSync;
       SembastRecordsRefExtension(records).onSnapshots;
 
       SembastStoreRefCommonExtension(store).recordsFromRefs;
@@ -55,6 +58,22 @@ void main() {
       SembastRecordsRefCommonExtension(records)[0];
 
       valuesCompare;
+
+      // 2023-06-18 v3.4.9-1
+      SembastStoreRefSyncExtension(store).countSync;
+      SembastStoreRefSyncExtension(store).findKeysSync;
+      SembastStoreRefSyncExtension(store).findKeySync;
+      SembastStoreRefSyncExtension(store).findSync;
+      SembastStoreRefSyncExtension(store).findFirstSync;
+
+      var query = store.query();
+
+      SembastQueryRefExtension(query).count;
+      SembastQueryRefExtension(query).onCount;
+
+      SembastQueryRefSyncExtension(query).getSnapshotsSync;
+      SembastQueryRefSyncExtension(query).getSnapshotSync;
+      SembastStoreRefSyncExtension(store).findFirstSync;
     });
   });
 }

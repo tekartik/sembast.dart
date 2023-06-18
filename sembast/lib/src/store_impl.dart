@@ -239,7 +239,8 @@ class SembastStore {
       SembastTransaction? transaction, Filter? filter) {
     late StreamController<RecordSnapshot<K, V>> ctlr;
     ctlr = StreamController<RecordSnapshot<K, V>>(onListen: () {
-      forEachRecords(transaction, Finder(filter: filter), (record) {
+      forEachRecords(transaction, Finder(filter: filter) as SembastFinder,
+          (record) {
         if (ctlr.isClosed) {
           return false;
         }
@@ -273,7 +274,7 @@ class SembastStore {
   /// Cancel if false is returned
   ///
   /// Matchin filter and boundaries
-  Future forEachRecords(SembastTransaction? txn, Finder? finder,
+  Future<void> forEachRecords(SembastTransaction? txn, SembastFinder? finder,
       bool Function(ImmutableSembastRecord record) action) async {
     bool finderMatchesRecord(Finder? finder, ImmutableSembastRecord record) {
       if (record.deleted) {
@@ -321,13 +322,60 @@ class SembastStore {
     }
   }
 
+  /// Cancel if false is returned
+  ///
+  /// Matchin filter and boundaries
+  void forEachRecordsSync(SembastTransaction? txn, Finder? finder,
+      bool Function(ImmutableSembastRecord record) action) {
+    bool finderMatchesRecord(Finder? finder, ImmutableSembastRecord record) {
+      if (record.deleted) {
+        return false;
+      }
+      var sembastFinder = finder as SembastFinder?;
+      return finderMatchesFilterAndBoundaries(sembastFinder, record);
+    }
+
+    // handle record in transaction first
+    if (_hasTransactionRecords(txn)) {
+      // Copy for cooperate
+      var records = txnCurrentRecords!;
+      for (var record in records) {
+        if (finderMatchesRecord(finder, record)) {
+          if (action(record) == false) {
+            return;
+          }
+        }
+      }
+    }
+
+    var records = currentRecords;
+    for (var record in records) {
+      if (_hasTransactionRecords(txn)) {
+        if (txnRecords!.keys.contains(record.key)) {
+          // already handled
+          continue;
+        }
+      }
+      if (finderMatchesRecord(finder, record)) {
+        if (action(record) == false) {
+          return;
+        }
+      }
+    }
+  }
+
   /// Find a record key in a transaction.
-  Future txnFindKey(SembastTransaction? txn, Finder? finder) async =>
+  Future<Object?> txnFindKey(
+          SembastTransaction? txn, SembastFinder? finder) async =>
       (await txnFindRecord(txn, finder))?.key;
+
+  /// Find a record key in a transaction. synchronous version.
+  Object? txnFindKeySync(SembastTransaction? txn, SembastFinder? finder) =>
+      (txnFindRecordSync(txn, finder))?.key;
 
   /// Find a record in a transaction.
   Future<ImmutableSembastRecord?> txnFindRecord(
-      SembastTransaction? txn, Finder? finder) async {
+      SembastTransaction? txn, SembastFinder? finder) async {
     finder = cloneFinderFindFirst(finder);
     var records = await txnFindRecords(txn, finder);
     if (records.isNotEmpty) {
@@ -336,82 +384,79 @@ class SembastStore {
     return null;
   }
 
+  /// Find a record in a transaction. Synchronous version
+  ImmutableSembastRecord? txnFindRecordSync(
+      SembastTransaction? txn, SembastFinder? finder) {
+    finder = cloneFinderFindFirst(finder);
+    var records = txnFindRecordsSync(txn, finder);
+    if (records.isNotEmpty) {
+      return records.first;
+    }
+    return null;
+  }
+
   /// Find records in a transaction.
   Future<List<ImmutableSembastRecord>> txnFindRecords(
-      SembastTransaction? txn, Finder? finder) async {
-    // Two ways of storing data
-    List<ImmutableSembastRecord>? results;
-    late SplayTreeMap<Object?, ImmutableSembastRecord> preOrderedResults;
-
-    // Use pre-ordered or not
-    // Pre-ordered means we have no sort and don't need to go though all
-    // the records.
-    var sembastFinder = finder as SembastFinder?;
-    var hasSortOrder = sembastFinder?.sortOrders?.isNotEmpty ?? false;
-    var usePreordered = !hasSortOrder;
-    var preorderedCurrentOffset = 0;
-    if (usePreordered) {
-      // Preordered by key
-      preOrderedResults =
-          SplayTreeMap<Object?, ImmutableSembastRecord>(compareKey);
-    } else {
-      results = <ImmutableSembastRecord>[];
+      SembastTransaction? txn, SembastFinder? finder) async {
+    if (!cooperateOn) {
+      return txnFindRecordsSync(txn, finder);
     }
+    var finderData = _FinderData(finder);
 
-    bool addRecord(ImmutableSembastRecord record) {
-      if (usePreordered) {
-        // We can handle offset and limit directly too
-        if (sembastFinder?.offset != null) {
-          if (preorderedCurrentOffset++ < sembastFinder!.offset!) {
-            // Next!
-            return true;
-          }
-        }
-        if (sembastFinder?.limit != null) {
-          if (preOrderedResults.length >= sembastFinder!.limit! - 1) {
-            // Add an stop
-            preOrderedResults[record.key] = record;
-            return false;
-          }
-        }
-        preOrderedResults[record.key] = record;
-      } else {
-        results!.add(record);
-      }
-      return true;
-    }
-
-    await forEachRecords(txn, sembastFinder, addRecord);
-    if (usePreordered) {
-      results = preOrderedResults.values.toList(growable: false);
-    }
+    await forEachRecords(txn, finder, finderData.addRecord);
+    var results = finderData.addedResults;
 
     if (finder != null) {
-      // sort
-      if (hasSortOrder) {
-        if (cooperateOn) {
-          var sort = Sort(database.cooperator!);
-          await sort.sort(
-              results!,
-              (SembastRecord record1, SembastRecord record2) =>
-                  sembastFinder!.compareThenKey(record1, record2));
-        } else {
-          results!.sort((record1, record2) =>
-              sembastFinder!.compareThenKey(record1, record2));
-        }
+      if (finderData.hasSortOrder) {
+        var sort = Sort(database.cooperator!);
+        await sort.sort(
+            results,
+            (SembastRecord record1, SembastRecord record2) =>
+                finder.compareThenKey(record1, record2));
 
         // Apply limits
-        results = recordsLimit(results, sembastFinder);
+        results = recordsLimit(results, finder)!;
       }
     } else {
       // Already sorted by SplayTreeMap and offset and limit handled
     }
-    return results!;
+    return results;
+  }
+
+  /// Find records in a transaction. synchronous access.
+  List<ImmutableSembastRecord> txnFindRecordsSync(
+      SembastTransaction? txn, SembastFinder? finder) {
+    var finderData = _FinderData(finder);
+
+    forEachRecordsSync(txn, finder, finderData.addRecord);
+    var results = finderData.addedResults;
+
+    if (finder != null) {
+      // sort
+      if (finderData.hasSortOrder) {
+        results.sort(
+            (record1, record2) => finder.compareThenKey(record1, record2));
+
+        // Apply limits
+        results = recordsLimit(results, finder)!;
+      }
+    } else {
+      // Already sorted by SplayTreeMap and offset and limit handled
+    }
+    return results;
   }
 
   /// Find keys in a transaction.
-  Future<List> txnFindKeys(SembastTransaction? txn, Finder? finder) async {
+  Future<List<Object?>> txnFindKeys(
+      SembastTransaction? txn, SembastFinder? finder) async {
     var records = await txnFindRecords(txn, finder);
+    return records.map((SembastRecord record) => record.key).toList();
+  }
+
+  /// Find keys in a transaction. synchronous access.
+  List<Object?> txnFindKeysSync(
+      SembastTransaction? txn, SembastFinder? finder) {
+    var records = txnFindRecordsSync(txn, finder);
     return records.map((SembastRecord record) => record.key).toList();
   }
 
@@ -597,32 +642,58 @@ class SembastStore {
         .toList();
   }
 
+  /// Count records in a transaction without filter.
+  int txnNoFilterTransactionRecordCount(SembastTransaction? txn) {
+    // Use the current record list
+    var count = recordMap.length;
+
+    // Apply any transaction change
+    if (_hasTransactionRecords(txn)) {
+      txnRecords!.forEach((key, value) {
+        var deleted = value.deleted;
+        if (recordMap.containsKey(key)) {
+          if (deleted) {
+            count--;
+          }
+        } else {
+          if (!deleted) {
+            count++;
+          }
+        }
+      });
+    }
+    return count;
+  }
+
   /// Count records in a transaction.
   Future<int> txnCount(SembastTransaction? txn, Filter? filter) async {
     var count = 0;
     // no filter optimization
     if (filter == null) {
       // Use the current record list
-      count += recordMap.length;
-
-      // Apply any transaction change
-      if (_hasTransactionRecords(txn)) {
-        txnRecords!.forEach((key, value) {
-          var deleted = value.deleted;
-          if (recordMap.containsKey(key)) {
-            if (deleted) {
-              count--;
-            }
-          } else {
-            if (!deleted) {
-              count++;
-            }
-          }
-        });
-      }
+      count += txnNoFilterTransactionRecordCount(txn);
     } else {
       // There is a filter, count manually
-      await forEachRecords(txn, Finder(filter: filter), (record) {
+      await forEachRecords(txn, Finder(filter: filter) as SembastFinder,
+          (record) {
+        count++;
+        return true;
+      });
+    }
+    return count;
+  }
+
+  /// Count records in a transaction. Synchronous version.
+  int txnCountSync(SembastTransaction? txn, Filter? filter) {
+    var count = 0;
+    // no filter optimization
+    if (filter == null) {
+      // Use the current record list
+      count += txnNoFilterTransactionRecordCount(txn);
+    } else {
+      // There is a filter, count manually
+      forEachRecordsSync(txn, Finder(filter: filter) as SembastFinder,
+          (record) {
         count++;
         return true;
       });
@@ -652,7 +723,8 @@ class SembastStore {
     } else {
       keys = {};
       // There is a filter, count manually
-      await forEachRecords(txn, Finder(filter: filter), (record) {
+      await forEachRecords(txn, Finder(filter: filter) as SembastFinder,
+          (record) {
         keys.add(record.key);
         return true;
       });
@@ -780,7 +852,7 @@ class SembastStore {
 
   /// Clear a store in a transaction.
   Future<List<Object?>> txnClear(SembastTransaction txn,
-      {Finder? finder}) async {
+      {SembastFinder? finder}) async {
     if (finder == null) {
       var deletedKeys = <Object?>[];
       if (_hasTransactionRecords(txn)) {
@@ -799,7 +871,7 @@ class SembastStore {
 
   /// Update records in a transaction.
   Future<List> txnUpdateWhere(SembastTransaction txn, Value value,
-      {Finder? finder}) async {
+      {SembastFinder? finder}) async {
     var keys = await txnFindKeys(txn, finder);
     try {
       for (var key in keys) {
@@ -842,4 +914,62 @@ bool finderRecordMatchBoundaries(SembastFinder finder, RecordSnapshot result) {
     }
   }
   return true;
+}
+
+/// Find data helper shared between asynchronous and asynchronous read access.
+class _FinderData {
+  // Two ways of storing data
+  late List<ImmutableSembastRecord> results;
+  late SplayTreeMap<Object?, ImmutableSembastRecord> preOrderedResults;
+
+  // Use pre-ordered or not
+  // Pre-ordered means we have no sort and don't need to go though all
+  // the records.
+  final SembastFinder? sembastFinder;
+
+  late var hasSortOrder = sembastFinder?.sortOrders?.isNotEmpty ?? false;
+  late var usePreordered = !hasSortOrder;
+  var preorderedCurrentOffset = 0;
+
+  _FinderData(this.sembastFinder) {
+    if (usePreordered) {
+      // Preordered by key
+      preOrderedResults =
+          SplayTreeMap<Object?, ImmutableSembastRecord>(compareKey);
+    } else {
+      results = <ImmutableSembastRecord>[];
+    }
+  }
+
+  /// get the results added
+  List<ImmutableSembastRecord> get addedResults {
+    if (usePreordered) {
+      return preOrderedResults.values.toList(growable: false);
+    } else {
+      return results;
+    }
+  }
+
+  bool addRecord(ImmutableSembastRecord record) {
+    if (usePreordered) {
+      // We can handle offset and limit directly too
+      if (sembastFinder?.offset != null) {
+        if (preorderedCurrentOffset++ < sembastFinder!.offset!) {
+          // Next!
+          return true;
+        }
+      }
+      if (sembastFinder?.limit != null) {
+        if (preOrderedResults.length >= sembastFinder!.limit! - 1) {
+          // Add an stop
+          preOrderedResults[record.key] = record;
+          return false;
+        }
+      }
+      preOrderedResults[record.key] = record;
+    } else {
+      results.add(record);
+    }
+    return true;
+  }
 }

@@ -44,15 +44,6 @@ extension SembastRecordsRefExtension<K, V> on RecordsRef<K, V> {
         .txnGetRecordSnapshots(client.sembastTransaction, this);
   }
 
-  /// Get all records snapshot synchronously.
-  List<RecordSnapshot<K, V>?> getSnapshotsSync(DatabaseClient databaseClient) {
-    var client = getClient(databaseClient);
-
-    return client
-        .getSembastStore(store)
-        .txnGetRecordSnapshotsSync(client.sembastTransaction, this);
-  }
-
   /// Create records that don't exist.
   ///
   /// The list of [values] must match the list of keys.
@@ -119,11 +110,6 @@ extension SembastRecordsRefExtension<K, V> on RecordsRef<K, V> {
           .map((snapshot) => snapshot?.value)
           .toList(growable: false);
 
-  /// Get all records values synchronously.
-  List<V?> getSync(DatabaseClient client) => (getSnapshotsSync(client))
-      .map((snapshot) => snapshot?.value)
-      .toList(growable: false);
-
   /// Get a stream of a record snapshots from the database.
   ///
   /// It allows listening to multiple records. First emit happens when all
@@ -131,6 +117,25 @@ extension SembastRecordsRefExtension<K, V> on RecordsRef<K, V> {
   Stream<List<RecordSnapshot<K, V>?>> onSnapshots(Database database) {
     return streamJoinAll(refs.map((e) => e.onSnapshot(database)).toList());
   }
+}
+
+/// Record ref sembast public extension.
+///
+/// Provides access helper to data on the store using a given [DatabaseClient].
+extension SembastRecordsRefSyncExtension<K, V> on RecordsRef<K, V> {
+  /// Get all records snapshot synchronously.
+  List<RecordSnapshot<K, V>?> getSnapshotsSync(DatabaseClient databaseClient) {
+    var client = getClient(databaseClient);
+
+    return client
+        .getSembastStore(store)
+        .txnGetRecordSnapshotsSync(client.sembastTransaction, this);
+  }
+
+  /// Get all records values synchronously.
+  List<V?> getSync(DatabaseClient client) => (getSnapshotsSync(client))
+      .map((snapshot) => snapshot?.value)
+      .toList(growable: false);
 }
 
 /// Records ref mixin.

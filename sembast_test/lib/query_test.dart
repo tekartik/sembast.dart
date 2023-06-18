@@ -31,14 +31,33 @@ void defineTests(DatabaseTestContext ctx) {
     Future expectQueryAndFirstSnapshotKeys(
         Finder? finder, List<int> keys) async {
       var store = StoreRef<int, Object>.main();
-      var results = await store.query(finder: finder).onSnapshots(db).first;
+      var query = store.query(finder: finder);
+      var results = await query.onSnapshots(db).first;
       expect(results.map((e) => e.key), keys);
-      results = await store.query(finder: finder).getSnapshots(db);
+      results = await query.getSnapshots(db);
+      expect(results.map((e) => e.key), keys);
+      results = query.getSnapshotsSync(db);
       expect(results.map((e) => e.key), keys);
       results = await store.find(db, finder: finder);
       expect(results.map((e) => e.key), keys);
+      results = store.findSync(db, finder: finder);
+      expect(results.map((e) => e.key), keys);
+
+      expect(query.countSync(db), keys.length);
+      expect(await query.count(db), keys.length);
+      expect(await query.onCount(db).first, keys.length);
+
       var result = await store.findFirst(db, finder: finder);
       var queryResult = await store.query(finder: finder).getSnapshot(db);
+      expect(result?.key, queryResult?.key);
+      if (keys.isEmpty) {
+        expect(result, isNull);
+      } else {
+        expect(result!.key, keys.first);
+      }
+
+      result = store.findFirstSync(db, finder: finder);
+      queryResult = store.query(finder: finder).getSnapshotSync(db);
       expect(result?.key, queryResult?.key);
       if (keys.isEmpty) {
         expect(result, isNull);

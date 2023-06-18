@@ -66,12 +66,23 @@ extension SembastStoreRefExtensionImpl<K, V> on StoreRef<K, V> {
   /// Find immutables records.
   Future<List<ImmutableSembastRecord>> findImmutableRecords(
       DatabaseClient databaseClient,
-      {Finder? finder}) async {
+      {SembastFinder? finder}) async {
     final client = getClient(databaseClient);
 
     return await client
         .getSembastStore(this)
         .txnFindRecords(client.sembastTransaction, finder);
+  }
+
+  /// Find immutables records. synchronous access.
+  List<ImmutableSembastRecord> findImmutableRecordsSync(
+      DatabaseClient databaseClient,
+      {SembastFinder? finder}) {
+    final client = getClient(databaseClient);
+
+    return client
+        .getSembastStore(this)
+        .txnFindRecordsSync(client.sembastTransaction, finder);
   }
 
   /// Find key set.
@@ -90,7 +101,7 @@ extension SembastStoreRefExtensionImpl<K, V> on StoreRef<K, V> {
 extension SembastStoreRefExtensionPrv<K, V> on StoreRef<K, V> {
   /// Delete the store and its content
   FilterRef<K, V> filter({Filter? filter}) =>
-      SembastFilterRef<K, V>(this, filter);
+      SembastFilterRef<K, V>(this as SembastStoreRef<K, V>, filter);
 }
 
 /// Store ref common public sembast extension (no db access).
@@ -122,7 +133,7 @@ extension SembastStoreRefExtension<K, V> on StoreRef<K, V> {
 
     var record = await client
         .getSembastStore(this)
-        .txnFindRecord(client.sembastTransaction, finder);
+        .txnFindRecord(client.sembastTransaction, finder as SembastFinder?);
     if (record == null) {
       return null;
     } else {
@@ -137,7 +148,8 @@ extension SembastStoreRefExtension<K, V> on StoreRef<K, V> {
   ///
   Future<List<RecordSnapshot<K, V>>> find(DatabaseClient databaseClient,
       {Finder? finder}) async {
-    var records = await findImmutableRecords(databaseClient, finder: finder);
+    var records = await findImmutableRecords(databaseClient,
+        finder: finder as SembastFinder?);
     return immutableListToSnapshots<K, V>(records);
   }
 
@@ -158,7 +170,7 @@ extension SembastStoreRefExtension<K, V> on StoreRef<K, V> {
 
     var key = await client
         .getSembastStore(this)
-        .txnFindKey(client.sembastTransaction, finder);
+        .txnFindKey(client.sembastTransaction, finder as SembastFinder?);
     return (key as K?);
   }
 
@@ -173,7 +185,7 @@ extension SembastStoreRefExtension<K, V> on StoreRef<K, V> {
 
     var keys = await client
         .getSembastStore(this)
-        .txnFindKeys(client.sembastTransaction, finder);
+        .txnFindKeys(client.sembastTransaction, finder as SembastFinder?);
     return keys.cast<K>();
   }
 
@@ -202,7 +214,7 @@ extension SembastStoreRefExtension<K, V> on StoreRef<K, V> {
   /// onCount stream, called when the number of items changes.
   ///
   Stream<int> onCount(Database database, {Filter? filter}) =>
-      SembastFilterRef(this, filter).onCount(database);
+      SembastFilterRef(this as SembastStoreRef<K, V>, filter).onCount(database);
 
   ///
   /// Add a record, returns its generated key.
@@ -261,9 +273,9 @@ extension SembastStoreRefExtension<K, V> on StoreRef<K, V> {
     value = client.sembastDatabase
         .sanitizeInputValue<V>(value as Value, update: true);
     return client.inTransaction((txn) async {
-      return (await client
-              .getSembastStore(this)
-              .txnUpdateWhere(txn, value as Value, finder: finder))
+      return (await client.getSembastStore(this).txnUpdateWhere(
+              txn, value as Value,
+              finder: finder as SembastFinder?))
           .length;
     });
   }
@@ -274,7 +286,9 @@ extension SembastStoreRefExtension<K, V> on StoreRef<K, V> {
   Future<int> delete(DatabaseClient databaseClient, {Finder? finder}) {
     final client = getClient(databaseClient);
     return client.inTransaction((txn) async {
-      return (await client.getSembastStore(this).txnClear(txn, finder: finder))
+      return (await client
+              .getSembastStore(this)
+              .txnClear(txn, finder: finder as SembastFinder?))
           .length;
     });
   }
@@ -301,6 +315,79 @@ extension SembastStoreRefExtension<K, V> on StoreRef<K, V> {
       Database database, TransactionRecordChangeListener<K, V> onChanges) {
     (database as SembastDatabase)
         .removeOnChangesListener<K, V>(this, onChanges);
+  }
+}
+
+/// Store ref public sembast extension.
+///
+/// Provides access helper to data on the store using a given [DatabaseClient].
+extension SembastStoreRefSyncExtension<K, V> on StoreRef<K, V> {
+  /// Find a single record.
+  ///
+  /// Returns null if not found.
+  RecordSnapshot<K, V>? findFirstSync(DatabaseClient databaseClient,
+      {Finder? finder}) {
+    final client = getClient(databaseClient);
+
+    var record = client
+        .getSembastStore(this)
+        .txnFindRecordSync(client.sembastTransaction, finder as SembastFinder?);
+    if (record == null) {
+      return null;
+    } else {
+      return SembastRecordSnapshot<K, V>.fromRecord(record);
+    }
+  }
+
+  ///
+  /// Find multiple records. Synchronous access.
+  ///
+  /// Returns an empty array if none found.
+  ///
+  List<RecordSnapshot<K, V>> findSync(DatabaseClient databaseClient,
+      {Finder? finder}) {
+    var records = findImmutableRecordsSync(databaseClient,
+        finder: finder as SembastFinder?);
+    return immutableListToSnapshots<K, V>(records);
+  }
+
+  ///
+  /// Find one key.
+  ///
+  /// Returns null if not found.
+  ///
+  K? findKeySync(DatabaseClient databaseClient, {Finder? finder}) {
+    final client = getClient(databaseClient);
+
+    var key = client
+        .getSembastStore(this)
+        .txnFindKeySync(client.sembastTransaction, finder as SembastFinder?);
+    return (key as K?);
+  }
+
+  ///
+  /// Find multiple keys.
+  ///
+  /// Return an empty array if none found.
+  ///
+  List<K> findKeysSync(DatabaseClient databaseClient, {Finder? finder}) {
+    final client = getClient(databaseClient);
+
+    var keys = client
+        .getSembastStore(this)
+        .txnFindKeysSync(client.sembastTransaction, finder as SembastFinder?);
+    return keys.cast<K>();
+  }
+
+  ///
+  /// count records.
+  ///
+  int countSync(DatabaseClient databaseClient, {Filter? filter}) {
+    final client = getClient(databaseClient);
+    // no transaction needed for read
+    return client
+        .getSembastStore(this)
+        .txnCountSync(client.sembastTransaction, filter);
   }
 }
 
