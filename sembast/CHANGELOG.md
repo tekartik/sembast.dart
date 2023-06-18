@@ -1,3 +1,7 @@
+## 3.4.9-1
+
+* Add synchronous version for all read APIs.
+
 ## 3.4.8
 
 * Add `RecordRef.getSync()`, `RecordRef.getSnapshotSync()`, `RecordRef.existsSync()` synchronous API extension.
