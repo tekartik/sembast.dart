@@ -2,6 +2,7 @@ library sembast.utils.value_utils;
 
 import 'package:sembast/src/import_common.dart';
 import 'package:sembast/src/utils.dart' as utils;
+
 export 'package:sembast/src/json_utils.dart' show jsonEncodableSort;
 
 /// Clone a map to make it writable.
@@ -22,3 +23,7 @@ List<Object?> cloneList(List<Object?> value) =>
 ///
 /// This should be used to create a writable object that can be modified.
 Value cloneValue(Value value) => utils.cloneValue(value);
+
+/// Compare two values.
+int valuesCompare(Object? value1, Object? value2) =>
+    utils.compareValue(value1, value2);

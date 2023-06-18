@@ -1,3 +1,10 @@
+## 3.4.8
+
+* Add `RecordRef.getSync()`, `RecordRef.getSnapshotSync()`, `RecordRef.existsSync()` synchronous API extension.
+* Add `RecordsRef.getSync()`, `RecordsRef.getSnapshotSync()` synchronous API extension.
+* Add `RecordsRef.onSnapshots()` watcher extension.
+* Add `valuesCompare()` in `utils.value_utils.dart` to compare values.
+
 ## 3.4.7
 
 * Export 'Database.compact()' as a class extension.

@@ -362,3 +362,13 @@ var sum = ages.reduce((value, element) => value + element);
 // Compute average
 var average = sum / ages.length;
 ```
+
+### Synchronous API
+
+As of 3.4.8-1, get by keys can now be synchronous (since the implementation is basically reading from a map).
+- `RecordRef.getSync()`
+- `RecordRef.getSnapshotSync()`
+- `RecordRef.existsSync()`
+- `RecordsRef.getSnapshotsSync()`
+- `RecordsRef.getSync()`
+

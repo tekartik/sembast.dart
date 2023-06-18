@@ -26,12 +26,13 @@ export 'package:sembast/src/record_ref_impl.dart'
 
 // v3.0.0
 export 'package:sembast/src/records_ref_impl.dart'
-    show SembastRecordsRefExtension;
+    show SembastRecordsRefExtension, SembastRecordsRefCommonExtension;
 
 // v2.4
 export 'package:sembast/src/sembast_codec.dart'
     show sembastCodecDefault, sembastCodecWithAdapters;
-export 'package:sembast/src/store_ref_impl.dart' show SembastStoreRefExtension;
+export 'package:sembast/src/store_ref_impl.dart'
+    show SembastStoreRefCommonExtension, SembastStoreRefExtension;
 export 'package:sembast/src/type_adapter_impl.dart'
     show sembastDefaultTypeAdapters;
 

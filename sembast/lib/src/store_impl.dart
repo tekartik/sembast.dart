@@ -3,7 +3,6 @@ import 'dart:collection';
 import 'package:sembast/src/finder_impl.dart';
 import 'package:sembast/src/key_utils.dart';
 import 'package:sembast/src/record_impl.dart';
-import 'package:sembast/src/record_snapshot_impl.dart';
 import 'package:sembast/src/sort.dart';
 import 'package:sembast/src/transaction_impl.dart';
 import 'package:sembast/src/utils.dart';
@@ -506,7 +505,7 @@ class SembastStore {
 
   /// Get a record in a transaction.
   Future<ImmutableSembastRecord?> txnGetRecord(
-      SembastTransaction? txn, Object key) async {
+      SembastTransaction? txn, Key key) async {
     var record = txnGetRecordSync(txn, key);
     // Cooperate after!
     if (needCooperate) {
@@ -515,13 +514,26 @@ class SembastStore {
     return record;
   }
 
+  /// Get a casted record by key in a transaction.
+  Future<RecordSnapshot<K, V>?>
+      txnGetRecordSnapshot<K extends Key?, V extends Value?>(
+          SembastTransaction? txn, K key) async {
+    return (await txnGetRecord(txn, key as Key))?.cast<K, V>();
+  }
+
   /// Check if a record exists in a transaction.
   Future<bool> txnRecordExists(SembastTransaction? txn, Object key) async {
-    var record = txnGetImmutableRecordSync(txn, key);
+    var exists = txnRecordExistsSync(txn, key);
     // Cooperate after!
     if (needCooperate) {
       await cooperate();
     }
+    return exists;
+  }
+
+  /// Check if a record exists in a transaction synchronously.
+  bool txnRecordExistsSync(SembastTransaction? txn, Object key) {
+    var record = txnGetImmutableRecordSync(txn, key);
     return (record?.deleted == false);
   }
 
@@ -532,6 +544,12 @@ class SembastStore {
       return null;
     }
     return record;
+  }
+
+  /// Get a casted record by key in a transaction.
+  RecordSnapshot<K, V>? txnGetRecordSnapshotSync<K, V>(
+      SembastTransaction? txn, K key) {
+    return txnGetRecordSync(txn, key)?.cast<K, V>();
   }
 
   /// Return records ignoring non found ones and deleted
@@ -563,17 +581,20 @@ class SembastStore {
     final snapshots = <RecordSnapshot<K, V>?>[];
 
     for (var key in refs.keys) {
-      var immutable = txnGetImmutableRecordSync(txn, key as Key);
-      if (immutable != null && (!immutable.deleted)) {
-        snapshots.add(SembastRecordSnapshot<K, V>.fromRecord(immutable));
-      } else {
-        snapshots.add(null);
-      }
+      snapshots.add(txnGetRecordSnapshotSync(txn, key));
       if (needCooperate) {
         await cooperate();
       }
     }
     return snapshots;
+  }
+
+  /// Return records, not found and delete as null
+  List<RecordSnapshot<K, V>?> txnGetRecordSnapshotsSync<K, V>(
+      SembastTransaction? txn, RecordsRef<K, V> refs) {
+    return refs.keys
+        .map((key) => txnGetRecordSnapshotSync<K, V>(txn, key))
+        .toList();
   }
 
   /// Count records in a transaction.

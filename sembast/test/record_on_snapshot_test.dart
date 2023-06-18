@@ -77,5 +77,19 @@ void main() {
         print(_);
       }
     });
+
+    test('records.onSnapshots', () async {
+      // Key is an int, value is an int
+      var store = StoreRef<int, int>.main();
+      // Key is 1 and 2
+      var record1 = store.record(1);
+      var record2 = store.record(2);
+      var records = store.records([1, 2]);
+      expect(await records.onSnapshots(db).first, [null, null]);
+      await record1.put(db, 1);
+      await record2.put(db, 2);
+      expect(
+          (await records.onSnapshots(db).first).map((e) => e?.value), [1, 2]);
+    });
   });
 }
