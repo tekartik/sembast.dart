@@ -1,6 +1,10 @@
-## 3.4.9-1
+## 3.4.9
 
-* Add synchronous version for all read APIs.
+* Add APIs `QueryRef.count()`, `QueryRef.onCount()`.
+* Add synchronous version for all read APIs: `StoreRef.countSync()`,
+  `StoreRef.findKeysSync()`, `StoreRef.findKeySync()`, `StoreRef.findSync()`,
+  `StoreRef.findFirstSync()`, `QueryRef.countSync()`, `QueryRef.getSnapshotsSync()`,
+  `QueryRef.getSnapshotSync()`.
 
 ## 3.4.8
 

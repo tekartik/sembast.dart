@@ -73,7 +73,7 @@ void main() {
 
       SembastQueryRefSyncExtension(query).getSnapshotsSync;
       SembastQueryRefSyncExtension(query).getSnapshotSync;
-      SembastStoreRefSyncExtension(store).findFirstSync;
+      SembastQueryRefSyncExtension(query).countSync;
     });
   });
 }

@@ -365,6 +365,8 @@ var average = sum / ages.length;
 
 ### Synchronous API
 
+In general, I don't recommend using the synchronous API as complex queries can block the UI.
+
 As of 3.4.8-1, get by keys can now be synchronous (since the implementation is basically reading from a map).
 - `RecordRef.getSync()`
 - `RecordRef.getSnapshotSync()`
@@ -372,3 +374,12 @@ As of 3.4.8-1, get by keys can now be synchronous (since the implementation is b
 - `RecordsRef.getSnapshotsSync()`
 - `RecordsRef.getSync()`
 
+As of 3.4.9-1, All read access is allowed synchronously:
+- `StoreRef.countSync()`;
+- `StoreRef.findKeysSync()`;
+- `StoreRef.findKeySync()`;
+- `StoreRef.findSync()`;
+- `StoreRef.findFirstSync()`;
+- `QueryRef.countSync()`;
+- `QueryRef.getSnapshotsSync()`;
+- `QueryRef.getSnapshotSync()`;
