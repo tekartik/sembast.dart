@@ -43,6 +43,9 @@ class SembastCustomFilter extends SembastFilterBase {
       return false;
     }
   }
+
+  @override
+  String toString() => 'SembastCustomFilter()';
 }
 
 abstract class _FilterAnyInList {

@@ -1,3 +1,11 @@
+## 3.4.9
+
+* Add APIs `QueryRef.count()`, `QueryRef.onCount()`.
+* Add synchronous version for all read APIs: `StoreRef.countSync()`,
+  `StoreRef.findKeysSync()`, `StoreRef.findKeySync()`, `StoreRef.findSync()`,
+  `StoreRef.findFirstSync()`, `QueryRef.countSync()`, `QueryRef.getSnapshotsSync()`,
+  `QueryRef.getSnapshotSync()`.
+
 ## 3.4.8
 
 * Add `RecordRef.getSync()`, `RecordRef.getSnapshotSync()`, `RecordRef.existsSync()` synchronous API extension.

@@ -10,7 +10,7 @@ import 'import_common.dart';
 /// A query is unique
 class SembastFilterRef<K, V> implements FilterRef<K, V> {
   /// The store.
-  final StoreRef<K, V> store;
+  final SembastStoreRef<K, V> store;
 
   /// The filter.
   final Filter? filter;
@@ -23,8 +23,17 @@ class SembastFilterRef<K, V> implements FilterRef<K, V> {
 
   @override
   String toString() => '$store $filter';
+}
 
-  @override
+/// Private filter extension.
+extension SembastFilterRefExtensionPrv<K, V> on FilterRef<K, V> {
+  /// Casted as sembast filter.
+  SembastFilterRef<K, V> get sembastFilterRef => this as SembastFilterRef<K, V>;
+
+  /// Find multiple records and listen for count changes.
+  ///
+  /// Returns a single subscriber stream that must be cancelled.
+
   Stream<int> onCount(Database database) {
     var db = getDatabase(database);
     // Create the query but don't add it until first result is set
@@ -38,8 +47,8 @@ class SembastFilterRef<K, V> implements FilterRef<K, V> {
       try {
         await db.notificationLock.synchronized(() async {
           // Find all matching, ignoring offset/limit but order them
-          var keys = await (store as SembastStoreRef<K, V>)
-              .filterKeys(database, filter: filter);
+          var keys = await sembastFilterRef.store
+              .filterKeys(database, filter: sembastFilterRef.filter);
           // ignore: unawaited_futures
 
           // Get the result at query time first

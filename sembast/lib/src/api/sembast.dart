@@ -22,17 +22,23 @@ export 'package:sembast/src/cooperator.dart'
 
 // v2.4.3
 export 'package:sembast/src/record_ref_impl.dart'
-    show SembastRecordRefExtension;
+    show SembastRecordRefExtension, SembastRecordRefSyncExtension;
 
 // v3.0.0
 export 'package:sembast/src/records_ref_impl.dart'
-    show SembastRecordsRefExtension, SembastRecordsRefCommonExtension;
+    show
+        SembastRecordsRefExtension,
+        SembastRecordsRefCommonExtension,
+        SembastRecordsRefSyncExtension;
 
 // v2.4
 export 'package:sembast/src/sembast_codec.dart'
     show sembastCodecDefault, sembastCodecWithAdapters;
 export 'package:sembast/src/store_ref_impl.dart'
-    show SembastStoreRefCommonExtension, SembastStoreRefExtension;
+    show
+        SembastStoreRefCommonExtension,
+        SembastStoreRefExtension,
+        SembastStoreRefSyncExtension;
 export 'package:sembast/src/type_adapter_impl.dart'
     show sembastDefaultTypeAdapters;
 
@@ -46,3 +52,10 @@ export 'package:sembast/src/record_change.dart'
 // V3.4.0+2
 export 'package:sembast/src/async_content_codec.dart'
     show AsyncContentCodecBase;
+
+// V3.4.9-1
+export 'package:sembast/src/query_ref_impl.dart'
+    show
+        SembastQueryRefExtension,
+        SembastQueryRefCommonExtension,
+        SembastQueryRefSyncExtension;

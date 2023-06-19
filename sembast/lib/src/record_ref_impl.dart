@@ -109,10 +109,6 @@ extension SembastRecordRefExtension<K, V> on RecordRef<K, V> {
   Future<V?> get(DatabaseClient databaseClient) async =>
       (await getSnapshot(databaseClient))?.value;
 
-  /// Get a record value from the database synchronously.
-  V? getSync(DatabaseClient databaseClient) =>
-      getSnapshotSync(databaseClient)?.value;
-
   /// Get a record snapshot from the database.
   Future<RecordSnapshot<K, V>?> getSnapshot(
       DatabaseClient databaseClient) async {
@@ -122,15 +118,6 @@ extension SembastRecordRefExtension<K, V> on RecordRef<K, V> {
         .getSembastStore(store)
         .txnGetRecordSnapshot<K, V>(client.sembastTransaction, key);
     return record;
-  }
-
-  /// Get a record snapshot from the database synchronously.
-  RecordSnapshot<K, V>? getSnapshotSync(DatabaseClient databaseClient) {
-    var client = getClient(databaseClient);
-
-    return client
-        .getSembastStore(store)
-        .txnGetRecordSnapshotSync<K, V>(client.sembastTransaction, key);
   }
 
   /// Get a stream of a record snapshot from the database.
@@ -168,14 +155,6 @@ extension SembastRecordRefExtension<K, V> on RecordRef<K, V> {
         .txnRecordExists(client.sembastTransaction, key as Key);
   }
 
-  /// Return true if the record exists synchronously.
-  bool existsSync(DatabaseClient databaseClient) {
-    var client = getClient(databaseClient);
-    return client
-        .getSembastStore(store)
-        .txnRecordExistsSync(client.sembastTransaction, key as Key);
-  }
-
   /// Delete the record. Returns the key if deleted, null if not found.
   Future<K?> delete(DatabaseClient databaseClient) {
     var client = getClient(databaseClient);
@@ -183,5 +162,31 @@ extension SembastRecordRefExtension<K, V> on RecordRef<K, V> {
       return await client.getSembastStore(store).txnDelete(txn, key as Key)
           as K?;
     });
+  }
+}
+
+/// Record ref sembast public extension.
+///
+/// Provides read access helper to data on the store using a given [DatabaseClient].
+extension SembastRecordRefSyncExtension<K, V> on RecordRef<K, V> {
+  /// Get a record value from the database synchronously.
+  V? getSync(DatabaseClient databaseClient) =>
+      getSnapshotSync(databaseClient)?.value;
+
+  /// Get a record snapshot from the database synchronously.
+  RecordSnapshot<K, V>? getSnapshotSync(DatabaseClient databaseClient) {
+    var client = getClient(databaseClient);
+
+    return client
+        .getSembastStore(store)
+        .txnGetRecordSnapshotSync<K, V>(client.sembastTransaction, key);
+  }
+
+  /// Return true if the record exists synchronously.
+  bool existsSync(DatabaseClient databaseClient) {
+    var client = getClient(databaseClient);
+    return client
+        .getSembastStore(store)
+        .txnRecordExistsSync(client.sembastTransaction, key as Key);
   }
 }
