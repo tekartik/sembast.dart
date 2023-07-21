@@ -1,7 +1,8 @@
-## 3.5.0
+## 3.5.0+1
 
 * Dart 3 only
-* Export `SembastTypeAdapter` and `JsonEncodableCodec` from `utils/type_adapter.dart`
+* Export `SembastTypeAdapter`, `JsonEncodableCodec`, `JsonEncodableEncoder` and
+  `JsonEncodableDecoder` from `utils/type_adapter.dart`
 
 ## 3.4.9
 
