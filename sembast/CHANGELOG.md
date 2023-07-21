@@ -1,3 +1,8 @@
+## 3.5.0
+
+* Dart 3 only
+* Export `SembastTypeAdapter` and `JsonEncodableCodec` from `utils/type_adapter.dart`
+
 ## 3.4.9
 
 * Add APIs `QueryRef.count()`, `QueryRef.onCount()`.
