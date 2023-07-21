@@ -8,6 +8,10 @@ void main() {
       SembastTypeAdapter;
       // ignore: unnecessary_statements
       JsonEncodableCodec;
+      // ignore: unnecessary_statements
+      JsonEncodableEncoder;
+      // ignore: unnecessary_statements
+      JsonEncodableDecoder;
     });
   });
 }
