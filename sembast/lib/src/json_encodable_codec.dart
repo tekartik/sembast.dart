@@ -40,7 +40,7 @@ Map<String, SembastTypeAdapter> sembastTypeAdaptersToMap(
   return adaptersMap;
 }
 
-/// Codec to/from a json encodable format, custome types being handled
+/// Codec to/from a json encodable format, custom types being handled
 /// by the type adapters
 class JsonEncodableCodec extends Codec<Object, Object> {
   Map<String, SembastTypeAdapter>? _adapters;
