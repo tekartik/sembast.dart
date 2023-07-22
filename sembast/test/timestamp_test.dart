@@ -86,6 +86,17 @@ void main() {
           Timestamp.fromMicrosecondsSinceEpoch(timestamp.microsecondsSinceEpoch)
               .toIso8601String(),
           startsWith('1234-12-12T12:34:56.789')); // missing some precision !
+
+      timestamp = Timestamp(1, 123000000);
+      expect(
+          Timestamp.fromMillisecondsSinceEpoch(
+              timestamp.millisecondsSinceEpoch),
+          timestamp);
+      timestamp = Timestamp(1, 123456000);
+      expect(
+          Timestamp.fromMicrosecondsSinceEpoch(
+              timestamp.microsecondsSinceEpoch),
+          timestamp);
     });
     test('equals', () {
       expect(Timestamp(1, 2), Timestamp(1, 2));
