@@ -12,7 +12,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     defaults:
       run:
-        working-directory: repo_support
+        working-directory: .
     strategy:
       fail-fast: false
       matrix:
@@ -25,4 +25,4 @@ jobs:
           sdk: ${{ matrix.dart }}
       - run: dart --version
       - run: dart pub global activate dev_test
-      - run: dart pub global run dev_test:run_ci --pub-downgrade --analyze --recursive
+      - run: dart pub global run dev_test:run_ci --pub-downgrade --analyze --no-override --recursive
