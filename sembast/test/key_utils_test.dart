@@ -1,9 +1,4 @@
-library sembast.value_utils_test;
-
-// basically same as the io runner but with extra output
-
-import 'package:sembast/src/api/protected/key_utils.dart';
-// ignore_for_file: implementation_imports
+import 'package:sembast/utils/key_utils.dart';
 import 'package:test/test.dart';
 
 void main() {
