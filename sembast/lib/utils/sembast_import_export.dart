@@ -270,14 +270,42 @@ Future<Database> importDatabaseAny(
         codec: codec, storeNames: storeNames);
   }
 
+  srcData = decodeImportAny(srcData);
   try {
     if (srcData is Map) {
       return mapImport(srcData);
     } else if (srcData is List) {
+      return linesImport(srcData);
+    }
+  } catch (e) {
+    print('import error $e');
+    throw FormatException('invalid export format (error: $e)');
+  }
+  throw FormatException('invalid export format (${srcData.runtimeType})');
+}
+
+///
+/// Decode the exported data to be imported.
+///
+/// Returns a list of data or a map.
+///
+Object decodeImportAny(Object srcData) {
+  Map mapImport(Map map) {
+    return map;
+  }
+
+  Object linesImport(List lines) {
+    return lines;
+  }
+
+  try {
+    if (srcData is Map) {
+      return mapImport(srcData);
+    } else if (srcData is Iterable) {
       if (srcData.isNotEmpty) {
         // First is meta
         if (srcData.first is Map) {
-          return linesImport(srcData);
+          return linesImport(srcData.toList());
         } else if (srcData.first is String) {
           // list of json string?
           var srcLines = srcData.map((e) => jsonDecode(e.toString())).toList();
@@ -292,8 +320,7 @@ Future<Database> importDatabaseAny(
         srcDecoded = jsonDecode(srcData.trim()) as Object?;
       } catch (_) {}
       if (srcDecoded is Map || srcDecoded is List) {
-        return importDatabaseAny(srcDecoded!, dstFactory, dstPath,
-            codec: codec, storeNames: storeNames);
+        return srcDecoded!;
       }
 
       var lines = LineSplitter.split(srcData.trim());
@@ -304,12 +331,18 @@ Future<Database> importDatabaseAny(
     }
   } catch (e) {
     print('import error $e');
-    throw FormatException('invalid export format (error: $e)');
+    throw FormatException('decode invalid export format (error: $e)');
   }
-  throw FormatException('invalid export format (${srcData.runtimeType})');
+  throw FormatException(
+      'decode invalid export format (${srcData.runtimeType})');
 }
 
 /// Convert export as a list of string (export is is a List or non null objects)
 List<String> exportLinesToJsonStringList(List export) {
   return export.map((e) => jsonEncode(jsonEncodableSort(e as Object))).toList();
 }
+
+/// Convert export as a list of string (export is is a List or non null objects)
+String exportLinesToJsonlString(List export) => export
+    .map((e) => '${jsonEncode(jsonEncodableSort(e as Object))}\n')
+    .join('');

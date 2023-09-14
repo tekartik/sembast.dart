@@ -1,3 +1,7 @@
+## 3.5.1-1
+
+* Add io export utils (mainly for tests)
+
 ## 3.5.0+1
 
 * Dart 3 only
