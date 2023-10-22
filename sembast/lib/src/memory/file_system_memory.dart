@@ -95,7 +95,7 @@ abstract class FileSystemEntityMemory implements fs.FileSystemEntity {
 /// In memory directory entity.
 class DirectoryMemory extends FileSystemEntityMemory implements fs.Directory {
   /// In memory directory entity.
-  DirectoryMemory(String path) : super(path);
+  DirectoryMemory(super.path);
 
   @override
   Future<DirectoryMemory> create({bool recursive = false}) async {
@@ -114,7 +114,7 @@ class DirectoryMemory extends FileSystemEntityMemory implements fs.Directory {
 class FileMemory extends FileSystemEntityMemory implements fs.File {
   //_MemoryFileImpl get fileImpl => impl;
   /// In memory file entity.
-  FileMemory(String path) : super(path);
+  FileMemory(super.path);
 
   // don't care about recursive
   @override

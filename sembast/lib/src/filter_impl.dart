@@ -154,8 +154,7 @@ class SembastEqualsFilter extends SembastFilterBase
 /// Not equals filter.
 class SembastNotEqualsFilter extends SembastEqualsFilter {
   /// Not equals filter.
-  SembastNotEqualsFilter(String field, Value? value, bool? anyInList)
-      : super(field, value, anyInList);
+  SembastNotEqualsFilter(super.field, Value? super.value, super.anyInList);
 
   @override
   bool matchesRecord(RecordSnapshot record) => !super.matchesRecord(record);

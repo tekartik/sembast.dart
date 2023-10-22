@@ -125,10 +125,9 @@ class SembastCustomSortOrder<T extends Object?> extends SembastSortOrder<T> {
 
   /// Custom sort order compare function.
   SembastCustomSortOrder(
-      String field, SembastCustomSortOrderCompareFunction<T> compare,
-      [bool? ascending, bool? nullLast])
-      : _compare = compare,
-        super(field, ascending, nullLast);
+      super.field, SembastCustomSortOrderCompareFunction<T> compare,
+      [super.ascending, super.nullLast])
+      : _compare = compare;
 
   @override
   int compareValue(Object? value1, Object? value2) {

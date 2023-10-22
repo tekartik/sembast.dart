@@ -12,10 +12,11 @@ JdbDatabaseMemory getJdbDatabase(Database database) =>
 
 class JdbWriteEntryMock extends JdbRawWriteEntry {
   JdbWriteEntryMock(
-      {required int id, required Object key, dynamic value, bool? deleted})
+      {required int super.id,
+      required Object key,
+      dynamic super.value,
+      bool? deleted})
       : super(
-            id: id,
-            value: value,
             deleted: deleted ?? false,
             record: StoreRef<Key?, Value?>.main().record(key));
 }
