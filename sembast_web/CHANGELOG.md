@@ -1,3 +1,7 @@
+## 2.2.0
+
+* Dart 3 only
+
 ## 2.1.3
 
 * Dart 3 support
