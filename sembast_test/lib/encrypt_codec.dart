@@ -15,6 +15,8 @@ Uint8List _randBytes(int length) {
       List<int>.generate(length, (i) => _random.nextInt(256)));
 }
 
+/// FOR DEMONSTRATION PURPOSES ONLY -- THIS IMPLEMENTATION IS INSECURE!
+///
 /// Generate an encryption password based on a user input password
 ///
 /// It uses MD5 which generates a 16 bytes blob, size needed for Salsa20
