@@ -15,7 +15,16 @@ Uint8List _randBytes(int length) {
       List<int>.generate(length, (i) => _random.nextInt(256)));
 }
 
-/// FOR DEMONSTRATION PURPOSES ONLY -- THIS IMPLEMENTATION IS INSECURE!
+/// FOR DEMONSTRATION PURPOSES ONLY -- do not use in production as-is!
+///
+/// This is a demonstration on how to bring encryption to sembast, but it is an
+/// insecure implementation. The encryption is unauthenticated,
+/// the password conversion to bytes is underpowered (password hashes like
+/// bcyrpt, scrypt, argon2id, and pbkdf2 are some examples of correct algorithms),
+/// and the random bytes generator doesn't use a cryptographically secure source
+/// of randomness.
+///
+/// See https://github.com/tekartik/sembast.dart/pull/339 for more information
 ///
 /// Generate an encryption password based on a user input password
 ///
