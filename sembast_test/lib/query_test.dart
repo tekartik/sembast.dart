@@ -13,10 +13,10 @@ import 'package:sembast/timestamp.dart';
 import 'test_common.dart';
 
 void main() {
-  defineTests(memoryDatabaseContext);
+  defineQueryTests(memoryDatabaseContext);
 }
 
-void defineTests(DatabaseTestContext ctx) {
+void defineQueryTests(DatabaseTestContext ctx) {
   group('query', () {
     late Database db;
 

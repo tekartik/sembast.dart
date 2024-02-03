@@ -36,7 +36,7 @@ void defineTests(DatabaseTestContext ctx) {
   database_test.defineTests(ctx);
   database_impl_test.defineTests(ctx);
   store_test.defineTests(ctx);
-  record_test.defineTests(ctx);
+  record_test.defineRecordTests(ctx);
   find_test.defineTests(ctx);
   transaction_test.defineTests(ctx);
   key_test.defineTests(ctx);
@@ -45,7 +45,7 @@ void defineTests(DatabaseTestContext ctx) {
   exception_test.defineTests(ctx);
   exp_test.defineTests(ctx);
   value_test.defineTests(ctx);
-  query_test.defineTests(ctx);
+  query_test.defineQueryTests(ctx);
   sort_test.defineTests(ctx);
   database_utils_test.defineTests(ctx);
   doc_test.defineTests(ctx);

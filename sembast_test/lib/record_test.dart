@@ -7,10 +7,10 @@ import 'package:sembast/src/common_import.dart';
 import 'test_common.dart';
 
 void main() {
-  defineTests(memoryDatabaseContext);
+  defineRecordTests(memoryDatabaseContext);
 }
 
-void defineTests(DatabaseTestContext ctx) {
+void defineRecordTests(DatabaseTestContext ctx) {
   group('record', () {
     late Database db;
 
@@ -263,8 +263,8 @@ void defineTests(DatabaseTestContext ctx) {
         expect(snapshot, isNull);
         expect(got, true);
       });
-      await completer.future;
       await record.put(db, 2);
+      await completer.future;
       expect(snapshot!.value, 2);
 
       await subscription.cancel();
@@ -302,11 +302,14 @@ void defineTests(DatabaseTestContext ctx) {
       var records = store.records([1, 2]);
       var got = false;
       List<RecordSnapshot<int, int>?>? snapshots;
+      var firstCompleter = Completer<void>();
       var completer = Completer<void>();
       var subscription = records.onSnapshotsSync(db).listen((event) {
+        print(event);
         snapshots = event;
         got = true;
-        if (snapshots?.first != null) {
+        // Unfortunately we don't get the two snapshots at the same time...
+        if (snapshots![0] != null && snapshots![1] != null) {
           completer.complete();
         }
       });
@@ -317,8 +320,12 @@ void defineTests(DatabaseTestContext ctx) {
         scheduleMicrotask(() {
           expect(snapshots, [null, null]);
           expect(got, true);
+          firstCompleter.complete();
         });
       });
+
+      await firstCompleter.future;
+
       await db.transaction((transaction) async {
         await records[0].put(transaction, 3);
         await records[1].put(transaction, 4);
