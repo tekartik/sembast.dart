@@ -224,7 +224,7 @@ void defineTests(DatabaseTestContext ctx) {
       expect(index, 5);
     });
 
-    test('StoreRef.onSnapshot', () async {
+    test('QueryRef.onSnapshot', () async {
       var store = StoreRef<int, String>.main();
       var record = store.record(1);
       var index = 0;
@@ -274,6 +274,104 @@ void defineTests(DatabaseTestContext ctx) {
       await completer.future;
       await sub.cancel();
       expect(index, 5);
+    });
+
+    test('QueryRef.onSnapshotSync null', () async {
+      var store = StoreRef<int, String>.main();
+      var record = store.record(1);
+
+      // When starting listening the record does not exists yet
+      var query = store.query();
+      var got = false;
+      RecordSnapshot<int, String>? snapshot;
+      var subscription = query.onSnapshotSync(db).listen((event) {
+        snapshot = event;
+        got = true;
+      });
+
+      expect(got, false);
+      scheduleMicrotask(() {
+        expect(snapshot, isNull);
+        expect(got, true);
+      });
+      await record.put(db, 'test');
+      expect(snapshot!.value, 'test');
+
+      await subscription.cancel();
+    });
+
+    test('QueryRef.onSnapshotSync value', () async {
+      var store = StoreRef<int, String>.main();
+      var record = store.record(1);
+      await record.put(db, 'test');
+      // When starting listening the record does not exists yet
+      var query = store.query();
+      var got = false;
+      RecordSnapshot<int, String>? snapshot;
+      var subscription = query.onSnapshotSync(db).listen((event) {
+        snapshot = event;
+        got = true;
+      });
+
+      var completer = Completer<void>();
+      expect(got, false);
+      scheduleMicrotask(() {
+        expect(snapshot!.value, 'test');
+        expect(got, true);
+        completer.complete();
+      });
+      await completer.future;
+
+      await subscription.cancel();
+    });
+
+    test('QueryRef.onSnapshotsSync', () async {
+      var store = StoreRef<int, String>.main();
+      var record = store.record(1);
+
+      // When starting listening the record does not exists yet
+      var query = store.query();
+      var got = false;
+      List<RecordSnapshot<int, String>>? snapshot;
+      var subscription = query.onSnapshotsSync(db).listen((event) {
+        snapshot = event;
+        got = true;
+      });
+
+      expect(got, false);
+      scheduleMicrotask(() {
+        expect(snapshot!, isEmpty);
+        expect(got, true);
+      });
+      await record.put(db, 'test');
+      expect(snapshot!.first.value, 'test');
+
+      await subscription.cancel();
+    });
+
+    test('QueryRef.onCountSync', () async {
+      var store = StoreRef<int, String>.main();
+      var record = store.record(1);
+      var record2 = store.record(2);
+      await record.put(db, 'test');
+      // When starting listening the record does not exists yet
+      var query = store.query();
+      var got = false;
+      int? count;
+      var subscription = query.onCountSync(db).listen((event) {
+        count = event;
+        got = true;
+      });
+
+      expect(got, false);
+      scheduleMicrotask(() {
+        expect(count, 1);
+        expect(got, true);
+      });
+      await record2.put(db, 'test2');
+      expect(count, 2);
+
+      await subscription.cancel();
     });
 
     test('onSnapshotNonNull', () async {

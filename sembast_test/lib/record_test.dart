@@ -240,5 +240,81 @@ void defineTests(DatabaseTestContext ctx) {
       expect((await future1)!.value, 'test1');
       expect((await future2)!.value, 'test2');
     });
+
+    test('record.onSnapshotSync null', () async {
+      // Key is an int, value is an int
+      var store = StoreRef<int, int>.main();
+      // Key is 1
+      var record = store.record(1);
+
+      var got = false;
+      RecordSnapshot<int, int>? snapshot;
+      var subscription = record.onSnapshotSync(db).listen((event) {
+        snapshot = event;
+        got = true;
+      });
+
+      expect(got, false);
+      scheduleMicrotask(() {
+        expect(snapshot, isNull);
+        expect(got, true);
+      });
+      await record.put(db, 2);
+      expect(snapshot!.value, 2);
+
+      await subscription.cancel();
+    });
+
+    test('record.onSnapshotSync value', () async {
+      // Key is an int, value is an int
+      var store = StoreRef<int, int>.main();
+      // Key is 1
+      var record = store.record(1);
+      await record.put(db, 2);
+      var got = false;
+      RecordSnapshot<int, int>? snapshot;
+      var subscription = record.onSnapshotSync(db).listen((event) {
+        snapshot = event;
+        got = true;
+      });
+
+      expect(got, false);
+      var completer = Completer<void>();
+      scheduleMicrotask(() {
+        expect(snapshot!.value, 2);
+        expect(got, true);
+        completer.complete();
+      });
+      await completer.future;
+      await subscription.cancel();
+    });
+
+    test('records.onSnapshotsSync null', () async {
+      // Key is an int, value is an int
+      var store = StoreRef<int, int>.main();
+      // Key is 1
+
+      var records = store.records([1, 2]);
+      var got = false;
+      List<RecordSnapshot<int, int>?>? snapshots;
+      var subscription = records.onSnapshotsSync(db).listen((event) {
+        snapshots = event;
+        got = true;
+      });
+
+      expect(got, false);
+      // Schedule 2 microtask one for the main stream, one for the sub stream
+      scheduleMicrotask(() {
+        scheduleMicrotask(() {
+          expect(snapshots, [null, null]);
+          expect(got, true);
+        });
+      });
+      await records[0].put(db, 3);
+      await records[1].put(db, 4);
+      expect(snapshots!.map((e) => e!.value), [3, 4]);
+
+      await subscription.cancel();
+    });
   });
 }

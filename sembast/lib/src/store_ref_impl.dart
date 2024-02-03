@@ -202,6 +202,8 @@ extension SembastStoreRefExtension<K, V> on StoreRef<K, V> {
   ///
   /// count records.
   ///
+  /// Soon to be Deprecated: use [query.count] instead.
+  /// @Deprecated('User query(filter: filter).count instead.')
   Future<int> count(DatabaseClient databaseClient, {Filter? filter}) {
     final client = getClient(databaseClient);
     // no transaction needed for read
@@ -213,6 +215,8 @@ extension SembastStoreRefExtension<K, V> on StoreRef<K, V> {
   ///
   /// onCount stream, called when the number of items changes.
   ///
+  /// Soon to be Deprecated: use [query.onCount] instead.
+  /// @Deprecated('User query(filter: filter).onCount instead.')
   Stream<int> onCount(Database database, {Filter? filter}) =>
       SembastFilterRef(this as SembastStoreRef<K, V>, filter).onCount(database);
 
@@ -382,6 +386,7 @@ extension SembastStoreRefSyncExtension<K, V> on StoreRef<K, V> {
   ///
   /// count records.
   ///
+  /// @Deprecated('Use query(filter: filter).countSync instead.')
   int countSync(DatabaseClient databaseClient, {Filter? filter}) {
     final client = getClient(databaseClient);
     // no transaction needed for read

@@ -43,21 +43,28 @@ void main() {
       store.count;
       store.find;
       store.findFirst;
+      SembastRecordRefExtension(record).get;
+      SembastRecordRefExtension(record).onSnapshot;
       // 2023-06-15 v3.4.8-1
       SembastRecordRefSyncExtension(record).getSync;
       SembastRecordRefSyncExtension(record).getSnapshotSync;
       SembastRecordRefSyncExtension(record).existsSync;
+      SembastRecordRefSyncExtension(record).onSnapshotSync;
+
+      SembastRecordsRefExtension(records).onSnapshots;
+      SembastStoreRefCommonExtension(store).recordsFromRefs;
 
       SembastRecordsRefSyncExtension(records).getSync;
       SembastRecordsRefSyncExtension(records).getSnapshotsSync;
-      SembastRecordsRefExtension(records).onSnapshots;
+      SembastRecordsRefSyncExtension(records).onSnapshotsSync;
 
-      SembastStoreRefCommonExtension(store).recordsFromRefs;
       SembastRecordsRefCommonExtension(records).refs;
       SembastRecordsRefCommonExtension(records).length;
       SembastRecordsRefCommonExtension(records)[0];
 
       valuesCompare;
+
+      SembastStoreRefExtension(store).onCount;
 
       // 2023-06-18 v3.4.9-1
       SembastStoreRefSyncExtension(store).countSync;
@@ -70,10 +77,15 @@ void main() {
 
       SembastQueryRefExtension(query).count;
       SembastQueryRefExtension(query).onCount;
+      SembastQueryRefExtension(query).onSnapshot;
+      SembastQueryRefExtension(query).onSnapshots;
 
       SembastQueryRefSyncExtension(query).getSnapshotsSync;
       SembastQueryRefSyncExtension(query).getSnapshotSync;
       SembastQueryRefSyncExtension(query).countSync;
+      SembastQueryRefSyncExtension(query).onSnapshotsSync;
+      SembastQueryRefSyncExtension(query).onSnapshotSync;
+      SembastQueryRefSyncExtension(query).onCountSync;
     });
   });
 }

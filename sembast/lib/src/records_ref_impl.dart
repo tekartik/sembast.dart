@@ -136,6 +136,14 @@ extension SembastRecordsRefSyncExtension<K, V> on RecordsRef<K, V> {
   List<V?> getSync(DatabaseClient client) => (getSnapshotsSync(client))
       .map((snapshot) => snapshot?.value)
       .toList(growable: false);
+
+  /// Get a stream of a record snapshots from the database.
+  ///
+  /// It allows listening to multiple records. First emit happens synchronously all
+  /// snapshot are checked first (but can be null).
+  Stream<List<RecordSnapshot<K, V>?>> onSnapshotsSync(Database database) {
+    return streamJoinAll(refs.map((e) => e.onSnapshotSync(database)).toList());
+  }
 }
 
 /// Records ref mixin.

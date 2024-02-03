@@ -11,7 +11,7 @@ dependencies:
 
 dev_dependencies:
   test: '>=1.0.0'
-  dev_build: '>=0.13.4-dev.1'
+  dev_build: '>=0.16.4+2'
   lints: '>=1.0.1'
   path:
 dependency_overrides:

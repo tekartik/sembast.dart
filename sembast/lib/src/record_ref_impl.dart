@@ -189,4 +189,34 @@ extension SembastRecordRefSyncExtension<K, V> on RecordRef<K, V> {
         .getSembastStore(store)
         .txnRecordExistsSync(client.sembastTransaction, key as Key);
   }
+
+  /// Get a stream of a record snapshot from the database.
+  ///
+  /// The first value is read synchronously to be available in the first microtask.
+  /// once listened to.
+  ///
+  /// It allows listening to a single instance of a record.
+  Stream<RecordSnapshot<K, V>?> onSnapshotSync(Database database) {
+    var db = getDatabase(database);
+    late RecordListenerController<K, V> ctlr;
+    ctlr = db.listener.addRecord(this, onListen: () {
+      // Read right away
+      () async {
+        await db.notificationLock.synchronized(() async {
+          // Don't crash here, the database might have been closed
+          try {
+            // Add the existing snapshot
+            var snapshot = getSnapshotSync(database);
+            if (debugListener) {
+              print('matching $ctlr: $snapshot on $this');
+            }
+            ctlr.add(snapshot);
+          } catch (error, stackTrace) {
+            ctlr.addError(error, stackTrace);
+          }
+        });
+      }();
+    });
+    return ctlr.stream;
+  }
 }
