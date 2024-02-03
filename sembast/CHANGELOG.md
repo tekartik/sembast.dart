@@ -1,3 +1,8 @@
+## 3.6.0
+
+* Add `RecordRef.onSnapshotSync`, `RecordsRef.onSnapshotsSync`, `QueryRef.onSnapshotsSync`, `QueryRef.onSnapshotSync`,
+  `QueryRef.onCountSync` synchronous API extension where the first value is emitted synchronously.
+
 ## 3.5.1-1
 
 * Add io export utils (mainly for tests)
