@@ -283,10 +283,14 @@ void defineTests(DatabaseTestContext ctx) {
       // When starting listening the record does not exists yet
       var query = store.query();
       var got = false;
+      var completer = Completer<void>();
       RecordSnapshot<int, String>? snapshot;
       var subscription = query.onSnapshotSync(db).listen((event) {
         snapshot = event;
         got = true;
+        if (snapshot != null) {
+          completer.complete();
+        }
       });
 
       expect(got, false);
@@ -295,6 +299,7 @@ void defineTests(DatabaseTestContext ctx) {
         expect(got, true);
       });
       await record.put(db, 'test');
+      await completer.future;
       expect(snapshot!.value, 'test');
 
       await subscription.cancel();
@@ -332,10 +337,14 @@ void defineTests(DatabaseTestContext ctx) {
       // When starting listening the record does not exists yet
       var query = store.query();
       var got = false;
+      var completer = Completer<void>();
       List<RecordSnapshot<int, String>>? snapshot;
       var subscription = query.onSnapshotsSync(db).listen((event) {
         snapshot = event;
         got = true;
+        if (snapshot!.isNotEmpty) {
+          completer.complete();
+        }
       });
 
       expect(got, false);
@@ -344,6 +353,7 @@ void defineTests(DatabaseTestContext ctx) {
         expect(got, true);
       });
       await record.put(db, 'test');
+      await completer.future;
       expect(snapshot!.first.value, 'test');
 
       await subscription.cancel();
@@ -358,9 +368,13 @@ void defineTests(DatabaseTestContext ctx) {
       var query = store.query();
       var got = false;
       int? count;
+      var completer = Completer<void>();
       var subscription = query.onCountSync(db).listen((event) {
         count = event;
         got = true;
+        if (count == 2) {
+          completer.complete();
+        }
       });
 
       expect(got, false);
@@ -369,6 +383,7 @@ void defineTests(DatabaseTestContext ctx) {
         expect(got, true);
       });
       await record2.put(db, 'test2');
+      await completer.future;
       expect(count, 2);
 
       await subscription.cancel();

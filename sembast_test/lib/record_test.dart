@@ -248,10 +248,14 @@ void defineTests(DatabaseTestContext ctx) {
       var record = store.record(1);
 
       var got = false;
+      var completer = Completer<void>();
       RecordSnapshot<int, int>? snapshot;
       var subscription = record.onSnapshotSync(db).listen((event) {
         snapshot = event;
         got = true;
+        if (snapshot != null) {
+          completer.complete();
+        }
       });
 
       expect(got, false);
@@ -259,6 +263,7 @@ void defineTests(DatabaseTestContext ctx) {
         expect(snapshot, isNull);
         expect(got, true);
       });
+      await completer.future;
       await record.put(db, 2);
       expect(snapshot!.value, 2);
 
@@ -297,9 +302,13 @@ void defineTests(DatabaseTestContext ctx) {
       var records = store.records([1, 2]);
       var got = false;
       List<RecordSnapshot<int, int>?>? snapshots;
+      var completer = Completer<void>();
       var subscription = records.onSnapshotsSync(db).listen((event) {
         snapshots = event;
         got = true;
+        if (snapshots?.first != null) {
+          completer.complete();
+        }
       });
 
       expect(got, false);
@@ -310,8 +319,11 @@ void defineTests(DatabaseTestContext ctx) {
           expect(got, true);
         });
       });
-      await records[0].put(db, 3);
-      await records[1].put(db, 4);
+      await db.transaction((transaction) async {
+        await records[0].put(transaction, 3);
+        await records[1].put(transaction, 4);
+      });
+      await completer.future;
       expect(snapshots!.map((e) => e!.value), [3, 4]);
 
       await subscription.cancel();
