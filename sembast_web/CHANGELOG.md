@@ -1,3 +1,7 @@
+## 2.3.0-0
+
+* web and js_interop support
+
 ## 2.2.0
 
 * Dart 3 only
