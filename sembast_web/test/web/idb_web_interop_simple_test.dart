@@ -20,6 +20,7 @@ Future main() async {
       // Declare our store (records are mapd, ids are ints)
       var store = intMapStoreFactory.store();
       var factory = databaseFactoryWeb;
+      await factory.deleteDatabase('test');
 
       // Open the database
       var db = await factory.openDatabase('test');
