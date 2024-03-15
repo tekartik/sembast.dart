@@ -53,6 +53,7 @@ Future main() async {
 * Transactions are cross-tab safe (since 0.1.0+4)
 * Codec are not supported. Web is not safe anyway. Encrypt fields as needed.
 * Transactions must be idempotent (i.e. they must produce the same result if run twice) as they might run again in case of concurrent access.
+* WASM support as of 2.3.0 (legacy html version available through `sembast_web_html.dart` import)
 
 ## How it works
 
