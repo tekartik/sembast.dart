@@ -1,7 +1,7 @@
 @TestOn('browser')
 library;
 
-import 'package:idb_shim/idb_client_native_web.dart';
+import 'package:idb_shim/idb_client_native.dart';
 import 'package:sembast_test/all_jdb_test.dart' as all_jdb_test;
 import 'package:sembast_test/all_test.dart';
 import 'package:sembast_test/jdb_test_common.dart';

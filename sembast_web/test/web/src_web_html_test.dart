@@ -2,7 +2,7 @@
 library sembast_web.test.web.src_web_test;
 
 import 'package:sembast/sembast.dart';
-import 'package:sembast_web/src/browser.dart';
+import 'package:sembast_web/src/web_html.dart';
 import 'package:test/test.dart';
 
 var testPath = '.dart_tool/sembast_web/databases';

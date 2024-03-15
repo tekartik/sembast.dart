@@ -1,5 +1,5 @@
 import 'package:sembast/sembast.dart';
-import 'package:sembast_web/src/browser.dart' as src;
+import 'package:sembast_web/src/web_html/sembast_web.dart' as src;
 
 /// Sembast factory for the Web.
 ///

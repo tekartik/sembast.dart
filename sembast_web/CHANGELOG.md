@@ -1,6 +1,6 @@
 ## 2.3.0-0
 
-* web and js_interop support
+* web and js_interop (for wasm) support
 
 ## 2.2.0
 
