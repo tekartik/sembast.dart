@@ -1,3 +1,7 @@
+## 3.7.0
+
+* Remove dependency on `dart:html`
+
 ## 3.6.0
 
 * Add `RecordRef.onSnapshotSync`, `RecordsRef.onSnapshotsSync`, `QueryRef.onSnapshotsSync`, `QueryRef.onSnapshotSync`,

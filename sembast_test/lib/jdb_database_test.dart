@@ -24,7 +24,7 @@ void defineTests(DatabaseTestContextJdb ctx) {
 
         setUp(() async {
           // Clear the database.
-          sembastDb = await ctx.open('no_codec.db');
+          sembastDb = await ctx.deleteAndOpen('no_codec.db');
           database = getJdbDatabase(sembastDb);
           //return fs.newFile(dbPath).delete().catchError((_) {});
         });

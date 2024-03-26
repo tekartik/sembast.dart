@@ -37,7 +37,7 @@ String dbPathFromName(String name) =>
 
 Future<Database> setupForTest(DatabaseTestContext ctx, String name,
     {SembastCodec? codec}) {
-  return ctx.open(dbPathFromName(name), codec: codec);
+  return ctx.deleteAndOpen(dbPathFromName(name), codec: codec);
 }
 
 /// Delete the database and returns its full path.

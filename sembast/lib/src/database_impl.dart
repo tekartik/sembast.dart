@@ -150,9 +150,9 @@ class SembastDatabase extends Object
   /// Database implementation.
   SembastDatabase(this.openHelper, [this._storageBase]) {
     if (_storageBase is DatabaseStorage) {
-      _storageFs = _storageBase as DatabaseStorage;
+      _storageFs = _storageBase;
     } else if (_storageBase is StorageJdb) {
-      _storageJdb = _storageBase as StorageJdb;
+      _storageJdb = _storageBase;
     }
   }
 
@@ -221,6 +221,19 @@ class SembastDatabase extends Object
     await databaseOperation(() {
       return txnCompact();
     });
+  }
+
+  /// Compact the database.
+  Future checkForChanges() async {
+    if (_storageJdb?.supported ?? false) {
+      var revision = await _storageJdb!.getRevision();
+      print('checkForChanges $revision vs existing $_jdbRevision');
+      if (revision != _jdbRevision) {
+        await transaction((txn) {
+          return txnJdbDeltaImport(revision);
+        });
+      }
+    }
   }
 
   /// Encode a map before writing it to disk

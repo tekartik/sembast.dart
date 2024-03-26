@@ -35,7 +35,11 @@ extension DatabaseExtension on Database {
   ///
   /// Behavior depends on the implementation. On sembast io, the file
   /// will be rewritten removing obsolete lines. On sembast_web
-  /// and sembast_sqflite, data will be
-  /// read againt to handle external changes.
-  Future compact() => (this as SembastDatabase).compact();
+  /// and sembast_sqflite, history is purged.
+  Future<void> compact() => (this as SembastDatabase).compact();
+
+  /// Behavior depends on the implementation. On sembast io, nothing will happen.
+  /// On sembast_web and sembast_sqflite, data will be
+  /// read again (incrementally or not) to handle external changes.
+  Future<void> checkForChanges() => (this as SembastDatabase).checkForChanges();
 }

@@ -84,7 +84,7 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     test('version_2', () async {
-      final db = await ctx.open(
+      final db = await ctx.deleteAndOpen(
           dbPathFromName('compat/import_export/version_2.db'),
           version: 2);
       await checkExportImport(db, {'sembast_export': 1, 'version': 2});
