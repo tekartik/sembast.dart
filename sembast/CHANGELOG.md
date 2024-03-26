@@ -1,3 +1,8 @@
+## 3.7.1
+
+* Add `Database.checkForChanges()` helper to force loading data
+  shared between multiple jdb (web/sqflite) instances.
+
 ## 3.7.0
 
 * Remove dependency on `dart:html`
