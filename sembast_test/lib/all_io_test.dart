@@ -1,4 +1,6 @@
 @TestOn('vm')
+library;
+
 import 'package:sembast_test/src/test/test.dart';
 
 import 'database_import_export_io_test.dart';

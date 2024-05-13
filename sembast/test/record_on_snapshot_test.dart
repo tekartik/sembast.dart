@@ -73,8 +73,8 @@ void main() {
       try {
         // Bad state: No element
         await doneFuture;
-      } catch (_) {
-        print(_);
+      } catch (e) {
+        print(e);
       }
     });
 
