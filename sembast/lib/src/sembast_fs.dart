@@ -87,6 +87,7 @@ class FsDatabaseStorage extends DatabaseStorage {
   Future<bool> tmpRecover() async {
     final isFile = await fs.isFile(tmpPath);
     if (logV) {
+      // ignore: avoid_print
       print('Recovering from $tmpPath');
     }
 
@@ -95,6 +96,7 @@ class FsDatabaseStorage extends DatabaseStorage {
         await file.delete();
       } catch (e) {
         if (logV) {
+          // ignore: avoid_print
           print('fail to delete $e');
         }
         //return true;

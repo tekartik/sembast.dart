@@ -46,6 +46,7 @@ class SembastStorageJdb extends StorageBase implements StorageJdb {
       await jdbFactory.delete(path);
     } catch (e) {
       if (_logV) {
+        // ignore: avoid_print
         print('delete failed $path $e');
       }
     }
@@ -69,6 +70,7 @@ class SembastStorageJdb extends StorageBase implements StorageJdb {
       return true;
     } catch (e) {
       if (_logV) {
+        // ignore: avoid_print
         print('find failed $path $e');
       }
       return false;
@@ -95,6 +97,7 @@ class SembastStorageJdb extends StorageBase implements StorageJdb {
       jdbDatabase?.close();
     } catch (e) {
       if (_logV) {
+        // ignore: avoid_print
         print('close failed $path $e');
       }
     }

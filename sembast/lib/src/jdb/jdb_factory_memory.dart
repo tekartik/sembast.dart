@@ -8,6 +8,7 @@ import 'package:sembast/src/api/protected/jdb.dart' as jdb;
 import 'package:sembast/src/api/protected/jdb.dart';
 import 'package:sembast/src/api/protected/type.dart';
 import 'package:sembast/src/api/record_ref.dart';
+import 'package:sembast/src/env_utils.dart';
 import 'package:sembast/src/key_utils.dart';
 import 'package:sembast/src/sembast_impl.dart';
 import 'package:sembast/src/storage.dart';
@@ -194,7 +195,10 @@ class JdbDatabaseMemory implements jdb.JdbDatabase {
         _entries.add(entry);
         jdbWriteEntry.revision = entry.id;
       } catch (e) {
-        print('Error importing $jdbWriteEntry: $e');
+        if (isDebug) {
+          // ignore: avoid_print
+          print('Error importing $jdbWriteEntry: $e');
+        }
       }
     }
     return _lastEntryId;

@@ -51,7 +51,7 @@ void defineTests(FileSystemTestContext ctx) {
     var store = StoreRef<int, int>('test');
     final db = await factory.openDatabase(dbPath);
     expect(db.version, 2);
-    print(await store.find(db));
+    //print(await store.find(db));
     expect(await store.count(db), 2);
     await db.close();
   });

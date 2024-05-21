@@ -29,10 +29,12 @@ class JdbFactoryIdb implements jdb.JdbFactory {
       String path, DatabaseOpenOptions? options) async {
     var id = ++_lastId;
     if (_debug) {
+      // ignore: avoid_print
       print('[idb-$id] opening $path');
     }
     var iDb = await idbFactory.open(path, version: 2, onUpgradeNeeded: (event) {
       if (_debug) {
+        // ignore: avoid_print
         print('[idb-$id] migrating ${event.oldVersion} -> ${event.newVersion}');
       }
       var db = event.database;
@@ -62,6 +64,7 @@ class JdbFactoryIdb implements jdb.JdbFactory {
   Future<void> delete(String path) async {
     try {
       if (_debug) {
+        // ignore: avoid_print
         print('[idb] deleting $path');
       }
 
@@ -71,10 +74,14 @@ class JdbFactoryIdb implements jdb.JdbFactory {
       await idbFactory.deleteDatabase(path);
       notifyRevision(StorageRevision(path, 0));
       if (_debug) {
+        // ignore: avoid_print
         print('[idb] deleted $path');
       }
     } catch (e) {
-      print(e);
+      if (_debug) {
+        // ignore: avoid_print
+        print(e);
+      }
     }
   }
 
@@ -118,6 +125,7 @@ class JdbFactoryIdb implements jdb.JdbFactory {
   /// Notify other app (web only))
   void notifyRevision(StorageRevision storageRevision) {
     if (debugStorageNotification) {
+      // ignore: avoid_print
       print('notifyRevision $storageRevision: not supported');
     }
   }

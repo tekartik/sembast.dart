@@ -92,12 +92,14 @@ class QueryListenerController<K, V> extends StoreListenerControllerBase<K, V> {
         StreamController<List<RecordSnapshot<K, V>>>(onCancel: () {
       // Auto remove
       if (debugListener) {
+        // ignore: avoid_print
         print('onCancel $this');
       }
       listener.removeStore(this);
       close();
     }, onListen: () {
       if (debugListener) {
+        // ignore: avoid_print
         print('onListen $this');
       }
       onListen!();
@@ -196,6 +198,7 @@ class QueryListenerController<K, V> extends StoreListenerControllerBase<K, V> {
   void restart() {
     if (_shouldAdd) {
       if (debugListener) {
+        // ignore: avoid_print
         print('restarting listener $this');
       }
       onListen!();
@@ -228,6 +231,7 @@ class RecordListenerController<K, V> extends _ControllerBase {
       {required this.onListen}) {
     _streamController = StreamController<RecordSnapshot<K, V>?>(onCancel: () {
       if (debugListener) {
+        // ignore: avoid_print
         print('onCancel $this');
       }
       // Auto remove
@@ -235,6 +239,7 @@ class RecordListenerController<K, V> extends _ControllerBase {
       close();
     }, onListen: () {
       if (debugListener) {
+        // ignore: avoid_print
         print('onListen $this');
       }
       onListen!();
@@ -271,6 +276,7 @@ class RecordListenerController<K, V> extends _ControllerBase {
   void restart() {
     if (_shouldAdd) {
       if (debugListener) {
+        // ignore: avoid_print
         print('restarting listener $this');
       }
       onListen!();
@@ -540,12 +546,14 @@ class CountListenerController<K, V> extends StoreListenerControllerBase<K, V> {
     _streamController = StreamController<int>(onCancel: () {
       // Auto remove
       if (debugListener) {
+        // ignore: avoid_print
         print('onCancel $this');
       }
       listener.removeStore(this);
       close();
     }, onListen: () {
       if (debugListener) {
+        // ignore: avoid_print
         print('onListen $this');
       }
       onListen!();
@@ -628,6 +636,7 @@ class CountListenerController<K, V> extends StoreListenerControllerBase<K, V> {
   void restart() {
     if (_shouldAdd) {
       if (debugListener) {
+        // ignore: avoid_print
         print('restarting listener $this');
       }
       onListen!();

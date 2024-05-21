@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:sembast/src/env_utils.dart';
 import 'package:sembast/src/type_adapter_impl.dart';
 import 'package:sembast/src/utils.dart';
 
@@ -168,7 +169,10 @@ Object? _fromEncodable(
         try {
           return adapter.decode(encodedValue) as Object;
         } catch (e) {
-          print('$e - ignoring $encodedValue ${encodedValue.runtimeType}');
+          if (isDebug) {
+            // ignore: avoid_print
+            print('$e - ignoring $encodedValue ${encodedValue.runtimeType}');
+          }
         }
       }
     }

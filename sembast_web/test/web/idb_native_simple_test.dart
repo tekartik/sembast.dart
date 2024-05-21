@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print
+
 @TestOn('browser')
 library sembast_web.test.web.idb_native_simple_test;
 

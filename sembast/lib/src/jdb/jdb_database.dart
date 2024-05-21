@@ -6,6 +6,7 @@ import 'package:sembast/src/api/protected/database.dart';
 import 'package:sembast/src/api/protected/jdb.dart';
 import 'package:sembast/src/api/protected/type.dart';
 import 'package:sembast/src/api/store_ref.dart';
+import 'package:sembast/src/env_utils.dart';
 
 /// Jdb.
 abstract class JdbDatabase {
@@ -145,7 +146,10 @@ extension JdbDatabaseInternalExt on JdbDatabase {
       if (!entry.deleted) {
         var value = entry.valueOrNull;
         if (value == null) {
-          print('Invalid entry $entry');
+          if (isDebug) {
+            // ignore: avoid_print
+            print('Invalid entry $entry');
+          }
           continue;
         }
 

@@ -67,6 +67,7 @@ extension SembastQueryRefExtension<K, V> on QueryRef<K, V> {
 
           // Get the result at query time first
           if (debugListener) {
+            // ignore: avoid_print
             print('matching $ctlr: ${allMatching.length} on $this');
           }
 
@@ -172,6 +173,7 @@ extension SembastQueryRefSyncExtension<K, V> on QueryRef<K, V> {
 
           // Get the result at query time first
           if (debugListener) {
+            // ignore: avoid_print
             print('matching $ctlr: ${allMatching.length} on $this');
           }
 

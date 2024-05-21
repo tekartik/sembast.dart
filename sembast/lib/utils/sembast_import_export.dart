@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'package:sembast/src/api/protected/database.dart';
 import 'package:sembast/src/api/sembast.dart';
 import 'package:sembast/src/common_import.dart';
+import 'package:sembast/src/env_utils.dart';
 import 'package:sembast/src/json_utils.dart';
 import 'package:sembast/src/model.dart';
 import 'package:sembast/src/store_impl.dart';
@@ -278,7 +279,10 @@ Future<Database> importDatabaseAny(
       return linesImport(srcData);
     }
   } catch (e) {
-    print('import error $e');
+    if (isDebug) {
+      // ignore: avoid_print
+      print('import error $e');
+    }
     throw FormatException('invalid export format (error: $e)');
   }
   throw FormatException('invalid export format (${srcData.runtimeType})');
@@ -330,7 +334,10 @@ Object decodeImportAny(Object srcData) {
       }
     }
   } catch (e) {
-    print('import error $e');
+    if (isDebug) {
+      // ignore: avoid_print
+      print('import error $e');
+    }
     throw FormatException('decode invalid export format (error: $e)');
   }
   throw FormatException(

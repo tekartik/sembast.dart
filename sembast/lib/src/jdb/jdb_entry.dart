@@ -1,4 +1,5 @@
 import 'package:meta/meta.dart';
+import 'package:sembast/src/env_utils.dart';
 import 'package:sembast/src/import_common.dart';
 import 'package:sembast/src/record_impl.dart';
 
@@ -83,7 +84,10 @@ abstract class JdbWriteEntryBase implements JdbWriteEntry {
     try {
       return valueOrNull as Value;
     } catch (e) {
-      print('error $e accessing value for $this');
+      if (isDebug) {
+        // ignore: avoid_print
+        print('error $e accessing value for $this');
+      }
       if (deleted) {
         throw StateError('deleted accessing value for $this');
       } else {

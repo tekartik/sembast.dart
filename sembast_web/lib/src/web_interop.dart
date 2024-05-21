@@ -55,6 +55,7 @@ String _sembastStorageKeyPrefix = 'sembast_web/revision:';
 /// add a storage revision
 void addStorageRevision(StorageRevision storageRevision) {
   if (debugStorageNotification) {
+    // ignore: avoid_print
     print('adding storage revision $storageRevision');
   }
   var key = '$_sembastStorageKeyPrefix${storageRevision.name}';
@@ -73,6 +74,7 @@ Stream<StorageRevision> get storageRevisionStream {
       StreamController<StorageRevision>.broadcast(onListen: () {
     web.window.onstorage = (web.StorageEvent event) {
       if (debugStorageNotification) {
+        // ignore: avoid_print
         print('getting ${event.key}: ${event.newValue}');
       }
       if (event.key?.startsWith(_sembastStorageKeyPrefix) ?? false) {

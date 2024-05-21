@@ -80,6 +80,7 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
         _factory.checkAllClosed();
       }
       if (_debug) {
+        // ignore: avoid_print
         print('$_debugPrefix closing');
       }
       _closed = true;
@@ -155,6 +156,7 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
       var idbKey = await index.getKey([store, key]);
       if (idbKey != null) {
         if (_debug) {
+          // ignore: avoid_print
           print('$_debugPrefix deleting entry $idbKey');
         }
         await objectStore.delete(idbKey);
@@ -176,6 +178,7 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
       // Save the revision in memory!
       jdbWriteEntry.revision = lastEntryId;
       if (_debug) {
+        // ignore: avoid_print
         print('$_debugPrefix added entry $lastEntryId $jdbWriteEntry');
       }
     }
@@ -236,6 +239,7 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
           asyncCodecFutures.add(asyncCodecLock.synchronized(() async {
             var decoded = await decodeReadEntryAsync(entry);
             if (_debug) {
+              // ignore: avoid_print
               print('$_debugPrefix reading async entry after revision $entry');
             }
             ctlr.add(decoded);
@@ -243,6 +247,7 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
         } else {
           var entry = _entryFromCursorSync(cwv);
           if (_debug) {
+            // ignore: avoid_print
             print('$_debugPrefix reading entry after revision $entry');
           }
           ctlr.add(entry);

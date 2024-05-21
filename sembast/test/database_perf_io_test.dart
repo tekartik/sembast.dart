@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print
+
 @TestOn('vm')
 library sembast.database_perf_io_test;
 

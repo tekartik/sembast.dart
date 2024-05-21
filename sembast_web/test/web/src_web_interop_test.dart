@@ -27,6 +27,7 @@ Future main() async {
         expect(storageRevision.name, 'test');
         expect(storageRevision.revision, greaterThanOrEqualTo(1));
       } catch (e) {
+        // ignore: avoid_print
         print(e);
       }
       await db.close();

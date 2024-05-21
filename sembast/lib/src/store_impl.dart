@@ -151,6 +151,7 @@ class SembastStore {
 
     record = txnPutRecordSync(txn, record);
     if (database.logV) {
+      // ignore: avoid_print
       print('$txn put $record');
     }
 
@@ -224,6 +225,7 @@ class SembastStore {
 
     var newSnapshot = txnPutRecordSync(txn, record);
     if (database.logV) {
+      // ignore: avoid_print
       print('$txn update $record');
     }
     if (hasChangesListener) {
@@ -543,6 +545,7 @@ class SembastStore {
     record ??= recordMap[key];
 
     if (database.logV) {
+      // ignore: avoid_print
       print('${database.currentTransaction} get $record key $key');
     }
     return record;

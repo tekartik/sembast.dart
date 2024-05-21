@@ -74,6 +74,7 @@ void main() {
         // Bad state: No element
         await doneFuture;
       } catch (e) {
+        // ignore: avoid_print
         print(e);
       }
     });

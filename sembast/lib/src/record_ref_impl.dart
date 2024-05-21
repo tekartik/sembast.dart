@@ -135,6 +135,7 @@ extension SembastRecordRefExtension<K, V> on RecordRef<K, V> {
             // Add the existing snapshot
             var snapshot = await getSnapshot(database);
             if (debugListener) {
+              // ignore: avoid_print
               print('matching $ctlr: $snapshot on $this');
             }
             ctlr.add(snapshot);
@@ -208,6 +209,7 @@ extension SembastRecordRefSyncExtension<K, V> on RecordRef<K, V> {
             // Add the existing snapshot
             var snapshot = getSnapshotSync(database);
             if (debugListener) {
+              // ignore: avoid_print
               print('matching $ctlr: $snapshot on $this');
             }
             ctlr.add(snapshot);

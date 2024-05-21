@@ -297,7 +297,7 @@ void defineTests(FileSystemTestContext ctx) {
         Object? e;
         await openRead(file)
             .listen((_) {}, onError: (Object e) {
-              print(e);
+              // print(e);
               throw e;
             })
             .asFuture<void>()

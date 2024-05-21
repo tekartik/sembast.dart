@@ -7,6 +7,7 @@ set devPrintEnabled(bool enabled) => _devPrintEnabled = enabled;
 @Deprecated('Dev only')
 void devPrint(Object object) {
   if (_devPrintEnabled) {
+    // ignore: avoid_print
     print(object);
   }
 }

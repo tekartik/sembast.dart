@@ -61,6 +61,7 @@ Future writeContent(FileSystem fs, String filePath, List<String> lines) async {
 }
 
 void devPrintJson(Map json) {
+  // ignore: avoid_print
   print(const JsonEncoder.withIndent('  ').convert(json));
 }
 

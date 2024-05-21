@@ -75,6 +75,7 @@ void main() {
         try {
           expect(codec.decode(encoded), decoded);
         } catch (e) {
+          // ignore: avoid_print
           print('checking value $decoded $encoded');
           rethrow;
         }

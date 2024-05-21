@@ -227,7 +227,7 @@ class SembastDatabase extends Object
   Future checkForChanges() async {
     if (_storageJdb?.supported ?? false) {
       var revision = await _storageJdb!.getRevision();
-      print('checkForChanges $revision vs existing $_jdbRevision');
+      // print('checkForChanges $revision vs existing $_jdbRevision');
       if (revision != _jdbRevision) {
         await transaction((txn) {
           return txnJdbDeltaImport(revision);
@@ -330,6 +330,7 @@ class SembastDatabase extends Object
         await cooperate();
         exportStat.lineCount++;
         if (_debugStorage) {
+          // ignore: avoid_print
           print('tmp: $line');
         }
         lines.add(line);
@@ -347,10 +348,15 @@ class SembastDatabase extends Object
 
           await addStringLine(encoded);
         } catch (e, st) {
-          // useful for debugging...
-          print(map);
-          print(e);
-          print(st);
+          if (_debugStorage) {
+            // useful for debugging...
+            // ignore: avoid_print
+            print(map);
+            // ignore: avoid_print
+            print(e);
+            // ignore: avoid_print
+            print(st);
+          }
           rethrow;
         }
       }
@@ -501,13 +507,19 @@ class SembastDatabase extends Object
               encoded = encodedOrFuture;
             }
             if (_debugStorage) {
+              // ignore: avoid_print
               print('add: $encoded');
             }
             lines.add(encoded);
           } catch (e, st) {
-            print(map);
-            print(e);
-            print(st);
+            if (_debugStorage) {
+              // ignore: avoid_print
+              print(map);
+              // ignore: avoid_print
+              print(e);
+              // ignore: avoid_print
+              print(st);
+            }
             rethrow;
           }
         }
@@ -1176,7 +1188,10 @@ class SembastDatabase extends Object
           try {
             await operation();
           } catch (e) {
-            print('lazy storage err $e');
+            if (_debugStorage) {
+              // ignore: avoid_print
+              print('lazy storage err $e');
+            }
           }
           lazyStorageOperations.remove(operation);
         }
@@ -1426,6 +1441,7 @@ class SembastDatabase extends Object
               for (var ctlr in ctlrs) {
                 void updateRecord() {
                   if (debugListener) {
+                    // ignore: avoid_print
                     print('updating $ctlr: with $record');
                   }
                   if (!record.deleted) {
@@ -1454,11 +1470,13 @@ class SembastDatabase extends Object
               storeListener.getStoreListenerControllers<Key?, Value?>())) {
             Future updateQuery() async {
               if (debugListener) {
+                // ignore: avoid_print
                 print(
                     'updating $query: with ${storeContent.records.length} records ');
               }
               await query.update(storeContent.records, cooperator);
               if (debugListener) {
+                // ignore: avoid_print
                 print(
                     'updated $query: with ${storeContent.records.length} records ');
               }

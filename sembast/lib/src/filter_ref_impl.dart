@@ -53,6 +53,7 @@ extension SembastFilterRefExtensionPrv<K, V> on FilterRef<K, V> {
 
           // Get the result at query time first
           if (debugListener) {
+            // ignore: avoid_print
             print('matching $ctlr: ${keys.length} on $this');
           }
 
