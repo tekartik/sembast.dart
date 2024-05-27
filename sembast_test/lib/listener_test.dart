@@ -56,6 +56,40 @@ void defineTests(DatabaseTestContext ctx) {
       await sub.cancel();
     });
 
+    test('Record.onSnapshot.multi', () async {
+      var store = StoreRef<int, String>.main();
+      var record = store.record(1);
+
+      var done1 = Completer<void>();
+      var done2 = Completer<void>();
+      var done3 = Completer<void>();
+      late StreamSubscription sub1, sub2, sub3;
+      sub1 = record.onSnapshot(db).listen((snapshot) {
+        if (snapshot?.value == 'test1') {
+          done1.complete();
+          sub1.cancel();
+        }
+      });
+      sub2 = record.onSnapshot(db).listen((snapshot) {
+        if (snapshot?.value == 'test2') {
+          done2.complete();
+          sub2.cancel();
+        }
+      });
+      unawaited(record.add(db, 'test1'));
+      await done1.future;
+      sub3 = record.onSnapshot(db).listen((snapshot) {
+        if (snapshot?.value == 'test1') {
+          done3.complete();
+          sub3.cancel();
+        }
+      });
+      unawaited(record.delete(db));
+      unawaited(record.add(db, 'test2'));
+      await done2.future;
+      await done3.future;
+    });
+
     test('Store.onSnapshots.listen add', () async {
       var store = StoreRef<int, String>.main();
       var record = store.record(1);
@@ -163,6 +197,40 @@ void defineTests(DatabaseTestContext ctx) {
       expect(database.listener.isNotEmpty, isTrue);
       await sub2.cancel();
       expect(database.listener.isEmpty, isTrue);
+    });
+
+    test('Query.onSnapshots.multi', () async {
+      var store = StoreRef<int, String>.main();
+      var record = store.record(1);
+
+      var done1 = Completer<void>();
+      var done2 = Completer<void>();
+      var done3 = Completer<void>();
+      late StreamSubscription sub1, sub2, sub3;
+      sub1 = store.query().onSnapshot(db).listen((snapshot) {
+        if (snapshot?.value == 'test1') {
+          done1.complete();
+          sub1.cancel();
+        }
+      });
+      sub2 = store.query().onSnapshot(db).listen((snapshot) {
+        if (snapshot?.value == 'test2') {
+          done2.complete();
+          sub2.cancel();
+        }
+      });
+      unawaited(record.add(db, 'test1'));
+      await done1.future;
+      sub3 = store.query().onSnapshot(db).listen((snapshot) {
+        if (snapshot?.value == 'test1') {
+          done3.complete();
+          sub3.cancel();
+        }
+      });
+      unawaited(record.delete(db));
+      unawaited(record.add(db, 'test2'));
+      await done2.future;
+      await done3.future;
     });
 
     test('Query.onSnapshotDbClose', () async {
