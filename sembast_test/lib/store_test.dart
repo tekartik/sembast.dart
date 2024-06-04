@@ -287,24 +287,106 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     group('value_double', () {
-      test('add', () async {
+      test('add_double 1.0', () async {
+        // this is ok too
+        final store = StoreRef<String, double>.main();
+        var key = await store.add(db, 1.0);
+        var record = store.record(key);
+        expect(await record.get(db), 1.0);
+        var value = (await store.findFirst(db))!.value;
+        expect(value, 1.0);
+        if (kSembastDartIsWeb) {
+          if (isRunningAsJavascript) {
+            // jsify
+            expect(value.runtimeType, int);
+          } else {
+            expect(value.runtimeType, double);
+          }
+        } else {
+          expect(value.runtimeType, double);
+        }
+        await db.close();
+        db = await ctx.factory.openDatabase(db.path);
+        final dynamicStore = StoreRef<String, Object>.main();
+        var dynamicValue = (await dynamicStore.findFirst(db))!.value;
+        if (kSembastDartIsWeb) {
+          if (isRunningAsJavascript) {
+            expect(value.runtimeType, int);
+          } else {
+            expect(value.runtimeType, double);
+          }
+        } else {
+          expect(dynamicValue.runtimeType, double);
+        }
+        if (!kSembastDartIsWeb || isRunningAsJavascript) {
+          value = (await store.findFirst(db))!.value;
+          expect(value, 1.0);
+          if (kSembastDartIsWeb) {
+            expect(value.runtimeType, int);
+          } else {
+            expect(value.runtimeType, double);
+          }
+        }
+      });
+
+      test('add_double 1.5', () async {
+        // this is ok too
+        final store = StoreRef<String, double>.main();
+        var key = await store.add(db, 1.5);
+        var record = store.record(key);
+        expect(await record.get(db), 1.5);
+        var value = (await store.findFirst(db))!.value;
+        expect(value, 1.5);
+
+        expect(value.runtimeType, double);
+
+        await db.close();
+        db = await ctx.factory.openDatabase(db.path);
+        value = (await store.findFirst(db))!.value;
+        expect(value, 1.5);
+
+        expect(value.runtimeType, double);
+      });
+      test('add_int', () async {
         // this is ok too
         final store = StoreRef<String, double>.main();
         var key = await store.add(db, 1);
         var record = store.record(key);
         expect(await record.get(db), 1);
-
         var value = (await store.findFirst(db))!.value;
         expect(value, 1);
-        if (!isJavascriptVm) {
+        if (kSembastDartIsWeb) {
+          if (isRunningAsJavascript) {
+            expect(value.runtimeType, int);
+          } else {
+            expect(value.runtimeType, double);
+          }
+        } else {
           expect(value.runtimeType, double);
         }
         await db.close();
         db = await ctx.factory.openDatabase(db.path);
-        value = (await store.findFirst(db))!.value;
-        expect(value, 1);
-        if (!isJavascriptVm) {
-          expect(value.runtimeType, double);
+        final dynamicStore = StoreRef<String, Object>.main();
+        var dynamicValue = (await dynamicStore.findFirst(db))!.value;
+        if (kSembastDartIsWeb) {
+          if (isRunningAsJavascript) {
+            expect(value.runtimeType, int);
+          } else {
+            expect(value.runtimeType, double);
+          }
+        } else {
+          expect(dynamicValue.runtimeType, double);
+        }
+        if (!kSembastDartIsWeb || isRunningAsJavascript) {
+          value = (await store.findFirst(db))!.value;
+          expect(value, 1);
+          if (kSembastDartIsWeb) {
+            // jsify
+            expect(value.runtimeType, int);
+          } else {
+            // dart
+            expect(value.runtimeType, double);
+          }
         }
       });
     });

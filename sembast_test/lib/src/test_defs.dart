@@ -4,15 +4,18 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:path/path.dart';
+
 // ignore_for_file: implementation_imports
 import 'package:sembast/src/api/protected/jdb.dart';
 import 'package:sembast/src/api/v2/sembast_memory.dart';
-
 import 'package:sembast/src/file_system.dart';
 import 'package:sembast/src/memory/file_system_memory.dart';
 
 import '../test_common.dart';
 import 'import_database.dart';
+
+export 'package:sembast/src/env_utils.dart'
+    show isRunningAsJavascript, kSembastDartIsWeb;
 
 DatabaseTestContext get memoryDatabaseContext =>
     DatabaseTestContext()..factory = databaseFactoryMemory;
@@ -26,7 +29,7 @@ class TestException implements Exception {
 class FileSystemTestContext {
   FileSystem? fs;
 
-  //String get outPath => fs.currentDirectory.path;
+//String get outPath => fs.currentDirectory.path;
 }
 
 FileSystemTestContext get memoryFileSystemContext =>
@@ -94,5 +97,5 @@ Future<int> getExistingDatabaseVersion(
   return version;
 }
 
-/// True on the browser
-bool get isJavascriptVm => identical(1.0, 1);
+/// True on the vm (not node.js)
+bool get isJavascriptVm => isRunningAsJavascript;

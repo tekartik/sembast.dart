@@ -21,3 +21,6 @@ bool get isDebug => !isRelease!;
 
 /// Special runtime trick to known whether we are in the javascript world
 const isRunningAsJavascript = identical(0, 0.0);
+
+/// Borrowed from flutter (isRunningAsJavascript is false in wasm)
+const bool kSembastDartIsWeb = bool.fromEnvironment('dart.library.js_util');
