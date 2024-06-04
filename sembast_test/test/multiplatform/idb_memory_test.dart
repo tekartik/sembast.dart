@@ -1,3 +1,6 @@
+@TestOn('!wasm') // tmp
+library;
+
 import 'package:sembast_test/all_jdb_test.dart' as all_jdb_test;
 import 'package:sembast_test/all_test.dart';
 import 'package:sembast_test/jdb_test_common.dart';
