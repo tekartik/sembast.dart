@@ -3,12 +3,11 @@
 @TestOn('browser')
 library sembast_web.test.web.idb_native_simple_test;
 
-import 'dart:html';
-
 import 'package:sembast/sembast.dart';
 import 'package:sembast_web/sembast_web.dart';
 import 'package:sembast_web/src/sembast_import.dart';
 import 'package:test/test.dart';
+import 'package:web/web.dart';
 
 import '../multiplatform/idb_jdb_test.dart' as idb_jdb_test;
 import '../multiplatform/idb_jdb_test.dart';

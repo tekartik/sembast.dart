@@ -1,5 +1,5 @@
 @TestOn('vm')
-library sembast_web.test.idb_io_simple_test;
+library;
 
 import 'package:idb_shim/idb_io.dart';
 import 'package:sembast/sembast.dart';

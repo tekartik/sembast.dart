@@ -1,3 +1,6 @@
+@TestOn('!wasm')
+library;
+
 import 'package:sembast/sembast.dart';
 import 'package:sembast_web/src/jdb_factory_idb.dart';
 import 'package:sembast_web/src/jdb_import.dart';

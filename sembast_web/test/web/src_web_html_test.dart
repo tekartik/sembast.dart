@@ -1,7 +1,6 @@
 // ignore_for_file: avoid_print
-
-@TestOn('browser')
-library sembast_web.test.web.src_web_test;
+@TestOn('browser && !wasm')
+library;
 
 import 'package:sembast/sembast.dart';
 import 'package:sembast_web/src/web_html.dart';

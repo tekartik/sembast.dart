@@ -1,4 +1,4 @@
-@TestOn('browser')
+@TestOn('browser && !wasm')
 library sembast_test.test.web.idb_nativetest;
 
 import 'package:idb_shim/idb_client_native_html.dart';
