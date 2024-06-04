@@ -1,4 +1,4 @@
-## 2.3.0
+## 2.3.0+1
 
 * web and js_interop (for wasm) support
 

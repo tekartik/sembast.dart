@@ -2,7 +2,7 @@
 
 [sembast](https://pub.dev/packages/sembast) for the Web, NoSQL persistent embedded database for the Web on top of IndexedDB.
 
-Works on browser applications and flutter web applications. 
+Works on browser applications and flutter web applications (js/wasm). 
 
 * Basic [sembast_web demo](https://github.com/alextekartik/flutter_app_example/tree/master/demo_sembast) on flutter.
 * [notepad_sembast](https://github.com/alextekartik/flutter_app_example/tree/master/notepad_sembast): Simple flutter notepad on all platforms
