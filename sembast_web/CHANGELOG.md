@@ -1,3 +1,7 @@
+## 2.4.0
+
+* Remove legacy html support.
+
 ## 2.3.0+1
 
 * web and js_interop (for wasm) support
