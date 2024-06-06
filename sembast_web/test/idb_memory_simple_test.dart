@@ -1,4 +1,4 @@
-@TestOn('!wasm')
+@TestOn('!wasm') // tmp
 library;
 
 import 'package:sembast/sembast.dart';
