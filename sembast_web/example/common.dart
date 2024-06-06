@@ -1,4 +1,4 @@
-import 'dart:html';
+import 'package:web/web.dart';
 export 'package:sembast/sembast.dart';
 
 class OutBuffer {
@@ -21,8 +21,8 @@ class OutBuffer {
 }
 
 OutBuffer _outBuffer = OutBuffer(100);
-Element? _output = document.getElementById('output');
+final _output = document.getElementById('output') as HTMLElement;
 void write([Object? message]) {
   print(message);
-  _output!.text = (_outBuffer..add('$message')).toString();
+  _output.text = (_outBuffer..add('$message')).toString();
 }

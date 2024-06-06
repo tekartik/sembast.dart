@@ -1,6 +1,7 @@
-import 'dart:html';
+
 
 import 'package:sembast_web/sembast_web.dart';
+import 'package:web/web.dart';
 
 import 'common.dart';
 
@@ -26,11 +27,11 @@ Future run({required String dbName, String? store}) async {
     }
   });
 
-  querySelector('#add')!.onClick.listen((_) async {
+  document.querySelector('#add')!.onClick.listen((_) async {
     var key = await dateStore.add(db, DateTime.now().toIso8601String());
     write('add now $key');
   });
-  querySelector('#delete')!.onClick.listen((_) async {
+  document.querySelector('#delete')!.onClick.listen((_) async {
     write('deleting...');
     await dateStore.delete(db);
   });
