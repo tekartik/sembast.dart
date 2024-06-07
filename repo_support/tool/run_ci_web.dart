@@ -8,6 +8,7 @@ Future main() async {
     'sembast_web',
   ]) {
     await packageRunCi(join('..', dir),
-        options: PackageRunCiOptions(noBrowserTest: true));
+        options: PackageRunCiOptions(
+            testOnly: true, noVmTest: true, noNodeTest: true));
   }
 }
