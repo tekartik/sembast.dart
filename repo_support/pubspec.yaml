@@ -15,5 +15,5 @@ dev_dependencies:
   lints: '>=1.0.1'
   path:
 dependency_overrides:
-  dev_build:
-    path: ../../dev_test.dart/dev_build
+  # dev_build:
+  #   path: ../../dev_test.dart/dev_build
