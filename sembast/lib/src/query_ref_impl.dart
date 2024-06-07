@@ -57,7 +57,8 @@ extension SembastQueryRefExtension<K, V> on QueryRef<K, V> {
 
       // Just filter
       try {
-        await db.notificationLock.synchronized(() async {
+        // Make sure the first read matches the existing content.
+        await ctlr.lock.synchronized(() async {
           // Find all matching, ignoring offset/limit but order them
           var allMatching = await sembastQueryRef.store.findImmutableRecords(
               database,
@@ -163,7 +164,7 @@ extension SembastQueryRefSyncExtension<K, V> on QueryRef<K, V> {
 
       // Just filter
       try {
-        await db.notificationLock.synchronized(() async {
+        await ctlr.lock.synchronized(() async {
           // Find all matching, ignoring offset/limit but order them
           var allMatching = sembastQueryRef.store.findImmutableRecordsSync(
               database,

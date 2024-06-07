@@ -129,7 +129,7 @@ extension SembastRecordRefExtension<K, V> on RecordRef<K, V> {
     ctlr = db.listener.addRecord(this, onListen: () {
       // Read right away
       () async {
-        await db.notificationLock.synchronized(() async {
+        await ctlr.lock.synchronized(() async {
           // Don't crash here, the database might have been closed
           try {
             // Add the existing snapshot
@@ -203,7 +203,7 @@ extension SembastRecordRefSyncExtension<K, V> on RecordRef<K, V> {
     ctlr = db.listener.addRecord(this, onListen: () {
       // Read right away
       () async {
-        await db.notificationLock.synchronized(() async {
+        await ctlr.lock.synchronized(() async {
           // Don't crash here, the database might have been closed
           try {
             // Add the existing snapshot

@@ -1439,28 +1439,7 @@ class SembastDatabase extends Object
             var ctlrs = storeListener.getRecordControllers(record.ref);
             if (ctlrs != null) {
               for (var ctlr in ctlrs) {
-                void updateRecord() {
-                  if (debugListener) {
-                    // ignore: avoid_print
-                    print('updating $ctlr: with $record');
-                  }
-                  if (!record.deleted) {
-                    ctlr.add(record);
-                  } else {
-                    ctlr.add(null);
-                  }
-                }
-
-                if (ctlr.hasInitialData) {
-                  // devPrint('adding $record');
-                  updateRecord();
-                } else {
-                  // postpone after the current lock
-                  // ignore: unawaited_futures
-                  notificationLock.synchronized(() async {
-                    updateRecord();
-                  });
-                }
+                ctlr.update(record);
               }
             }
           }

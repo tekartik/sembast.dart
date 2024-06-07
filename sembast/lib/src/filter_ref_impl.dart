@@ -45,7 +45,7 @@ extension SembastFilterRefExtensionPrv<K, V> on FilterRef<K, V> {
 
       // Just filter
       try {
-        await db.notificationLock.synchronized(() async {
+        await ctlr.lock.synchronized(() async {
           // Find all matching, ignoring offset/limit but order them
           var keys = await sembastFilterRef.store
               .filterKeys(database, filter: sembastFilterRef.filter);

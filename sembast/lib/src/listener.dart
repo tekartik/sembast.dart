@@ -7,12 +7,16 @@ import 'package:sembast/src/query_ref_impl.dart';
 import 'package:sembast/src/record_impl.dart';
 import 'package:sembast/src/sort.dart';
 import 'package:sembast/src/utils.dart';
+import 'package:synchronized/synchronized.dart';
 
 import 'api/filter_ref.dart';
 import 'filter_ref_impl.dart';
 import 'import_common.dart';
 
 class _ControllerBase {
+  /// Lock
+  final lock = Lock();
+
   static var _lastId = 0;
 
   /// Debug only
@@ -111,9 +115,10 @@ class QueryListenerController<K, V> extends StoreListenerControllerBase<K, V> {
 
   bool get _shouldAdd => !isClosed && _streamController!.hasListener;
 
-  /// Add data to stream, allMatching is already sorted
+  /// Add data to stream, allMatching is already sorted, lock must have been acquired.
   Future add(
       List<ImmutableSembastRecord>? allMatching, Cooperator? cooperator) async {
+    assert(lock.inLock);
     // Filter only
     _allMatching = allMatching;
 
@@ -144,50 +149,54 @@ class QueryListenerController<K, V> extends StoreListenerControllerBase<K, V> {
     if (!_shouldAdd) {
       return;
     }
-    var hasChanges = false;
 
-    // Restart from the base we have for efficiency
-    var allMatching = List<ImmutableSembastRecord>.from(_allMatching!);
+    // This ensure _allMatching is not null
+    await lock.synchronized(() async {
+      var hasChanges = false;
 
-    var keys = Set<Object?>.from(records.map((record) => record.key));
-    // Remove all matching
-    bool whereSnapshot(RecordSnapshot snapshot) {
-      if (keys.contains(snapshot.key)) {
-        hasChanges = true;
-        return true;
-      }
-      return false;
-    }
+      // Restart from the base we have for efficiency
+      var allMatching = List<ImmutableSembastRecord>.from(_allMatching!);
 
-    // Remove and reinsert if needed
-    allMatching.removeWhere(whereSnapshot);
-
-    for (var txnRecord in records) {
-      // By default matches if non-deleted
-      var matches = !txnRecord.deleted &&
-          // Matching boundaries
-          finderMatchesFilterAndBoundaries(finder, txnRecord);
-
-      if (matches) {
-        hasChanges = true;
-        // insert at the proper location
-        allMatching.insert(
-            findSortedIndex(allMatching, txnRecord,
-                finder?.compareThenKey ?? compareRecordKey),
-            txnRecord);
+      var keys = Set<Object?>.from(records.map((record) => record.key));
+      // Remove all matching
+      bool whereSnapshot(RecordSnapshot snapshot) {
+        if (keys.contains(snapshot.key)) {
+          hasChanges = true;
+          return true;
+        }
+        return false;
       }
 
-      if (cooperator?.needCooperate ?? false) {
-        await cooperator!.cooperate();
-      }
+      // Remove and reinsert if needed
+      allMatching.removeWhere(whereSnapshot);
 
-      if (isClosed) {
-        return;
+      for (var txnRecord in records) {
+        // By default matches if non-deleted
+        var matches = !txnRecord.deleted &&
+            // Matching boundaries
+            finderMatchesFilterAndBoundaries(finder, txnRecord);
+
+        if (matches) {
+          hasChanges = true;
+          // insert at the proper location
+          allMatching.insert(
+              findSortedIndex(allMatching, txnRecord,
+                  finder?.compareThenKey ?? compareRecordKey),
+              txnRecord);
+        }
+
+        if (cooperator?.needCooperate ?? false) {
+          await cooperator!.cooperate();
+        }
+
+        if (isClosed) {
+          return;
+        }
       }
-    }
-    if (hasChanges) {
-      await add(allMatching, cooperator);
-    }
+      if (hasChanges) {
+        await add(allMatching, cooperator);
+      }
+    });
   }
 
   @override
@@ -254,6 +263,7 @@ class RecordListenerController<K, V> extends _ControllerBase {
 
   /// Add a snapshot if not deleted
   void add(RecordSnapshot? snapshot) {
+    assert(lock.inLock);
     if (!_shouldAdd) {
       return;
     }
@@ -281,6 +291,22 @@ class RecordListenerController<K, V> extends _ControllerBase {
       }
       onListen!();
     }
+  }
+
+  /// Update the record.
+  void update(ImmutableSembastRecord record) {
+    lock.synchronized(() {
+      if (debugListener) {
+        // ignore: avoid_print
+        print('updating $this: with $record');
+      }
+
+      if (!record.deleted) {
+        add(record);
+      } else {
+        add(null);
+      }
+    });
   }
 }
 
@@ -567,6 +593,7 @@ class CountListenerController<K, V> extends StoreListenerControllerBase<K, V> {
 
   /// Add data to stream, allMatching is already sorted
   void add(Set<Object?> keys, Cooperator? cooperator) {
+    assert(lock.inLock);
     var changed = list?.length != keys.length;
     // Filter only
     list = keys;
@@ -595,37 +622,39 @@ class CountListenerController<K, V> extends StoreListenerControllerBase<K, V> {
     if (!_shouldAdd) {
       return;
     }
-    var keys = Set<Object>.from(list!);
+    await lock.synchronized(() async {
+      var keys = Set<Object>.from(list!);
 
-    for (var record in records) {
-      if (!record.deleted && filterMatchesRecord(filter, record)) {
-        keys.add(record.key);
-      } else {
-        keys.remove(record.key);
-      }
-    }
-
-    for (var txnRecord in records) {
-      var key = txnRecord.key;
-
-      // By default matches if non-deleted
-      var matches =
-          !txnRecord.deleted && filterMatchesRecord(filter, txnRecord);
-
-      if (matches) {
-        keys.add(key);
-      } else {
-        keys.remove(key);
+      for (var record in records) {
+        if (!record.deleted && filterMatchesRecord(filter, record)) {
+          keys.add(record.key);
+        } else {
+          keys.remove(record.key);
+        }
       }
 
-      if (cooperator?.needCooperate ?? false) {
-        await cooperator!.cooperate();
+      for (var txnRecord in records) {
+        var key = txnRecord.key;
+
+        // By default matches if non-deleted
+        var matches =
+            !txnRecord.deleted && filterMatchesRecord(filter, txnRecord);
+
+        if (matches) {
+          keys.add(key);
+        } else {
+          keys.remove(key);
+        }
+
+        if (cooperator?.needCooperate ?? false) {
+          await cooperator!.cooperate();
+        }
+        if (isClosed) {
+          return;
+        }
       }
-      if (isClosed) {
-        return;
-      }
-    }
-    add(keys, cooperator);
+      add(keys, cooperator);
+    });
   }
 
   @override
