@@ -55,6 +55,11 @@ Future main() async {
 * Transactions must be idempotent (i.e. they must produce the same result if run twice) as they might run again in case of concurrent access.
 * WASM support as of 2.3.0 (legacy html version available through `sembast_web_html.dart` import)
 
+### Use the same web port when debugging
+
+The database is stored in the browser indexeddb. Like any other web storage, it is tied to the port. (i.e. localhost:8080 is different from localhost:8081).
+When debugging, you should use the same port to keep the same indexeddb database.
+
 ## How it works
 
 Like sembast the whole database is loaded into memory from indexedDB. It notifies cross tabs
@@ -62,3 +67,4 @@ using localStorage. data is incrementally updated from indexedDB. If a transacti
 some changes happens, new data is loaded and transaction is ran again.
 
 The only exported API is `databaseFactoryWeb`. For more information on the API see [sembast](https://pub.dev/packages/sembast) documentation.
+
