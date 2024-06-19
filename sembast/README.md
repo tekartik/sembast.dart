@@ -230,19 +230,23 @@ Supported types depends on JSON supported types. More information [here](https:/
 
 Supported key types are:
 - int (default with autoincrement when no key are passed)
-- String (String keys can also be generated à la firestore)
+- String (supports generation of unique key)
 
 #### Values
 
 Supported value types are:
 - `String`
 - `num` (`int` and `double`)
-- `Map` (`Map<String, Object?>`)
-- `List` (`List<Object?>`)
+- `Map<String, Object?>` (`Object?` being any of the supported types)
+- `List<Object?>` (`Object?` being any of the supported types, `Iterable` is not a supported types, use to `toList()` to convert any iterable)
 - `bool`
-- `null` (value)
+- `null` (the root record value itself cannot be null though)
 - `Blob` (custom type)
 - `Timestamp` (custom type)
+
+Map must be of type `Map<String, Object?>`.
+
+The root document data cannot be `null` (but null are accepted for map values, i.e. `{"test": null}`, `[1, null, "test"]` is ok but `null` is not)
 
 ### Resources
 

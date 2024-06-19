@@ -16,11 +16,13 @@ Supported value types are:
 - `Map<String, Object?>` (`Object?` being any of the supported types)
 - `List<Object?>` (`Object?` being any of the supported types, `Iterable` is not a supported types, use to `toList()` to convert any iterable)
 - `bool`
-- `null` (the record value itself cannot be null)
+- `null` (the root record value itself cannot be null though)
 - `Blob` (custom type)
 - `Timestamp` (custom type)
 
-Using the Store API, Map must be of type `Map<String, Object?>`.
+Map must be of type `Map<String, Object?>`.
+
+The root document data cannot be `null` (but null are accepted for map values, i.e. `{"test": null}`, `[1, null, "test"]` is ok but `null` is not)
 
 ## Keys and map keys
 
