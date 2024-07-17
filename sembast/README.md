@@ -30,6 +30,28 @@ Follow the [guide](https://github.com/tekartik/sembast.dart/blob/master/sembast/
 
 A database is a single file represented by a path in the file system
 
+#### Flutter
+
+On flutter you need to find a proper location for the database. One solution is to use the `path_provider` package get
+ a directory in which you want to create the database.
+
+```dart
+import 'package:path/path.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:sembast/sembast_io.dart';
+
+// get the application documents directory
+final dir = await getApplicationDocumentsDirectory();
+// make sure it exists
+await dir.create(recursive: true);
+// build the database path
+final dbPath = join(dir.path, 'my_database.db');
+// open the database
+final db = await databaseFactoryIo.openDatabase(dbPath);
+```
+
+#### Dart
+
 ```dart
 // File path to a file in the current directory
 String dbPath = 'sample.db';
