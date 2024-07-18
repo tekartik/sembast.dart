@@ -82,7 +82,7 @@ class _IoOSError implements fs.OSError {
 class _IoFileSystemException implements fs.FileSystemException {
   io.FileSystemException ioFse;
 
-  _IoFileSystemException(this.ioFse) : osError = _IoOSError(ioFse.osError!);
+  _IoFileSystemException(this.ioFse) : osError = _IoOSError(ioFse.osError ?? io.OSError(ioFse.message));
 
   @override
   final _IoOSError osError;
