@@ -5,6 +5,7 @@ library sembast.io_file_system_test;
 import 'dart:io' as io;
 
 import 'package:path/path.dart';
+import 'package:sembast/src/file_system.dart' as fs;
 import 'package:sembast/src/io/file_system_io.dart';
 
 import 'test_common.dart';
@@ -52,6 +53,17 @@ void defineTests() {
     test('isFile', () async {
       expect(await fileSystem.isFile('test'), isFalse);
       expect(await fileSystem.isDirectory('test'), isTrue);
+    });
+
+    test('issue#384', () async {
+      // Test with no OS Error
+      var exceptionIo = const io.FileSystemException();
+      try {
+        await wrapIoException(Future<void>.error(exceptionIo));
+        fail('should fail');
+      } catch (e) {
+        expect(e, isA<fs.FileSystemException>());
+      }
     });
 
     // fs.defineTests(fileSystemContextIo);

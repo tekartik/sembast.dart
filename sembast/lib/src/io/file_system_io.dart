@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'dart:io' as io;
 import 'dart:typed_data';
 
+import 'package:meta/meta.dart';
 import 'package:path/path.dart';
 import 'package:path/path.dart' as p;
 import 'package:sembast/src/file_system.dart' as fs;
@@ -82,7 +83,8 @@ class _IoOSError implements fs.OSError {
 class _IoFileSystemException implements fs.FileSystemException {
   io.FileSystemException ioFse;
 
-  _IoFileSystemException(this.ioFse) : osError = _IoOSError(ioFse.osError ?? io.OSError(ioFse.message));
+  _IoFileSystemException(this.ioFse)
+      : osError = _IoOSError(ioFse.osError ?? io.OSError(ioFse.message));
 
   @override
   final _IoOSError osError;
@@ -112,6 +114,10 @@ class _FileSystemExceptionIoDefault implements fs.FileSystemException {
   @override
   String toString() => 'FsIoException($message)';
 }
+
+/// Testing only (issue #384)
+@visibleForTesting
+Future<T> wrapIoException<T>(Future<T> future) => _wrap(future);
 
 Future<T> _wrap<T>(Future<T> future) {
   return future.catchError((Object e, StackTrace st) {
