@@ -2,6 +2,13 @@ import 'package:sembast/timestamp.dart';
 
 import 'test_common.dart';
 
+final dateTimeSupportsMicroseconds = () {
+  var iso = DateTime.utc(2100, 1, 2, 3, 4, 5, 6, 7).toIso8601String();
+  if (iso == '2100-01-02T03:04:05.006007Z') {
+    return true;
+  }
+  return false;
+}();
 void main() {
   group('timestamp', () {
     test('dateTime parse', () {
@@ -9,7 +16,7 @@ void main() {
           '1970-01-01T00:00:00.000Z');
       expect(DateTime.parse('1970-01-01T00:00:00.000000999Z').toIso8601String(),
           '1970-01-01T00:00:00.000Z');
-      if (isWeb) {
+      if (!dateTimeSupportsMicroseconds) {
         expect(DateTime.parse('1970-01-01T00:00:00.000001Z').toIso8601String(),
             '1970-01-01T00:00:00.000Z');
         expect(DateTime.parse('1970-01-01T00:00:00.000999Z').toIso8601String(),
@@ -147,19 +154,22 @@ void main() {
       checkToIso8601(
         Timestamp(0, 100000),
         '1970-01-01T00:00:00.000100Z',
-        isWeb ? '1970-01-01T00:00:00.000Z' : '1970-01-01T00:00:00.000100Z',
+        dateTimeSupportsMicroseconds
+            ? '1970-01-01T00:00:00.000100Z'
+            : '1970-01-01T00:00:00.000Z',
       );
       checkToIso8601(
         Timestamp(0, 100),
         '1970-01-01T00:00:00.000000100Z',
-        isWeb ? '1970-01-01T00:00:00.000Z' : '1970-01-01T00:00:00.000Z',
+        '1970-01-01T00:00:00.000Z',
       );
       checkToIso8601(
         Timestamp(0, 999999999),
         '1970-01-01T00:00:00.999999999Z',
-        isWeb
-            ? '1970-01-01T00:00:01.000Z' // Precision issue
-            : '1970-01-01T00:00:00.999999Z',
+        dateTimeSupportsMicroseconds
+            ? '1970-01-01T00:00:00.999999Z'
+            : '1970-01-01T00:00:01.000Z' // Precision issue
+        ,
       );
     });
 
@@ -193,15 +203,21 @@ void main() {
       checkParseToIso(
           '2018-10-20T05:13:45.985343123Z',
           '2018-10-20T05:13:45.985343123Z',
-          isWeb ? '2018-10-20T05:13:45.985Z' : '2018-10-20T05:13:45.985343Z');
+          dateTimeSupportsMicroseconds
+              ? '2018-10-20T05:13:45.985343Z'
+              : '2018-10-20T05:13:45.985Z');
       checkParseToIso(
           '2018-10-20T05:13:45.98534312Z',
           '2018-10-20T05:13:45.985343120Z',
-          isWeb ? '2018-10-20T05:13:45.985Z' : '2018-10-20T05:13:45.985343Z');
+          dateTimeSupportsMicroseconds
+              ? '2018-10-20T05:13:45.985343Z'
+              : '2018-10-20T05:13:45.985Z');
       checkParseToIso(
           '2018-10-20T05:13:45.985343Z',
           '2018-10-20T05:13:45.985343Z',
-          isWeb ? '2018-10-20T05:13:45.985Z' : '2018-10-20T05:13:45.985343Z');
+          dateTimeSupportsMicroseconds
+              ? '2018-10-20T05:13:45.985343Z'
+              : '2018-10-20T05:13:45.985Z');
       checkParseToIso('2018-10-20T05:13:45.985Z', '2018-10-20T05:13:45.985Z',
           '2018-10-20T05:13:45.985Z');
       checkParseToIso('1234-01-23T01:23:45.123Z', '1234-01-23T01:23:45.123Z',
@@ -218,7 +234,9 @@ void main() {
       checkParseToIso(
           '2018-10-20T05:13:45.9853431239Z',
           '2018-10-20T05:13:45.985343123Z',
-          isWeb ? '2018-10-20T05:13:45.985Z' : '2018-10-20T05:13:45.985343Z');
+          dateTimeSupportsMicroseconds
+              ? '2018-10-20T05:13:45.985343Z'
+              : '2018-10-20T05:13:45.985Z');
 
       // Limit
       checkParseToIso('0001-01-01T00:00:00Z', '0001-01-01T00:00:00.000Z',
