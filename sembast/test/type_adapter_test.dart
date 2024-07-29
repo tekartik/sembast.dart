@@ -5,6 +5,7 @@ import 'package:sembast/src/timestamp_impl.dart';
 import 'package:sembast/src/type_adapter_impl.dart';
 
 import 'test_common.dart';
+import 'timestamp_test.dart';
 
 void main() {
   group('type_adapter', () {
@@ -13,16 +14,16 @@ void main() {
           sembastDateTimeAdapter
               .encode(DateTime.fromMillisecondsSinceEpoch(1, isUtc: true)),
           '1970-01-01T00:00:00.001Z');
-      if (isWeb) {
-        expect(
-            sembastDateTimeAdapter
-                .encode(DateTime.fromMicrosecondsSinceEpoch(1, isUtc: true)),
-            '1970-01-01T00:00:00.000Z');
-      } else {
+      if (dateTimeSupportsMicroseconds) {
         expect(
             sembastDateTimeAdapter
                 .encode(DateTime.fromMicrosecondsSinceEpoch(1, isUtc: true)),
             '1970-01-01T00:00:00.000001Z');
+      } else {
+        expect(
+            sembastDateTimeAdapter
+                .encode(DateTime.fromMicrosecondsSinceEpoch(1, isUtc: true)),
+            '1970-01-01T00:00:00.000Z');
       }
       expect(sembastDateTimeAdapter.decode('1970-01-01T00:00:00.000001Z'),
           DateTime.fromMicrosecondsSinceEpoch(1, isUtc: true));
