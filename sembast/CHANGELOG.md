@@ -1,3 +1,7 @@
+## 3.7.2
+
+* Add `ifNotExists` options to `RecordRef.put()` to only create a record if does not exist.
+
 ## 3.7.1+3
 
 * Add `Database.checkForChanges()` helper to force loading data
