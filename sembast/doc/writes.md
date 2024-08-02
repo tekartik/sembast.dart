@@ -48,7 +48,8 @@ await store.record(1234).add(db, {'value': 'test'});
 
 ## Update data
 
-You can update the data of a given record using put or update (update will fail if the record does not exist):
+You can update the data of a given record using `put()` or `update()` 
+(`update()` will fail if the record does not exist):
 
 ```dart
  // Update the record
@@ -57,6 +58,16 @@ await record.put(db, {'other_value': 'test2'}, merge: true);
 readMap = await record.get(db);
 
 expect(readMap, {'value': 'test', 'other_value': 'test2'});
+```
+
+You can also use `put()` with `ifNotExists` set to true to only add the record if it does not exist:
+
+```dart
+await record.put(db, {'value': 'test1'});
+// This will not update the record since it already exists
+await record.put(db, {'value': 'test2'}, ifNotExists: true);
+readMap = await record.get(db);
+expect(readMap, {'value': 'test1'});
 ```
 
 ## Updating fields
