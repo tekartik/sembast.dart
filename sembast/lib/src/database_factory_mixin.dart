@@ -6,6 +6,9 @@ import 'package:sembast/src/database_impl.dart';
 import 'database_open_helper.dart';
 import 'database_open_options.dart';
 
+/// Debug print the absolute path of the opened database.
+var debugPrintAbsoluteOpenedDatabasePath = false;
+
 /// The factory implementation.
 abstract class SembastDatabaseFactory implements DatabaseFactory {
   /// The actual implementation

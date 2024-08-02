@@ -73,18 +73,23 @@ extension SembastRecordRefExtension<K, V> on RecordRef<K, V> {
 
   /// Save a record, create if needed.
   ///
-  /// if [merge] is true and the field exists, data is merged
+  /// if [ifNotExists] is true, the record is only created if it does not exist.
   ///
-  /// Returns the updated value.
-  Future<V> put(DatabaseClient databaseClient, V value, {bool? merge}) async {
+  /// if [merge] is true and the record exists, data is merged
+  ///
+  /// Both [merge] and [ifNotExists] cannot be true at the same time.
+  /// Returns the updated value or existing value if [ifNotExists] is true and
+  /// the record exists
+  Future<V> put(DatabaseClient databaseClient, V value,
+      {bool? merge, bool? ifNotExists}) async {
     var client = getClient(databaseClient);
     _checkValueArgument(value);
     value = client.sembastDatabase
         .sanitizeInputValue<V>(value as Value, update: merge);
     return (await client.inTransaction((txn) {
-      return client
-          .getSembastStore(store)
-          .txnPut(txn, value as Value, key as Key, merge: merge);
+      return client.getSembastStore(store).txnPut(
+          txn, value as Value, key as Key,
+          merge: merge, ifNotExists: ifNotExists);
     }) as V?)!;
   }
 

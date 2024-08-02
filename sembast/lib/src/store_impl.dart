@@ -56,9 +56,10 @@ class SembastStore {
   ///
   /// Return the value added
   Future<Object?> txnPut(SembastTransaction txn, Value value, Key key,
-      {bool? merge}) async {
+      {bool? merge, bool? ifNotExists}) async {
     try {
-      return txnPutSync(txn, value, key, merge: merge);
+      return txnPutSync(txn, value, key,
+          merge: merge, ifNotExists: ifNotExists);
     } finally {
       await database.txnPostWriteAndCooperate(txn);
     }
@@ -128,22 +129,26 @@ class SembastStore {
 
   /// Returns the value
   Value? txnPutSync(SembastTransaction txn, Value value, Key key,
-      {bool? merge}) {
-    RecordSnapshot? oldSnapshot;
+      {bool? merge, bool? ifNotExists}) {
     var hasChangesListener = this.hasChangesListener;
+    RecordSnapshot? oldSnapshot;
+    if (merge == true || ifNotExists == true || hasChangesListener) {
+      oldSnapshot = txnGetRecordSync(txn, key);
+    }
+    if (ifNotExists == true) {
+      if (merge == true) {
+        throw ArgumentError('merge and ifNotExists cannot be both true');
+      }
+      if (oldSnapshot != null) {
+        return oldSnapshot.value;
+      }
+    }
     ImmutableSembastRecord? record;
     if (merge == true) {
-      record = txnGetRecordSync(txn, key);
-
-      oldSnapshot = record;
-
       // the value cannot be null
-      value = mergeValue(record?.value, value, allowDotsInKeys: true);
+      value = mergeValue(oldSnapshot?.value, value, allowDotsInKeys: true);
       //}
     } else {
-      if (hasChangesListener) {
-        oldSnapshot = txnGetRecordSync(txn, key);
-      }
       // Simple clone the calue
       value = cloneValue(value);
     }

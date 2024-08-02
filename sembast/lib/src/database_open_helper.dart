@@ -1,7 +1,9 @@
+import 'package:path/path.dart';
 import 'package:sembast/sembast.dart';
 import 'package:synchronized/synchronized.dart';
 
 import 'api/protected/database.dart';
+import 'database_factory_mixin.dart';
 
 /// Open helper. not public.
 class DatabaseOpenHelper {
@@ -43,6 +45,10 @@ class DatabaseOpenHelper {
       // Force helper again in case it was removed by lockedClose
       database!.openHelper = this;
 
+      if (debugPrintAbsoluteOpenedDatabasePath) {
+        // ignore: avoid_print
+        print('Opening ${normalize(absolute(path))}');
+      }
       await database!.open(options);
 
       // Force helper again in case it was removed by lockedClose

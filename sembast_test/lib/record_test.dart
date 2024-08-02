@@ -80,6 +80,15 @@ void defineRecordTests(DatabaseTestContext ctx) {
       expect(snapshot.value, value);
     }
 
+    test('ifNotExists', () async {
+      var store = StoreRef<int, String>.main();
+      var record = store.record(1);
+      expect(await record.put(db, 'test1', ifNotExists: true), 'test1');
+      expect(await record.put(db, 'test2', ifNotExists: true), 'test1');
+      await db.transaction((txn) async {
+        expect(await record.put(txn, 'test3', ifNotExists: true), 'test1');
+      });
+    });
     test('put/get_sync ', () async {
       var store = StoreRef<int, String>.main();
       var record = store.record(1);
