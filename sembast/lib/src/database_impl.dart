@@ -465,7 +465,7 @@ class SembastDatabase extends Object
         var records = storeContent.records;
         var store = storeContent.store;
 
-        if (records.isNotEmpty == true) {
+        if (records.isNotEmpty) {
           // Prepare listener operations
 
           var listener = this.listener.getStore(store);

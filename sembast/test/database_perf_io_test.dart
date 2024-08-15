@@ -48,7 +48,7 @@ void main() {
           }
         }
 
-        if (inTransaction == true) {
+        if (inTransaction) {
           for (var k = 0; k < transactionCount; k++) {
             await db.transaction((Transaction txn) async {
               await doPut(txn, recordCount, times);
@@ -60,7 +60,7 @@ void main() {
         sw.stop();
         final rows = <String>[
           '$recordCount', '$times',
-          inTransaction == true ? '$transactionCount' : ' ',
+          if (inTransaction) '$transactionCount' else ' ',
           // bigRecord == true ? 'BIG': ' ',
           '${recordContent.length}',
           '${sw.elapsedMilliseconds}'

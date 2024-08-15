@@ -300,7 +300,7 @@ class FileSystemMemoryImpl {
       final parentSegments = getParentSegments(segments);
       var parent = getEntityBySegment(parentSegments);
       if (parent == null) {
-        if (recursive == true) {
+        if (recursive) {
           parent =
               createDirectoryBySegments(parentSegments, recursive: recursive);
           // let it continue to create the last segment
@@ -327,7 +327,7 @@ class FileSystemMemoryImpl {
       final parentSegments = getParentSegments(segments);
       var parent = getEntityBySegment(parentSegments);
       if (parent == null) {
-        if (recursive == true) {
+        if (recursive) {
           parent =
               createDirectoryBySegments(parentSegments, recursive: recursive);
           // let it continue to create the last segment
@@ -419,7 +419,7 @@ class FileSystemMemoryImpl {
     }
     if (entityImpl is! RootDirectoryMemoryImpl) {
       if (entityImpl is DirectoryMemoryImpl) {
-        if (recursive != true && (entityImpl.children.isNotEmpty)) {
+        if (!recursive && (entityImpl.children.isNotEmpty)) {
           throw FileSystemExceptionMemory(path, 'Deletion failed',
               OSErrorMemory(39, 'Directory is not empty'));
         }

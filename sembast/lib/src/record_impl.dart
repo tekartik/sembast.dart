@@ -38,7 +38,7 @@ mixin SembastRecordHelperMixin implements SembastRecord {
     var map = <String, Object?>{};
     map[dbRecordKey] = key;
 
-    if (deleted == true) {
+    if (deleted) {
       map[dbRecordDeletedKey] = true;
     }
     if (ref.store != mainStoreRef) {

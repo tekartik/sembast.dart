@@ -104,7 +104,7 @@ class SembastSortOrder<T extends Object?> extends SembastSortOrderBase<T> {
   Map<String, Object?> _toDebugMap() {
     final map = <String, Object?>{
       field: ascending ? 'asc' : 'desc',
-      if (nullLast == true) 'nullLast': true
+      if (nullLast) 'nullLast': true
     };
     return map;
   }

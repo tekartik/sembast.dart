@@ -192,7 +192,7 @@ class FsDatabaseStorage extends DatabaseStorage {
   @override
   String toString() {
     final map = <String, Object?>{'file': file.toString(), 'fs': fs.toString()};
-    if (isTmp == true) {
+    if (isTmp) {
       map['tmp'] = true;
     }
     return map.toString();

@@ -301,7 +301,7 @@ class SembastStore {
         }
 
         if (finderMatchesRecord(finder, record)) {
-          if (action(record) == false) {
+          if (!action(record)) {
             return;
           }
         }
@@ -322,7 +322,7 @@ class SembastStore {
         }
       }
       if (finderMatchesRecord(finder, record)) {
-        if (action(record) == false) {
+        if (!action(record)) {
           return;
         }
       }
@@ -348,7 +348,7 @@ class SembastStore {
       var records = txnCurrentRecords!;
       for (var record in records) {
         if (finderMatchesRecord(finder, record)) {
-          if (action(record) == false) {
+          if (!action(record)) {
             return;
           }
         }
@@ -364,7 +364,7 @@ class SembastStore {
         }
       }
       if (finderMatchesRecord(finder, record)) {
-        if (action(record) == false) {
+        if (!action(record)) {
           return;
         }
       }
