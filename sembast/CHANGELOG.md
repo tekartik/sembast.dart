@@ -1,3 +1,7 @@
+## 3.7.3
+
+* Add experimental `Database.reload()` to force reloading the database from the storage.
+
 ## 3.7.2
 
 * Add `ifNotExists` options to `RecordRef.put()` to only create a record if does not exist.

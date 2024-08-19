@@ -8,15 +8,17 @@ import 'package:yaml/yaml.dart';
 
 Future main() async {
   var shell = Shell();
+
   var version = Version.parse(
       (loadYaml(await File('pubspec.yaml').readAsString()) as Map)['version']
           .toString());
-  print('Version $version');
+  var tag = 'sembast-v$version';
+  print('Tag $tag');
   print('Tap anything or CTRL-C: $version');
 
   await sharedStdIn.first;
   await shell.run('''
-git tag v$version
+git tag $tag
 git push origin --tags
 ''');
   await sharedStdIn.terminate();

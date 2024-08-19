@@ -1,5 +1,5 @@
 name: sembast
-version: 3.7.2
+version: 3.7.3
 description: NoSQL persistent embedded file system document-based database for Dart VM and Flutter with encryption support.
 homepage: https://github.com/tekartik/sembast.dart/tree/master/sembast
 topics:
@@ -13,18 +13,18 @@ environment:
   sdk: ^3.5.0
 
 dependencies:
-  meta: '>=1.3.0 <3.0.0'
-  path: '>=1.8.0 <3.0.0'
-  synchronized: '>=3.0.0 <5.0.0'
+  meta: ">=1.3.0 <3.0.0"
+  path: ">=1.8.0 <3.0.0"
+  synchronized: ">=3.0.0 <5.0.0"
 
 dev_dependencies:
-  lints: '>=1.0.1'
-  http: '>=0.13.0'
-  test: '>=1.16.2'
-  process_run: '>=0.12.0'
-  build_runner: '>=1.11.3'
-  build_web_compilers: '>=2.16.4'
-  build_test: '>=1.3.6'
+  lints: ">=4.0.0"
+  http: ">=1.2.2"
+  test: ">=1.25.8"
+  process_run: '>=1.1.0'
+  build_runner: ">=2.4.2"
+  build_web_compilers: ">=4.0.11"
+  build_test: ">=2.2.0"
   # Tool
-  yaml: '>=3.0.0'
-  pub_semver:
+  yaml: '>=3.1.2'
+  pub_semver: ">=2.1.4"
