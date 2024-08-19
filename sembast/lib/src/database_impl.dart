@@ -552,9 +552,63 @@ class SembastDatabase extends Object
     return _recordStore(record).txnContainsKey(null, record.key);
   }
 
-  ///
-  /// reload
-  //
+  /// Reload the database.
+  Future<void> reload() async {
+    await transaction((txn) async {
+      var sembastTxn = txn as SembastTransaction;
+      // clear all records in memory
+      for (var store in _stores.values) {
+        await store.txnClear(sembastTxn);
+        // Delete records in memory too
+        store.recordMap.clear();
+      }
+      if (_storageFs?.supported ?? false) {
+        var corrupted = false;
+        Meta? meta;
+        Future import(Stream<String> lines, {bool? safeMode}) async {
+          var result = await _fsFullMetaAndImport(lines,
+              safeMode: safeMode, options: openOptions);
+          corrupted = result.corrupted;
+          meta = result.meta;
+        }
+
+        try {
+          await import(_storageFs!.readLines(), safeMode: true);
+        } catch (e) {
+          corrupted = true;
+          // reading lines normally failed, try safe mode
+          await import(_storageFs!.readSafeLines());
+        }
+        // if corrupted and not even meta
+        // delete it
+        if (corrupted && meta == null) {
+          await _storageFs!.delete();
+          await _storageFs!.findOrCreate();
+        } else {
+          // auto compaction
+          // allow for 20% of lost lines
+          // make sure _meta is known before compacting
+          _meta = meta;
+          // devPrint('open needCompact $_needCompact corrupted $corrupted $_exportStat');
+          if (_needCompact || corrupted) {
+            await txnCompact();
+          }
+        }
+      } else if (_storageJdb?.supported ?? false) {
+        var result = await _jdbFullMetaAndImport(options: openOptions);
+        _meta = result.meta;
+      }
+      // Add all records to transaction record
+      for (var store in _stores.values) {
+        var txnRecords = store.txnRecords ??= <Object, TxnRecord>{};
+        for (var entry in store.recordMap.entries) {
+          txnRecords[entry.key] = TxnRecord(entry.value);
+        }
+      }
+    });
+  }
+
+  /// Close and open
   Future<Database> reOpen([DatabaseOpenOptions? options]) async {
     /// Fix openMode
     if (options?.mode != null) {
@@ -678,6 +732,138 @@ class SembastDatabase extends Object
     await databaseOperation(null);
   }
 
+  Future<_MetaAndImportResult> _fsFullMetaAndImport(Stream<String> lines,
+      {bool? safeMode, required DatabaseOpenOptions options}) async {
+    // empty export stat
+    _exportStat = DatabaseExportStat();
+
+    var hasAsyncCodec = _contentCodec.isAsyncCodec;
+    Meta? meta;
+    var corrupted = false;
+    var openMode = options.mode ?? DatabaseMode.defaultMode;
+    var firstLineRead = false;
+
+    await for (var line in lines) {
+      _exportStat!.lineCount++;
+
+      Map? map;
+
+      // Until meta is read, we assume it is json
+      if (!firstLineRead) {
+        // Read the meta first
+        // The first line is always json
+        try {
+          map = (json.decode(line) as Map?)?.cast<String, Object?>();
+        } on Exception catch (_) {}
+        if (Meta.isMapMeta(map)) {
+          // meta?
+          meta = Meta.fromMap(map!);
+
+          // Check codec signature if any
+          await checkCodecEncodedSignature(options.codec, meta.codecSignature);
+          firstLineRead = true;
+          continue;
+        } else {
+          // If a codec is used, we fail
+          if (openMode == DatabaseMode.neverFails &&
+              options.codec?.signature == null) {
+            corrupted = true;
+            break;
+          } else {
+            throw const FormatException('Invalid database format');
+          }
+        }
+      }
+
+      try {
+        // decode record
+        if (hasAsyncCodec) {
+          map = await decodeRecordLineStringAsync(line);
+        } else {
+          map = decodeRecordLineStringSync(line);
+        }
+      } on Exception catch (_) {
+        // We can have meta here
+        try {
+          map = (json.decode(line) as Map?);
+        } on Exception catch (_) {
+          if (openMode == DatabaseMode.neverFails) {
+            corrupted = true;
+            if (safeMode ?? false) {
+              // safe mode ignore
+              continue;
+            } else {
+              rethrow;
+            }
+          } else {
+            rethrow;
+          }
+        }
+      }
+
+      if (isMapRecord(map!)) {
+        // record?
+        ImmutableSembastRecord record;
+        try {
+          // Can crash for key without value
+          record = ImmutableSembastRecord.fromDatabaseRowMap(map);
+          if (_noTxnHasRecord(record)) {
+            _exportStat!.obsoleteLineCount++;
+          }
+          loadRecord(record);
+        } catch (_) {
+          if (openMode == DatabaseMode.neverFails) {
+            corrupted = true;
+            if (safeMode ?? false) {
+              // safe mode ignore
+              continue;
+            } else {
+              rethrow;
+            }
+          } else {
+            rethrow;
+          }
+        }
+      } else if (Meta.isMapMeta(map)) {
+        // meta?
+        meta = Meta.fromMap(map);
+
+        // Check codec signature if any
+        await checkCodecEncodedSignature(options.codec, meta.codecSignature);
+      } else {
+        // If a codec is used, we fail
+        if (openMode == DatabaseMode.neverFails && options.codec == null) {
+          corrupted = true;
+          break;
+        } else {
+          throw const FormatException('Invalid database format');
+        }
+      }
+    }
+    return _MetaAndImportResult(corrupted, meta);
+  }
+
+  Future<_MetaAndImportResult> _jdbFullMetaAndImport(
+      {required DatabaseOpenOptions options}) async {
+    // empty export stat
+    _exportStat = DatabaseExportStat();
+    var map = await _storageJdb!.readMeta();
+    Meta? meta;
+    if (Meta.isMapMeta(map)) {
+      // meta?
+      meta = Meta.fromMap(map!);
+
+      // Check codec signature if any
+      await checkCodecEncodedSignature(options.codec, meta.codecSignature);
+    }
+
+    await jdbFullImport();
+    if (_jdbNeedCompact) {
+      await txnCompact();
+    }
+    return _MetaAndImportResult(false, meta);
+  }
+
   ///
   /// open a database
   ///
@@ -686,8 +872,6 @@ class SembastDatabase extends Object
     // Open is overriden in openHelper
     var mode = openHelper.openMode;
     var version = options.version;
-    var openMode = mode;
-    // devPrint('Opening mode ${mode}');
 
     if (_opened) {
       return this;
@@ -828,112 +1012,12 @@ class SembastDatabase extends Object
           if (_storageFs?.supported ?? false) {
             var corrupted = false;
 
-            var hasAsyncCodec = _contentCodec.isAsyncCodec;
-
             Future import(Stream<String> lines, {bool? safeMode}) async {
               clearBeforeImport();
-              var firstLineRead = false;
-
-              await for (var line in lines) {
-                _exportStat!.lineCount++;
-
-                Map? map;
-
-                // Until meta is read, we assume it is json
-                if (!firstLineRead) {
-                  // Read the meta first
-                  // The first line is always json
-                  try {
-                    map = (json.decode(line) as Map?)?.cast<String, Object?>();
-                  } on Exception catch (_) {}
-                  if (Meta.isMapMeta(map)) {
-                    // meta?
-                    meta = Meta.fromMap(map!);
-
-                    // Check codec signature if any
-                    await checkCodecEncodedSignature(
-                        options.codec, meta!.codecSignature);
-                    firstLineRead = true;
-                    continue;
-                  } else {
-                    // If a codec is used, we fail
-                    if (openMode == DatabaseMode.neverFails &&
-                        options.codec?.signature == null) {
-                      corrupted = true;
-                      break;
-                    } else {
-                      throw const FormatException('Invalid database format');
-                    }
-                  }
-                }
-
-                try {
-                  // decode record
-                  if (hasAsyncCodec) {
-                    map = await decodeRecordLineStringAsync(line);
-                  } else {
-                    map = decodeRecordLineStringSync(line);
-                  }
-                } on Exception catch (_) {
-                  // We can have meta here
-                  try {
-                    map = (json.decode(line) as Map?);
-                  } on Exception catch (_) {
-                    if (openMode == DatabaseMode.neverFails) {
-                      corrupted = true;
-                      if (safeMode ?? false) {
-                        // safe mode ignore
-                        continue;
-                      } else {
-                        rethrow;
-                      }
-                    } else {
-                      rethrow;
-                    }
-                  }
-                }
-
-                if (isMapRecord(map!)) {
-                  // record?
-                  ImmutableSembastRecord record;
-                  try {
-                    // Can crash for key without value
-                    record = ImmutableSembastRecord.fromDatabaseRowMap(map);
-                    if (_noTxnHasRecord(record)) {
-                      _exportStat!.obsoleteLineCount++;
-                    }
-                    loadRecord(record);
-                  } catch (_) {
-                    if (openMode == DatabaseMode.neverFails) {
-                      corrupted = true;
-                      if (safeMode ?? false) {
-                        // safe mode ignore
-                        continue;
-                      } else {
-                        rethrow;
-                      }
-                    } else {
-                      rethrow;
-                    }
-                  }
-                } else if (Meta.isMapMeta(map)) {
-                  // meta?
-                  meta = Meta.fromMap(map);
-
-                  // Check codec signature if any
-                  await checkCodecEncodedSignature(
-                      options.codec, meta!.codecSignature);
-                } else {
-                  // If a codec is used, we fail
-                  if (openMode == DatabaseMode.neverFails &&
-                      options.codec == null) {
-                    corrupted = true;
-                    break;
-                  } else {
-                    throw const FormatException('Invalid database format');
-                  }
-                }
-              }
+              var result = await _fsFullMetaAndImport(lines,
+                  safeMode: safeMode, options: options);
+              corrupted = result.corrupted;
+              meta = result.meta;
             }
 
             try {
@@ -960,28 +1044,14 @@ class SembastDatabase extends Object
             }
           } else if (_storageJdb?.supported ?? false) {
             clearBeforeImport();
-            var map = await _storageJdb!.readMeta();
-
-            if (Meta.isMapMeta(map)) {
-              // meta?
-              meta = Meta.fromMap(map!);
-
-              // Check codec signature if any
-              await checkCodecEncodedSignature(
-                  options.codec, meta!.codecSignature);
-            }
-
-            await jdbFullImport();
-            if (_jdbNeedCompact) {
-              await txnCompact();
-            }
+            var result = await _jdbFullMetaAndImport(options: options);
 
             /// Revision update to force reading
             _storageJdbRevisionUpdateSubscription =
                 _storageJdb!.revisionUpdate.listen((revision) {
               jdbDeltaImport(revision);
             });
-            _meta = meta;
+            _meta = meta = result.meta;
           }
 
           return await openDone();
@@ -1647,4 +1717,11 @@ extension SembastDatabaseInternalExt on Database {
 
   /// Export/compact stat (debugging only)
   DatabaseExportStat? get exportStat => _sembastDatabase._exportStat;
+}
+
+class _MetaAndImportResult {
+  final bool corrupted;
+  final Meta? meta;
+
+  _MetaAndImportResult(this.corrupted, this.meta);
 }

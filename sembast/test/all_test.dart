@@ -15,9 +15,9 @@ void main() {
 }
 
 void defineFileSystemTests(FileSystemTestContext ctx) {
-  src_file_system_test.defineTests(ctx);
+  src_file_system_test.defineFileSystemTests(ctx);
   database_format_test.defineTestsWithCodec(ctx);
-  database_format_test.defineTests(ctx);
+  database_format_test.defineDatabaseFormatTests(ctx);
   database_impl_format_test.defineTests(ctx);
 }
 

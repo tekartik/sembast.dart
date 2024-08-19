@@ -15,20 +15,20 @@ import 'base64_codec.dart';
 import 'test_common.dart';
 
 void main() {
-  defineTests(databaseTestContextJdbMemory);
+  defineJdbDatabaseFormatTests(databaseTestContextJdbMemory);
 }
 
-void defineTests(DatabaseTestContextJdb ctx) {
+void defineJdbDatabaseFormatTests(DatabaseTestContextJdb ctx) {
   //String getDbPath() => ctx.outPath + '.db';
-  String? dbPath;
+  late String dbPath;
   // worst definition ever on purpose
   var store = StoreRef<Object?, Object?>.main();
 
   var factory = ctx.factory;
   Future<String> prepareForDb() async {
     dbPath = dbPathFromName('jdb_database_format.db');
-    await ctx.jdbFactory.delete(dbPath!);
-    return dbPath!;
+    await ctx.jdbFactory.delete(dbPath);
+    return dbPath;
   }
 
   SembastDatabase getSembastDatabase(Database db) => (db as SembastDatabase);
@@ -42,7 +42,7 @@ void defineTests(DatabaseTestContextJdb ctx) {
       getSembastDatabase(db).jdbDeltaImport(revision);
 
   Future importFromMap(Map map) {
-    return jdbImportFromMap(ctx.jdbFactory, dbPath!, map);
+    return jdbImportFromMap(ctx.jdbFactory, dbPath, map);
   }
 
   Future dbImportFromMap(Database db, Map map) {
@@ -58,7 +58,7 @@ void defineTests(DatabaseTestContextJdb ctx) {
 
     test('open_no_version', () async {
       await prepareForDb();
-      var db = await factory.openDatabase(dbPath!);
+      var db = await factory.openDatabase(dbPath);
       expect(await getJdbDatabase(db).exportToMap(), {
         'entries': <Object>[],
         'infos': [
@@ -76,7 +76,7 @@ void defineTests(DatabaseTestContextJdb ctx) {
 
     test('open_version_2', () async {
       await prepareForDb();
-      var db = await factory.openDatabase(dbPath!, version: 2);
+      var db = await factory.openDatabase(dbPath, version: 2);
       expect(await getJdbDatabase(db).exportToMap(), {
         'entries': <Object>[],
         'infos': [
@@ -92,9 +92,9 @@ void defineTests(DatabaseTestContextJdb ctx) {
 
     test('open_no_version_then_2', () async {
       await prepareForDb();
-      var db = await factory.openDatabase(dbPath!, version: 1);
+      var db = await factory.openDatabase(dbPath, version: 1);
       await db.close();
-      db = await factory.openDatabase(dbPath!, version: 2);
+      db = await factory.openDatabase(dbPath, version: 2);
       expect(await getJdbDatabase(db).exportToMap(), {
         'entries': <Object>[],
         'infos': [
@@ -109,7 +109,7 @@ void defineTests(DatabaseTestContextJdb ctx) {
 
     test('1 string record no codec', () async {
       await prepareForDb();
-      var db = await factory.openDatabase(dbPath!);
+      var db = await factory.openDatabase(dbPath);
       try {
         await store.record(1).put(db, 'hi');
         expect(await getJdbDatabase(db).exportToMap(), {
@@ -203,7 +203,7 @@ void defineTests(DatabaseTestContextJdb ctx) {
     test('1 string record delete compact', () async {
       await prepareForDb();
       var store = StoreRef<int, String>.main();
-      var db = await factory.openDatabase(dbPath!);
+      var db = await factory.openDatabase(dbPath);
       try {
         await store.record(1).put(db, 'hi');
         expect(await getJdbDatabase(db).exportToMap(), {
@@ -256,7 +256,7 @@ void defineTests(DatabaseTestContextJdb ctx) {
 
     test('1 string record delete auto compact', () async {
       await prepareForDb();
-      var db = await factory.openDatabase(dbPath!);
+      var db = await factory.openDatabase(dbPath);
       try {
         await store.record(1).put(db, 'hi');
         expect(await getJdbDatabase(db).exportToMap(), {
@@ -326,7 +326,7 @@ void defineTests(DatabaseTestContextJdb ctx) {
 
     test('deltaImport', () async {
       await prepareForDb();
-      var db = await factory.openDatabase(dbPath!);
+      var db = await factory.openDatabase(dbPath);
       try {
         await store.record(1).put(db, 'hi');
         var storeEmptyFuture =
@@ -378,7 +378,7 @@ void defineTests(DatabaseTestContextJdb ctx) {
 
     test('deltaImport_full', () async {
       await prepareForDb();
-      var db = await factory.openDatabase(dbPath!);
+      var db = await factory.openDatabase(dbPath);
       try {
         await store.record(1).put(db, 'hi');
         var recordDeleteFuture = store
@@ -436,7 +436,7 @@ void defineTests(DatabaseTestContextJdb ctx) {
           }
         ]
       });
-      var db = await factory.openDatabase(dbPath!);
+      var db = await factory.openDatabase(dbPath);
 
       try {
         //await store.record(1).put(db, 'hi');
@@ -475,7 +475,7 @@ void defineTests(DatabaseTestContextJdb ctx) {
           }
         ]
       });
-      var db = await factory.openDatabase(dbPath!);
+      var db = await factory.openDatabase(dbPath);
 
       try {
         //await store.record(1).put(db, 'hi');
@@ -530,7 +530,7 @@ void defineTests(DatabaseTestContextJdb ctx) {
           }
         ]
       });
-      var db = await factory.openDatabase(dbPath!);
+      var db = await factory.openDatabase(dbPath);
 
       try {
         //await store.record(1).put(db, 'hi');
@@ -564,7 +564,7 @@ void defineTests(DatabaseTestContextJdb ctx) {
           {'id': 'revision', 'value': 1}
         ]
       });
-      var db = await factory.openDatabase(dbPath!);
+      var db = await factory.openDatabase(dbPath);
       expect(await store.record(1).get(db), 'hi');
       expect(await exportToMap(db), {
         'entries': [
@@ -583,7 +583,7 @@ void defineTests(DatabaseTestContextJdb ctx) {
       });
 
       await db.close();
-      db = await factory.openDatabase(dbPath!);
+      db = await factory.openDatabase(dbPath);
 
       expect(await exportToMap(db), {
         'entries': [
@@ -604,6 +604,51 @@ void defineTests(DatabaseTestContextJdb ctx) {
       expect(getExportStat(db).obsoleteLineCount, 0); // don't count meta
       //await compact(db);
       await db.close();
+    });
+
+    test('reload', () async {
+      await prepareForDb();
+      var store = StoreRef<String, String>('test');
+      final db = await factory.openDatabase(dbPath);
+      try {
+        await db.transaction((txn) async {
+          await store.record('key1').put(txn, 'value1');
+          await store.record('key2').put(txn, 'value2');
+        });
+
+        void checkRecords() async {
+          var records = store.findSync(db);
+          expect(
+              records.keysAndValues, [('key1', 'value1'), ('key2', 'value2')]);
+        }
+
+        var content = await exportToMap(db);
+
+        checkRecords();
+        await db.transaction((txn) async {
+          await store.record('key1').delete(txn);
+          await store.record('key2').put(txn, 'value2bis');
+          await store.record('key3').put(txn, 'value3');
+        });
+
+        /// Check listener
+        var future = store
+            .record('key2')
+            .onSnapshot(db)
+            .firstWhere((snapshot) => snapshot?.value == 'value2');
+        var records = store.findSync(db);
+        expect(
+            records.keysAndValues, [('key2', 'value2bis'), ('key3', 'value3')]);
+
+        // Write and reload
+        await jdbDatabaseImportFromMap(getJdbDatabase(db), content);
+
+        await db.reload();
+        checkRecords();
+        await future;
+      } finally {
+        await db.close();
+      }
     });
   });
 }

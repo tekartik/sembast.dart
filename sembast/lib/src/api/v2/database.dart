@@ -42,4 +42,18 @@ extension DatabaseExtension on Database {
   /// On sembast_web and sembast_sqflite, data will be
   /// read again (incrementally or not) to handle external changes.
   Future<void> checkForChanges() => (this as SembastDatabase).checkForChanges();
+
+  /// Warning: unsafe.
+  ///
+  /// On sembast io, the file will be reloaded. Unpredictable behavior if a write
+  /// happens at the same time. The database is closed and re-opened.
+  /// So any pending listeners are lost.
+  Future<void> reOpen() => (this as SembastDatabase).reOpen();
+
+  /// Warning: unsafe.
+  ///
+  /// On sembast io, the file will be reloaded. Unpredictable behavior if a write
+  /// happens at the same time. The database if not closed and existing listeners
+  /// remain.
+  Future<void> reload() => (this as SembastDatabase).reload();
 }

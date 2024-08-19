@@ -15,6 +15,6 @@ Future main() async {
 
   group('idb_mem', () {
     defineTests(testContext);
-    all_jdb_test.defineTests(testContext);
+    all_jdb_test.defineJdbTests(testContext);
   });
 }

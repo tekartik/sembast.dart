@@ -12,11 +12,11 @@ import 'test_common.dart';
 
 void main() {
   group('memory', () {
-    defineTests(memoryFileSystemContext);
+    defineFileSystemTests(memoryFileSystemContext);
   });
 }
 
-void defineTests(FileSystemTestContext ctx) {
+void defineFileSystemTests(FileSystemTestContext ctx) {
   final fs = ctx.fs;
   /*
   TODO

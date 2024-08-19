@@ -35,3 +35,6 @@ test_out
 
 # local overrides
 pubspec_overrides.yaml
+# tmp root project to workaround analyze issue in 3.5
+/pubspec.yaml
+/pubspec.lock

@@ -21,3 +21,16 @@ abstract class RecordSnapshot<K extends Key?, V extends Value?> {
   /// Cast if needed
   RecordSnapshot<RK, RV> cast<RK extends Key?, RV extends Value?>();
 }
+
+/// Extension on iterable of record snapshot
+extension RecordSnapshotIterableExtension<K extends Key?, V extends Value?>
+    on Iterable<RecordSnapshot<K, V>> {
+  /// Keys
+  Iterable<K> get keys => map((e) => e.key);
+
+  /// Values
+  Iterable<V> get values => map((e) => e.value);
+
+  /// Key value pairs
+  Iterable<(K, V)> get keysAndValues => map((e) => (e.key, e.value));
+}

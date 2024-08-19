@@ -7,11 +7,11 @@ import 'jdb_database_test.dart' as jdb_database_test;
 
 // default use memory
 void main() {
-  defineTests(databaseTestContextJdbMemory);
+  defineJdbTests(databaseTestContextJdbMemory);
 }
 
-void defineTests(DatabaseTestContextJdb ctx) {
-  jdb_database_format_test.defineTests(ctx);
+void defineJdbTests(DatabaseTestContextJdb ctx) {
+  jdb_database_format_test.defineJdbDatabaseFormatTests(ctx);
   database_codec_test.defineTests(ctx);
   jdb_database_test.defineTests(ctx);
   defineJdbConcurrentDatabaseTests(ctx);
