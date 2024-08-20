@@ -1,6 +1,7 @@
-## 3.7.3
+## 3.7.3+1
 
 * Add experimental `Database.reload()` to force reloading the database from the storage.
+* Improve memory usage by caching the record list and avoiding too many casts.
 
 ## 3.7.2
 
