@@ -1094,7 +1094,7 @@ class SembastDatabase extends Object
     if (!result.delta) {
       _restartListeners();
     } else {
-      notifyListeners();
+      _notifyListeners();
     }
   }
 
@@ -1449,7 +1449,7 @@ class SembastDatabase extends Object
 
   /// Lazily notify listeners
   void notifyListenersLazily() {
-    notifyListeners();
+    _notifyListeners();
   }
 
   /// Our cooperator.
@@ -1495,17 +1495,20 @@ class SembastDatabase extends Object
   }
 
   /// Notify listeners, if any of any pending changes
-  Future notifyListeners() async {
+  Future<void> _notifyListeners() async {
     while (true) {
       var storeContent = _pendingListenerContent.getAndRemoveFirstStore();
       if (storeContent == null) {
         break;
       }
-      var storeListener = listener.getStore(storeContent.store);
+      // Since the content might change, we need to make a copy
+      var records = List<ImmutableSembastRecord>.from(storeContent.records);
+      var store = storeContent.store;
+      var storeListener = listener.getStore(store);
       if (storeListener != null) {
         // Notify record listener in a global lock section
         await notificationLock.synchronized(() async {
-          for (var record in storeContent.records) {
+          for (var record in records) {
             var ctlrs = storeListener.getRecordControllers(record.ref);
             if (ctlrs != null) {
               for (var ctlr in ctlrs) {
@@ -1514,20 +1517,19 @@ class SembastDatabase extends Object
             }
           }
 
+          var storeListenerControllers = List<StoreListenerController>.from(
+              storeListener.getStoreListenerControllers<Key?, Value?>());
           // Fix existing queries
-          for (var query in List<StoreListenerController>.from(
-              storeListener.getStoreListenerControllers<Key?, Value?>())) {
+          for (var query in storeListenerControllers) {
             Future updateQuery() async {
               if (debugListener) {
                 // ignore: avoid_print
-                print(
-                    'updating $query: with ${storeContent.records.length} records ');
+                print('updating $query: with ${records.length} records ');
               }
-              await query.update(storeContent.records, cooperator);
+              await query.update(records, cooperator);
               if (debugListener) {
                 // ignore: avoid_print
-                print(
-                    'updated $query: with ${storeContent.records.length} records ');
+                print('updated $query: with ${records.length} records ');
               }
             }
 
