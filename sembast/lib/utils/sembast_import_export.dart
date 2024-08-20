@@ -108,7 +108,8 @@ Future<void> _exportDatabase(Database db,
         _values: values
       };
 
-      for (var record in store.currentRecords) {
+      var currentRecords = store.currentRecords;
+      for (var record in currentRecords) {
         keys.add(record.key);
         values.add(sembastDatabase.toJsonEncodable(record.value));
         if (sembastDatabase.cooperator?.needCooperate ?? false) {

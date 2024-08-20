@@ -144,7 +144,7 @@ class SembastDatabase extends Object
 
   /// Current non empty store names
   Iterable<String> get nonEmptyStoreNames => _stores.values
-      .where((store) => store.recordMap.isNotEmpty)
+      .where((store) => !store.isEmpty)
       .map((store) => store.name);
 
   /// Database implementation.
@@ -560,7 +560,7 @@ class SembastDatabase extends Object
       for (var store in _stores.values) {
         await store.txnClear(sembastTxn);
         // Delete records in memory too
-        store.recordMap.clear();
+        store.clearRecordMap();
       }
       if (_storageFs?.supported ?? false) {
         var corrupted = false;
@@ -601,7 +601,7 @@ class SembastDatabase extends Object
       // Add all records to transaction record
       for (var store in _stores.values) {
         var txnRecords = store.txnRecords ??= <Object, TxnRecord>{};
-        for (var entry in store.recordMap.entries) {
+        for (var entry in store.recordMapEntries) {
           txnRecords[entry.key] = TxnRecord(entry.value);
         }
       }
@@ -1158,7 +1158,7 @@ class SembastDatabase extends Object
 
       // Synchronous reload
       for (var store in stores) {
-        store.recordMap.clear();
+        store.clearRecordMap();
       }
       for (var record in records) {
         loadRecord(record);

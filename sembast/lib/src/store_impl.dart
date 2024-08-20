@@ -27,11 +27,26 @@ class SembastStore {
   /// for key generation
   int lastIntKey = 0;
 
+  /// True if the store is empty
+  bool get isEmpty => _recordMap.isEmpty;
+
   /// Record map.
   ///
   /// Use a splay tree to be correctly ordered. To access in a synchronous way.
-  Map<Object, ImmutableSembastRecord> recordMap =
-      SplayTreeMap<Object, ImmutableSembastRecord>(compareKey);
+  final _recordMap = SplayTreeMap<Object, ImmutableSembastRecord>(compareKey);
+
+  /// Record map entries. To access in a synchronous way.
+  Iterable<MapEntry<Object, ImmutableSembastRecord>> get recordMapEntries =>
+      _recordMap.entries;
+
+  /// Clear the record map.
+  void clearRecordMap() {
+    _recordMap.clear();
+    _currentRecordsCache = null;
+  }
+
+  /// Cache of the current records
+  List<ImmutableSembastRecord>? _currentRecordsCache;
 
   /// Records change during the transaction.
   Map<Object, TxnRecord>? txnRecords;
@@ -264,7 +279,7 @@ class SembastStore {
   /// Get the list of current records that can be safely iterate even
   /// in an async way.
   List<ImmutableSembastRecord> get currentRecords =>
-      recordMap.values.toList(growable: false);
+      _currentRecordsCache ??= _recordMap.values.toList(growable: false);
 
   /// Use only once for loop in a safe way in a transaction record list
   ///
@@ -471,13 +486,14 @@ class SembastStore {
   /// return true if it existed before
   ///
   bool setRecordInMemory(ImmutableSembastRecord record) {
-    //SembastStore store = record.store as SembastStore;
-    final exists = recordMap[record.key] != null;
+    final exists = _recordMap[record.key] != null;
     if (record.deleted) {
-      recordMap.remove(record.key);
+      _recordMap.remove(record.key);
     } else {
-      recordMap[record.key] = record;
+      _recordMap[record.key] = record;
     }
+    // reset cache
+    _currentRecordsCache = null;
     return exists;
   }
 
@@ -547,7 +563,7 @@ class SembastStore {
       record = txnRecords![key]?.record;
     }
 
-    record ??= recordMap[key];
+    record ??= _recordMap[key];
 
     if (database.logV) {
       // ignore: avoid_print
@@ -638,13 +654,13 @@ class SembastStore {
   /// Count records in a transaction without filter.
   int txnNoFilterTransactionRecordCount(SembastTransaction? txn) {
     // Use the current record list
-    var count = recordMap.length;
+    var count = _recordMap.length;
 
     // Apply any transaction change
     if (_hasTransactionRecords(txn)) {
       txnRecords!.forEach((key, value) {
         var deleted = value.deleted;
-        if (recordMap.containsKey(key)) {
+        if (_recordMap.containsKey(key)) {
           if (deleted) {
             count--;
           }
@@ -700,7 +716,7 @@ class SembastStore {
     // no filter optimization
     if (filter == null) {
       // Use the current record list
-      keys = recordMap.keys.toSet();
+      keys = _recordMap.keys.toSet();
 
       // Apply any transaction change
       if (_hasTransactionRecords(txn)) {
@@ -811,7 +827,7 @@ class SembastStore {
 
   /// Check if a key exists in a transaction.
   bool txnContainsKey(SembastTransaction? txn, Key key) {
-    if (recordMap.containsKey(key)) {
+    if (_recordMap.containsKey(key)) {
       return true;
     } else if (_hasTransactionRecords(txn)) {
       return txnRecords!.containsKey(key);
@@ -833,7 +849,7 @@ class SembastStore {
     var map = <String, Object?>{};
     map['name'] = name;
 
-    map['count'] = recordMap.length;
+    map['count'] = _recordMap.length;
 
     return map;
   }
@@ -852,7 +868,7 @@ class SembastStore {
         deletedKeys.addAll(await txnDeleteAll(
             txn, List.from(txnRecords!.keys, growable: false)));
       }
-      final keys = recordMap.keys;
+      final keys = _recordMap.keys;
       deletedKeys
           .addAll(await txnDeleteAll(txn, List.from(keys, growable: false)));
       return deletedKeys;
