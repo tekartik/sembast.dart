@@ -129,7 +129,7 @@ class QueryListenerController<K, V> extends StoreListenerControllerBase<K, V> {
     var list = recordsLimit(_allMatching, finder);
 
     // devPrint('adding $allMatching / limit $list / $finder');
-    _streamController?.add(immutableListToSnapshots<K, V>(list!));
+    _streamController?.add(storeRef.immutableListToSnapshots(list!));
   }
 
   /// Add error.

@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:sembast/src/database_client_impl.dart';
+import 'package:sembast/src/record_impl.dart';
+import 'package:sembast/src/store_ref_impl.dart';
 import 'package:sembast/src/stream_utils.dart';
 
 import 'import_common.dart';
@@ -39,9 +41,9 @@ extension SembastRecordsRefExtension<K, V> on RecordsRef<K, V> {
       DatabaseClient databaseClient) async {
     var client = getClient(databaseClient);
 
-    return client
+    return snapshotsFromImmutableRecords(await client
         .getSembastStore(store)
-        .txnGetRecordSnapshots(client.sembastTransaction, this);
+        .txnGetImmutableRecords(client.sembastTransaction, this));
   }
 
   /// Create records that don't exist.
@@ -127,9 +129,9 @@ extension SembastRecordsRefSyncExtension<K, V> on RecordsRef<K, V> {
   List<RecordSnapshot<K, V>?> getSnapshotsSync(DatabaseClient databaseClient) {
     var client = getClient(databaseClient);
 
-    return client
+    return snapshotsFromImmutableRecords(client
         .getSembastStore(store)
-        .txnGetRecordSnapshotsSync(client.sembastTransaction, this);
+        .txnGetImmutableRecordsSync(client.sembastTransaction, this));
   }
 
   /// Get all records values synchronously.
@@ -172,5 +174,17 @@ class SembastRecordsRef<K, V> with RecordsRefMixin<K, V> {
   SembastRecordsRef(StoreRef<K, V> store, Iterable<K> keys) {
     this.store = store;
     this.keys = keys.toList(growable: false);
+  }
+}
+
+/// Private extension.
+extension SembastRecordsRefExtensionPrv<K, V> on RecordsRef<K, V> {
+  /// Create a snapshot list from a record list
+  List<RecordSnapshot<K, V>?> snapshotsFromImmutableRecords(
+      List<ImmutableSembastRecord?> records) {
+    return [
+      for (var i = 0; i < keys.length; i++)
+        store.snapshotFromImmutableRecordOrNull(records[i])
+    ];
   }
 }

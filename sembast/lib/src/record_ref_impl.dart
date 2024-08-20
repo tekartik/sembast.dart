@@ -6,6 +6,7 @@ import 'package:sembast/src/listener.dart';
 import 'package:sembast/src/record_snapshot_impl.dart';
 
 import 'import_common.dart';
+import 'record_impl.dart';
 
 /// Record ref mixin.
 mixin RecordRefMixin<K, V> implements RecordRef<K, V> {
@@ -119,10 +120,9 @@ extension SembastRecordRefExtension<K, V> on RecordRef<K, V> {
       DatabaseClient databaseClient) async {
     var client = getClient(databaseClient);
 
-    var record = await client
+    return snapshotFromImmutableRecordOrNull(await client
         .getSembastStore(store)
-        .txnGetRecordSnapshot<K, V>(client.sembastTransaction, key);
-    return record;
+        .txnGetImmutableRecord(client.sembastTransaction, key as Key));
   }
 
   /// Get a stream of a record snapshot from the database.
@@ -183,9 +183,9 @@ extension SembastRecordRefSyncExtension<K, V> on RecordRef<K, V> {
   RecordSnapshot<K, V>? getSnapshotSync(DatabaseClient databaseClient) {
     var client = getClient(databaseClient);
 
-    return client
+    return snapshotFromImmutableRecordOrNull(client
         .getSembastStore(store)
-        .txnGetRecordSnapshotSync<K, V>(client.sembastTransaction, key);
+        .txnGetImmutableRecordSync(client.sembastTransaction, key));
   }
 
   /// Return true if the record exists synchronously.
@@ -226,4 +226,17 @@ extension SembastRecordRefSyncExtension<K, V> on RecordRef<K, V> {
     });
     return ctlr.stream;
   }
+}
+
+/// Private helpers.
+extension SembastRecordsRefExtensionPrv<K, V> on RecordRef<K, V> {
+  /// Create a snapshot from a record.
+  RecordSnapshot<K, V> snapshotFromImmutableRecord(
+          ImmutableSembastRecord record) =>
+      snapshot(record.value as V);
+
+  /// Create a snapshot from a record (or null);
+  RecordSnapshot<K, V>? snapshotFromImmutableRecordOrNull(
+          ImmutableSembastRecord? record) =>
+      record == null ? null : snapshotFromImmutableRecord(record);
 }

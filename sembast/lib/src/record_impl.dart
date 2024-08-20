@@ -248,11 +248,3 @@ RecordSnapshot? makeImmutableRecordSnapshot(RecordSnapshot? record) {
   }
   return SembastRecordSnapshot(record.ref, cloneValue(record.value as Value));
 }
-
-/// create snapshot list.
-List<SembastRecordSnapshot<K, V>> immutableListToSnapshots<K, V>(
-    List<ImmutableSembastRecord> records) {
-  return records
-      .map((immutable) => SembastRecordSnapshot<K, V>.fromRecord(immutable))
-      .toList(growable: false);
-}

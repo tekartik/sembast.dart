@@ -102,6 +102,17 @@ extension SembastStoreRefExtensionPrv<K, V> on StoreRef<K, V> {
   /// Delete the store and its content
   FilterRef<K, V> filter({Filter? filter}) =>
       SembastFilterRef<K, V>(this as SembastStoreRef<K, V>, filter);
+
+  /// Create a snapshot of a record with a given value.
+  RecordSnapshot<K, V> snapshotFromImmutableRecord(
+      ImmutableSembastRecord record) {
+    return SembastRecordSnapshot<K, V>.fromRecord(this, record);
+  }
+
+  /// Create a snapshot of a record with a given value (or null).
+  RecordSnapshot<K, V>? snapshotFromImmutableRecordOrNull(
+          ImmutableSembastRecord? record) =>
+      record == null ? null : snapshotFromImmutableRecord(record);
 }
 
 /// Store ref common public sembast extension (no db access).
@@ -137,7 +148,7 @@ extension SembastStoreRefExtension<K, V> on StoreRef<K, V> {
     if (record == null) {
       return null;
     } else {
-      return SembastRecordSnapshot<K, V>.fromRecord(record);
+      return SembastRecordSnapshot<K, V>.fromRecord(this, record);
     }
   }
 
@@ -150,7 +161,7 @@ extension SembastStoreRefExtension<K, V> on StoreRef<K, V> {
       {Finder? finder}) async {
     var records = await findImmutableRecords(databaseClient,
         finder: finder as SembastFinder?);
-    return immutableListToSnapshots<K, V>(records);
+    return immutableListToSnapshots(records);
   }
 
   ///
@@ -320,6 +331,15 @@ extension SembastStoreRefExtension<K, V> on StoreRef<K, V> {
     (database as SembastDatabase)
         .removeOnChangesListener<K, V>(this, onChanges);
   }
+
+  /// create snapshot list.
+  List<SembastRecordSnapshot<K, V>> immutableListToSnapshots(
+      List<ImmutableSembastRecord> records) {
+    return records
+        .map((immutable) =>
+            SembastRecordSnapshot<K, V>.fromRecord(this, immutable))
+        .toList(growable: false);
+  }
 }
 
 /// Store ref public sembast extension.
@@ -339,7 +359,7 @@ extension SembastStoreRefSyncExtension<K, V> on StoreRef<K, V> {
     if (record == null) {
       return null;
     } else {
-      return SembastRecordSnapshot<K, V>.fromRecord(record);
+      return SembastRecordSnapshot<K, V>.fromRecord(this, record);
     }
   }
 
@@ -352,7 +372,7 @@ extension SembastStoreRefSyncExtension<K, V> on StoreRef<K, V> {
       {Finder? finder}) {
     var records = findImmutableRecordsSync(databaseClient,
         finder: finder as SembastFinder?);
-    return immutableListToSnapshots<K, V>(records);
+    return immutableListToSnapshots(records);
   }
 
   ///

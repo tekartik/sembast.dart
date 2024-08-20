@@ -196,7 +196,7 @@ class SembastDatabase extends Object
   /// An old record (lower revision) won't be loaded
   bool jdbDeltaLoadRecord(ImmutableSembastRecordJdb record) {
     var store = _recordStore(record);
-    dynamic existing = store.txnGetImmutableRecordSync(null, record.key);
+    dynamic existing = store.txnGetRawImmutableRecordSync(null, record.key);
     if (existing is ImmutableSembastRecordJdb) {
       // devPrint('existing ${existing?.revision} vs new ${record.revision}');
       if (existing.revision != null) {
