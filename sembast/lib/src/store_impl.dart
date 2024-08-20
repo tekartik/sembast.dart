@@ -4,6 +4,7 @@ import 'package:sembast/src/finder_impl.dart';
 import 'package:sembast/src/key_utils.dart';
 import 'package:sembast/src/record_impl.dart';
 import 'package:sembast/src/sort.dart';
+import 'package:sembast/src/store_ref_impl.dart';
 import 'package:sembast/src/transaction_impl.dart';
 import 'package:sembast/src/utils.dart';
 
@@ -57,7 +58,8 @@ class SembastStore {
 
   // bool get isInTransaction => database.isInTransaction;
   /// Store implementation.
-  SembastStore(this.database, String name) : ref = StoreRef<Key?, Value?>(name);
+  SembastStore(this.database, String name)
+      : ref = SembastStoreRef<Key?, Value?>(name);
 
   /// The current transaction.
   SembastTransaction? get currentTransaction => database.currentTransaction;

@@ -10,6 +10,7 @@ import 'package:sembast/src/record_impl.dart';
 import 'package:sembast/src/record_ref_impl.dart';
 import 'package:sembast/src/record_snapshot_impl.dart';
 import 'package:sembast/src/records_ref_impl.dart';
+import 'package:sembast/src/sembast_impl.dart';
 
 import 'database_impl.dart';
 import 'import_common.dart';
@@ -19,6 +20,11 @@ class SembastStoreRef<K, V> with StoreRefMixin<K, V> {
   /// Store implementation.
   SembastStoreRef(String name) {
     this.name = name;
+  }
+
+  /// Store implementation.
+  SembastStoreRef.main() {
+    name = dbMainStore;
   }
 }
 
@@ -430,9 +436,3 @@ mixin StoreFactoryMixin<K, V> implements StoreFactory<K, V> {
 
 /// Store factory base.
 class StoreFactoryBase<K, V> with StoreFactoryMixin<K, V> {}
-
-/// common `<int, Map<String, Object?>>` factory
-final intMapStoreFactory = StoreFactoryBase<int, Map<String, Object?>>();
-
-/// common `<String, Map<String, Object?>>` factory
-final stringMapStoreFactory = StoreFactoryBase<String, Map<String, Object?>>();

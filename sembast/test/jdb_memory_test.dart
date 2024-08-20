@@ -3,6 +3,7 @@ import 'package:sembast/src/api/protected/jdb.dart';
 import 'package:sembast/src/api/protected/type.dart';
 import 'package:sembast/src/jdb/jdb_factory_memory.dart';
 import 'package:sembast/src/record_impl.dart';
+import 'package:sembast/src/store_ref_impl.dart';
 
 import 'jdb_test_common.dart';
 
@@ -18,7 +19,7 @@ class JdbWriteEntryMock extends JdbRawWriteEntry {
       bool? deleted})
       : super(
             deleted: deleted ?? false,
-            record: StoreRef<Key?, Value?>.main().record(key));
+            record: SembastStoreRef<Key?, Value?>.main().record(key));
 }
 
 void main() {

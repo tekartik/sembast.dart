@@ -4,6 +4,7 @@ import 'package:sembast/src/store_impl.dart';
 import 'package:sembast/src/utils.dart';
 
 import 'import_common.dart';
+import 'store_ref_impl.dart';
 
 ///
 /// Internal Record, either in store or in transaction
@@ -127,8 +128,9 @@ class ImmutableSembastRecord
   /// Record from row map.
   ImmutableSembastRecord.fromDatabaseRowMap(Map map) {
     final storeName = map[dbStoreNameKey] as String?;
-    final storeRef =
-        storeName == null ? mainStoreRef : StoreRef<Key, Value>(storeName);
+    final storeRef = storeName == null
+        ? mainStoreRef
+        : SembastStoreRef<Key, Value>(storeName);
     var key = map[dbRecordKey] as Key?;
     var value = map[dbRecordValueKey] as Value?;
     if (key == null) {

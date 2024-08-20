@@ -9,6 +9,7 @@ import 'package:sembast/src/env_utils.dart';
 import 'package:sembast/src/json_utils.dart';
 import 'package:sembast/src/model.dart';
 import 'package:sembast/src/store_impl.dart';
+import 'package:sembast/src/store_ref_impl.dart';
 import 'package:sembast/src/transaction_impl.dart';
 
 const String _dbVersion = 'version';
@@ -240,8 +241,8 @@ Future<Database> importDatabase(
         final keys = (storeExport[_keys] as Iterable).toList(growable: false);
         final values = List<Object>.from(storeExport[_values] as Iterable);
 
-        var store =
-            (txn as SembastTransaction).getSembastStore(StoreRef(storeName));
+        var store = (txn as SembastTransaction)
+            .getSembastStore(SembastStoreRef(storeName));
         for (var i = 0; i < keys.length; i++) {
           var key = keys[i] as Object;
           await store.txnPut(

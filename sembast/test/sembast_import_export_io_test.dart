@@ -15,17 +15,17 @@ void main() {
       var file = join('test', 'src', 'data', 'export1.jsonl');
       var db = await importDatabaseFromFile(
           file, newDatabaseFactoryMemory(), 'test');
-      expect(await StoreRef.main().record(1).get(db), 'hi');
+      expect(await StoreRef<int, String>.main().record(1).get(db), 'hi');
     });
     test('export', () async {
       var db = await newDatabaseFactoryMemory().openDatabase('src');
-      await StoreRef.main().record(1).put(db, 'test2');
+      await StoreRef<int, String>.main().record(1).put(db, 'test2');
       var file = join('.local', 'test', 'export', 'export2.jsonl');
       await exportDatabaseToJsonlFile(db, file);
 
       db = await importDatabaseFromFile(
           file, newDatabaseFactoryMemory(), 'test');
-      expect(await StoreRef.main().record(1).get(db), 'test2');
+      expect(await StoreRef<int, String>.main().record(1).get(db), 'test2');
     });
   });
 }

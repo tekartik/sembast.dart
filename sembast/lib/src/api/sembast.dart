@@ -1,21 +1,25 @@
-export 'package:sembast/src/api/boundary.dart';
-export 'package:sembast/src/api/client.dart';
-export 'package:sembast/src/api/codec.dart';
-export 'package:sembast/src/api/database.dart';
-export 'package:sembast/src/api/database_mode.dart';
-export 'package:sembast/src/api/exception.dart';
-export 'package:sembast/src/api/factory.dart';
-export 'package:sembast/src/api/filter.dart';
-export 'package:sembast/src/api/finder.dart';
-export 'package:sembast/src/api/query_ref.dart';
+export 'package:sembast/src/api/boundary.dart' show Boundary;
+export 'package:sembast/src/api/client.dart' show DatabaseClient;
+export 'package:sembast/src/api/codec.dart' show SembastCodec;
+export 'package:sembast/src/api/database.dart'
+    show Database, Field, FieldKey, FieldValue, DatabaseExtension;
+export 'package:sembast/src/api/database_mode.dart' show DatabaseMode;
+export 'package:sembast/src/api/exception.dart' show DatabaseException;
+export 'package:sembast/src/api/factory.dart'
+    show DatabaseFactory, OnVersionChangedFunction;
+export 'package:sembast/src/api/filter.dart'
+    show Filter, SembastFilterCombination;
+export 'package:sembast/src/api/finder.dart' show Finder;
+export 'package:sembast/src/api/query_ref.dart' show QueryRef;
 export 'package:sembast/src/api/record_ref.dart' show RecordRef;
 export 'package:sembast/src/type.dart' show RecordKeyBase, RecordValueBase;
 export 'package:sembast/src/api/record_snapshot.dart'
     show RecordSnapshot, RecordSnapshotIterableExtension;
-export 'package:sembast/src/api/records_ref.dart';
-export 'package:sembast/src/api/sort_order.dart';
-export 'package:sembast/src/api/store_ref.dart';
-export 'package:sembast/src/api/transaction.dart';
+export 'package:sembast/src/api/records_ref.dart' show RecordsRef;
+export 'package:sembast/src/api/sort_order.dart' show SortOrder;
+export 'package:sembast/src/api/store_ref.dart'
+    show StoreRef, StoreFactory, intMapStoreFactory, stringMapStoreFactory;
+export 'package:sembast/src/api/transaction.dart' show Transaction;
 export 'package:sembast/src/cooperator.dart'
     show enableSembastCooperator, disableSembastCooperator;
 

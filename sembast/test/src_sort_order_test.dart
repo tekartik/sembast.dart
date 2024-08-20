@@ -3,12 +3,14 @@ library sembast.src_filter_test;
 // basically same as the io runner but with extra output
 //import 'package:tekartik_test/test_config.dart';
 import 'package:sembast/src/record_snapshot_impl.dart';
+import 'package:sembast/src/sembast_impl.dart';
 import 'package:sembast/src/sort_order_impl.dart';
+import 'package:sembast/src/store_ref_impl.dart';
 
 import 'test_common.dart';
 
 // Bad definition on purpose.
-var store = StoreRef<Object?, Object?>.main();
+var store = SembastStoreRef<Object?, Object?>(dbMainStore);
 var record = store.record(1);
 
 void main() {

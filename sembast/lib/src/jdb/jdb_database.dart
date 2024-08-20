@@ -5,8 +5,8 @@ import 'package:sembast/src/api/protected/codec.dart';
 import 'package:sembast/src/api/protected/database.dart';
 import 'package:sembast/src/api/protected/jdb.dart';
 import 'package:sembast/src/api/protected/type.dart';
-import 'package:sembast/src/api/store_ref.dart';
 import 'package:sembast/src/env_utils.dart';
+import 'package:sembast/src/store_ref_impl.dart';
 
 /// Jdb.
 abstract class JdbDatabase {
@@ -75,7 +75,7 @@ extension JdbDatabaseInternalExt on JdbDatabase {
   JdbReadEntry _readEntryFromReadEntryEncoded(
       JdbReadEntryEncoded encoded, Object? value) {
     var id = encoded.id;
-    var store = StoreRef<Key?, Value?>(encoded.storeName);
+    var store = SembastStoreRef<Key?, Value?>(encoded.storeName);
     var record = store.record(encoded.recordKey);
     var deleted = encoded.deleted;
     var entry = JdbReadEntry()

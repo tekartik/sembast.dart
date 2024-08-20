@@ -10,7 +10,7 @@ var records = store.records([1, 2]);
 
 void main() {
   group('sembast_api', () {
-    test('public', () {
+    test('public', () async {
       // What we want public
       StoreRef;
       RecordRef;
@@ -86,6 +86,21 @@ void main() {
       SembastQueryRefSyncExtension(query).onSnapshotsSync;
       SembastQueryRefSyncExtension(query).onSnapshotSync;
       SembastQueryRefSyncExtension(query).onCountSync;
+
+      // ignore: unused_element
+      Future<void> ignored(Database db) async {
+        await DatabaseExtension(db).reload();
+        await DatabaseExtension(db).reOpen();
+        await DatabaseExtension(db).checkForChanges();
+        await DatabaseExtension(db).compact();
+      }
+
+      // ignore: unused_element
+      void ignoreSnapshots(List<RecordSnapshot> snapshots) {
+        RecordSnapshotIterableExtension(snapshots).keys;
+        RecordSnapshotIterableExtension(snapshots).values;
+        RecordSnapshotIterableExtension(snapshots).keysAndValues;
+      }
     });
   });
 }

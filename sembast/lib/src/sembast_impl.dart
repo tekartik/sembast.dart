@@ -1,4 +1,5 @@
 import 'import_common.dart';
+import 'store_ref_impl.dart';
 
 /// The database version
 const String dbVersionKey = 'version';
@@ -24,8 +25,15 @@ const String dbRecordDeletedKey = 'deleted'; // boolean
 /// Main store.
 const String dbMainStore = '_main'; // main store name;
 
-/// Main store reference.
-final mainStoreRef = StoreRef<Key, Value>(dbMainStore);
+/// Main store reference. to deprecate since it is not typed
+StoreRef<Key, Value> mainStoreRef = SembastStoreRef<Key, Value>(dbMainStore);
+
+/// Main store reference, key as int, value untyped
+StoreRef<int, Value> intMainStoreRef = SembastStoreRef<int, Value>(dbMainStore);
+
+/// Main store reference, key as String, value untyped
+StoreRef<String, Value> stringMainStoreRef =
+    SembastStoreRef<String, Value>(dbMainStore);
 
 /// Jdb revision.
 const String jdbRevisionKey = 'revision';

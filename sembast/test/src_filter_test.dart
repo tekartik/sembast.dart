@@ -284,22 +284,23 @@ void main() {
     });
 
     test('key', () {
-      var store = StoreRef<Object, Object>.main();
+      var intStore = StoreRef<int, Object>.main();
+      var store = StoreRef<String, Object>.main();
       var filter = Filter.byKey(1);
       expect(_match(filter, 'dummy'), isTrue);
-      expect(filterMatchesRecord(filter, store.record(1).snapshot('dummy')),
+      expect(filterMatchesRecord(filter, intStore.record(1).snapshot('dummy')),
           isTrue);
       expect(
           filterMatchesRecord(filter, store.record('dummy').snapshot('dummy')),
           isFalse);
-      expect(filterMatchesRecord(filter, store.record(2).snapshot('dummy')),
+      expect(filterMatchesRecord(filter, intStore.record(2).snapshot('dummy')),
           isFalse);
       filter = Filter.byKey('my_key');
       expect(
           filterMatchesRecord(filter, store.record('my_key').snapshot('dummy')),
           isTrue);
       expect(_match(filter, 'dummy'), isFalse);
-      expect(filterMatchesRecord(filter, store.record(1).snapshot('dummy')),
+      expect(filterMatchesRecord(filter, intStore.record(1).snapshot('dummy')),
           isFalse);
       expect(
           filterMatchesRecord(filter, store.record('dummy').snapshot('dummy')),
@@ -329,7 +330,7 @@ void main() {
     });
 
     test('matches', () {
-      var store = StoreRef<Object, Object>.main();
+      var store = StoreRef<String, Object>.main();
       var filter = Filter.matches('test', '^f');
       expect(_match(filter, {'test': 'fish'}), isTrue);
       expect(_match(filter, {'test': 'f'}), isTrue);
@@ -348,6 +349,18 @@ void main() {
       expect(_match(filter, 'dummy'), isFalse);
       expect(_match(filter, 'test'), isFalse);
       expect(_match(filter, <Object>[]), isFalse);
+
+      /// The key!
+      filter = Filter.matches(Field.key, '^f');
+
+      expect(filterMatchesRecord(filter, store.record('f').snapshot('dummy')),
+          isTrue);
+      expect(filterMatchesRecord(filter, store.record('e').snapshot('dummy')),
+          isFalse);
+
+      var intStore = StoreRef<int, Object>.main();
+      expect(filterMatchesRecord(filter, intStore.record(1).snapshot('dummy')),
+          isFalse);
 
       filter = Filter.matches('test', '^f', anyInList: true);
       expect(
@@ -390,15 +403,6 @@ void main() {
       expect(_match(filter, 'dummy'), isFalse);
       expect(_match(filter, 'test'), isFalse);
       expect(_match(filter, <Object>[]), isFalse);
-
-      /// The key!
-      filter = Filter.matches(Field.key, '^f', anyInList: true);
-      expect(filterMatchesRecord(filter, store.record(['f']).snapshot('dummy')),
-          isTrue);
-      expect(filterMatchesRecord(filter, store.record(['e']).snapshot('dummy')),
-          isFalse);
-      expect(filterMatchesRecord(filter, store.record(1).snapshot('dummy')),
-          isFalse);
     });
   });
 }
