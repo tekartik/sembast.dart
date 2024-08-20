@@ -1,7 +1,8 @@
-## 3.7.3+1
+## 3.7.3+2
 
 * Add experimental `Database.reload()` to force reloading the database from the storage.
 * Improve memory usage by caching the record list and avoiding too many casts.
+* Fix notifyListener runtime issue observed on the web using wasm.
 
 ## 3.7.2
 
