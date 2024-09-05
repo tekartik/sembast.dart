@@ -13,6 +13,26 @@ import 'package:sembast/src/storage.dart';
 import 'common_import.dart';
 import 'file_system.dart';
 
+class _FsDatabaseStorageSink
+    with DatabaseStorageSinkMixin
+    implements DatabaseStorageSink {
+  final IOSink sink;
+
+  _FsDatabaseStorageSink(this.sink);
+
+  @override
+  Future<void> appendLines(List<String> lines) async {
+    for (var line in lines) {
+      sink.writeln(line);
+    }
+  }
+
+  @override
+  Future<void> close() {
+    return sink.close();
+  }
+}
+
 /// File system storage.
 class FsDatabaseStorage extends DatabaseStorage {
   /// File system
@@ -178,7 +198,7 @@ class FsDatabaseStorage extends DatabaseStorage {
   }
 
   @override
-  Future appendLines(List<String> lines) {
+  Future<void> appendLines(List<String> lines) {
     // devPrint('${file.path} lines $lines');
     final sink = file.openWrite(mode: FileMode.append);
 
@@ -187,6 +207,12 @@ class FsDatabaseStorage extends DatabaseStorage {
     }
 
     return sink.close();
+  }
+
+  @override
+  Future<DatabaseStorageSink> openAppend() async {
+    final sink = file.openWrite(mode: FileMode.append);
+    return _FsDatabaseStorageSink(sink);
   }
 
   @override

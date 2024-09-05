@@ -18,7 +18,25 @@ abstract class StorageBase {
   Future<bool> find();
 
   /// Create the storage if needed
-  Future findOrCreate();
+  Future<void> findOrCreate();
+}
+
+/// Storage sink
+abstract class DatabaseStorageSink {
+  /// Append multiple lines.
+  Future<void> appendLines(List<String> lines);
+
+  /// Append one line
+  Future<void> appendLine(String line);
+
+  /// Close the sink
+  Future<void> close();
+}
+
+/// Storage sink mixin
+mixin DatabaseStorageSinkMixin implements DatabaseStorageSink {
+  @override
+  Future<void> appendLine(String line) => appendLines([line]);
 }
 
 ///
@@ -40,10 +58,13 @@ abstract class DatabaseStorage extends StorageBase {
   Stream<String> readSafeLines();
 
   /// Append multiple lines.
-  Future appendLines(List<String> lines);
+  Future<void> appendLines(List<String> lines);
 
   /// Append one line
-  Future appendLine(String line) => appendLines([line]);
+  Future<void> appendLine(String line) => appendLines([line]);
+
+  /// Open the storage
+  Future<DatabaseStorageSink> openAppend();
 }
 
 /// State update

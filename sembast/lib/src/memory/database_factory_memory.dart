@@ -104,20 +104,26 @@ class DatabaseStorageMemory extends DatabaseStorage {
   }
 
   @override
-  Stream<String> readLines() => throw UnimplementedError();
+  Stream<String> readLines() => throw UnimplementedError('readLines');
 
   @override
-  Future<void> appendLines(List<String> lines) => throw UnimplementedError();
+  Future<void> appendLines(List<String> lines) =>
+      throw UnimplementedError('appendLines');
 
   @override
   DatabaseStorage? get tmpStorage => null;
 
   @override
-  Future<void> tmpRecover() => throw UnimplementedError();
+  Future<void> tmpRecover() => throw UnimplementedError('tmpRecover');
 
   @override
   Stream<String> readSafeLines() {
-    throw UnimplementedError();
+    throw UnimplementedError('readSafeLines');
+  }
+
+  @override
+  Future<DatabaseStorageSink> openAppend() {
+    throw UnimplementedError('openAppend');
   }
 }
 
