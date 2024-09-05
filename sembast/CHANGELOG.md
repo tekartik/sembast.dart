@@ -1,8 +1,9 @@
-## 3.7.3+2
+## 3.7.3+3
 
 * Add experimental `Database.reload()` to force reloading the database from the storage.
 * Improve memory usage by caching the record list and avoiding too many casts.
 * Fix notifyListener runtime issue observed on the web using wasm.
+* Improve `compact` memory usage in sembast_io.
 
 ## 3.7.2
 

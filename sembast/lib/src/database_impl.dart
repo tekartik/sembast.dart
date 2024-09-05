@@ -389,7 +389,6 @@ class SembastDatabase extends Object
           }
         }
         await writeCurrent();
-        //await tmpStorage.appendLines(lines);
       } finally {
         await sink.close();
       }
