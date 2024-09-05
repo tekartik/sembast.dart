@@ -118,7 +118,7 @@ abstract class IOSink {
   void writeln([Object obj = '']);
 
   /// Close the target consumer.
-  Future close();
+  Future<void> close();
 }
 
 /// The type of an entity on the file system, such as a file, directory, or link.

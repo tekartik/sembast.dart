@@ -19,7 +19,7 @@ Future main() async {
   await sharedStdIn.first;
   await shell.run('''
 git tag $tag
-git push origin --tags
+git push origin --follow-tags
 ''');
   await sharedStdIn.terminate();
 }

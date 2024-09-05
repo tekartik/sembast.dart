@@ -324,57 +324,78 @@ class SembastDatabase extends Object
       await tmpStorage.delete();
       await tmpStorage.findOrCreate();
 
-      final lines = <String>[];
-
-      Future addStringLine(String line) async {
-        await cooperate();
-        exportStat.lineCount++;
-        if (_debugStorage) {
-          // ignore: avoid_print
-          print('tmp: $line');
-        }
-        lines.add(line);
-      }
-
-      var hasAsyncCodec = _contentCodec.isAsyncCodec;
-      Future addLine(Map map) async {
-        String encoded;
-        try {
-          if (hasAsyncCodec) {
-            encoded = await encodeRecordMapAsync(map);
-          } else {
-            encoded = encodeRecordMapSync(map);
+      /// Write by 5MB chunks
+      const maxWriteSize = 5000000;
+      var currentWriteSize = 0;
+      var sink = await tmpStorage.openAppend();
+      try {
+        final lines = <String>[];
+        Future<void> writeCurrent() async {
+          if (currentWriteSize > 0) {
+            var linesCopy = List.of(lines);
+            lines.clear();
+            await sink.appendLines(linesCopy);
+            currentWriteSize = 0;
           }
+        }
 
-          await addStringLine(encoded);
-        } catch (e, st) {
+        Future addStringLine(String line) async {
+          await cooperate();
+          exportStat.lineCount++;
           if (_debugStorage) {
-            // useful for debugging...
             // ignore: avoid_print
-            print(map);
-            // ignore: avoid_print
-            print(e);
-            // ignore: avoid_print
-            print(st);
+            print('tmp: $line');
           }
-          rethrow;
+          lines.add(line);
+          currentWriteSize += line.length;
+          if (currentWriteSize > maxWriteSize) {
+            await writeCurrent();
+          }
         }
-      }
 
-      // meta is always json
-      await addStringLine(json.encode(_meta!.toMap()));
+        var hasAsyncCodec = _contentCodec.isAsyncCodec;
+        Future addLine(Map map) async {
+          String encoded;
+          try {
+            if (hasAsyncCodec) {
+              encoded = await encodeRecordMapAsync(map);
+            } else {
+              encoded = encodeRecordMapSync(map);
+            }
 
-      var stores = getCurrentStores();
-      for (var store in stores) {
-        final records = getCurrentRecords(store);
-        for (var record in records) {
-          await addLine(record.toDatabaseRowMap());
+            await addStringLine(encoded);
+          } catch (e, st) {
+            if (_debugStorage) {
+              // useful for debugging...
+              // ignore: avoid_print
+              print(map);
+              // ignore: avoid_print
+              print(e);
+              // ignore: avoid_print
+              print(st);
+            }
+            rethrow;
+          }
         }
+
+        // meta is always json
+        await addStringLine(json.encode(_meta!.toMap()));
+
+        var stores = getCurrentStores();
+        for (var store in stores) {
+          final records = getCurrentRecords(store);
+          for (var record in records) {
+            await addLine(record.toDatabaseRowMap());
+          }
+        }
+        await writeCurrent();
+      } finally {
+        await sink.close();
       }
-      await tmpStorage.appendLines(lines);
       await _storageFs!.tmpRecover();
 
       _exportStat = exportStat;
+
       // devPrint('compacted: $_exportStat');
     } else if (_storageJdb?.supported ?? false) {
       await _storageJdb!.compact();

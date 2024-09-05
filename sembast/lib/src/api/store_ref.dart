@@ -6,7 +6,7 @@ import 'package:sembast/src/store_ref_impl.dart';
 const checkStoreKeyThrowException = false;
 
 /// Print a warning if a store key is not a String or an int, to enable in the future.
-const checkStoreKey = true;
+const checkStoreKey = false;
 
 var _debugCheckStoreKeyPrinted = <String, bool>{};
 
