@@ -8,6 +8,8 @@ import 'package:sembast/src/memory/database_factory_memory.dart';
 import 'package:sembast/utils/database_utils.dart';
 import 'package:sembast/utils/sembast_import_export.dart';
 import 'package:sembast/utils/value_utils.dart';
+import 'package:sembast_test/store_test.dart';
+import 'package:sembast_test/test_codecs.dart';
 
 import 'src/import_common.dart';
 import 'test_common.dart';
@@ -899,6 +901,63 @@ void defineTests(DatabaseTestContext ctx) {
           finder:
               Finder(filter: Filter.equals('attributes.@.tag', 'furniture')));
       expect(records.length, 2);
+    });
+    test('encrypt existing database', () async {
+      // Encryption codec to use (to set as you wish)
+      SembastCodec? encryptionCodec;
+
+      // Existing db name, to convert and remove if it exists
+      var nonEncryptedDbName = 'my_database.db';
+      var encryptedDbName = 'my_database_encrypted.db';
+
+      nonEncryptedDbName =
+          await deleteForTest(ctx, 'doc/encrypt/$nonEncryptedDbName');
+      encryptedDbName =
+          await deleteForTest(ctx, 'doc/encrypt/$encryptedDbName');
+      encryptionCodec =
+          SembastCodec(signature: 'base64', codec: MyCustomCodec());
+
+      Future<Database> open() async {
+        late Database db;
+        // Check if non encrypted database exists
+        if (await factory.databaseExists(nonEncryptedDbName)) {
+          // This should only happen once but could be a lengthy operation
+
+          // Open the non encrypted database
+          var nonEncryptedDb = await factory.openDatabase(nonEncryptedDbName);
+
+          // Create a new encrypted database and copy the existing content
+          await factory.deleteDatabase(encryptedDbName);
+          db = await factory.openDatabase(encryptedDbName,
+              codec: encryptionCodec);
+          // Copy the content
+          await databaseMerge(db, sourceDatabase: nonEncryptedDb);
+
+          // Close and delete the non encrypted database
+          await nonEncryptedDb.close();
+          await factory.deleteDatabase(nonEncryptedDbName);
+        } else {
+          // Open the encrypted database
+          db = await factory.openDatabase(encryptedDbName,
+              codec: encryptionCodec);
+        }
+        return db;
+      }
+
+      db = await open();
+      await db.close();
+      await factory.deleteDatabase(nonEncryptedDbName);
+      await factory.deleteDatabase(encryptedDbName);
+      db = await factory.openDatabase(nonEncryptedDbName);
+      await testStore.record(1).put(db, {'some': 'value'});
+      await db.close();
+      db = await open();
+      expect(await factory.databaseExists(nonEncryptedDbName), isFalse);
+      expect(await testStore.record(1).get(db), {'some': 'value'});
+      await db.close();
+      db = await open();
+      expect(await testStore.record(1).get(db), {'some': 'value'});
+      await db.close();
     });
   });
 }
