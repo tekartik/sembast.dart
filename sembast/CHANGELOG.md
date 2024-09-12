@@ -1,3 +1,7 @@
+## 2.7.4
+
+* Add `DatabaseFactory.databaseExists(String path)` to check if a database exists.
+
 ## 3.7.3+3
 
 * Add experimental `Database.reload()` to force reloading the database from the storage.

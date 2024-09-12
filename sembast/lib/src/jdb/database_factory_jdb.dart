@@ -4,7 +4,7 @@ import 'package:sembast/src/api/protected/jdb.dart';
 
 /// Jdb implementation
 class DatabaseFactoryJdb extends SembastDatabaseFactory
-    with DatabaseFactoryMixin
+    with SembastDatabaseFactoryMixin
     implements DatabaseFactory {
   /// File system used.
   final JdbFactory jdbFactory;
@@ -25,4 +25,7 @@ class DatabaseFactoryJdb extends SembastDatabaseFactory
 
   @override
   bool get hasStorage => true;
+
+  @override
+  Future<bool> databaseExists(String path) => jdbFactory.exists(path);
 }

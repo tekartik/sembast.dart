@@ -30,10 +30,11 @@ abstract class DatabaseFactory {
       DatabaseMode? mode,
       SembastCodec? codec});
 
-  ///
   /// Delete a database if existing
-  ///
   Future<void> deleteDatabase(String path);
+
+  /// Check if a database exists
+  Future<bool> databaseExists(String path);
 }
 
 /// Callback interface called when the existing version differs from the

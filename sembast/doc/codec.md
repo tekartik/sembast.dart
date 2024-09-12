@@ -76,3 +76,46 @@ You have to specify a unique signature (not private) when opening the database w
 var db = await factory.openDatabase('my_encoded_db.db',
     codec: SembastCodec(signature: 'my_codec', codec: MyAsyncCodec()));
 ```
+
+### Encrypting an existing database
+
+It is unfortunately not possible to encrypt an existing database in place as a database format is tight to the codec
+used. You have to create a new one and copy the data. You can use `databaseMerge` to copy the data
+in a single operation/transaction.
+
+Below is an example of how to convert an existing non-encrypted database to an encrypted one:
+
+```dart
+// Encryption codec to use (to set as you wish)
+SembastCodec? encryptionCodec;
+
+// Existing db name, to convert and remove if it exists
+var nonEncryptedDbName = 'my_database.db';
+var encryptedDbName = 'my_database_encrypted.db';
+
+late Database db;
+// Check if non encrypted database exists
+if (await factory.databaseExists(nonEncryptedDbName)) {
+// This should only happen once but could be a lengthy operation
+
+  // Open the non encrypted database
+  var nonEncryptedDb = await factory.openDatabase(nonEncryptedDbName);
+
+  // Create a new encrypted database and copy the existing content
+  await factory.deleteDatabase(encryptedDbName);
+  db = await factory.openDatabase(encryptedDbName,
+    codec: encryptionCodec);
+  // Copy the content
+  await databaseMerge(db, sourceDatabase: nonEncryptedDb);
+
+  // Close and delete the non encrypted database
+  await nonEncryptedDb.close();
+  await factory.deleteDatabase(nonEncryptedDbName);
+} else {
+// Open the encrypted database
+db = await factory.openDatabase(encryptedDbName,
+    codec: encryptionCodec);
+}
+
+```
+
