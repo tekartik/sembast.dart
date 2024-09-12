@@ -227,7 +227,7 @@ class FsDatabaseStorage extends DatabaseStorage {
 
 /// FileSystem implementation
 class DatabaseFactoryFs extends SembastDatabaseFactory
-    with DatabaseFactoryMixin
+    with SembastDatabaseFactoryMixin
     implements DatabaseFactory {
   /// File system used.
   final FileSystem fs;
@@ -246,4 +246,7 @@ class DatabaseFactoryFs extends SembastDatabaseFactory
 
   @override
   bool get hasStorage => true;
+
+  @override
+  Future<bool> databaseExists(String path) => fs.file(path).exists();
 }

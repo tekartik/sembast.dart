@@ -104,4 +104,8 @@ mixin SembastDatabaseFactoryMixin implements SembastDatabaseFactory {
       await helper.database?.flush();
     }
   }
+
+  @override
+  Future<bool> databaseExists(String path) async =>
+      throw UnimplementedError('databaseExists');
 }

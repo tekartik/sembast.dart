@@ -158,4 +158,9 @@ class EncryptedDatabaseFactory implements DatabaseFactory {
         mode: mode,
         codec: this.codec);
   }
+
+  @override
+  Future<bool> databaseExists(String path) {
+    return databaseFactory.databaseExists(path);
+  }
 }

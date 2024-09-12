@@ -13,11 +13,22 @@ void main() {
 void defineTests(DatabaseTestContext ctx) {
   var factory = ctx.factory;
   group('open', () {
+    test('exists', () async {
+      var path = dbPathFromName('open/exists.db');
+
+      await factory.deleteDatabase(path);
+      expect(await factory.databaseExists(path), isFalse);
+      var db = await factory.openDatabase(path);
+      expect(await factory.databaseExists(path), isTrue);
+      expect(db.version, 1);
+      await db.close();
+      await factory.deleteDatabase(path);
+      expect(await factory.databaseExists(path), isFalse);
+    });
     test('no_version', () async {
       var path = dbPathFromName('open/no_version.db');
 
       await factory.deleteDatabase(path);
-
       var db = await factory.openDatabase(path,
           onVersionChanged: (db, oldVersion, newVersion) async {
         expect(oldVersion, 0);

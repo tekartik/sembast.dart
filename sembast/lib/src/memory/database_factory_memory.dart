@@ -22,7 +22,7 @@ final DatabaseFactoryMemoryJdb databaseFactoryMemoryJdb =
 
 /// In memory implementation
 class DatabaseFactoryMemory extends SembastDatabaseFactory
-    with DatabaseFactoryMixin {
+    with SembastDatabaseFactoryMixin {
   @override
   Future doDeleteDatabase(String path) async {
     _databases.remove(path);
@@ -65,6 +65,9 @@ class DatabaseFactoryMemory extends SembastDatabaseFactory
     }
     return super.openDatabaseWithOptions(path, options);
   }
+
+  @override
+  Future<bool> databaseExists(String path) async => _exists[path] == true;
 }
 
 ///

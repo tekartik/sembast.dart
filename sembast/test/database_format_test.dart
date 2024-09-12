@@ -166,6 +166,22 @@ void defineTestsWithCodec(FileSystemTestContext ctx, {SembastCodec? codec}) {
       await db.close();
       var lines = await readContent(fs, dbPath);
       expect(lines.length, 2);
+      var metaMap = json.decode(lines[0]) as Map;
+      if (codec == null) {
+        expect(metaMap, {
+          'version': 1,
+          'sembast': 1,
+        });
+      } else {
+        expect(mapWithoutCodec(metaMap), {
+          'version': 1,
+          'sembast': 1,
+        });
+        expect(
+            await getCodecDecodedSignature(codec, metaMap['codec'] as String?),
+            {'signature': codec.signature});
+      }
+
       expect(await decodeRecord(lines[1]), {'key': 1, 'value': 'hi'});
     });
 

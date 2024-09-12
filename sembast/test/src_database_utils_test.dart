@@ -3,6 +3,8 @@ import 'package:sembast/sembast_memory.dart';
 import 'package:sembast/src/database_utils.dart';
 import 'package:test/test.dart';
 
+import 'test_codecs.dart';
+
 void main() {
   var store1 = StoreRef<int, int>('store1');
   var record1 = store1.record(1);
@@ -18,7 +20,9 @@ void main() {
     test('databaseMerge', () async {
       var sourceDatabase = await initDb1();
 
-      var db = await newDatabaseFactoryMemory().openDatabase('db');
+      var codec = SembastCodec(signature: 'base64', codec: MyCustomCodec());
+      var db =
+          await newDatabaseFactoryMemory().openDatabase('db', codec: codec);
       await databaseMerge(db, sourceDatabase: sourceDatabase);
       expect(await record1.get(db), 1);
       await databaseMerge(db, sourceDatabase: sourceDatabase);
