@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:meta/meta.dart';
+import 'package:path/path.dart';
 import 'package:sembast/sembast.dart';
 import 'package:sembast/src/api/log_level.dart';
 import 'package:sembast/src/api/protected/jdb.dart';
@@ -11,6 +12,7 @@ import 'package:sembast/src/common_import.dart';
 import 'package:sembast/src/cooperator.dart';
 import 'package:sembast/src/database_client_impl.dart';
 import 'package:sembast/src/database_content.dart';
+import 'package:sembast/src/database_factory_mixin.dart';
 import 'package:sembast/src/debug_utils.dart';
 import 'package:sembast/src/json_encodable_codec.dart';
 import 'package:sembast/src/listener.dart';
@@ -1201,6 +1203,10 @@ class SembastDatabase extends Object
 
   @override
   Future close() async {
+    if (debugPrintAbsoluteOpenedDatabasePath) {
+      // ignore: avoid_print
+      print('Closing ${normalize(absolute(path))}');
+    }
     // jdb updates
     // ignore: unawaited_futures
     _storageJdbRevisionUpdateSubscription?.cancel();
