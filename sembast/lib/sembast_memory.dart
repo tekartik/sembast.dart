@@ -6,3 +6,5 @@ export 'package:sembast/src/api/v2/sembast_memory.dart'
         databaseFactoryMemory,
         databaseFactoryMemoryFs,
         newDatabaseFactoryMemory;
+
+export 'sembast.dart';

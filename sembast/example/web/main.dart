@@ -1,7 +1,6 @@
 // basically same as the io runner but with extra output
 import 'dart:async';
 
-import 'package:sembast/sembast.dart';
 import 'package:sembast/sembast_memory.dart';
 
 Future main() async {

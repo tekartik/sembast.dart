@@ -2,7 +2,6 @@ library sembast.test.memory_factory_test;
 
 // basically same as the io runner but with extra output
 import 'package:sembast/sembast_memory.dart';
-import 'package:sembast/src/api/sembast.dart';
 import 'package:test/test.dart';
 
 void main() {

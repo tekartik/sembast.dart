@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:path/path.dart';
-import 'package:sembast/sembast.dart';
 import 'package:sembast/sembast_io.dart';
 import 'package:sembast/src/database_impl.dart';
 

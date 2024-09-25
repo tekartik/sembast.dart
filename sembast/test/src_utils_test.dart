@@ -1,7 +1,6 @@
 library sembast.test.utils_test;
 
 // basically same as the io runner but with extra output
-import 'package:sembast/sembast.dart';
 import 'package:sembast/sembast_memory.dart';
 
 // ignore_for_file: implementation_imports
