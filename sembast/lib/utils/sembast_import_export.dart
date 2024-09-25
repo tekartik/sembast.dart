@@ -11,6 +11,7 @@ import 'package:sembast/src/model.dart';
 import 'package:sembast/src/store_impl.dart';
 import 'package:sembast/src/store_ref_impl.dart';
 import 'package:sembast/src/transaction_impl.dart';
+export 'package:sembast/sembast.dart';
 
 const String _dbVersion = 'version';
 const String _exportSignatureKey = 'sembast_export';

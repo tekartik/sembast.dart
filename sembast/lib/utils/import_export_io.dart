@@ -2,9 +2,9 @@ library sembast.utils.sembast_import_export_io;
 
 import 'dart:io';
 
-import 'package:sembast/src/api/sembast.dart';
 import 'package:sembast/src/common_import.dart';
 import 'package:sembast/utils/sembast_import_export.dart';
+export 'package:sembast/sembast.dart';
 
 ///
 /// Write the export in a file (currently in .jsonl format)

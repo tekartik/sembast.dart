@@ -1,7 +1,5 @@
 library;
 
-import 'package:idb_shim/idb.dart';
-import 'package:idb_shim/idb_client_memory.dart';
 import 'package:idb_shim/utils/idb_utils.dart';
 import 'package:sembast/sembast.dart';
 import 'package:sembast_web/src/jdb_factory_idb.dart' show JdbFactoryIdb;

@@ -1,4 +1,4 @@
-## 2.7.4+1
+## 3.7.4+2
 
 * Add `DatabaseFactory.databaseExists(String path)` to check if a database exists.
 
