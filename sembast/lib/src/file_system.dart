@@ -80,7 +80,7 @@ abstract class FileSystem {
   File file(String path);
 
   /// Finds the type of file system object that a path points to. Returns
-  /// a [:Future<FileSystemEntityType>:] that completes with the result.
+  /// a [`Future<FileSystemEntityType>`] that completes with the result.
   ///
   /// [FileSystemEntityType] has the constant instances FILE, DIRECTORY,
   /// LINK, and NOT_FOUND.  [type] will return LINK only if the optional
@@ -151,7 +151,7 @@ class FileSystemEntityType {
 /// File system entity.
 abstract class FileSystemEntity {
   /// Checks whether the file system entity with this path exists. Returns
-  /// a [:Future<bool>:] that completes with the result.
+  /// a [`Future<bool>`] that completes with the result.
   ///
   /// Since FileSystemEntity is abstract, every FileSystemEntity object
   /// is actually an instance of one of the subclasses [File],
@@ -180,7 +180,7 @@ abstract class FileSystemEntity {
   /// This behavior allows [delete] to be used to unconditionally delete any file
   /// system object.
   ///
-  /// Returns a [:Future<FileSystemEntity>:] that completes with this
+  /// Returns a [`Future<FileSystemEntity>`] that completes with this
   /// [FileSystemEntity] when the deletion is done. If the [FileSystemEntity]
   /// cannot be deleted, the future completes with an exception.
   Future<FileSystemEntity> delete({bool recursive = false});
@@ -206,7 +206,7 @@ abstract class Directory extends FileSystemEntity {
   /// created. If [recursive] is true, all non-existing path components
   /// are created. If the directory already exists nothing is done.
   ///
-  /// Returns a [:Future<Directory>:] that completes with this
+  /// Returns a [`Future<Directory>`] that completes with this
   /// directory once it has been created. If the directory cannot be
   /// created the future completes with an exception.
   Future<Directory> create({bool recursive = false});
@@ -214,7 +214,7 @@ abstract class Directory extends FileSystemEntity {
 
 /// File.
 abstract class File extends FileSystemEntity {
-  /// Create the file. Returns a [:Future<File>:] that completes with
+  /// Create the file. Returns a [`Future<File>`] that completes with
   /// the file when it has been created.
   ///
   /// If [recursive] is false, the default, the file is created only if
