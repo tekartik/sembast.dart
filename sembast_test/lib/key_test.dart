@@ -1,4 +1,4 @@
-library sembast.key_test;
+library;
 
 // basically same as the io runner but with extra output
 // ignore_for_file: implementation_imports

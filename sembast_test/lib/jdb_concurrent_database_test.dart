@@ -1,6 +1,6 @@
 // ignore_for_file: invalid_use_of_visible_for_testing_member
 
-library sembast.jdb_database_test;
+library;
 
 // ignore: implementation_imports
 import 'package:sembast_test/jdb_test_common.dart';

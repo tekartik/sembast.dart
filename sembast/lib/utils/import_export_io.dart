@@ -1,4 +1,4 @@
-library sembast.utils.sembast_import_export_io;
+library;
 
 import 'dart:io';
 

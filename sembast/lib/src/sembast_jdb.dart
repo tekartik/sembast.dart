@@ -1,4 +1,4 @@
-library sembast.sembast_jdb;
+library;
 
 import 'dart:async';
 

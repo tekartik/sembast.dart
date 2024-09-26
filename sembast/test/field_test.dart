@@ -1,4 +1,4 @@
-library sembast.field_test;
+library;
 
 import 'package:sembast/sembast.dart';
 import 'package:test/test.dart';

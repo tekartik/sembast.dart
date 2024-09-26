@@ -1,4 +1,4 @@
-library sembast_test.query_test;
+library;
 
 // basically same as the io runner but with extra output
 

@@ -1,4 +1,4 @@
-library sembast.jdb_factory_memory;
+library;
 
 import 'dart:async';
 import 'dart:math';

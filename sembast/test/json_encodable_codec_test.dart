@@ -1,4 +1,4 @@
-library sembast.json_encodable_codec_test;
+library;
 
 import 'package:sembast/blob.dart';
 import 'package:sembast/src/json_encodable_codec.dart';

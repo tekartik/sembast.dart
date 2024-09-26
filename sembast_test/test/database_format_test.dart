@@ -1,4 +1,4 @@
-library sembast.database_format_test;
+library;
 
 import 'dart:async';
 import 'dart:convert';

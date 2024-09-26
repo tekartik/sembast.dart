@@ -1,5 +1,5 @@
 @TestOn('vm || browser')
-library sembast_web.test.sembast_web_api_test;
+library;
 
 import 'package:sembast_web/sembast_web.dart';
 import 'package:test/test.dart';

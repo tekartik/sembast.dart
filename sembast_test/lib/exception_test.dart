@@ -1,4 +1,4 @@
-library sembast.exception_test;
+library;
 
 import 'test_common.dart';
 

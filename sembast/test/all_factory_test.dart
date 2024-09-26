@@ -1,5 +1,5 @@
 @TestOn('vm')
-library sembast.test_runner.all_test;
+library;
 
 import 'package:path/path.dart';
 

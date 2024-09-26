@@ -1,5 +1,5 @@
 @TestOn('vm')
-library sembast_test.test.idb_io_test;
+library;
 
 import 'package:idb_shim/idb_io.dart';
 import 'package:sembast_test/all_jdb_test.dart' as all_jdb_test;

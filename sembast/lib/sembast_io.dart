@@ -1,4 +1,4 @@
-library sembast.io;
+library;
 
 import 'package:sembast/sembast.dart';
 import 'package:sembast/src/api/v2/sembast_io.dart' as database_io;

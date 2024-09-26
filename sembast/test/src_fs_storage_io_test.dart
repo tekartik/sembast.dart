@@ -1,5 +1,5 @@
 @TestOn('vm')
-library sembast.test.src_fs_storage_io_test;
+library;
 
 import 'dart:convert';
 import 'dart:io' as io;

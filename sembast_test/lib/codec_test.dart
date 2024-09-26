@@ -1,4 +1,4 @@
-library sembast_test.codec_test;
+library;
 
 import 'package:sembast/timestamp.dart';
 import 'package:sembast_test/base64_codec.dart';

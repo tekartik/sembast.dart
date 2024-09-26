@@ -1,4 +1,4 @@
-library sembast.test.src_stream_utils_test;
+library;
 
 import 'package:sembast/src/stream_utils.dart';
 import 'package:test/test.dart';

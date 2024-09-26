@@ -1,4 +1,4 @@
-library sembast.test.memory_factory_test_;
+library;
 
 import 'package:sembast/sembast_memory.dart';
 // ignore_for_file: implementation_imports

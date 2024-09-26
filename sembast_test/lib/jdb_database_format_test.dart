@@ -1,6 +1,6 @@
 // ignore_for_file: invalid_use_of_visible_for_testing_member
 
-library sembast.jdb_database_format_test;
+library;
 
 import 'dart:async';
 

@@ -1,4 +1,4 @@
-library sembast.memory_file_system;
+library;
 
 import 'dart:async';
 import 'dart:convert';

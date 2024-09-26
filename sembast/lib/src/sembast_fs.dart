@@ -1,4 +1,4 @@
-library sembast.fs;
+library;
 
 import 'dart:async';
 import 'dart:convert';

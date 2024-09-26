@@ -1,5 +1,5 @@
 @TestOn('vm') // Temp
-library sembast.database_import_export_encrypt_test;
+library;
 
 import 'package:sembast/timestamp.dart';
 import 'package:sembast/utils/sembast_import_export.dart';

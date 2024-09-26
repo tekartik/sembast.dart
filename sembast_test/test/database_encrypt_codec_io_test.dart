@@ -1,5 +1,5 @@
 @TestOn('vm')
-library sembast_test.test.encrypt_codec_io_test;
+library;
 
 import 'dart:async';
 import 'dart:convert';

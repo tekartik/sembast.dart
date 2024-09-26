@@ -1,4 +1,4 @@
-library sembast.test.src.log_test;
+library;
 
 // basically same as the io runner but with extra output
 import 'package:sembast/src/api/log_level.dart';

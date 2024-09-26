@@ -1,4 +1,4 @@
-library sembast.test_runner;
+library;
 
 import 'changes_listener_persistent_test.dart'
     as changes_listener_persistent_test;

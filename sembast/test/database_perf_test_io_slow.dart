@@ -1,6 +1,6 @@
 @TestOn('vm')
 @Timeout(Duration(seconds: 120))
-library sembast.database_perf_test_slow;
+library;
 
 // basically same as the io runner but with extra output
 import 'package:test/test.dart';

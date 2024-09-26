@@ -1,4 +1,4 @@
-library sembast.utils.value_utils;
+library;
 
 import 'package:sembast/src/import_common.dart';
 import 'package:sembast/src/utils.dart' as utils;

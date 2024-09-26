@@ -1,5 +1,5 @@
 @TestOn('vm')
-library sembast.test.io_test;
+library;
 
 import 'dart:async';
 import 'dart:convert';

@@ -1,4 +1,4 @@
-library sembast.doc_test;
+library;
 
 import 'dart:async';
 

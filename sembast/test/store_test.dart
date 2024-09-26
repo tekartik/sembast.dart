@@ -1,4 +1,4 @@
-library sembast.test.src_store_test;
+library;
 
 import 'package:sembast/src/sembast_impl.dart';
 

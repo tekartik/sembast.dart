@@ -1,4 +1,4 @@
-library sembast.database_test;
+library;
 
 import 'package:sembast/src/api/protected/database.dart';
 

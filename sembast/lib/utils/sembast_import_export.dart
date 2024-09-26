@@ -1,4 +1,4 @@
-library sembast.utils.sembast_import_export;
+library;
 
 import 'dart:convert';
 

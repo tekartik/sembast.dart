@@ -1,4 +1,4 @@
-library sembast.test.io_test_common;
+library;
 
 // ignore_for_file: implementation_imports
 import 'package:sembast/src/api/v2/sembast_io.dart';

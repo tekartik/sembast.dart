@@ -1,4 +1,4 @@
-library sembast.test.src_ref_common_test;
+library;
 
 import 'test_common.dart';
 

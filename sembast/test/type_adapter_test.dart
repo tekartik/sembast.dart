@@ -1,4 +1,4 @@
-library sembast.type_adapter_test;
+library;
 
 import 'package:sembast/blob.dart';
 import 'package:sembast/src/timestamp_impl.dart';

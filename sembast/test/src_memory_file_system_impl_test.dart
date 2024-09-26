@@ -1,4 +1,4 @@
-library sembast.memory_file_system_impl_test;
+library;
 
 // basically same as the io runner but with extra output
 //import 'package:tekartik_test/test_config.dart';

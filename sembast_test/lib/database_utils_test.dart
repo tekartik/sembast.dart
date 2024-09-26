@@ -1,4 +1,4 @@
-library sembast.database_utils_test;
+library;
 
 import 'package:sembast/utils/database_utils.dart';
 

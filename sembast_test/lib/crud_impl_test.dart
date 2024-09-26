@@ -1,4 +1,4 @@
-library sembast.test.crud_impl_test;
+library;
 
 import 'test_common.dart';
 

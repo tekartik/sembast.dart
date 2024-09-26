@@ -1,4 +1,4 @@
-library sembast.test_runner;
+library;
 
 import 'database_format_test.dart' as database_format_test;
 import 'database_impl_format_test.dart' as database_impl_format_test;

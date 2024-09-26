@@ -1,4 +1,4 @@
-library sembast.test.all_test_io;
+library;
 
 import 'database_codec_test.dart' as database_codec_test;
 import 'test_common.dart';

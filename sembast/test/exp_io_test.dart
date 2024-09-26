@@ -1,5 +1,5 @@
 @TestOn('vm')
-library sembast.test.exp_io_est;
+library;
 
 import 'dart:async';
 

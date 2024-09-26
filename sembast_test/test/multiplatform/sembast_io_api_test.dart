@@ -1,5 +1,5 @@
 @TestOn('vm || browser')
-library sembast_web.test.sembast_io_api_test;
+library;
 
 import 'package:sembast/sembast_io.dart';
 import 'package:sembast/src/env_utils.dart' show isRunningAsJavascript;

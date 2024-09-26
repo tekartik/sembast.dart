@@ -1,4 +1,4 @@
-library sembast.test.memory_factory_test;
+library;
 
 // basically same as the io runner but with extra output
 import 'package:sembast/sembast_memory.dart';

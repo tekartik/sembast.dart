@@ -1,4 +1,4 @@
-library sembast.find_test;
+library;
 
 import 'dart:async';
 

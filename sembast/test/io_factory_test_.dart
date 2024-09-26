@@ -1,5 +1,5 @@
 @TestOn('vm')
-library sembast.test.io_factory_test_;
+library;
 
 import 'all_test.dart';
 import 'io_test_common.dart';

@@ -1,4 +1,4 @@
-library sembast.test.memory_factory_test_;
+library;
 
 import 'package:sembast/src/memory/database_factory_memory.dart'
     show DatabaseFactoryMemory;

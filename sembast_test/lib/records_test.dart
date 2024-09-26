@@ -1,4 +1,4 @@
-library sembast.store_test;
+library;
 
 // basically same as the io runner but with extra output
 import 'test_common.dart';

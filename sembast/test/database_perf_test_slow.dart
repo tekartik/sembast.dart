@@ -1,5 +1,5 @@
 @Timeout(Duration(seconds: 120))
-library sembast.database_perf_test_slow;
+library;
 
 // basically same as the io runner but with extra output
 import 'database_perf_test.dart' as database_perf_test;

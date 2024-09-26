@@ -1,4 +1,4 @@
-library sembast.database_test;
+library;
 
 import 'package:sembast/src/finder_impl.dart';
 import 'package:sembast/src/record_impl.dart';

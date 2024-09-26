@@ -1,4 +1,4 @@
-library sembast.memory;
+library;
 
 export 'package:sembast/src/api/v2/sembast_memory.dart'
     show

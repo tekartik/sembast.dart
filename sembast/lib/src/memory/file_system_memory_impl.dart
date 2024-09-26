@@ -1,4 +1,4 @@
-library sembast.memory_file_system_impl;
+library;
 
 import 'dart:async';
 import 'dart:typed_data';

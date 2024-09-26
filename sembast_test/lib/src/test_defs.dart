@@ -1,4 +1,4 @@
-library sembast.test.src.test_defs;
+library;
 
 import 'dart:async';
 import 'dart:convert';

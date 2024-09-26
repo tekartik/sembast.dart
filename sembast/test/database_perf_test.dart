@@ -1,4 +1,4 @@
-library sembast.database_perf_test;
+library;
 
 import 'dart:async';
 
