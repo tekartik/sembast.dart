@@ -1,4 +1,4 @@
-## 2.4.0+3
+## 2.4.0+4
 
 * Remove legacy html support.
 
