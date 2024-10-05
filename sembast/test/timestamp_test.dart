@@ -335,5 +335,19 @@ void main() {
       expect(dateTimeUtc.toIso8601String(), '1970-01-01T00:00:01.000Z');
       expect(dateTime.toUtc(), dateTimeUtc);
     });
+    test('addDuration', () {
+      var timestamp = Timestamp(3, 300000);
+      expect(timestamp.addDuration(const Duration(microseconds: 200)),
+          Timestamp(3, 500000));
+      expect(timestamp.substractDuration(const Duration(microseconds: 200)),
+          Timestamp(3, 100000));
+      expect(
+          timestamp.addDuration(const Duration(seconds: 2, microseconds: 400)),
+          Timestamp(5, 700000));
+      expect(
+          timestamp
+              .substractDuration(const Duration(seconds: 2, microseconds: 400)),
+          Timestamp(2, 999900000));
+    });
   });
 }

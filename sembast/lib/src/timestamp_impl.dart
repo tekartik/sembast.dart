@@ -241,3 +241,32 @@ class Timestamp implements Comparable<Timestamp> {
     }
   }
 }
+
+const _nanosPerSeconds = 1000000000;
+
+/// Timestamp extension
+extension TekartikSembastTimestampExt on Timestamp {
+  Timestamp _addMicroseconds(int microseconds) {
+    var nanoseconds = this.nanoseconds;
+    var seconds = this.seconds;
+    nanoseconds += microseconds * 1000;
+    if (nanoseconds >= _nanosPerSeconds) {
+      seconds += nanoseconds ~/ _nanosPerSeconds;
+      nanoseconds %= _nanosPerSeconds;
+    } else if (nanoseconds < 0) {
+      seconds += (nanoseconds ~/ _nanosPerSeconds) + 1;
+      nanoseconds %= _nanosPerSeconds;
+    }
+    return Timestamp(seconds, nanoseconds);
+  }
+
+  /// Add a duration to a timestamp
+  Timestamp addDuration(Duration duration) {
+    return _addMicroseconds(duration.inMicroseconds);
+  }
+
+  /// Substract a duration to a timestamp
+  Timestamp substractDuration(Duration duration) {
+    return _addMicroseconds(-duration.inMicroseconds);
+  }
+}
