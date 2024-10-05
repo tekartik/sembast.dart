@@ -1,3 +1,7 @@
+## 3.7.5
+
+* Add `Timestamp.addDuration()` and `Timestamp.substractDuraction()`
+
 ## 3.7.4+3
 
 * Add `DatabaseFactory.databaseExists(String path)` to check if a database exists.
