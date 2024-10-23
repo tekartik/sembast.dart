@@ -12,7 +12,6 @@ linter:
     - directives_ordering
     - no_adjacent_strings_in_list
     - omit_local_variable_types
-    - package_api_docs
     - prefer_single_quotes
     - sort_child_properties_last
     - test_types_in_equals

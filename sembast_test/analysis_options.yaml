@@ -39,7 +39,6 @@ linter:
     - no_literal_bool_comparisons
     - no_self_assignments
     - omit_local_variable_types
-    - package_api_docs
     - package_prefixed_library_names
     - prefer_const_constructors
     - prefer_const_literals_to_create_immutables
