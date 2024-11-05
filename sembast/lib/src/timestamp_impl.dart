@@ -269,4 +269,22 @@ extension TekartikSembastTimestampExt on Timestamp {
   Timestamp substractDuration(Duration duration) {
     return _addMicroseconds(-duration.inMicroseconds);
   }
+
+  /// Returns a [Duration] with the difference when subtracting [other] from
+  /// this [DateTime].
+  ///
+  /// The returned [Duration] will be negative if [other] occurs after this
+  /// [DateTime].
+  ///
+  ///
+  /// The difference is measured in seconds and fractions of seconds.
+  Duration difference(Timestamp other) {
+    var diffSeconds = seconds - other.seconds;
+    var diffNanos = nanoseconds - other.nanoseconds;
+    if (diffNanos < 0) {
+      diffSeconds--;
+      diffNanos += _nanosPerSeconds;
+    }
+    return Duration(seconds: diffSeconds, microseconds: diffNanos ~/ 1000);
+  }
 }

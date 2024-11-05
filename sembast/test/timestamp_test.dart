@@ -349,5 +349,17 @@ void main() {
               .substractDuration(const Duration(seconds: 2, microseconds: 400)),
           Timestamp(2, 999900000));
     });
+    test('difference', () {
+      expect(Timestamp(3, 1000).difference(Timestamp(3, 2000)),
+          const Duration(microseconds: -1));
+      expect(Timestamp(3, 2000).difference(Timestamp(3, 1000)),
+          const Duration(microseconds: 1));
+      expect(Timestamp(2, 1000).difference(Timestamp(3, 2000)),
+          const Duration(microseconds: -1000001));
+      expect(Timestamp(3, 1000).difference(Timestamp(2, 2000)),
+          const Duration(microseconds: 999999));
+      expect(Timestamp(62, 1000).difference(Timestamp(1, 2000)),
+          const Duration(minutes: 1, microseconds: 999999));
+    });
   });
 }
