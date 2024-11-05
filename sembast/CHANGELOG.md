@@ -1,7 +1,7 @@
-## 3.7.5+1
+## 3.7.5+2
 
 * Add `Timestamp.addDuration()` and `Timestamp.substractDuraction()`
-* Add `Timestamp.difference()`
+* Add `Timestamp.difference()` and `Timestamp.zero`
 
 ## 3.7.4+3
 

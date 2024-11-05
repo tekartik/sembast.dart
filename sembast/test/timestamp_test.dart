@@ -360,6 +360,12 @@ void main() {
           const Duration(microseconds: 999999));
       expect(Timestamp(62, 1000).difference(Timestamp(1, 2000)),
           const Duration(minutes: 1, microseconds: 999999));
+      var now = DateTime.timestamp();
+      expect(Timestamp.fromDateTime(now).difference(Timestamp.zero),
+          now.difference(Timestamp.zero.toDateTime(isUtc: true)));
+    });
+    test('zero', () {
+      expect(Timestamp.zero.toIso8601String(), '1970-01-01T00:00:00.000Z');
     });
   });
 }

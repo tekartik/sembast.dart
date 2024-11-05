@@ -240,6 +240,9 @@ class Timestamp implements Comparable<Timestamp> {
       return tryParse(any?.toString());
     }
   }
+
+  /// The minimum representable [Timestamp]
+  static final zero = Timestamp(0, 0);
 }
 
 const _nanosPerSeconds = 1000000000;
