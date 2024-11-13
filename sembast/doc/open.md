@@ -3,6 +3,8 @@
 Opening a database means loading its content in memory. This is an expensive operation. In an application (flutter, web),
 the recommended way is to open the database on start and to keep it open during the lifetime of the application.
 
+You should not open a database multiple times and **you should have a single global instance of an opened database.**
+
 ## Opening a database
 
 A database is a single file represented by a path in the file system.
