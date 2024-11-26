@@ -1,3 +1,8 @@
+## 3.8.0-1
+
+* Add `Query.getKey`, `Query.getKeys`,  `Query.onKey`, `Query.onKeys`,
+  `Query.getKeySync`, `Query.getKeysSync`, `Query.onKeysSync`, `Query.onKeySync` methods
+
 ## 3.7.5+2
 
 * Add `Timestamp.addDuration()` and `Timestamp.substractDuraction()`
