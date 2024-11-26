@@ -1,3 +1,4 @@
+import 'package:meta/meta.dart';
 import 'package:sembast/src/common_import.dart';
 import 'package:sembast/src/cooperator.dart';
 import 'package:sembast/src/debug_utils.dart';
@@ -6,6 +7,7 @@ import 'package:sembast/src/finder_impl.dart';
 import 'package:sembast/src/query_ref_impl.dart';
 import 'package:sembast/src/record_impl.dart';
 import 'package:sembast/src/sort.dart';
+import 'package:sembast/src/store_ref_impl.dart';
 import 'package:sembast/src/utils.dart';
 import 'package:synchronized/synchronized.dart';
 
@@ -13,7 +15,38 @@ import 'api/filter_ref.dart';
 import 'filter_ref_impl.dart';
 import 'import_common.dart';
 
-class _ControllerBase {
+class _ControllerBase<T> {
+  late StreamController<T> _streamController;
+
+  /// onListen to start or restart query.
+  void Function()? onListen;
+
+  /// true if closed.
+  bool get isClosed => _streamController.isClosed;
+
+  bool get _shouldAdd => !isClosed && _streamController.hasListener;
+
+  /// stream.
+  Stream<T> get stream => _streamController.stream;
+
+  /// Restart controller.
+  void restart() {
+    if (_shouldAdd) {
+      if (debugListener) {
+        // ignore: avoid_print
+        print('restarting listener $this');
+      }
+      onListen!();
+    }
+  }
+
+  /// close controller.
+
+  @mustCallSuper
+  void close() {
+    _streamController.close();
+  }
+
   /// Lock
   final lock = Lock();
 
@@ -22,13 +55,25 @@ class _ControllerBase {
   /// Debug only
   int? _id;
 
-  _ControllerBase() {
+  /// The stream controller.
+  _ControllerBase({required this.onListen}) {
     _id = ++_lastId;
+  }
+
+  /// Add error.
+  void addError(Object error, StackTrace stackTrace) {
+    if (!_shouldAdd) {
+      return;
+    }
+    _streamController.addError(error, stackTrace);
   }
 }
 
-/// Query or Count base listener.
+/// Query, QueryKeys or Count base listener.
 abstract class StoreListenerController<K, V> {
+  /// The lock
+  Lock get lock;
+
   /// Store reference.
   StoreRef<K, V> get storeRef;
 
@@ -44,56 +89,26 @@ abstract class StoreListenerController<K, V> {
   /// Update the query with the updated records (including deleted)
   Future update(
       Iterable<ImmutableSembastRecord> records, Cooperator? cooperator);
+
+  /// Add an error
+  void addError(Object error, StackTrace stackTrace);
 }
 
 /// Query or Count base listener.
-abstract class StoreListenerControllerBase<K, V> extends _ControllerBase
-    implements StoreListenerController<K, V> {}
-
-/// Query listener controller.
-class QueryListenerController<K, V> extends StoreListenerControllerBase<K, V> {
-  /// onListen to start or restart query.
-  void Function()? onListen;
-
-  /// The query.
-  final SembastQueryRef<K, V> queryRef;
-
-  @override
-  StoreRef<K, V> get storeRef => queryRef.store;
-
-  StreamController<List<RecordSnapshot<K, V>>>? _streamController;
+abstract class _StoreListenerControllerBase<K, V, T> extends _ControllerBase<T>
+    implements StoreListenerController<K, V> {
+  List<ImmutableSembastRecord>? _allMatching;
 
   /// True when the first data has arrived
   @override
   bool get hasInitialData => _allMatching != null;
 
-  /// true if closed.
-  bool get isClosed => _streamController!.isClosed;
-
-  /// The current list
-  List<RecordSnapshot<K, V>>? list;
-  List<ImmutableSembastRecord>? _allMatching;
-
-  /// The finder.
-  // ignore: deprecated_member_use_from_same_package
-  SembastFinder? get finder => queryRef.finder;
-
-  /// The filter.
-  SembastFilterBase? get filter => finder?.filter as SembastFilterBase?;
-
-  /// close controller.
-  @override
-  void close() {
-    _streamController?.close();
-  }
-
-  /// Query listener controller.
-  QueryListenerController(DatabaseListener listener, this.queryRef,
-      {required this.onListen}) {
+  /// Base store listener
+  _StoreListenerControllerBase(DatabaseListener listener,
+      {required super.onListen}) {
     // devPrint('query $queryRef');
 
-    _streamController =
-        StreamController<List<RecordSnapshot<K, V>>>(onCancel: () {
+    _streamController = StreamController<T>(onCancel: () {
       // Auto remove
       if (debugListener) {
         // ignore: avoid_print
@@ -109,13 +124,54 @@ class QueryListenerController<K, V> extends StoreListenerControllerBase<K, V> {
       onListen!();
     });
   }
+}
 
-  /// stream.
-  Stream<List<RecordSnapshot<K, V>>> get stream => _streamController!.stream;
+/// Query/Count key listener controller.
+class QueryKeysListenerController<K, V>
+    extends _QueryRecordsListenerControllerBase<K, V, List<K>> {
+  /// Query keys listener controller.
+  QueryKeysListenerController(super.listener,
+      {required super.onListen, required super.queryRef});
 
-  bool get _shouldAdd => !isClosed && _streamController!.hasListener;
+  @override
+  void addRecords(List<ImmutableSembastRecord> list) {
+    _streamController
+        .add(storeRef.immutableRecordIterableToKeys(list).toList());
+  }
+}
+
+/// Interface for query records listener controller (for keys or snapshots).
+abstract class QueryRecordsListenerController<K, V>
+    implements StoreListenerController<K, V> {
+  /// Add a list of mathching records
+  Future add(List<ImmutableSembastRecord>? allMatching, Cooperator? cooperator);
+}
+
+abstract class _QueryRecordsListenerControllerBase<K, V, T>
+    extends _StoreListenerControllerBase<K, V, T>
+    implements QueryRecordsListenerController<K, V> {
+  /// The current list
+  List<T>? list;
+
+  @override
+  StoreRef<K, V> get storeRef => queryRef.store;
+
+  /// Keys or Snapshot handling
+  void addRecords(List<ImmutableSembastRecord> list);
+
+  /// The query.
+  final SembastQueryRef<K, V> queryRef;
+
+  /// Query records listener controller.
+  _QueryRecordsListenerControllerBase(super.listener,
+      {required super.onListen, required this.queryRef});
+
+  /// The finder.
+  // ignore: deprecated_member_use_from_same_package
+  SembastFinder? get finder => queryRef.finder;
 
   /// Add data to stream, allMatching is already sorted, lock must have been acquired.
+  @override
   Future add(
       List<ImmutableSembastRecord>? allMatching, Cooperator? cooperator) async {
     assert(lock.inLock);
@@ -128,16 +184,7 @@ class QueryListenerController<K, V> extends StoreListenerControllerBase<K, V> {
 
     var list = recordsLimit(_allMatching, finder);
 
-    // devPrint('adding $allMatching / limit $list / $finder');
-    _streamController?.add(storeRef.immutableListToSnapshots(list!));
-  }
-
-  /// Add error.
-  void addError(Object error, StackTrace stackTrace) {
-    if (!_shouldAdd) {
-      return;
-    }
-    _streamController!.addError(error, stackTrace);
+    addRecords(list!);
   }
 
   /// Update the records.
@@ -198,46 +245,40 @@ class QueryListenerController<K, V> extends StoreListenerControllerBase<K, V> {
       }
     });
   }
+}
+
+/// Query listener controller.
+class QueryListenerController<K, V> extends _QueryRecordsListenerControllerBase<
+    K, V, List<RecordSnapshot<K, V>>> {
+  /// The filter.
+  SembastFilterBase? get filter => finder?.filter as SembastFilterBase?;
+
+  /// Query listener controller.
+  QueryListenerController(super.listener,
+      {required super.queryRef, required super.onListen});
+
+  @override
+  void addRecords(List<ImmutableSembastRecord> list) {
+    _streamController
+        .add(storeRef.immutableRecordIterableToSnapshots(list).toList());
+  }
 
   @override
   String toString() => 'QueryListenerCtlr($_id)';
-
-  /// Restart controller.
-  @override
-  void restart() {
-    if (_shouldAdd) {
-      if (debugListener) {
-        // ignore: avoid_print
-        print('restarting listener $this');
-      }
-      onListen!();
-    }
-  }
 }
 
 /// Record listener controller.
-class RecordListenerController<K, V> extends _ControllerBase {
+class RecordListenerController<K, V>
+    extends _ControllerBase<RecordSnapshot<K, V>?> {
   /// The record ref.
   final RecordRef<K, V> recordRef;
 
-  /// Start or restart
-  void Function()? onListen;
-
   /// has initial data.
   bool hasInitialData = false;
-  late StreamController<RecordSnapshot<K, V>?> _streamController;
-
-  /// close.
-  void close() {
-    _streamController.close();
-  }
-
-  /// True if controller closed.
-  bool get isClosed => _streamController.isClosed;
 
   /// Record listener controller.
   RecordListenerController(DatabaseListener listener, this.recordRef,
-      {required this.onListen}) {
+      {required super.onListen}) {
     _streamController = StreamController<RecordSnapshot<K, V>?>(onCancel: () {
       if (debugListener) {
         // ignore: avoid_print
@@ -255,12 +296,6 @@ class RecordListenerController<K, V> extends _ControllerBase {
     });
   }
 
-  /// stream.
-  Stream<RecordSnapshot<K, V>?> get stream => _streamController.stream;
-
-  /// True if should add or start listening.
-  bool get _shouldAdd => !isClosed && _streamController.hasListener;
-
   /// Add a snapshot if not deleted
   void add(RecordSnapshot? snapshot) {
     assert(lock.inLock);
@@ -271,27 +306,8 @@ class RecordListenerController<K, V> extends _ControllerBase {
     _streamController.add(snapshot?.cast<K, V>());
   }
 
-  /// Add an error.
-  void addError(Object error, StackTrace stackTrace) {
-    if (!_shouldAdd) {
-      return;
-    }
-    _streamController.addError(error, stackTrace);
-  }
-
   @override
   String toString() => 'RecordListenerController($_id)';
-
-  /// Restart controller.
-  void restart() {
-    if (_shouldAdd) {
-      if (debugListener) {
-        // ignore: avoid_print
-        print('restarting listener $this');
-      }
-      onListen!();
-    }
-  }
 
   /// Update the record.
   void update(ImmutableSembastRecord record) {
@@ -431,11 +447,29 @@ class DatabaseListener {
     return ctlr;
   }
 
+  /// Add a query.
+  QueryKeysListenerController<K, V> addQueryKeys<K, V>(QueryRef<K, V> queryRef,
+      {required void Function()? onListen}) {
+    var ctlr = newQueryKeys(queryRef, onListen: onListen);
+    addQueryController(ctlr);
+    return ctlr;
+  }
+
   /// Create a query.
   QueryListenerController<K, V> newQuery<K, V>(QueryRef<K, V> queryRef,
       {required void Function()? onListen}) {
     var ref = queryRef as SembastQueryRef<K, V>;
-    var ctlr = QueryListenerController<K, V>(this, ref, onListen: onListen);
+    var ctlr =
+        QueryListenerController<K, V>(this, queryRef: ref, onListen: onListen);
+    return ctlr;
+  }
+
+  /// Create a query key.
+  QueryKeysListenerController<K, V> newQueryKeys<K, V>(QueryRef<K, V> queryRef,
+      {required void Function()? onListen}) {
+    var ref = queryRef as SembastQueryRef<K, V>;
+    var ctlr = QueryKeysListenerController<K, V>(this,
+        queryRef: ref, onListen: onListen);
     return ctlr;
   }
 
@@ -461,9 +495,8 @@ class DatabaseListener {
   /// Create a query.
   CountListenerController<K, V> newCount<K, V>(FilterRef<K, V> filterRef,
       {required void Function()? onListen}) {
-    var ctlr = CountListenerController<K, V>(
-        this, filterRef as SembastFilterRef<K, V>,
-        onListen: onListen);
+    var ctlr = CountListenerController<K, V>(this,
+        filterRef: filterRef as SembastFilterRef<K, V>, onListen: onListen);
     return ctlr;
   }
 
@@ -529,10 +562,8 @@ class DatabaseListener {
 }
 
 /// Query listener controller.
-class CountListenerController<K, V> extends StoreListenerControllerBase<K, V> {
-  /// onListen to start or restart query.
-  void Function()? onListen;
-
+class CountListenerController<K, V>
+    extends _StoreListenerControllerBase<K, V, int> {
   /// The query.
 
   final SembastFilterRef<K, V> filterRef;
@@ -540,14 +571,9 @@ class CountListenerController<K, V> extends StoreListenerControllerBase<K, V> {
   /// The filter
   Filter? get filter => filterRef.filter;
 
-  StreamController<int>? _streamController;
-
   /// True when the first data has arrived
   @override
   bool get hasInitialData => list != null;
-
-  /// true if closed.
-  bool get isClosed => _streamController!.isClosed;
 
   /// The current list
   Set<Object?>? list;
@@ -555,41 +581,12 @@ class CountListenerController<K, V> extends StoreListenerControllerBase<K, V> {
   /// Last count
   int? lastCount;
 
+  /// Count listener controller.
+  CountListenerController(super.listener,
+      {required this.filterRef, required super.onListen});
+
   /// The filter.
   SembastFilterBase? get filterBase => filter as SembastFilterBase?;
-
-  /// close controller.
-  @override
-  void close() {
-    _streamController?.close();
-  }
-
-  /// Query listener controller.
-  CountListenerController(DatabaseListener listener, this.filterRef,
-      {required this.onListen}) {
-    // devPrint('query $queryRef');
-
-    _streamController = StreamController<int>(onCancel: () {
-      // Auto remove
-      if (debugListener) {
-        // ignore: avoid_print
-        print('onCancel $this');
-      }
-      listener.removeStore(this);
-      close();
-    }, onListen: () {
-      if (debugListener) {
-        // ignore: avoid_print
-        print('onListen $this');
-      }
-      onListen!();
-    });
-  }
-
-  /// stream.
-  Stream<int> get stream => _streamController!.stream;
-
-  bool get _shouldAdd => !isClosed && _streamController!.hasListener;
 
   /// Add data to stream, allMatching is already sorted
   void add(Set<Object?> keys, Cooperator? cooperator) {
@@ -601,16 +598,8 @@ class CountListenerController<K, V> extends StoreListenerControllerBase<K, V> {
 
     // devPrint('adding $allMatching / limit $list / $finder');
     if (changed && _shouldAdd) {
-      _streamController?.add(keys.length);
+      _streamController.add(keys.length);
     }
-  }
-
-  /// Add error.
-  void addError(Object error, StackTrace stackTrace) {
-    if (!_shouldAdd) {
-      return;
-    }
-    _streamController!.addError(error, stackTrace);
   }
 
   /// Update the records.
@@ -659,18 +648,6 @@ class CountListenerController<K, V> extends StoreListenerControllerBase<K, V> {
 
   @override
   String toString() => 'CountListenerCtlr($_id)';
-
-  /// Restart controller.
-  @override
-  void restart() {
-    if (_shouldAdd) {
-      if (debugListener) {
-        // ignore: avoid_print
-        print('restarting listener $this');
-      }
-      onListen!();
-    }
-  }
 
   @override
   StoreRef<K, V> get storeRef => filterRef.store;

@@ -166,6 +166,26 @@ void defineTests(DatabaseTestContext ctx) {
       await sub.cancel();
     });
 
+    test('Query.onKeys.listen', () async {
+      var store = StoreRef<int, String>.main();
+
+      var done = Completer<void>();
+      var sub = store
+          .query(finder: Finder(sortOrders: [SortOrder(Field.value)]))
+          .onKeys(db)
+          .listen((keys) {
+        if (keys.length == 3) {
+          expect(keys, [1, 3, 2]);
+          done.complete();
+        }
+      });
+      unawaited(store.add(db, 'test1'));
+      unawaited(store.add(db, 'test3'));
+      unawaited(store.add(db, 'test2'));
+      await done.future;
+      await sub.cancel();
+    });
+
     test('Record.onSnapshotDbClose', () async {
       var database = getDatabase(db);
       var store = StoreRef<int, String>.main();

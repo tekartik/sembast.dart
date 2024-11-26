@@ -6,9 +6,22 @@ import 'test_common.dart';
 
 void main() {
   group('listener', () {
+    test('Store.onSnapshot', () {
+      var store = StoreRef<int, String>.main();
+      var dbListener = DatabaseListener();
+      dbListener.addQuery(store.query(), onListen: null);
+      var storeListener = dbListener.getStore(store)!;
+      expect(storeListener.hasStoreListener, isTrue);
+    });
+    test('Store.onKeys', () {
+      var store = StoreRef<int, String>.main();
+      var dbListener = DatabaseListener();
+      dbListener.addQueryKeys(store.query(), onListen: null);
+      var storeListener = dbListener.getStore(store)!;
+      expect(storeListener.hasStoreListener, isTrue);
+    });
     test('Record.onSnapshot', () async {
       var store = StoreRef<int, String>.main();
-
       var dbListener = DatabaseListener();
       var ctlr = dbListener.addRecord(store.record(1), onListen: null);
       expect(dbListener.isNotEmpty, isTrue);

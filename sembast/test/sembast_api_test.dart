@@ -83,10 +83,20 @@ void main() {
       SembastQueryRefSyncExtension(query).getSnapshotsSync;
       SembastQueryRefSyncExtension(query).getSnapshotSync;
       SembastQueryRefSyncExtension(query).countSync;
-      SembastQueryRefSyncExtension(query).onSnapshotsSync;
       SembastQueryRefSyncExtension(query).onSnapshotSync;
+      SembastQueryRefSyncExtension(query).onSnapshotsSync;
       SembastQueryRefSyncExtension(query).onCountSync;
 
+      // Since v3.8.0
+      SembastQueryRefExtension(query).getKey;
+      SembastQueryRefExtension(query).getKeys;
+      SembastQueryRefExtension(query).onKey;
+      SembastQueryRefExtension(query).onKeys;
+
+      SembastQueryRefSyncExtension(query).getKeySync;
+      SembastQueryRefSyncExtension(query).getKeysSync;
+      SembastQueryRefSyncExtension(query).onKeysSync;
+      SembastQueryRefSyncExtension(query).onKeySync;
       // ignore: unused_element
       Future<void> ignored(Database db) async {
         await DatabaseExtension(db).reload();

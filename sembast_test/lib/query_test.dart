@@ -36,6 +36,7 @@ void defineQueryTests(DatabaseTestContext ctx) {
       expect(results.map((e) => e.key), keys);
       results = await query.getSnapshots(db);
       expect(results.map((e) => e.key), keys);
+
       results = query.getSnapshotsSync(db);
       expect(results.map((e) => e.key), keys);
       results = await store.find(db, finder: finder);
@@ -43,6 +44,18 @@ void defineQueryTests(DatabaseTestContext ctx) {
       results = store.findSync(db, finder: finder);
       expect(results.map((e) => e.key), keys);
 
+      expect(await query.onKeys(db).first, keys);
+      expect(await query.getKeys(db), keys);
+      expect(query.getKeysSync(db), keys);
+      expect(await query.onKeysSync(db).first, keys);
+
+      var firstKey = keys.firstOrNull;
+      expect(await query.onKey(db).first, firstKey);
+      expect(await query.getKey(db), firstKey);
+      expect(query.getKeySync(db), firstKey);
+      expect(await query.onKeySync(db).first, firstKey);
+
+      expect(results.map((e) => e.key), keys);
       expect(query.countSync(db), keys.length);
       expect(await query.count(db), keys.length);
       expect(await query.onCount(db).first, keys.length);
@@ -276,6 +289,52 @@ void defineQueryTests(DatabaseTestContext ctx) {
       expect(index, 5);
     });
 
+    test('QueryRef.onKey', () async {
+      var store = StoreRef<int, String>.main();
+      var record = store.record(1);
+      var index = 0;
+      var completer = Completer<void>();
+
+      // When starting listening the record does not exists yet
+      var query = store.query();
+      var sub = query.onKey(db).listen((snapshot) {
+        // devPrint('$index $snapshots');
+        var first = snapshot;
+        final key = first;
+
+        if (index == 0) {
+          expect(snapshot, isNull);
+        } else if (index == 1) {
+          expect(key, 1);
+        } else if (index == 2) {
+          expect(key, 1);
+        } else if (index == 3) {
+          expect(key, 1);
+        } else if (index == 4) {
+          expect(key, 2);
+          // expect(snapshots, isEmpty);
+        }
+        if (++index == 5) {
+          completer.complete();
+        }
+      });
+      //await Future.delayed(Duration(milliseconds: 1));
+      // create
+      await record.put(db, 'test');
+
+      // add
+      await store.record(2).put(db, 'test3');
+      expect(await query.getKeys(db), hasLength(2));
+
+      // update
+      await record.put(db, 'test2');
+
+      // delete
+      await record.delete(db);
+      await completer.future;
+      await sub.cancel();
+      expect(index, 5);
+    });
     test('QueryRef.onSnapshotSync null', () async {
       var store = StoreRef<int, String>.main();
       var record = store.record(1);
@@ -330,6 +389,31 @@ void defineQueryTests(DatabaseTestContext ctx) {
       await subscription.cancel();
     });
 
+    test('QueryRef.onKeySync value', () async {
+      var store = StoreRef<int, String>.main();
+      var record = store.record(1);
+      await record.put(db, 'test');
+      // When starting listening the record does not exists yet
+      var query = store.query();
+      var got = false;
+      int? key;
+      var subscription = query.onKeySync(db).listen((event) {
+        key = event;
+        got = true;
+      });
+
+      var completer = Completer<void>();
+      expect(got, false);
+      scheduleMicrotask(() {
+        expect(key, 1);
+        expect(got, true);
+        completer.complete();
+      });
+      await completer.future;
+
+      await subscription.cancel();
+    });
+
     test('QueryRef.onSnapshotsSync', () async {
       var store = StoreRef<int, String>.main();
       var record = store.record(1);
@@ -355,6 +439,34 @@ void defineQueryTests(DatabaseTestContext ctx) {
       await record.put(db, 'test');
       await completer.future;
       expect(snapshot!.first.value, 'test');
+
+      await subscription.cancel();
+    });
+    test('QueryRef.onKeysSync', () async {
+      var store = StoreRef<int, String>.main();
+      var record = store.record(1);
+
+      // When starting listening the record does not exists yet
+      var query = store.query();
+      var got = false;
+      var completer = Completer<void>();
+      List<int>? keys;
+      var subscription = query.onKeysSync(db).listen((event) {
+        keys = event;
+        got = true;
+        if (keys!.isNotEmpty) {
+          completer.complete();
+        }
+      });
+
+      expect(got, false);
+      scheduleMicrotask(() {
+        expect(keys!, isEmpty);
+        expect(got, true);
+      });
+      await record.put(db, 'test');
+      await completer.future;
+      expect(keys!.first, 1);
 
       await subscription.cancel();
     });

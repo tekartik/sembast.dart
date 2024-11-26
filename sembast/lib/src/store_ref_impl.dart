@@ -119,6 +119,21 @@ extension SembastStoreRefExtensionPrv<K, V> on StoreRef<K, V> {
   RecordSnapshot<K, V>? snapshotFromImmutableRecordOrNull(
           ImmutableSembastRecord? record) =>
       record == null ? null : snapshotFromImmutableRecord(record);
+
+  /// create snapshot list.
+  Iterable<K> immutableRecordIterableToKeys(
+      Iterable<ImmutableSembastRecord> records) {
+    return records.map((immutable) => immutable.key as K);
+  }
+
+  /// create snapshot list.
+  List<SembastRecordSnapshot<K, V>> immutableRecordIterableToSnapshots(
+      List<ImmutableSembastRecord> records) {
+    return records
+        .map((immutable) =>
+            SembastRecordSnapshot<K, V>.fromRecord(this, immutable))
+        .toList(growable: false);
+  }
 }
 
 /// Store ref common public sembast extension (no db access).
@@ -167,7 +182,7 @@ extension SembastStoreRefExtension<K, V> on StoreRef<K, V> {
       {Finder? finder}) async {
     var records = await findImmutableRecords(databaseClient,
         finder: finder as SembastFinder?);
-    return immutableListToSnapshots(records);
+    return immutableRecordIterableToSnapshots(records);
   }
 
   ///
@@ -339,6 +354,7 @@ extension SembastStoreRefExtension<K, V> on StoreRef<K, V> {
   }
 
   /// create snapshot list.
+  @Deprecated('needed?')
   List<SembastRecordSnapshot<K, V>> immutableListToSnapshots(
       List<ImmutableSembastRecord> records) {
     return records
@@ -378,7 +394,7 @@ extension SembastStoreRefSyncExtension<K, V> on StoreRef<K, V> {
       {Finder? finder}) {
     var records = findImmutableRecordsSync(databaseClient,
         finder: finder as SembastFinder?);
-    return immutableListToSnapshots(records);
+    return immutableRecordIterableToSnapshots(records);
   }
 
   ///

@@ -81,17 +81,68 @@ extension SembastQueryRefExtension<K, V> on QueryRef<K, V> {
     return ctlr.stream;
   }
 
+  Future<void> _onListen(SembastDatabase database,
+      QueryRecordsListenerController<K, V> ctlr) async {
+    try {
+      // Make sure the first read matches the existing content.
+      await ctlr.lock.synchronized(() async {
+        // Find all matching, ignoring offset/limit but order them
+        var allMatching = await sembastQueryRef.store.findImmutableRecords(
+            database,
+            finder:
+                sembastQueryRef.finder?.cloneWithoutLimits() as SembastFinder?);
+        // ignore: unawaited_futures
+
+        // Get the result at query time first
+        if (debugListener) {
+          // ignore: avoid_print
+          print('matching $ctlr: ${allMatching.length} on $this');
+        }
+
+        await ctlr.add(allMatching, database.cooperator);
+      });
+    } catch (error, stackTrace) {
+      ctlr.addError(error, stackTrace);
+    }
+  }
+
+  /// Find multiple records and listen for changes.
+  ///
+  /// Returns a single subscriber stream that must be cancelled.
+  Stream<List<K>> onKeys(Database database) {
+    var db = getDatabase(database);
+
+    // Create the query but don't add it until first result is set
+    late QueryKeysListenerController<K, V> ctlr;
+    ctlr = db.listener.addQueryKeys(this, onListen: () async {
+      await _onListen(db, ctlr);
+    });
+    return ctlr.stream;
+  }
+
   /// Find multiple records.
   ///
   /// Returns an empty array if none found.
   Future<List<RecordSnapshot<K, V>>> getSnapshots(DatabaseClient client) =>
       sembastQueryRef.store.find(client, finder: sembastQueryRef.finder);
 
+  /// Find multiple record keys
+  ///
+  /// Returns an empty array if none found.
+  Future<List<K>> getKeys(DatabaseClient client) =>
+      sembastQueryRef.store.findKeys(client, finder: sembastQueryRef.finder);
+
   /// Find first record matching the query.
   ///
   /// Returns null if none found.
   Future<RecordSnapshot<K, V>?> getSnapshot(DatabaseClient client) =>
       sembastQueryRef.store.findFirst(client, finder: sembastQueryRef.finder);
+
+  /// Find first record key matching the query.
+  ///
+  /// Returns null if none found.
+  Future<K?> getKey(DatabaseClient client) =>
+      sembastQueryRef.store.findKey(client, finder: sembastQueryRef.finder);
 
   /// Find first record (null if none) and listen for changes.
   ///
@@ -104,6 +155,20 @@ extension SembastQueryRefExtension<K, V> on QueryRef<K, V> {
     }
     return onSnapshots(database)
         .map((list) => list.isNotEmpty ? list.first : null);
+  }
+
+  /// Find first record key (null if none) and listen for changes.
+  ///
+  /// Returns a single subscriber stream that must be cancelled.
+  Stream<K?> onKey(Database database) {
+    if (sembastQueryRef.finder?.limit != 1) {
+      return SembastQueryRef(sembastQueryRef.store,
+              cloneFinderFindFirst(sembastQueryRef.finder))
+          .onKey(database);
+    }
+
+    /// We know the list is limited to 1 here
+    return onKeys(database).map((list) => list.isNotEmpty ? list.first : null);
   }
 
   /// count records.
@@ -123,12 +188,24 @@ extension SembastQueryRefSyncExtension<K, V> on QueryRef<K, V> {
   List<RecordSnapshot<K, V>> getSnapshotsSync(DatabaseClient client) =>
       sembastQueryRef.store.findSync(client, finder: sembastQueryRef.finder);
 
+  /// Find multiple record keys. Synchronous version.
+  ///
+  /// Returns an empty array if none found.
+  List<K> getKeysSync(DatabaseClient client) => sembastQueryRef.store
+      .findKeysSync(client, finder: sembastQueryRef.finder);
+
   /// Find first record matching the query. Synchrnous version.
   ///
   /// Returns null if none found.
   RecordSnapshot<K, V>? getSnapshotSync(DatabaseClient client) =>
       sembastQueryRef.store
           .findFirstSync(client, finder: sembastQueryRef.finder);
+
+  /// Find first record key matching the query. Synchrnous version.
+  ///
+  /// Returns null if none found.
+  K? getKeySync(DatabaseClient client) =>
+      sembastQueryRef.store.findKeySync(client, finder: sembastQueryRef.finder);
 
   /// count records. Synchronous version.
   int countSync(DatabaseClient client) => getSnapshotsSync(client).length;
@@ -145,6 +222,21 @@ extension SembastQueryRefSyncExtension<K, V> on QueryRef<K, V> {
           .onSnapshotSync(database);
     }
     return onSnapshotsSync(database)
+        .map((list) => list.isNotEmpty ? list.first : null);
+  }
+
+  /// Find first record key (null if none) and listen for changes.
+  ///
+  /// First emit happens synchronously.
+  ///
+  /// Returns a single subscriber stream that must be cancelled.
+  Stream<K?> onKeySync(Database database) {
+    if (sembastQueryRef.finder?.limit != 1) {
+      return SembastQueryRef(sembastQueryRef.store,
+              cloneFinderFindFirst(sembastQueryRef.finder))
+          .onKeySync(database);
+    }
+    return onKeysSync(database)
         .map((list) => list.isNotEmpty ? list.first : null);
   }
 
@@ -183,6 +275,46 @@ extension SembastQueryRefSyncExtension<K, V> on QueryRef<K, V> {
       } catch (error, stackTrace) {
         ctlr.addError(error, stackTrace);
       }
+    });
+    return ctlr.stream;
+  }
+
+  Future<void> _onListenSync(SembastDatabase database,
+      QueryRecordsListenerController<K, V> ctlr) async {
+    try {
+      // Make sure the first read matches the existing content.
+      await ctlr.lock.synchronized(() async {
+        // Find all matching, ignoring offset/limit but order them
+        var allMatching = sembastQueryRef.store.findImmutableRecordsSync(
+            database,
+            finder:
+                sembastQueryRef.finder?.cloneWithoutLimits() as SembastFinder?);
+        // ignore: unawaited_futures
+
+        // Get the result at query time first
+        if (debugListener) {
+          // ignore: avoid_print
+          print('matching $ctlr: ${allMatching.length} on $this');
+        }
+
+        await ctlr.add(allMatching, database.cooperator);
+      });
+    } catch (error, stackTrace) {
+      ctlr.addError(error, stackTrace);
+    }
+  }
+
+  /// Find multiple records and listen for changes.
+  ///
+  /// First emit happens synchronously.
+  ///
+  /// Returns a single subscriber stream that must be cancelled.
+  Stream<List<K>> onKeysSync(Database database) {
+    var db = getDatabase(database);
+    // Create the query but don't add it until first result is set
+    late QueryKeysListenerController<K, V> ctlr;
+    ctlr = db.listener.addQueryKeys(this, onListen: () async {
+      await _onListenSync(db, ctlr);
     });
     return ctlr.stream;
   }
