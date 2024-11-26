@@ -173,11 +173,11 @@ extension SembastQueryRefExtension<K, V> on QueryRef<K, V> {
 
   /// count records.
   Future<int> count(DatabaseClient client) async =>
-      (await getSnapshots(client)).length;
+      (await getKeys(client)).length;
 
   /// onCount stream, called when the number of items changes.
   Stream<int> onCount(Database database) =>
-      onSnapshots(database).map((e) => e.length);
+      onKeys(database).map((e) => e.length);
 }
 
 /// Query db actions. synchronous access.
@@ -208,7 +208,7 @@ extension SembastQueryRefSyncExtension<K, V> on QueryRef<K, V> {
       sembastQueryRef.store.findKeySync(client, finder: sembastQueryRef.finder);
 
   /// count records. Synchronous version.
-  int countSync(DatabaseClient client) => getSnapshotsSync(client).length;
+  int countSync(DatabaseClient client) => getKeysSync(client).length;
 
   /// Find first record (null if none) and listen for changes.
   ///
@@ -323,5 +323,5 @@ extension SembastQueryRefSyncExtension<K, V> on QueryRef<K, V> {
   ///
   /// first emit happens synchronously.
   Stream<int> onCountSync(Database database) =>
-      onSnapshotsSync(database).map((e) => e.length);
+      onKeys(database).map((e) => e.length);
 }
