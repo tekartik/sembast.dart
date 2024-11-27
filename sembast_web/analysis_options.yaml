@@ -32,7 +32,6 @@ linter:
     - directives_ordering
     - implicit_reopen
     - invalid_case_patterns
-    - invalid_runtime_check_with_js_interop_types
     - iterable_contains_unrelated_type
     - list_remove_unrelated_type
     - no_adjacent_strings_in_list
@@ -50,4 +49,3 @@ linter:
     - throw_in_finally
     - unawaited_futures
     - unnecessary_statements
-    - unsafe_html

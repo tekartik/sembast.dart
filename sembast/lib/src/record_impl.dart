@@ -63,9 +63,9 @@ mixin SembastRecordHelperMixin implements SembastRecord {
   int get hashCode => key.hashCode;
 
   @override
-  bool operator ==(o) {
-    if (o is SembastRecord) {
-      return key == o.key;
+  bool operator ==(other) {
+    if (other is SembastRecord) {
+      return key == other.key;
     }
     return false;
   }

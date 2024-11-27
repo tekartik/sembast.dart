@@ -17,6 +17,4 @@ linter:
     - test_types_in_equals
     - throw_in_finally
     - unawaited_futures
-    - unnecessary_null_aware_assignments
     - unnecessary_statements
-    - unsafe_html
