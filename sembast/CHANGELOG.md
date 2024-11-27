@@ -1,4 +1,4 @@
-## 3.8.0-2
+## 3.8.0
 
 * Add `Query.getKey`, `Query.getKeys`,  `Query.onKey`, `Query.onKeys`,
   `Query.getKeySync`, `Query.getKeysSync`, `Query.onKeysSync`, `Query.onKeySync` methods
