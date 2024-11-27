@@ -7,7 +7,14 @@ import 'package:encrypt/encrypt.dart';
 // ignore: implementation_imports
 import 'package:sembast/src/api/v2/sembast.dart';
 
-var _random = Random.secure();
+final _random = () {
+  try {
+    // Try secure
+    return Random.secure();
+  } catch (_) {
+    return Random();
+  }
+}();
 
 /// Random bytes generator
 Uint8List _randBytes(int length) {

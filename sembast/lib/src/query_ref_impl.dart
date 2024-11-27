@@ -323,5 +323,5 @@ extension SembastQueryRefSyncExtension<K, V> on QueryRef<K, V> {
   ///
   /// first emit happens synchronously.
   Stream<int> onCountSync(Database database) =>
-      onKeys(database).map((e) => e.length);
+      onKeysSync(database).map((e) => e.length);
 }
