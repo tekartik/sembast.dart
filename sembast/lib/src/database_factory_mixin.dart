@@ -36,6 +36,11 @@ mixin SembastDatabaseFactoryMixin implements SembastDatabaseFactory {
   /// Open a database with a given set of options.
   Future<Database> openDatabaseWithOptions(
       String path, DatabaseOpenOptions options) {
+    if (options.mode == DatabaseMode.readOnly) {
+      if (options.version != null) {
+        throw ArgumentError('readOnly mode does not support version');
+      }
+    }
     // Always specify the default codec
     var helper = getDatabaseOpenHelper(path, options);
     return helper.openDatabase();

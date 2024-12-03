@@ -317,6 +317,10 @@ class SembastDatabase extends Object
   /// Compact the database
   ///
   Future txnCompact() async {
+    // Don't compact read only database
+    if (isReadOnly) {
+      return;
+    }
     assert(databaseLock.inLock);
     if (_storageFs?.supported ?? false) {
       final tmpStorage = _storageFs!.tmpStorage!;
@@ -575,6 +579,15 @@ class SembastDatabase extends Object
     return _recordStore(record).txnContainsKey(null, record.key);
   }
 
+  /// True if database is read-only mode
+  bool get isReadOnly => openOptions.mode == DatabaseMode.readOnly;
+  Future<void> _recreateStorageFs() async {
+    if (_storageFs != null && !isReadOnly) {
+      await _storageFs!.delete();
+      await _storageFs!.findOrCreate();
+    }
+  }
+
   /// Reload the database.
   Future<void> reload() async {
     await transaction((txn) async {
@@ -605,8 +618,7 @@ class SembastDatabase extends Object
         // if corrupted and not even meta
         // delete it
         if (corrupted && meta == null) {
-          await _storageFs!.delete();
-          await _storageFs!.findOrCreate();
+          await _recreateStorageFs();
         } else {
           // auto compaction
           // allow for 20% of lost lines
@@ -998,11 +1010,11 @@ class SembastDatabase extends Object
 
         //_path = path;
         Future findOrCreate() async {
-          if (mode == DatabaseMode.existing) {
+          if (mode == DatabaseMode.existing || mode == DatabaseMode.readOnly) {
             final found = await _storageBase!.find();
             if (!found) {
               throw DatabaseException.databaseNotFound(
-                  'Database (open existing only) $path not found');
+                  'Database (open existing or read-only) $path not found');
             }
 
             /// Once used, change the mode to existing to handle any re-open
@@ -1053,8 +1065,10 @@ class SembastDatabase extends Object
             // if corrupted and not even meta
             // delete it
             if (corrupted && meta == null) {
-              await _storageFs!.delete();
-              await _storageFs!.findOrCreate();
+              if (mode != DatabaseMode.readOnly) {
+                await _storageFs!.delete();
+                await _storageFs!.findOrCreate();
+              }
             } else {
               // auto compaction
               // allow for 20% of lost lines
@@ -1353,6 +1367,9 @@ class SembastDatabase extends Object
 
             /// Replay the transaction if something has changed
             if (commitEntries.hasWriteData || commitEntries.upgrading) {
+              if (isReadOnly) {
+                throw DatabaseException.badParam('Read-only database');
+              }
               // Build Entries
               var entries = <JdbWriteEntry>[];
               for (var record in commitEntries.txnRecords!) {
@@ -1391,9 +1408,13 @@ class SembastDatabase extends Object
         } finally {
           // fs storage only
           if (_storageFs?.supported ?? false) {
-            final hasRecords = commitData?.txnRecords?.isNotEmpty == true;
+            final hasRecords = commitData?.hasWriteData ?? false;
 
             if (hasRecords || upgrading) {
+              if (isReadOnly) {
+                // ignore: throw_in_finally
+                throw DatabaseException.badParam('Read-only database');
+              }
               Future postTransaction() async {
                 // spawn commit if needed
                 // storagage commit and compacting is done lazily

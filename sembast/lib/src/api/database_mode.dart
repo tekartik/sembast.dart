@@ -16,6 +16,11 @@ class DatabaseMode {
   /// This is the default
   static const neverFails = DatabaseMode._internal(3);
 
+  /// The `read-only` mode ensures the database exists and fails otherwise
+  ///
+  /// No write action is allowed.
+  static const readOnly = DatabaseMode._internal(4);
+
   /// Default open mode [neverFails]
   static const defaultMode = neverFails;
 

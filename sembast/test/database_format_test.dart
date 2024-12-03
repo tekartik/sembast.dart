@@ -57,6 +57,7 @@ void defineDatabaseFormatTests(FileSystemTestContext ctx) {
   });
 }
 
+var _pathId = 0;
 void defineTestsWithCodec(FileSystemTestContext ctx, {SembastCodec? codec}) {
   final fs = ctx.fs;
   DatabaseFactory factory = DatabaseFactoryFs(fs);
@@ -65,7 +66,7 @@ void defineTestsWithCodec(FileSystemTestContext ctx, {SembastCodec? codec}) {
   var store = StoreRef<int, String>.main();
 
   Future<String?> prepareForDb() async {
-    dbPath = dbPathFromName('compat/database_format.db');
+    dbPath = dbPathFromName('compat/database_format_${++_pathId}.db');
     await factory.deleteDatabase(dbPath);
     return dbPath;
   }
@@ -210,7 +211,86 @@ void defineTestsWithCodec(FileSystemTestContext ctx, {SembastCodec? codec}) {
       expect(await decodeRecord(lines[1]), {'key': 1, 'value': 'hi'});
       expect(await decodeRecord(lines[2]), {'key': 1, 'value': 'hi'});
     });
+    late var toCompactOnOpenKeyLines = () {
+      var lines = [
+        '{"version": 1, "sembast": 1}',
+        for (var i = 0; i < 7; i++)
+          '{"key": 1, "value": "h$i"}' // 6 records max, 5 obsolete, min trigger
+      ];
+      return lines;
+    }();
+    late var toNotCompactOnOpenFileLines = () {
+      var lines = [
+        '{"version": 1, "sembast": 1}',
+        for (var i = 0; i < 6; i++)
+          '{"key": 1, "value": "h$i"}' // 6 records max, 5 obsolete, min trigger
+      ];
+      return lines;
+    }();
+    late var oneRecordFileLines = () {
+      var lines = ['{"version": 1, "sembast": 1}', '{"key": 1, "value": "hi"}'];
+      return lines;
+    }();
+    test('compact on open', () async {
+      await prepareForDb();
+      var lines = toCompactOnOpenKeyLines;
+      //expect(lines.length, 11);
+      expect(await decodeRecord(lines[1]), {'key': 1, 'value': 'h0'});
+      expect(await decodeRecord(lines[2]), {'key': 1, 'value': 'h1'});
+      await writeContent(fs, dbPath, lines);
+      var db = await factory.openDatabase(dbPath, mode: DatabaseMode.readOnly);
+      await db.close();
+      expect(await readContent(fs, dbPath), lines);
+      db = await factory.openDatabase(dbPath);
+      await db.close();
+      expect(await readContent(fs, dbPath), isNot(lines));
+    });
 
+    test('not compact on open', () async {
+      await prepareForDb();
+      var lines = toNotCompactOnOpenFileLines;
+      //expect(lines.length, 11);
+      expect(await decodeRecord(lines[1]), {'key': 1, 'value': 'h0'});
+      expect(await decodeRecord(lines[2]), {'key': 1, 'value': 'h1'});
+      await writeContent(fs, dbPath, lines);
+
+      var db = await factory.openDatabase(dbPath, mode: DatabaseMode.readOnly);
+      await db.close();
+      expect(await readContent(fs, dbPath), lines);
+      db = await factory.openDatabase(dbPath);
+      await db.close();
+      expect(await readContent(fs, dbPath), lines);
+    });
+
+    test('read only', () async {
+      await prepareForDb();
+      var lines = oneRecordFileLines;
+      await writeContent(fs, dbPath, lines);
+
+      try {
+        await factory.openDatabase(dbPath,
+            mode: DatabaseMode.readOnly, version: 1);
+        fail('Should fail');
+      } on ArgumentError catch (_) {}
+      var db = await factory.openDatabase(dbPath, mode: DatabaseMode.readOnly);
+      var store = StoreRef<int, String>.main();
+      var record = store.record(1);
+      var record2 = store.record(2);
+      expect(await record.get(db), 'hi');
+      expect(await record2.get(db), isNull);
+      try {
+        await record2.put(db, 'ho');
+        fail('should fail');
+      } on DatabaseException catch (_) {
+        // Read-only database
+        //print(_);
+      }
+      expect(await record2.get(db), 'ho'); // ! read-only but not in memory
+      await db.close();
+      db = await factory.openDatabase(dbPath, mode: DatabaseMode.readOnly);
+      expect(await record2.get(db), isNull);
+      await db.close();
+    });
     test('1 map record', () async {
       await prepareForDb();
       var db = await factory.openDatabase(dbPath);
@@ -395,6 +475,41 @@ void defineTestsWithCodec(FileSystemTestContext ctx, {SembastCodec? codec}) {
       }
       expect(db.version, 1);
       await db.close();
+    });
+
+    test('corrupted existing/read-only', () async {
+      await prepareForDb();
+      await writeContent(fs, dbPath, ['corrupted existing']);
+
+      Future deleteFile(String path) {
+        return fs.file(path).delete();
+      }
+
+      Database db;
+      try {
+        db = await factory.openDatabase(dbPath,
+            codec: codec, mode: DatabaseMode.existing);
+        fail('should fail');
+      } on FormatException catch (_) {}
+      try {
+        db = await factory.openDatabase(dbPath,
+            codec: codec, mode: DatabaseMode.readOnly);
+        fail('should fail');
+      } on FormatException catch (_) {}
+      try {
+        db = await factory.openDatabase(dbPath,
+            codec: codec, mode: DatabaseMode.create);
+        fail('should fail');
+      } on FormatException catch (_) {}
+
+      db = await factory.openDatabase(dbPath,
+          codec: codec, mode: DatabaseMode.empty);
+      await db.close();
+      await deleteFile(dbPath);
+      db = await factory.openDatabase(dbPath,
+          codec: codec, mode: DatabaseMode.defaultMode);
+      await db.close();
+      await deleteFile(dbPath);
     });
 
     test('corrupted_open_empty', () async {
