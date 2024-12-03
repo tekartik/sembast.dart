@@ -208,12 +208,12 @@ void defineTests(DatabaseTestContext ctx) {
       expect(await record2.get(db), isNull);
       try {
         await record2.put(db, 'ho');
-        //fail('should fail');
+        fail('should fail');
       } on DatabaseException catch (_) {
         // Read-only database
         // print(_);
       }
-      // expect(await record2.get(db), 'ho'); // ! read-only but not in memory
+      expect(await record2.get(db), isNull); // ! read-only but not in memory
       await db.close();
       db = await factory.openDatabase(dbPath, mode: DatabaseMode.readOnly);
       // expect(await record2.get(db), isNull); to test

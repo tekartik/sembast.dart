@@ -285,7 +285,7 @@ void defineTestsWithCodec(FileSystemTestContext ctx, {SembastCodec? codec}) {
         // Read-only database
         //print(_);
       }
-      expect(await record2.get(db), 'ho'); // ! read-only but not in memory
+      expect(await record2.get(db), isNull); // ! read-only but not in memory
       await db.close();
       db = await factory.openDatabase(dbPath, mode: DatabaseMode.readOnly);
       expect(await record2.get(db), isNull);

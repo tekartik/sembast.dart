@@ -464,6 +464,9 @@ class SembastDatabase extends Object
     // Not record, no commit
     if (txnRecords.isNotEmpty) {
       void saveInMemory() {
+        if (isReadOnly) {
+          throw DatabaseException.badParam('Read-only database');
+        }
         for (var record in txnRecords) {
           final exists = setRecordInMemory(record);
           // Try to estimated if compact will be needed
@@ -1367,9 +1370,6 @@ class SembastDatabase extends Object
 
             /// Replay the transaction if something has changed
             if (commitEntries.hasWriteData || commitEntries.upgrading) {
-              if (isReadOnly) {
-                throw DatabaseException.badParam('Read-only database');
-              }
               // Build Entries
               var entries = <JdbWriteEntry>[];
               for (var record in commitEntries.txnRecords!) {
