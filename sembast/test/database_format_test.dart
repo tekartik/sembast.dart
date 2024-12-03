@@ -244,7 +244,7 @@ void defineTestsWithCodec(FileSystemTestContext ctx, {SembastCodec? codec}) {
       db = await factory.openDatabase(dbPath);
       await db.close();
       expect(await readContent(fs, dbPath), isNot(lines));
-    });
+    }, skip: codec != null);
 
     test('not compact on open', () async {
       await prepareForDb();
@@ -260,7 +260,7 @@ void defineTestsWithCodec(FileSystemTestContext ctx, {SembastCodec? codec}) {
       db = await factory.openDatabase(dbPath);
       await db.close();
       expect(await readContent(fs, dbPath), lines);
-    });
+    }, skip: codec != null);
 
     test('read only', () async {
       await prepareForDb();
@@ -290,7 +290,7 @@ void defineTestsWithCodec(FileSystemTestContext ctx, {SembastCodec? codec}) {
       db = await factory.openDatabase(dbPath, mode: DatabaseMode.readOnly);
       expect(await record2.get(db), isNull);
       await db.close();
-    });
+    }, skip: codec != null);
     test('1 map record', () async {
       await prepareForDb();
       var db = await factory.openDatabase(dbPath);

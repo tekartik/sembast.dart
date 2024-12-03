@@ -183,5 +183,41 @@ void defineTests(DatabaseTestContext ctx) {
       expect(db.version, 1); // false - Why?
       await db.close();
     });
+
+    test('read only', () async {
+      final dbPath = dbPathFromName(join('open', 'read_only.db'));
+
+      try {
+        await factory.openDatabase(dbPath,
+            mode: DatabaseMode.readOnly, version: 1);
+        fail('Should fail');
+      } on ArgumentError catch (_) {}
+      var store = StoreRef<int, String>.main();
+      var record = store.record(1);
+
+      var db = await factory.openDatabase(
+        dbPath,
+      );
+      await record.put(db, 'hi');
+      await db.close();
+
+      db = await factory.openDatabase(dbPath, mode: DatabaseMode.readOnly);
+
+      var record2 = store.record(2);
+      expect(await record.get(db), 'hi');
+      expect(await record2.get(db), isNull);
+      try {
+        await record2.put(db, 'ho');
+        //fail('should fail');
+      } on DatabaseException catch (_) {
+        // Read-only database
+        // print(_);
+      }
+      // expect(await record2.get(db), 'ho'); // ! read-only but not in memory
+      await db.close();
+      db = await factory.openDatabase(dbPath, mode: DatabaseMode.readOnly);
+      // expect(await record2.get(db), isNull); to test
+      await db.close();
+    });
   });
 }
