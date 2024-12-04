@@ -1,14 +1,15 @@
-## 3.8.0
+## 3.8.0+1
 
 * Add `Query.getKey`, `Query.getKeys`,  `Query.onKey`, `Query.onKeys`,
   `Query.getKeySync`, `Query.getKeysSync`, `Query.onKeysSync`, `Query.onKeySync` methods
+* Export json helpers from `utils/type_adapters.dart`
 
 ## 3.7.5+2
 
 * Add `Timestamp.addDuration()` and `Timestamp.substractDuraction()`
 * Add `Timestamp.difference()` and `Timestamp.zero`
 
-## 3.7.4+3
+## 3.7.4+4
 
 * Add `DatabaseFactory.databaseExists(String path)` to check if a database exists.
 
