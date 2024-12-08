@@ -12,6 +12,8 @@ void main() {
       JsonEncodableEncoder;
       // ignore: unnecessary_statements
       JsonEncodableDecoder;
+      // ignore: unnecessary_statements
+      sembastDefaultJsonEncodableCodec;
     });
   });
 }

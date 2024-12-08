@@ -1,4 +1,4 @@
-## 3.8.1-1
+## 3.8.1-2
 
 * Add experimental onAllStore listeners (not typed) `Database.addAllStoresChangesListener` and `Database.removeAllStoresChangesListener`
 
