@@ -1,3 +1,7 @@
+## 3.8.1-1
+
+* Add experimental onAllStore listeners (not typed) `Database.addAllStoresChangesListener` and `Database.removeAllStoresChangesListener`
+
 ## 3.8.0
 
 * Add `Query.getKey`, `Query.getKeys`,  `Query.onKey`, `Query.onKeys`,
