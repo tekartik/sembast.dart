@@ -162,6 +162,12 @@ class _AllStoresChangesListeners {
       await listener.handleChanges(txn);
     }
   }
+
+  void txnClearChanges() {
+    for (var listener in _all.values) {
+      listener.txnClearChanges();
+    }
+  }
 }
 
 /// Database listener.
@@ -232,6 +238,7 @@ class DatabaseChangesListener {
     for (var storeChangesListener in storeChangesListeners) {
       storeChangesListener.txnClearChanges();
     }
+    _allStoresChangesListenersOrNull?.txnClearChanges();
   }
 
   /// Add a global change listener
