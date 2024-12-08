@@ -1,8 +1,9 @@
 library;
 
 import 'package:sembast/blob.dart';
-import 'package:sembast/src/timestamp_impl.dart';
-import 'package:sembast/src/type_adapter_impl.dart';
+import 'package:sembast/src/type_adapter_impl.dart' show sembastDateTimeAdapter;
+import 'package:sembast/timestamp.dart';
+import 'package:sembast/utils/type_adapter.dart';
 
 import 'test_common.dart';
 import 'timestamp_test.dart';
