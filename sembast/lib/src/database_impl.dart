@@ -1483,7 +1483,7 @@ class SembastDatabase extends Object
   }
 
   Future<void> _txnHandleChanges(SembastTransaction txn) async {
-    while (changesListener.hasChanges) {
+    while (changesListener.hasStoreChanges) {
       // Copy the list so that it never changes
       var storeChangesListeners = List<StoreChangesListeners>.from(
           changesListener.storeChangesListeners);
@@ -1492,6 +1492,9 @@ class SembastDatabase extends Object
           await storeChangesListener.handleChanges(txn);
         }
       }
+    }
+    while (changesListener.hasGlobalChanges) {
+      await changesListener.handleGlobalChanges(txn);
     }
   }
 
@@ -1698,6 +1701,20 @@ class SembastDatabase extends Object
       StoreRef<K, V> store, TransactionRecordChangeListener<K, V> onChanges) {
     changesListener.removeStoreChangesListener<K, V>(store, onChanges);
   }
+
+  /// Listen for changes on all stores but.
+  void addAllStoresOnChangesListener(
+      {required List<String>? excludedStoreNames,
+      required TransactionRecordChangeListener onChanges}) {
+    changesListener.addGlobalChangesListener(onChanges,
+        excludedStoreNames: excludedStoreNames);
+  }
+
+  /// Listen for changes on all stores but.
+  void removeAllStoresOnChangesListener(
+      TransactionRecordChangeListener onChanges) {
+    changesListener.removeGlobalChangesListener(onChanges);
+  }
 }
 
 /// Export stat.
@@ -1774,4 +1791,27 @@ class _MetaAndImportResult {
   final Meta? meta;
 
   _MetaAndImportResult(this.corrupted, this.meta);
+}
+
+/// All stores changes listener extension.
+extension SembastDatabaseAllStoresChangesListenerExtension on Database {
+  /// Listen for changes on all stores
+  ///
+  /// Note that the data is not type safe.
+  ///
+  /// To use with caution as it has a cost.
+  ///
+  /// Like transaction, it can run multiple times, so limit your changes to the
+  /// database.
+  void addAllStoresOnChangesListener(TransactionRecordChangeListener onChanges,
+      {List<String>? excludedStoreNames}) {
+    (this as SembastDatabase).addAllStoresOnChangesListener(
+        excludedStoreNames: excludedStoreNames, onChanges: onChanges);
+  }
+
+  /// Remove a global change listener
+  void removeAllStoresOnChangesListener(
+      TransactionRecordChangeListener onChanges) {
+    (this as SembastDatabase).removeAllStoresOnChangesListener(onChanges);
+  }
 }

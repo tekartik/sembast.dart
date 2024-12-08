@@ -56,23 +56,15 @@ class StoreChangesListener<K, V> {
   }
 }
 
-// ignore: public_member_api_docs
-class StoreChangesListeners {
-  // ignore: public_member_api_docs
-  final onChanges = <StoreChangesListener?>[];
-
-  // ignore: public_member_api_docs
-  StoreChangesListeners();
-
+mixin _ChangeListeners {
   final _txnOldSnapshot = <RecordSnapshot?>[];
   final _txnNewSnapshot = <RecordSnapshot?>[];
 
-  /// Get the record ref.
-  RecordRef<Key?, Value?> getRecordRef(int index) =>
-      (_txnNewSnapshot[index]?.ref ?? _txnOldSnapshot[index]?.ref)!;
-
-  /// True if there is a pending change
-  bool get hasChanges => _txnNewSnapshot.isNotEmpty;
+  /// Clear current transaction changes.
+  void txnClearChanges() {
+    _txnOldSnapshot.clear();
+    _txnNewSnapshot.clear();
+  }
 
   /// Get all changes and clear its content
   List<RecordChange> getAndClearChanges() {
@@ -84,11 +76,20 @@ class StoreChangesListeners {
     return list;
   }
 
-  /// Clear current transaction changes.
-  void txnClearChanges() {
-    _txnOldSnapshot.clear();
-    _txnNewSnapshot.clear();
-  }
+  /// True if there is a pending change
+  bool get hasChanges => _txnNewSnapshot.isNotEmpty;
+}
+
+// ignore: public_member_api_docs
+class StoreChangesListeners with _ChangeListeners {
+  // ignore: public_member_api_docs
+  final onChanges = <StoreChangesListener?>[];
+  // ignore: public_member_api_docs
+  StoreChangesListeners();
+
+  /// Get the record ref.
+  RecordRef<Key?, Value?> getRecordRef(int index) =>
+      (_txnNewSnapshot[index]?.ref ?? _txnOldSnapshot[index]?.ref)!;
 
   /// handle changes
   Future<void> handleChanges(SembastTransaction transaction) async {
@@ -102,19 +103,97 @@ class StoreChangesListeners {
   }
 }
 
+class _AllStoresChangesListener with _ChangeListeners {
+  final TransactionRecordChangeListener onChanges;
+  final Set<String> excludedStoreNames;
+
+  _AllStoresChangesListener(
+      {required this.onChanges, required this.excludedStoreNames});
+
+  Future<void> handleChanges(SembastTransaction txn) async {
+    var changes = getAndClearChanges();
+    var result = onChanges(txn, changes);
+    if (result is Future) {
+      await result;
+    }
+  }
+}
+
+class _AllStoresChangesListeners {
+  final _all = <TransactionRecordChangeListener, _AllStoresChangesListener>{};
+
+  void addChange(RecordSnapshot<Key?, Value?>? oldSnapshot,
+      RecordSnapshot<Key?, Value?>? newSnapshot) {
+    for (var listener in _all.values) {
+      var storeName =
+          oldSnapshot?.ref.store.name ?? newSnapshot?.ref.store.name;
+      if (!listener.excludedStoreNames.contains(storeName)) {
+        listener._txnOldSnapshot.add(oldSnapshot);
+        listener._txnNewSnapshot.add(newSnapshot);
+      }
+    }
+  }
+
+  void addAllStoresChangesListener(TransactionRecordChangeListener onChanges,
+      {List<String>? excludedStoreNames}) {
+    _all[onChanges] = _AllStoresChangesListener(
+        onChanges: onChanges,
+        excludedStoreNames: excludedStoreNames?.toSet() ?? {});
+  }
+
+  Iterable<_AllStoresChangesListener> get all => _all.values;
+  _AllStoresChangesListeners();
+
+  void removeListener(TransactionRecordChangeListener onChanges) {
+    _all.remove(onChanges);
+  }
+
+  bool hasStoreListener(String name) {
+    for (var listener in _all.values) {
+      if (!listener.excludedStoreNames.contains(name)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  Future<void> handleChanges(SembastTransaction txn) async {
+    for (var listener in _all.values) {
+      await listener.handleChanges(txn);
+    }
+  }
+}
+
 /// Database listener.
 class DatabaseChangesListener {
   final _stores = <StoreRef, StoreChangesListeners>{};
+  _AllStoresChangesListeners? _allStoresChangesListenersOrNull;
+  _AllStoresChangesListeners get _allStoresChangesListeners =>
+      _allStoresChangesListenersOrNull!;
 
   /// true if not empty.
-  bool get isNotEmpty => _stores.isNotEmpty;
+  bool get isNotEmpty => !isEmpty;
 
   /// true if empty.
-  bool get isEmpty => _stores.isEmpty;
+  bool get isEmpty =>
+      _stores.isEmpty && _allStoresChangesListenersOrNull == null;
 
   /// Any pending changes?
-  bool get hasChanges {
+  bool get hasStoreChanges {
     for (var listener in _stores.values) {
+      if (listener.hasChanges) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /// Any pending changes?
+  bool get hasGlobalChanges {
+    if (_allStoresChangesListenersOrNull == null) {
+      return false;
+    }
+    for (var listener in _allStoresChangesListeners.all) {
       if (listener.hasChanges) {
         return true;
       }
@@ -133,16 +212,41 @@ class DatabaseChangesListener {
       storeChangesListener._txnOldSnapshot.add(oldSnapshot);
       storeChangesListener._txnNewSnapshot.add(newSnapshot);
     }
+    _allStoresChangesListenersOrNull?.addChange(oldSnapshot, newSnapshot);
   }
 
+  /// True if the store has a change listener (global, store or record)
+  bool storeHasChangeListener(StoreRef<Key?, Value?> ref) =>
+      _hasStoreChangeListener(ref) || _hasGlobalChangeListener(ref);
+
   /// true if it has a change listener for this store
-  bool hasStoreChangeListener(StoreRef<Key?, Value?> ref) =>
+  bool _hasGlobalChangeListener(StoreRef<Key?, Value?> ref) =>
+      _allStoresChangesListenersOrNull?.hasStoreListener(ref.name) ?? false;
+
+  /// true if it has a change listener for this store
+  bool _hasStoreChangeListener(StoreRef<Key?, Value?> ref) =>
       isNotEmpty && _stores.containsKey(ref);
 
   /// Clear current transaction changes.
   void txnClearChanges() {
     for (var storeChangesListener in storeChangesListeners) {
       storeChangesListener.txnClearChanges();
+    }
+  }
+
+  /// Add a global change listener
+  void addGlobalChangesListener(TransactionRecordChangeListener onChanges,
+      {List<String>? excludedStoreNames}) {
+    _allStoresChangesListenersOrNull ??= _AllStoresChangesListeners();
+    _allStoresChangesListeners.addAllStoresChangesListener(onChanges,
+        excludedStoreNames: excludedStoreNames);
+  }
+
+  /// Add a store change listener
+  void removeGlobalChangesListener(TransactionRecordChangeListener onChanges) {
+    _allStoresChangesListenersOrNull?.removeListener(onChanges);
+    if (_allStoresChangesListenersOrNull?.all.isEmpty ?? true) {
+      _allStoresChangesListenersOrNull = null;
     }
   }
 
@@ -172,5 +276,10 @@ class DatabaseChangesListener {
   /// Clear all change listener
   void close() {
     _stores.clear();
+  }
+
+  /// Handle changes
+  Future<void> handleGlobalChanges(SembastTransaction txn) async {
+    await _allStoresChangesListeners.handleChanges(txn);
   }
 }

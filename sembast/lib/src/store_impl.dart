@@ -186,7 +186,7 @@ class SembastStore {
 
   /// True if it has a change listener
   bool get hasChangesListener =>
-      database.changesListener.hasStoreChangeListener(ref);
+      database.changesListener.storeHasChangeListener(ref);
 
   /// Returns the list of values
   Future<List> txnPutAll<PK, PV>(

@@ -64,3 +64,7 @@ export 'package:sembast/src/query_ref_impl.dart'
         SembastQueryRefExtension,
         SembastQueryRefCommonExtension,
         SembastQueryRefSyncExtension;
+
+/// V3.5.0
+export 'package:sembast/src/database_impl.dart'
+    show SembastDatabaseAllStoresChangesListenerExtension;
