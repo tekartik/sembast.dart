@@ -746,15 +746,29 @@ class SembastDatabase extends Object
   }
 
   /// Delete a store in a transaction.
-  Future txnDeleteStore(SembastTransaction txn, String storeName) async {
-    var store = txnFindStore(txn, storeName);
+  Future<void> txnDeleteStore(SembastTransaction txn, String storeName) async {
+    var store = await _txnClearStore(txn, storeName);
     if (store != null) {
-      await store.store.txnClear(txn);
       // do not delete main
       if (store.store != mainStore) {
         _txnDroppedStores.add(storeName);
       }
     }
+  }
+
+  /// Clear all records of a store in a transaction.
+  Future<void> txnClearStore(SembastTransaction txn, String storeName) async {
+    await _txnClearStore(txn, storeName);
+  }
+
+  /// Clear all records of a store in a transaction.
+  Future<SembastTransactionStore?> _txnClearStore(
+      SembastTransaction txn, String storeName) async {
+    var store = txnFindStore(txn, storeName);
+    if (store != null) {
+      await store.store.txnClear(txn);
+    }
+    return store;
   }
 
   /// Undelete a store in a transaction

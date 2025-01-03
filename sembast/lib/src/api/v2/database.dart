@@ -4,7 +4,7 @@ import 'package:sembast/src/api/client.dart';
 import 'package:sembast/src/api/protected/database.dart';
 import 'package:sembast/src/api/transaction.dart';
 
-export 'package:sembast/src/api/field.dart';
+export 'package:sembast/src/api/field.dart' show Field, FieldValue, FieldKey;
 
 /// Database.
 ///

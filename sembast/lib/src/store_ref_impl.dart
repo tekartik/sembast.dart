@@ -149,7 +149,7 @@ extension SembastStoreRefCommonExtension<K, V> on StoreRef<K, V> {
 /// Provides access helper to data on the store using a given [DatabaseClient].
 extension SembastStoreRefExtension<K, V> on StoreRef<K, V> {
   /// Delete the store and its content
-  Future drop(DatabaseClient databaseClient) {
+  Future<void> drop(DatabaseClient databaseClient) {
     final client = getClient(databaseClient);
     return client.inTransaction((txn) {
       return client.sembastDatabase.txnDeleteStore(txn, name);

@@ -1,4 +1,1 @@
-///
-/// Database client (either Database or Transaction)
-///
-abstract class DatabaseClient {}
+export 'v2/database_client.dart';

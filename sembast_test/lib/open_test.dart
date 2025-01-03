@@ -186,7 +186,7 @@ void defineTests(DatabaseTestContext ctx) {
 
     test('read only', () async {
       final dbPath = dbPathFromName(join('open', 'read_only.db'));
-
+      await factory.deleteDatabase(dbPath);
       try {
         await factory.openDatabase(dbPath,
             mode: DatabaseMode.readOnly, version: 1);

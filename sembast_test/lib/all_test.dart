@@ -5,6 +5,7 @@ import 'changes_listener_persistent_test.dart'
 import 'codec_test.dart' as codec_test;
 import 'crud_impl_test.dart' as crud_impl_test;
 import 'crud_test.dart' as crud_test;
+import 'database_client_test.dart';
 import 'database_impl_test.dart' as database_impl_test;
 import 'database_import_export_test.dart' as database_import_export_test;
 import 'database_test.dart' as database_test;
@@ -34,6 +35,7 @@ void defineTests(DatabaseTestContext ctx) {
   crud_test.defineTests(ctx);
   crud_impl_test.defineTests(ctx);
   database_test.defineTests(ctx);
+  defineDatabaseClientTests(ctx);
   database_impl_test.defineTests(ctx);
   store_test.defineTests(ctx);
   record_test.defineRecordTests(ctx);
