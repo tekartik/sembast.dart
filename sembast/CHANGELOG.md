@@ -1,7 +1,8 @@
-## 3.8.1
+## 3.8.1+1
 
 * Add experimental onAllStore listeners (not typed) `Database.addAllStoresChangesListener` and `Database.removeAllStoresChangesListener`
 * Add `DatabaseClient.dropAll()` to drop all existing stores and folders.
+* Make exception constants const.
 
 ## 3.8.0+1
 

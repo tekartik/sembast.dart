@@ -3,16 +3,16 @@
 ///
 class DatabaseException implements Exception {
   /// Bad parameters
-  static int errBadParam = 0;
+  static const int errBadParam = 0;
 
   /// Database could not be found
-  static int errDatabaseNotFound = 1;
+  static const int errDatabaseNotFound = 1;
 
   /// This is sent if the codec used does not match the one of the database
-  static int errInvalidCodec = 2;
+  static const int errInvalidCodec = 2;
 
   /// This is sent when an action happen after the database was closed.
-  static int errDatabaseClosed = 3;
+  static const int errDatabaseClosed = 3;
 
   final int _code;
   final String _message;

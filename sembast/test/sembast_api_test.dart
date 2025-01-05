@@ -111,6 +111,15 @@ void main() {
         RecordSnapshotIterableExtension(snapshots).values;
         RecordSnapshotIterableExtension(snapshots).keysAndValues;
       }
+
+      // Check const codes
+      // ignore: unused_local_variable
+      const codes = [
+        DatabaseException.errBadParam,
+        DatabaseException.errDatabaseClosed,
+        DatabaseException.errDatabaseNotFound,
+        DatabaseException.errInvalidCodec
+      ];
     });
   });
 }
