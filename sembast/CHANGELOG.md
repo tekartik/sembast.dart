@@ -1,3 +1,7 @@
+## 3.8.2
+
+* Add `openNewInMemoryDatabase()` helper to open a new in-memory database, always empty.
+
 ## 3.8.1+1
 
 * Add experimental onAllStore listeners (not typed) `Database.addAllStoresChangesListener` and `Database.removeAllStoresChangesListener`
