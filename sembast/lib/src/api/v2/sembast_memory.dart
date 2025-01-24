@@ -16,3 +16,15 @@ DatabaseFactory get databaseFactoryMemoryJdb => memory.databaseFactoryMemoryJdb;
 
 /// Create a new empty factory
 DatabaseFactory newDatabaseFactoryMemory() => memory.DatabaseFactoryMemory();
+
+/// Open a memory database, always blank
+Future<Database> openNewInMemoryDatabase(
+        {int? version,
+        OnVersionChangedFunction? onVersionChanged,
+        DatabaseMode? mode,
+        SembastCodec? codec}) =>
+    databaseFactoryMemory.openDatabase(sembastInMemoryDatabasePath,
+        version: version,
+        mode: mode,
+        codec: codec,
+        onVersionChanged: onVersionChanged);

@@ -30,5 +30,17 @@ void main() {
       await db1.close();
       await db2.close();
     });
+
+    test('openNewInMemoryDatabase', () async {
+      var store = StoreRef<int, int>.main();
+      var db = await openNewInMemoryDatabase();
+      var db2 = await openNewInMemoryDatabase();
+      await store.record(1).put(db, 123);
+      await store.record(1).put(db2, 456);
+      expect(await store.record(1).get(db), 123);
+      expect(await store.record(1).get(db2), 456);
+      await db.close();
+      await db2.close();
+    });
   });
 }
