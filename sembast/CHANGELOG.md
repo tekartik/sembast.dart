@@ -1,3 +1,8 @@
+## 3.8.3
+
+* Requires Dart 3.6
+* Add `QueryRef.delete()` to delete all matching records.
+
 ## 3.8.2
 
 * Add `openNewInMemoryDatabase()` helper to open a new in-memory database, always empty.
