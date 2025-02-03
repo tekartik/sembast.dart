@@ -1038,5 +1038,20 @@ void defineQueryTests(DatabaseTestContext ctx) {
       ]);
       await subscription.cancel();
     });
+    test('delete', () async {
+      var store = intMapStoreFactory.store();
+      var record1 = store.record(1);
+      var record2 = store.record(2);
+
+      await db.transaction((txn) async {
+        await record1.put(txn, <String, Object?>{'test': 1});
+        await record2.put(txn, <String, Object?>{'test': 2});
+      });
+
+      var query = store.query(
+          finder: Finder(sortOrders: [SortOrder(Field.key)], offset: 1));
+      await query.delete(db);
+      expect(await store.query().getKeys(db), [1]);
+    });
   });
 }

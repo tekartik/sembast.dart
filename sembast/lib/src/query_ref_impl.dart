@@ -33,6 +33,9 @@ class SembastQueryRef<K, V> implements QueryRef<K, V> {
 extension SembastQueryRefExtensionPrv<K, V> on QueryRef<K, V> {
   /// Sembast query ref. implementation.
   SembastQueryRef<K, V> get sembastQueryRef => this as SembastQueryRef<K, V>;
+
+  /// Store ref
+  StoreRef<K, V> get store => sembastQueryRef.store;
 }
 
 /// Common extension
@@ -178,6 +181,11 @@ extension SembastQueryRefExtension<K, V> on QueryRef<K, V> {
   /// onCount stream, called when the number of items changes.
   Stream<int> onCount(Database database) =>
       onKeys(database).map((e) => e.length);
+
+  /// Delete records matching the query.
+  Future<int> delete(DatabaseClient client) async {
+    return store.delete(client, finder: finder);
+  }
 }
 
 /// Query db actions. synchronous access.
