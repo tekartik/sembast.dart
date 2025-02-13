@@ -11,9 +11,10 @@ Future main() async {
 }
 
 Future run({required String dbName, String? store}) async {
-  var dateStore = store == null
-      ? StoreRef<int, String>.main()
-      : StoreRef<int, String>(store);
+  var dateStore =
+      store == null
+          ? StoreRef<int, String>.main()
+          : StoreRef<int, String>(store);
 
   db = await factory.openDatabase(dbName);
   write('hello');

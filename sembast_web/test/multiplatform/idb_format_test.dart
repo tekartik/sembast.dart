@@ -25,25 +25,29 @@ void defineTests(JdbFactoryIdb jdbFactoryIdb) {
       await db.close();
 
       var idb = await idbFactory.open('test');
-      expect(
-          List<String>.from(idb.objectStoreNames)..sort(), ['entry', 'info']);
+      expect(List<String>.from(idb.objectStoreNames)..sort(), [
+        'entry',
+        'info',
+      ]);
       var txn = idb.transaction(['entry', 'info'], idbModeReadOnly);
       var infos = await cursorToList(
-          txn.objectStore('info').openCursor(autoAdvance: true));
+        txn.objectStore('info').openCursor(autoAdvance: true),
+      );
       var entries = await cursorToList(
-          txn.objectStore('entry').openCursor(autoAdvance: true));
+        txn.objectStore('entry').openCursor(autoAdvance: true),
+      );
       expect(infos.map((e) => [e.primaryKey, e.value]), [
         [
           'meta',
-          {'version': 1, 'sembast': 1}
+          {'version': 1, 'sembast': 1},
         ],
-        ['revision', 1]
+        ['revision', 1],
       ]);
       expect(entries.map((e) => [e.primaryKey, e.value]), [
         [
           1,
-          {'store': '_main', 'key': 'key', 'value': 'value'}
-        ]
+          {'store': '_main', 'key': 'key', 'value': 'value'},
+        ],
       ]);
       await txn.completed;
       idb.close();

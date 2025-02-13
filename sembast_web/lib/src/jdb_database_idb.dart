@@ -62,7 +62,12 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
 
   /// New in memory database.
   JdbDatabaseIdb(
-      this._factory, this._idbDatabase, this._id, this._path, this._options);
+    this._factory,
+    this._idbDatabase,
+    this._id,
+    this._path,
+    this._options,
+  );
 
   var _closed = false;
 
@@ -95,7 +100,9 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
   }
 
   Future<jdb.JdbInfoEntry> _txnGetInfoEntry(
-      idb.Transaction txn, String id) async {
+    idb.Transaction txn,
+    String id,
+  ) async {
     var info = await txn.objectStore(idbInfoStore).getObject(id);
     return jdb.JdbInfoEntry()
       ..id = id
@@ -117,8 +124,10 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
   Future addEntries(List<jdb.JdbWriteEntry> entries) async {
     final entriesEncoded = await encodeEntries(entries);
 
-    var txn = _idbDatabase
-        .transaction([idbEntryStore, idbInfoStore], idbModeReadWrite);
+    var txn = _idbDatabase.transaction([
+      idbEntryStore,
+      idbInfoStore,
+    ], idbModeReadWrite);
     // var lastEntryId =
     await _txnAddEntries(txn, entriesEncoded);
     await txn.completed;
@@ -145,7 +154,9 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
 
   // Return the last entryId
   Future<int?> _txnAddEntries(
-      idb.Transaction txn, Iterable<JdbWriteEntryEncoded> entries) async {
+    idb.Transaction txn,
+    Iterable<JdbWriteEntryEncoded> entries,
+  ) async {
     var objectStore = txn.objectStore(idbEntryStore);
     var index = objectStore.index(idbRecordIndex);
     int? lastEntryId;
@@ -169,12 +180,14 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
         value = jdbWriteEntry.valueEncoded;
       }
       //if
-      lastEntryId = (await objectStore.add(<String, Object?>{
-        idbStoreKey: store,
-        idbKeyKey: key,
-        if (value != null) idbValueKey: value,
-        if (jdbWriteEntry.deleted) idbDeletedKey: 1
-      })) as int;
+      lastEntryId =
+          (await objectStore.add(<String, Object?>{
+                idbStoreKey: store,
+                idbKeyKey: key,
+                if (value != null) idbValueKey: value,
+                if (jdbWriteEntry.deleted) idbDeletedKey: 1,
+              }))
+              as int;
       // Save the revision in memory!
       jdbWriteEntry.revision = lastEntryId;
       if (_debug) {
@@ -199,8 +212,10 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
   @override
   Future<List<int>> generateUniqueIntKeys(String store, int count) async {
     var keys = <int>[];
-    var txn = _idbDatabase
-        .transaction([idbEntryStore, idbInfoStore], idbModeReadOnly);
+    var txn = _idbDatabase.transaction([
+      idbEntryStore,
+      idbInfoStore,
+    ], idbModeReadOnly);
     var infoStore = txn.objectStore(idbInfoStore);
     var infoKey = _storeLastIdKey(store);
     var lastId = (await infoStore.getObject(infoKey) as int?) ?? 0;
@@ -224,40 +239,48 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
     var hasAsyncCodec = this.hasAsyncCodec;
     // Only for async codec
     var asyncCodecLock = Lock();
-    ctlr = StreamController<jdb.JdbEntry>(onListen: () async {
-      var keyRange = afterRevision == null
-          ? null
-          : KeyRange.lowerBound(afterRevision, true);
-      var asyncCodecFutures = <Future>[];
-      await _idbDatabase
-          .transaction(idbEntryStore, idbModeReadOnly)
-          .objectStore(idbEntryStore)
-          .openCursor(range: keyRange, autoAdvance: true)
-          .listen((cwv) {
+    ctlr = StreamController<jdb.JdbEntry>(
+      onListen: () async {
+        var keyRange =
+            afterRevision == null
+                ? null
+                : KeyRange.lowerBound(afterRevision, true);
+        var asyncCodecFutures = <Future>[];
+        await _idbDatabase
+            .transaction(idbEntryStore, idbModeReadOnly)
+            .objectStore(idbEntryStore)
+            .openCursor(range: keyRange, autoAdvance: true)
+            .listen((cwv) {
+              if (hasAsyncCodec) {
+                var entry = _encodedEntryFromCursor(cwv);
+                asyncCodecFutures.add(
+                  asyncCodecLock.synchronized(() async {
+                    var decoded = await decodeReadEntryAsync(entry);
+                    if (_debug) {
+                      // ignore: avoid_print
+                      print(
+                        '$_debugPrefix reading async entry after revision $entry',
+                      );
+                    }
+                    ctlr.add(decoded);
+                  }),
+                );
+              } else {
+                var entry = _entryFromCursorSync(cwv);
+                if (_debug) {
+                  // ignore: avoid_print
+                  print('$_debugPrefix reading entry after revision $entry');
+                }
+                ctlr.add(entry);
+              }
+            })
+            .asFuture<void>();
         if (hasAsyncCodec) {
-          var entry = _encodedEntryFromCursor(cwv);
-          asyncCodecFutures.add(asyncCodecLock.synchronized(() async {
-            var decoded = await decodeReadEntryAsync(entry);
-            if (_debug) {
-              // ignore: avoid_print
-              print('$_debugPrefix reading async entry after revision $entry');
-            }
-            ctlr.add(decoded);
-          }));
-        } else {
-          var entry = _entryFromCursorSync(cwv);
-          if (_debug) {
-            // ignore: avoid_print
-            print('$_debugPrefix reading entry after revision $entry');
-          }
-          ctlr.add(entry);
+          await Future.wait(asyncCodecFutures);
         }
-      }).asFuture<void>();
-      if (hasAsyncCodec) {
-        await Future.wait(asyncCodecFutures);
-      }
-      await ctlr.close();
-    });
+        await ctlr.close();
+      },
+    );
     return ctlr.stream;
   }
 
@@ -280,13 +303,16 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
 
   @override
   Future<StorageJdbWriteResult> writeIfRevision(
-      StorageJdbWriteQuery query) async {
+    StorageJdbWriteQuery query,
+  ) async {
     // Encode before creating the transaction to handle async codec.
     var encodedList = await encodeEntries(query.entries);
 
     var expectedRevision = query.revision ?? 0;
-    var txn = _idbDatabase
-        .transaction([idbInfoStore, idbEntryStore], idbModeReadWrite);
+    var txn = _idbDatabase.transaction([
+      idbInfoStore,
+      idbEntryStore,
+    ], idbModeReadWrite);
 
     int? readRevision = (await _txnGetRevision(txn)) ?? 0;
     var success = (expectedRevision == readRevision);
@@ -314,13 +340,18 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
       notifyRevision(shouldNotifyRevision);
     }
     return StorageJdbWriteResult(
-        revision: readRevision, query: query, success: success);
+      revision: readRevision,
+      query: query,
+      success: success,
+    );
   }
 
   @override
   Future<Map<String, Object?>> exportToMap() async {
-    var txn = _idbDatabase
-        .transaction([idbInfoStore, idbEntryStore], idbModeReadOnly);
+    var txn = _idbDatabase.transaction([
+      idbInfoStore,
+      idbEntryStore,
+    ], idbModeReadOnly);
     var map = <String, Object?>{};
     map['infos'] = await _txnStoreToDebugMap(txn, idbInfoStore);
     map['entries'] = await _txnStoreToDebugMap(txn, idbEntryStore);
@@ -329,7 +360,9 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
   }
 
   Future<List<Map<String, Object?>>> _txnStoreToDebugMap(
-      idb.Transaction txn, String name) async {
+    idb.Transaction txn,
+    String name,
+  ) async {
     var list = <Map<String, Object?>>[];
     var store = txn.objectStore(name);
     await store.openCursor(autoAdvance: true).listen((cwv) {
@@ -358,8 +391,10 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
 
   @override
   Future compact() async {
-    var txn = _idbDatabase
-        .transaction([idbInfoStore, idbEntryStore], idbModeReadWrite);
+    var txn = _idbDatabase.transaction([
+      idbInfoStore,
+      idbEntryStore,
+    ], idbModeReadWrite);
     var deltaMinRevision = await _txnGetDeltaMinRevision(txn);
     var currentRevision = await _txnGetRevision(txn) ?? 0;
     var newDeltaMinRevision = deltaMinRevision;
@@ -386,15 +421,18 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
 
   Future<int> _txnGetDeltaMinRevision(idb.Transaction txn) async {
     return (await txn
-            .objectStore(idbInfoStore)
-            .getObject(jdbDeltaMinRevisionKey)) as int? ??
+                .objectStore(idbInfoStore)
+                .getObject(jdbDeltaMinRevisionKey))
+            as int? ??
         0;
   }
 
   @override
   Future clearAll() async {
-    var txn = _idbDatabase
-        .transaction([idbInfoStore, idbEntryStore], idbModeReadWrite);
+    var txn = _idbDatabase.transaction([
+      idbInfoStore,
+      idbEntryStore,
+    ], idbModeReadWrite);
     await txn.objectStore(idbInfoStore).clear();
     await txn.objectStore(idbEntryStore).clear();
     await txn.completed;

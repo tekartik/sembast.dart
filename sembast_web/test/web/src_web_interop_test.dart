@@ -22,8 +22,9 @@ Future main() async {
       expect(await record.get(db), 'value');
 
       try {
-        var storageRevision =
-            await revisionFuture.timeout(const Duration(seconds: 10));
+        var storageRevision = await revisionFuture.timeout(
+          const Duration(seconds: 10),
+        );
         expect(storageRevision.name, 'test');
         expect(storageRevision.revision, greaterThanOrEqualTo(1));
       } catch (e) {

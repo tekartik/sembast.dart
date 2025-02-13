@@ -26,27 +26,40 @@ class JdbFactoryIdb implements jdb.JdbFactory {
 
   @override
   Future<jdb.JdbDatabase> open(
-      String path, DatabaseOpenOptions? options) async {
+    String path,
+    DatabaseOpenOptions? options,
+  ) async {
     var id = ++_lastId;
     if (_debug) {
       // ignore: avoid_print
       print('[idb-$id] opening $path');
     }
-    var iDb = await idbFactory.open(path, version: 2, onUpgradeNeeded: (event) {
-      if (_debug) {
-        // ignore: avoid_print
-        print('[idb-$id] migrating ${event.oldVersion} -> ${event.newVersion}');
-      }
-      var db = event.database;
-      if (event.oldVersion < 2) {
-        db.createObjectStore(idbInfoStore);
-        var entryStore =
-            db.createObjectStore(idbEntryStore, autoIncrement: true);
-        entryStore.createIndex(idbRecordIndex, [idbStoreKey, idbKeyKey]);
-        entryStore.createIndex(idbDeletedIndex, idbDeletedKey,
-            multiEntry: true);
-      }
-    });
+    var iDb = await idbFactory.open(
+      path,
+      version: 2,
+      onUpgradeNeeded: (event) {
+        if (_debug) {
+          // ignore: avoid_print
+          print(
+            '[idb-$id] migrating ${event.oldVersion} -> ${event.newVersion}',
+          );
+        }
+        var db = event.database;
+        if (event.oldVersion < 2) {
+          db.createObjectStore(idbInfoStore);
+          var entryStore = db.createObjectStore(
+            idbEntryStore,
+            autoIncrement: true,
+          );
+          entryStore.createIndex(idbRecordIndex, [idbStoreKey, idbKeyKey]);
+          entryStore.createIndex(
+            idbDeletedIndex,
+            idbDeletedKey,
+            multiEntry: true,
+          );
+        }
+      },
+    );
 
     var db = JdbDatabaseIdb(this, iDb, id, path, options);
 

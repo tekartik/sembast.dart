@@ -1,3 +1,7 @@
+## 2.4.1
+
+* Requires dart 3.7
+
 ## 2.4.0+4
 
 * Remove legacy html support.

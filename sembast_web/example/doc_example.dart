@@ -9,8 +9,10 @@ Future main() async {
   var db = await factory.openDatabase('test');
 
   // Add a new record
-  var key =
-      await store.add(db, <String, Object?>{'name': 'Table', 'price': 15});
+  var key = await store.add(db, <String, Object?>{
+    'name': 'Table',
+    'price': 15,
+  });
 
   // Read the record
   var value = await store.record(key).get(db);

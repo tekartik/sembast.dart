@@ -4,7 +4,8 @@ import 'package:sembast/sembast.dart';
 ///
 /// Build on top of IndexedDB and localStorage.
 DatabaseFactory get databaseFactoryWeb => _stub(
-    'databaseFactoryWeb not support on Flutter/VM. Use `sembast_sqflite` or `sembast` io implementation');
+  'databaseFactoryWeb not support on Flutter/VM. Use `sembast_sqflite` or `sembast` io implementation',
+);
 
 T _stub<T>(String message) {
   throw UnimplementedError(message);

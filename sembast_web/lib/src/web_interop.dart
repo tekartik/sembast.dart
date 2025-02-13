@@ -70,23 +70,28 @@ StreamController<StorageRevision>? _storageRevisionController;
 
 /// Storage revision notification from all tabs
 Stream<StorageRevision> get storageRevisionStream {
-  _storageRevisionController ??=
-      StreamController<StorageRevision>.broadcast(onListen: () {
-    web.window.onstorage = (web.StorageEvent event) {
-      if (debugStorageNotification) {
-        // ignore: avoid_print
-        print('getting ${event.key}: ${event.newValue}');
-      }
-      if (event.key?.startsWith(_sembastStorageKeyPrefix) ?? false) {
-        var name = event.key!.substring(_sembastStorageKeyPrefix.length);
-        var revision =
-            event.newValue == null ? 0 : (int.tryParse(event.newValue!) ?? 0);
-        _storageRevisionController?.add(StorageRevision(name, revision));
-      }
-    }.toJS;
-  }, onCancel: () {
-    web.window.onstorage = null;
-    _storageRevisionController = null;
-  });
+  _storageRevisionController ??= StreamController<StorageRevision>.broadcast(
+    onListen: () {
+      web.window.onstorage =
+          (web.StorageEvent event) {
+            if (debugStorageNotification) {
+              // ignore: avoid_print
+              print('getting ${event.key}: ${event.newValue}');
+            }
+            if (event.key?.startsWith(_sembastStorageKeyPrefix) ?? false) {
+              var name = event.key!.substring(_sembastStorageKeyPrefix.length);
+              var revision =
+                  event.newValue == null
+                      ? 0
+                      : (int.tryParse(event.newValue!) ?? 0);
+              _storageRevisionController?.add(StorageRevision(name, revision));
+            }
+          }.toJS;
+    },
+    onCancel: () {
+      web.window.onstorage = null;
+      _storageRevisionController = null;
+    },
+  );
   return _storageRevisionController!.stream;
 }

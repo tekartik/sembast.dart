@@ -10,8 +10,8 @@ import 'package:test/test.dart';
 import '../base64_codec.dart';
 
 DatabaseFactoryJdb asDatabaseFactoryIdb(
-        sembast.DatabaseFactory databaseFactory) =>
-    databaseFactory as DatabaseFactoryJdb;
+  sembast.DatabaseFactory databaseFactory,
+) => databaseFactory as DatabaseFactoryJdb;
 
 JdbFactoryIdb asJdbJactoryIdb(JdbFactory factory) => factory as JdbFactoryIdb;
 
@@ -24,7 +24,8 @@ JdbDatabaseIdb? asJsbDatabaseIdb(JdbDatabase? database) =>
     database as JdbDatabaseIdb?;
 
 JdbDatabaseIdb? dbAsJsbDatabaseIdb(sembast.Database db) => asJsbDatabaseIdb(
-    asSembastStorateJdb(asSembastDatabase(db).storageJdb)!.jdbDatabase);
+  asSembastStorateJdb(asSembastDatabase(db).storageJdb)!.jdbDatabase,
+);
 
 Future main() async {
   var jdbFactoryIdb = JdbFactoryIdb(idbFactoryMemoryFs);
@@ -50,31 +51,31 @@ void defineTests(JdbFactoryIdb jdbFactoryIdb) {
                   {'name': 'deleted', 'keyPath': 'deleted', 'multiEntry': true},
                   {
                     'name': 'record',
-                    'keyPath': ['store', 'key']
+                    'keyPath': ['store', 'key'],
                   },
-                ]
+                ],
               },
               {'name': 'info'},
               ['entry', 'info'],
-              2
-            ]
+              2,
+            ],
           },
           {
             'name': 'entry',
             'keys': [1],
             'values': [
-              {'store': '_main', 'key': 'key', 'value': 'value'}
-            ]
+              {'store': '_main', 'key': 'key', 'value': 'value'},
+            ],
           },
           {
             'name': 'info',
             'keys': ['meta', 'revision'],
             'values': [
               {'version': 1, 'sembast': 1},
-              1
-            ]
+              1,
+            ],
           },
-        ]
+        ],
       };
 
       test('export', () async {
@@ -102,8 +103,11 @@ void defineTests(JdbFactoryIdb jdbFactoryIdb) {
         var record = store.record('key');
         await factory.deleteDatabase(dbName);
 
-        var sdb =
-            await sdbImportDatabase(export, jdbFactoryIdb.idbFactory, dbName);
+        var sdb = await sdbImportDatabase(
+          export,
+          jdbFactoryIdb.idbFactory,
+          dbName,
+        );
 
         sdb.close();
 
@@ -131,21 +135,21 @@ void defineTests(JdbFactoryIdb jdbFactoryIdb) {
                   {'name': 'deleted', 'keyPath': 'deleted', 'multiEntry': true},
                   {
                     'name': 'record',
-                    'keyPath': ['store', 'key']
+                    'keyPath': ['store', 'key'],
                   },
-                ]
+                ],
               },
               {'name': 'info'},
               ['entry', 'info'],
-              2
-            ]
+              2,
+            ],
           },
           {
             'name': 'entry',
             'keys': [1],
             'values': [
-              {'store': '_main', 'key': 'key', 'value': 'InZhbHVlIg=='}
-            ]
+              {'store': '_main', 'key': 'key', 'value': 'InZhbHVlIg=='},
+            ],
           },
           {
             'name': 'info',
@@ -154,17 +158,19 @@ void defineTests(JdbFactoryIdb jdbFactoryIdb) {
               {
                 'version': 1,
                 'sembast': 1,
-                'codec': 'eyJzaWduYXR1cmUiOiJiYXNlNjQifQ=='
+                'codec': 'eyJzaWduYXR1cmUiOiJiYXNlNjQifQ==',
               },
-              1
-            ]
+              1,
+            ],
           },
-        ]
+        ],
       };
 
       test('export', () async {
         var codec = sembast.SembastCodec(
-            signature: 'base64', codec: SembastBase64Codec());
+          signature: 'base64',
+          codec: SembastBase64Codec(),
+        );
         var store = sembast.StoreRef<String, String>.main();
         var record = store.record('key');
         await factory.deleteDatabase('test');
@@ -185,7 +191,9 @@ void defineTests(JdbFactoryIdb jdbFactoryIdb) {
 
       test('async codec', () async {
         var codec = sembast.SembastCodec(
-            signature: 'base64', codec: SembastBase64CodecAsync());
+          signature: 'base64',
+          codec: SembastBase64CodecAsync(),
+        );
         var store = sembast.StoreRef<String, String>.main();
         var record = store.record('key');
         await factory.deleteDatabase('test');
@@ -210,8 +218,11 @@ void defineTests(JdbFactoryIdb jdbFactoryIdb) {
         var record = store.record('key');
         await factory.deleteDatabase(dbName);
 
-        var sdb =
-            await sdbImportDatabase(export, jdbFactoryIdb.idbFactory, dbName);
+        var sdb = await sdbImportDatabase(
+          export,
+          jdbFactoryIdb.idbFactory,
+          dbName,
+        );
 
         sdb.close();
 
