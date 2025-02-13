@@ -34,8 +34,9 @@ void defineTests(DatabaseTestContext ctx) {
 
       expect(await records.put(db, ['test']), ['test']);
       expect(await records.get(db), ['test']);
-      expect((await records.getSnapshots(db)).map((record) => record!.value),
-          ['test']);
+      expect((await records.getSnapshots(db)).map((record) => record!.value), [
+        'test',
+      ]);
       expect(await records.delete(db), [1]);
       expect(await records.get(db), [null]);
     });
@@ -70,8 +71,10 @@ void defineTests(DatabaseTestContext ctx) {
 
       // Update with one already existing
       var records = store.records([1, 2]);
-      expect(
-          await records.update(db, ['test1bis', 'test2']), ['test1bis', null]);
+      expect(await records.update(db, ['test1bis', 'test2']), [
+        'test1bis',
+        null,
+      ]);
     });
 
     test('add_map', () async {
@@ -83,11 +86,12 @@ void defineTests(DatabaseTestContext ctx) {
       // Add with one already existing
       var records = store.records([1, 2]);
       expect(
-          await records.add(db, [
-            {'more_value': 'test1'},
-            {'value': 'test1'}
-          ]),
-          [null, 2]);
+        await records.add(db, [
+          {'more_value': 'test1'},
+          {'value': 'test1'},
+        ]),
+        [null, 2],
+      );
     });
 
     test('update_map', () async {
@@ -99,14 +103,15 @@ void defineTests(DatabaseTestContext ctx) {
       // Update with one already existing
       var records = store.records([1, 2]);
       expect(
-          await records.update(db, [
-            {'more_value': 'test1'},
-            {'value': 'test1'}
-          ]),
-          [
-            {'value': 'test1', 'more_value': 'test1'},
-            null
-          ]);
+        await records.update(db, [
+          {'more_value': 'test1'},
+          {'value': 'test1'},
+        ]),
+        [
+          {'value': 'test1', 'more_value': 'test1'},
+          null,
+        ],
+      );
     });
   });
 }

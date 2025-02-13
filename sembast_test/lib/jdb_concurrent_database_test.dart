@@ -47,8 +47,9 @@ void defineJdbConcurrentDatabaseTests(DatabaseTestContextJdb ctx) {
       var db2 = await ctx.open(dbPath);
 
       late List events;
-      var db1Subscription =
-          intStore.query().onSnapshots(db1).listen((snapshots) {
+      var db1Subscription = intStore.query().onSnapshots(db1).listen((
+        snapshots,
+      ) {
         events = snapshots;
         // print('db1: $event');
       });

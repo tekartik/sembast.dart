@@ -13,7 +13,9 @@ void defineTests(DatabaseTestContext ctx) {
     test('getNonEmptyStoreNames', () async {
       var store = StoreRef<Object?, Object?>('test');
       final db = await setupForTest(
-          ctx, 'database_utils/get_non_empty_store_names.db');
+        ctx,
+        'database_utils/get_non_empty_store_names.db',
+      );
       var record = store.record(1);
 
       expect(getNonEmptyStoreNames(db), isEmpty);

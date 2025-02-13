@@ -87,9 +87,11 @@ void defineFileSystemTests(FileSystemTestContext ctx) {
 
   Future<List<String>> readContent(File file) {
     final content = <String>[];
-    return openReadLines(file).listen((String line) {
-      content.add(line);
-    }).asFuture(content);
+    return openReadLines(file)
+        .listen((String line) {
+          content.add(line);
+        })
+        .asFuture(content);
   }
 
   Future writeContent(File file, List<String> content) {
@@ -296,10 +298,13 @@ void defineFileSystemTests(FileSystemTestContext ctx) {
         final file = nameFile('test');
         Object? e;
         await openRead(file)
-            .listen((_) {}, onError: (Object e) {
-              // print(e);
-              throw e;
-            })
+            .listen(
+              (_) {},
+              onError: (Object e) {
+                // print(e);
+                throw e;
+              },
+            )
             .asFuture<void>()
             .catchError((Object e2) {
               // FileSystemException: Cannot open file, path = '/media/ssd/devx/git/sembast.dart/test/out/io/fs/file/open read 1/test' (OS Error: No such file or directory, errno = 2)
@@ -403,11 +408,14 @@ void defineFileSystemTests(FileSystemTestContext ctx) {
         return createFileName('test').then((File file) {
           final path2 = namePath('test2');
           return createFile(fs.file(path2)).then((_) {
-            return file.rename(path2).then((File renamed) {
-              //devPrint(renamed);
-            }).catchError((e) {
-              //devPrint(e);
-            });
+            return file
+                .rename(path2)
+                .then((File renamed) {
+                  //devPrint(renamed);
+                })
+                .catchError((e) {
+                  //devPrint(e);
+                });
           });
         });
       });

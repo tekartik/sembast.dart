@@ -18,16 +18,20 @@ DatabaseTestContextFs get memoryFsDatabaseContext =>
 /// helper to read a list of string (lines)
 ///
 Future<List<Map<String, Object?>?>> fsExportToMapList(
-        FileSystem fs, String filePath) async =>
-    (await fsExportToStringList(fs, filePath))
-        .map((line) => (jsonDecode(line) as Map?)?.cast<String, Object?>())
-        .toList(growable: false);
+  FileSystem fs,
+  String filePath,
+) async => (await fsExportToStringList(fs, filePath))
+    .map((line) => (jsonDecode(line) as Map?)?.cast<String, Object?>())
+    .toList(growable: false);
 
 ///
 /// helper to read a list of string (lines)
 ///
 Future fsImportFromMapList(
-    FileSystem fs, String filePath, List<Map<String, Object?>> mapList) async {
+  FileSystem fs,
+  String filePath,
+  List<Map<String, Object?>> mapList,
+) async {
   var sink = fs.file(filePath).openWrite();
 
   for (var map in mapList) {
@@ -45,6 +49,7 @@ Future<List<String>> fsExportToStringList(FileSystem fs, String filePath) {
       .bind(fs.file(filePath).openRead())
       .transform(const LineSplitter())
       .listen((String line) {
-    content.add(line);
-  }).asFuture(content);
+        content.add(line);
+      })
+      .asFuture(content);
 }

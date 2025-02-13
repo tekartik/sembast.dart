@@ -46,15 +46,19 @@ void defineTests(DatabaseTestContext ctx) {
       var store = StoreRef<int, String>.main();
       var record = store.record(1);
       final futures = <Future>[];
-      futures.add(db.transaction((txn) async {
-        await record.put(txn, 'hi');
-        expect(await record.get(txn), 'hi');
-      }));
+      futures.add(
+        db.transaction((txn) async {
+          await record.put(txn, 'hi');
+          expect(await record.get(txn), 'hi');
+        }),
+      );
 
       // here we are in a transaction so it will wait for the other to finish
-      futures.add(db.transaction((txn) async {
-        expect(await record.get(txn), 'hi');
-      }));
+      futures.add(
+        db.transaction((txn) async {
+          expect(await record.get(txn), 'hi');
+        }),
+      );
 
       // here the value should not be loaded yet
       expect(await record.get(db), isNull);
@@ -68,27 +72,29 @@ void defineTests(DatabaseTestContext ctx) {
       final futures = <Future>[];
       var completer1 = Completer<void>();
       var completer2 = Completer<void>();
-      futures.add(db.transaction((txn) async {
-        expect(await record.exists(txn), isFalse);
+      futures.add(
+        db.transaction((txn) async {
+          expect(await record.exists(txn), isFalse);
 
-        await record.put(txn, 'hi');
-        completer1.complete();
+          await record.put(txn, 'hi');
+          completer1.complete();
 
-        expect(await record.get(txn), 'hi');
+          expect(await record.get(txn), 'hi');
 
-        var records = await store.find(txn);
-        expect(records.length, 1);
+          var records = await store.find(txn);
+          expect(records.length, 1);
 
-        records = await store.stream(txn).toList();
-        expect(records.length, 1);
+          records = await store.stream(txn).toList();
+          expect(records.length, 1);
 
-        var count = await store.count(txn);
-        expect(count, 1);
+          var count = await store.count(txn);
+          expect(count, 1);
 
-        expect(await record.exists(txn), isTrue);
+          expect(await record.exists(txn), isTrue);
 
-        await completer2.future;
-      }));
+          await completer2.future;
+        }),
+      );
 
       await completer1.future;
 
@@ -105,9 +111,11 @@ void defineTests(DatabaseTestContext ctx) {
       expect(await record.exists(db), isFalse);
 
       // here we are in a transaction so it will wait for the other to finish
-      futures.add(db.transaction((txn) async {
-        expect(await record.get(txn), 'hi');
-      }));
+      futures.add(
+        db.transaction((txn) async {
+          expect(await record.get(txn), 'hi');
+        }),
+      );
 
       completer2.complete();
 

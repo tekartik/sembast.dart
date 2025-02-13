@@ -37,18 +37,23 @@ class FileSystemMemory implements fs.FileSystem {
   @override
   Future<bool> isFile(String path) {
     return type(path, followLinks: true).then(
-        (fs.FileSystemEntityType type) => type == fs.FileSystemEntityType.file);
+      (fs.FileSystemEntityType type) => type == fs.FileSystemEntityType.file,
+    );
   }
 
   @override
   Future<bool> isDirectory(String path) {
-    return type(path, followLinks: true).then((fs.FileSystemEntityType type) =>
-        type == fs.FileSystemEntityType.directory);
+    return type(path, followLinks: true).then(
+      (fs.FileSystemEntityType type) =>
+          type == fs.FileSystemEntityType.directory,
+    );
   }
 
   @override
-  Future<fs.FileSystemEntityType> type(String path,
-      {bool followLinks = true}) async {
+  Future<fs.FileSystemEntityType> type(
+    String path, {
+    bool followLinks = true,
+  }) async {
     final entityImpl = _impl.getEntity(path);
     if (entityImpl != null) {
       return entityImpl.type;
@@ -130,10 +135,11 @@ class FileMemory extends FileSystemEntityMemory implements fs.File {
 
   // don't care about encoding - assume UTF8
   @override
-  fs.IOSink openWrite(
-          {fs.FileMode mode = fs.FileMode.write, Encoding encoding = utf8}) //
-      =>
-      _fs._impl.openWrite(path, mode: mode);
+  fs.IOSink openWrite({
+    fs.FileMode mode = fs.FileMode.write,
+    Encoding encoding = utf8,
+  }) //
+  => _fs._impl.openWrite(path, mode: mode);
 
   @override
   Future<fs.File> rename(String newPath) async {

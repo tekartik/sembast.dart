@@ -73,15 +73,18 @@ extension JdbDatabaseInternalExt on JdbDatabase {
       sembastCodecContentCodecOrNull(sembastCodec);
 
   JdbReadEntry _readEntryFromReadEntryEncoded(
-      JdbReadEntryEncoded encoded, Object? value) {
+    JdbReadEntryEncoded encoded,
+    Object? value,
+  ) {
     var id = encoded.id;
     var store = SembastStoreRef<Key?, Value?>(encoded.storeName);
     var record = store.record(encoded.recordKey);
     var deleted = encoded.deleted;
-    var entry = JdbReadEntry()
-      ..id = id
-      ..record = record
-      ..deleted = deleted;
+    var entry =
+        JdbReadEntry()
+          ..id = id
+          ..record = record
+          ..deleted = deleted;
     if (!deleted) {
       entry.value = value!;
     }
@@ -117,7 +120,8 @@ extension JdbDatabaseInternalExt on JdbDatabase {
 
   /// Decode a read entry (async codec)
   Future<JdbReadEntry> decodeReadEntryAsync(
-      JdbReadEntryEncoded entryEncoded) async {
+    JdbReadEntryEncoded entryEncoded,
+  ) async {
     Object? value;
     if (!entryEncoded.deleted) {
       value = entryEncoded.valueEncoded;
@@ -136,7 +140,8 @@ extension JdbDatabaseInternalExt on JdbDatabase {
 
   /// Encode entries, handling async codec if needed.
   Future<List<JdbWriteEntryEncoded>> encodeEntries(
-      Iterable<JdbWriteEntry> entries) async {
+    Iterable<JdbWriteEntry> entries,
+  ) async {
     var encodedList = <JdbWriteEntryEncoded>[];
     var jsonEncodableCodec = sembastCodecJsonEncodableCodec(sembastCodec);
     final hasAsyncCodec = this.hasAsyncCodec;
@@ -158,8 +163,9 @@ extension JdbDatabaseInternalExt on JdbDatabase {
         /// If a codec is specified, write the value as a string instead.
         if (contentCodec != null) {
           if (hasAsyncCodec) {
-            valueEncoded =
-                await contentCodec.encodeContentAsync(encodableValue);
+            valueEncoded = await contentCodec.encodeContentAsync(
+              encodableValue,
+            );
           } else {
             valueEncoded = contentCodec.encodeContentSync(encodableValue);
           }

@@ -35,8 +35,12 @@ void databaseImportExportIoGroup(DatabaseTestContext ctx) {
       await db.close();
 
       // Import as new encrypted database
-      db = await importDatabase(exportMap, factory, encryptedDbPath,
-          codec: codec);
+      db = await importDatabase(
+        exportMap,
+        factory,
+        encryptedDbPath,
+        codec: codec,
+      );
 
       // Test still present
       expect(await store.record(key1).get(db), 'test');

@@ -17,14 +17,16 @@ Future<void> main() async {
         final dir = await Directory.systemTemp.createTemp('sembast');
         final bashFilePath = join(dir.path, 'codecov.bash');
         await File(bashFilePath).writeAsString(
-            await IOClient().read(Uri.parse('https://codecov.io/bash')));
+          await IOClient().read(Uri.parse('https://codecov.io/bash')),
+        );
         await shell.run('bash $bashFilePath');
       } catch (e) {
         stderr.writeln('Publishing code coverage failed ($e)');
       }
     } else {
       stdout.writeln(
-          'CODECOV_TOKEN not defined. Not publishing coverage information');
+        'CODECOV_TOKEN not defined. Not publishing coverage information',
+      );
     }
   } else {
     stdout.writeln('No code coverage for non-stable dart version $dartVersion');

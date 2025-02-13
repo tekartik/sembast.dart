@@ -11,7 +11,9 @@ void main() {
   group('fs_storage', () {
     test('corrupted', () async {
       var storage = FsDatabaseStorage(
-          fs, join('.dart_tool', 'sembast', 'test', 'corrupted_non_utf8.db'));
+        fs,
+        join('.dart_tool', 'sembast', 'test', 'corrupted_non_utf8.db'),
+      );
       await storage.delete();
       await storage.findOrCreate();
       await storage.appendLine(String.fromCharCodes([195, 9]));
@@ -22,16 +24,18 @@ void main() {
       } on FormatException catch (_) {}
 
       expect(
-          '',
-          await storage
-              .readSafeLines()
-              .firstWhere((element) => true, orElse: () => ''));
+        '',
+        await storage.readSafeLines().firstWhere(
+          (element) => true,
+          orElse: () => '',
+        ),
+      );
 
       await storage.delete();
       await storage.appendLines([
         '1',
         String.fromCharCodes([195, 9]),
-        '2'
+        '2',
       ]);
 
       var lines = await storage.readSafeLines().toList();
@@ -40,7 +44,7 @@ void main() {
       await storage.appendLines([
         'first\r\n2',
         String.fromCharCodes([195, 9, 10, 51]),
-        String.fromCharCodes(utf8.encode('éà'))
+        String.fromCharCodes(utf8.encode('éà')),
       ]);
 
       lines = await storage.readSafeLines().toList();

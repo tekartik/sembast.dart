@@ -29,12 +29,15 @@ class JsonEncodableDecoder extends Converter<Object, Object> {
 
 /// Never null, convert a list to a map.
 Map<String, SembastTypeAdapter> sembastTypeAdaptersToMap(
-    Iterable<SembastTypeAdapter>? adapters) {
+  Iterable<SembastTypeAdapter>? adapters,
+) {
   var adaptersMap = <String, SembastTypeAdapter>{};
   if (adapters != null) {
     for (var adapter in adapters) {
-      assert(adaptersMap[adapter.name] == null,
-          'Adapter already exists for ${adapter.name}');
+      assert(
+        adaptersMap[adapter.name] == null,
+        'Adapter already exists for ${adapter.name}',
+      );
       adaptersMap[adapter.name] = adapter;
     }
   }
@@ -140,9 +143,10 @@ Object toJsonEncodable(Object value, Iterable<SembastTypeAdapter> adapters) {
     converted = _toJsonEncodable(value, adapters);
   } on ArgumentError catch (e) {
     throw ArgumentError.value(
-        e.invalidValue,
-        '${(e.invalidValue as Object?).runtimeType} in $value',
-        'not supported');
+      e.invalidValue,
+      '${(e.invalidValue as Object?).runtimeType} in $value',
+      'not supported',
+    );
   }
 
   /// Ensure root is Map<String, Object?> if only Map
@@ -153,7 +157,9 @@ Object toJsonEncodable(Object value, Iterable<SembastTypeAdapter> adapters) {
 }
 
 Object? _fromEncodable(
-    Object? value, Map<String, SembastTypeAdapter>? adapters) {
+  Object? value,
+  Map<String, SembastTypeAdapter>? adapters,
+) {
   if (isBasicTypeOrNull(value)) {
     return value;
   } else if (value is Map) {
@@ -205,13 +211,18 @@ Object? _fromEncodable(
 
 /// Convert a value from a Sqflite value
 Object fromJsonEncodable(
-    Object value, Map<String, SembastTypeAdapter>? adapters) {
+  Object value,
+  Map<String, SembastTypeAdapter>? adapters,
+) {
   Object converted;
   try {
     converted = _fromEncodable(value, adapters)!;
   } on ArgumentError catch (e) {
-    throw ArgumentError.value(e.invalidValue,
-        '${(e.invalidValue as Object).runtimeType} in $value', 'not supported');
+    throw ArgumentError.value(
+      e.invalidValue,
+      '${(e.invalidValue as Object).runtimeType} in $value',
+      'not supported',
+    );
   }
 
   /// Ensure root is Map<String, Object?> if only Map
@@ -222,5 +233,6 @@ Object fromJsonEncodable(
 }
 
 /// Default jsonEncodableCodec
-final sembastDefaultJsonEncodableCodec =
-    JsonEncodableCodec(adapters: sembastDefaultTypeAdapters);
+final sembastDefaultJsonEncodableCodec = JsonEncodableCodec(
+  adapters: sembastDefaultTypeAdapters,
+);

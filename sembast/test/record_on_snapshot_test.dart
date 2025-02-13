@@ -8,8 +8,9 @@ void main() {
   group('record.onSnapshot', () {
     late Database db;
     setUp(() async {
-      db = await newDatabaseFactoryMemory()
-          .openDatabase('record_on_snapshot_test.db');
+      db = await newDatabaseFactoryMemory().openDatabase(
+        'record_on_snapshot_test.db',
+      );
     });
     tearDown(() async {
       try {
@@ -44,9 +45,10 @@ void main() {
 
       var doneFuture = done();
       unawaited(
-          Future<void>.delayed(const Duration(milliseconds: 2)).then((_) async {
-        await record.put(db, 3);
-      }));
+        Future<void>.delayed(const Duration(milliseconds: 2)).then((_) async {
+          await record.put(db, 3);
+        }),
+      );
       await doneFuture;
 
       await record.put(db, 1);
@@ -59,17 +61,19 @@ void main() {
 
       doneFuture = done();
       unawaited(
-          Future<void>.delayed(const Duration(milliseconds: 2)).then((_) async {
-        await record.put(db, 3);
-      }));
+        Future<void>.delayed(const Duration(milliseconds: 2)).then((_) async {
+          await record.put(db, 3);
+        }),
+      );
       await doneFuture;
 
       await record.put(db, 1);
       doneFuture = done();
       unawaited(
-          Future<void>.delayed(const Duration(milliseconds: 2)).then((_) async {
-        await db.close();
-      }));
+        Future<void>.delayed(const Duration(milliseconds: 2)).then((_) async {
+          await db.close();
+        }),
+      );
       try {
         // Bad state: No element
         await doneFuture;
@@ -89,8 +93,10 @@ void main() {
       expect(await records.onSnapshots(db).first, [null, null]);
       await record1.put(db, 1);
       await record2.put(db, 2);
-      expect(
-          (await records.onSnapshots(db).first).map((e) => e?.value), [1, 2]);
+      expect((await records.onSnapshots(db).first).map((e) => e?.value), [
+        1,
+        2,
+      ]);
     });
   });
 }

@@ -51,8 +51,10 @@ void main() {
       final fs = FileSystemMemoryImpl();
 
       // at root
-      var dir =
-          fs.createDirectory(join(separator, 'test', 'sub'), recursive: true);
+      var dir = fs.createDirectory(
+        join(separator, 'test', 'sub'),
+        recursive: true,
+      );
 
       dir =
           fs.getEntity(join(separator, 'test', 'sub')) as DirectoryMemoryImpl?;

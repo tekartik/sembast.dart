@@ -92,7 +92,10 @@ class StorageJdbIncrementRevisionStatus {
 
   /// Increment revision operation.
   StorageJdbIncrementRevisionStatus(
-      this.originalRevision, this.readRevision, this.success);
+    this.originalRevision,
+    this.readRevision,
+    this.success,
+  );
 
   @override
   String toString() =>
@@ -111,9 +114,10 @@ JdbInfoEntry getStoreLastIntKeyInfoEntry(String store, int? lastIntKey) =>
       ..value = lastIntKey;
 
 /// Create meta info entry.
-JdbInfoEntry getMetaInfoEntry(Meta meta) => JdbInfoEntry()
-  ..id = metaKey
-  ..value = meta.toMap();
+JdbInfoEntry getMetaInfoEntry(Meta meta) =>
+    JdbInfoEntry()
+      ..id = metaKey
+      ..value = meta.toMap();
 
 /// Jdb implementation
 abstract class StorageJdb extends StorageBase {

@@ -28,14 +28,14 @@ class DatabaseException implements Exception {
 
   /// Creates a database not found exception.
   DatabaseException.databaseNotFound(this._message)
-      : _code = errDatabaseNotFound;
+    : _code = errDatabaseNotFound;
 
   /// Creates an invalid codec exception.
   DatabaseException.invalidCodec(this._message) : _code = errInvalidCodec;
 
   /// Creates a database closed exception.
   DatabaseException.closed([this._message = 'database is closed'])
-      : _code = errDatabaseClosed;
+    : _code = errDatabaseClosed;
 
   @override
   String toString() => '[$_code] $_message';

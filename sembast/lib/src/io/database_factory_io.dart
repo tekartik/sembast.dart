@@ -12,11 +12,13 @@ class DatabaseFactoryIo extends DatabaseFactoryFs {
 
   /// Io file system implementation
   DatabaseFactoryIo({String? rootPath})
-      : super(FileSystemIo(rootPath: rootPath));
+    : super(FileSystemIo(rootPath: rootPath));
 
   @override
   Future<Database> openDatabaseWithOptions(
-      String path, DatabaseOpenOptions options) {
+    String path,
+    DatabaseOpenOptions options,
+  ) {
     path = fileSystemIo.absolute(path);
     return super.openDatabaseWithOptions(path, options);
   }

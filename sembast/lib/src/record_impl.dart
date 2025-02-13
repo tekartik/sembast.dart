@@ -20,14 +20,18 @@ mixin SembastRecordHelperMixin implements SembastRecord {
   ///
   /// Copy a record.
   ///
-  ImmutableSembastRecord sembastClone(
-      {SembastStore? store,
-      dynamic key,
-      RecordRef<Key?, Value?>? ref,
-      dynamic value,
-      required bool deleted}) {
-    return ImmutableSembastRecord(ref ?? this.ref, (value ?? this.value) as Map,
-        deleted: deleted);
+  ImmutableSembastRecord sembastClone({
+    SembastStore? store,
+    dynamic key,
+    RecordRef<Key?, Value?>? ref,
+    dynamic value,
+    required bool deleted,
+  }) {
+    return ImmutableSembastRecord(
+      ref ?? this.ref,
+      (value ?? this.value) as Map,
+      deleted: deleted,
+    );
   }
 
   /// Clone as deleted.
@@ -96,8 +100,12 @@ class ImmutableSembastRecordJdb extends ImmutableSembastRecord {
   /// revision needed
   ///
   /// [value] can be null for deleted
-  ImmutableSembastRecordJdb(super.ref, super.value,
-      {super.deleted, required int revision}) {
+  ImmutableSembastRecordJdb(
+    super.ref,
+    super.value, {
+    super.deleted,
+    required int revision,
+  }) {
     this.revision = revision;
   }
 }
@@ -128,9 +136,10 @@ class ImmutableSembastRecord
   /// Record from row map.
   ImmutableSembastRecord.fromDatabaseRowMap(Map map) {
     final storeName = map[dbStoreNameKey] as String?;
-    final storeRef = storeName == null
-        ? mainStoreRef
-        : SembastStoreRef<Key, Value>(storeName);
+    final storeRef =
+        storeName == null
+            ? mainStoreRef
+            : SembastStoreRef<Key, Value>(storeName);
     var key = map[dbRecordKey] as Key?;
     var value = map[dbRecordValueKey] as Value?;
     if (key == null) {
@@ -154,8 +163,11 @@ class ImmutableSembastRecord
   ///
   /// value is null for deleted record only
   ///
-  ImmutableSembastRecord(RecordRef<Key?, Value?> ref, Value? value,
-      {bool deleted = false}) {
+  ImmutableSembastRecord(
+    RecordRef<Key?, Value?> ref,
+    Value? value, {
+    bool deleted = false,
+  }) {
     this.ref = ref;
     _deleted = deleted;
     if (!deleted) {
@@ -169,8 +181,10 @@ class ImmutableSembastRecord
   ///
   /// value is null for deleted record
   ///
-  ImmutableSembastRecord.noValue(RecordRef<Key?, Value?> ref,
-      {bool deleted = false}) {
+  ImmutableSembastRecord.noValue(
+    RecordRef<Key?, Value?> ref, {
+    bool deleted = false,
+  }) {
     this.ref = ref;
     _deleted = deleted;
     if (deleted) {
@@ -228,14 +242,18 @@ bool isMapRecord(Map map) {
 
 /// Convert to immutable if needed
 ImmutableSembastRecordJdb makeImmutableRecordJdb(
-    ImmutableSembastRecord record) {
+  ImmutableSembastRecord record,
+) {
   if (record is ImmutableSembastRecordJdb) {
     return record;
   }
   // no revision
   return ImmutableSembastRecordJdb(
-      record.ref, record.deleted ? null : cloneValue(record.value),
-      deleted: record.deleted, revision: record.revision!);
+    record.ref,
+    record.deleted ? null : cloneValue(record.value),
+    deleted: record.deleted,
+    revision: record.revision!,
+  );
 }
 
 /// Make immutable snapshot.

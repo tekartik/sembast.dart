@@ -1,5 +1,4 @@
 @Deprecated('Use valuesAreEquals')
-
 /// Test where 2 values are equals, going deeper in lists and maps.
 bool valueAreEquals(Object? value1, Object? value2) =>
     valuesAreEquals(value1, value2);

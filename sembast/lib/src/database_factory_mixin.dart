@@ -35,7 +35,9 @@ mixin SembastDatabaseFactoryMixin implements SembastDatabaseFactory {
 
   /// Open a database with a given set of options.
   Future<Database> openDatabaseWithOptions(
-      String path, DatabaseOpenOptions options) {
+    String path,
+    DatabaseOpenOptions options,
+  ) {
     if (options.mode == DatabaseMode.readOnly) {
       if (options.version != null) {
         throw ArgumentError('readOnly mode does not support version');
@@ -47,23 +49,29 @@ mixin SembastDatabaseFactoryMixin implements SembastDatabaseFactory {
   }
 
   @override
-  Future<Database> openDatabase(String path,
-      {int? version,
-      OnVersionChangedFunction? onVersionChanged,
-      DatabaseMode? mode,
-      SembastCodec? codec}) {
+  Future<Database> openDatabase(
+    String path, {
+    int? version,
+    OnVersionChangedFunction? onVersionChanged,
+    DatabaseMode? mode,
+    SembastCodec? codec,
+  }) {
     return openDatabaseWithOptions(
-        path,
-        DatabaseOpenOptions(
-            version: version,
-            onVersionChanged: onVersionChanged,
-            mode: mode,
-            codec: codec));
+      path,
+      DatabaseOpenOptions(
+        version: version,
+        onVersionChanged: onVersionChanged,
+        mode: mode,
+        codec: codec,
+      ),
+    );
   }
 
   /// Get or create the open helper for a given path.
   DatabaseOpenHelper getDatabaseOpenHelper(
-      String path, DatabaseOpenOptions options) {
+    String path,
+    DatabaseOpenOptions options,
+  ) {
     var helper = getExistingDatabaseOpenHelper(path);
     if (helper == null) {
       helper = DatabaseOpenHelper(this, path, options);
@@ -103,8 +111,10 @@ mixin SembastDatabaseFactoryMixin implements SembastDatabaseFactory {
 
   /// Flush all opened databases
   Future flush() async {
-    var helpers = List<DatabaseOpenHelper>.from(_databaseOpenHelpers.values,
-        growable: false);
+    var helpers = List<DatabaseOpenHelper>.from(
+      _databaseOpenHelpers.values,
+      growable: false,
+    );
     for (var helper in helpers) {
       await helper.database?.flush();
     }

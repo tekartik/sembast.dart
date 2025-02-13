@@ -24,9 +24,11 @@ void main() {
     // Create a query to test records with 'key1' = 'value1'
     // Ordered by keys
     var query = store.query(
-        finder: Finder(
-            filter: Filter.equals('key1', 'value1'),
-            sortOrders: [SortOrder(Field.key)]));
+      finder: Finder(
+        filter: Filter.equals('key1', 'value1'),
+        sortOrders: [SortOrder(Field.key)],
+      ),
+    );
 
     // Add some data
     await db.transaction((txn) async {

@@ -35,14 +35,16 @@ void defineTests(FileSystemTestContext ctx) {
   test('invalid_codec', () async {
     try {
       await prepareOneRecordDatabase(
-          codec: SembastCodec(signature: 'test', codec: null));
+        codec: SembastCodec(signature: 'test', codec: null),
+      );
       fail('should fail');
     } on DatabaseException catch (e) {
       expect(e.code, DatabaseException.errInvalidCodec);
     }
     try {
       await prepareOneRecordDatabase(
-          codec: SembastCodec(signature: null, codec: MyJsonCodec()));
+        codec: SembastCodec(signature: null, codec: MyJsonCodec()),
+      );
       fail('should fail');
     } on DatabaseException catch (e) {
       expect(e.code, DatabaseException.errInvalidCodec);

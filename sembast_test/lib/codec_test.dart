@@ -15,8 +15,10 @@ void defineTests(DatabaseTestContext ctx) {
     test('export', () async {
       var path = dbPathFromName('codec/base64.db');
       await factory.deleteDatabase(path);
-      var codec =
-          SembastCodec(signature: 'base64', codec: SembastBase64Codec());
+      var codec = SembastCodec(
+        signature: 'base64',
+        codec: SembastBase64Codec(),
+      );
       var store = StoreRef<String, Object>.main();
       var record = store.record('key');
       var recordTimestamp = store.record('timestamp');

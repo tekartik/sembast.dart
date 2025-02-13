@@ -14,7 +14,10 @@ void main() {
     test('import', () async {
       var file = join('test', 'src', 'data', 'export1.jsonl');
       var db = await importDatabaseFromFile(
-          file, newDatabaseFactoryMemory(), 'test');
+        file,
+        newDatabaseFactoryMemory(),
+        'test',
+      );
       expect(await StoreRef<int, String>.main().record(1).get(db), 'hi');
     });
     test('export', () async {
@@ -24,7 +27,10 @@ void main() {
       await exportDatabaseToJsonlFile(db, file);
 
       db = await importDatabaseFromFile(
-          file, newDatabaseFactoryMemory(), 'test');
+        file,
+        newDatabaseFactoryMemory(),
+        'test',
+      );
       expect(await StoreRef<int, String>.main().record(1).get(db), 'test2');
     });
   });

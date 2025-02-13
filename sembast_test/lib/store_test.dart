@@ -33,7 +33,9 @@ void defineTests(DatabaseTestContext ctx) {
       expect(store1.hashCode, store2.hashCode);
       expect(store1, isNot(StoreRef<Object?, Object?>('test')));
       expect(
-          StoreRef<Object, Object>('test'), StoreRef<Object?, Object?>('test'));
+        StoreRef<Object, Object>('test'),
+        StoreRef<Object?, Object?>('test'),
+      );
     });
 
     test('clear', () async {
@@ -99,7 +101,7 @@ void defineTests(DatabaseTestContext ctx) {
       expect(await store.records([key1, key2, key3]).get(db), [
         {'name': 'fish', 'age': 4},
         {'name': 'cat'},
-        {'name': 'dog', 'age': 4}
+        {'name': 'dog', 'age': 4},
       ]);
 
       // Update within transaction
@@ -109,7 +111,7 @@ void defineTests(DatabaseTestContext ctx) {
       expect(await store.records([key1, key2, key3]).get(db), [
         {'name': 'fish', 'age': 5},
         {'name': 'cat'},
-        {'name': 'dog', 'age': 5}
+        {'name': 'dog', 'age': 5},
       ]);
     });
 
@@ -117,11 +119,11 @@ void defineTests(DatabaseTestContext ctx) {
       var store = intMapStoreFactory.store('test');
       var record = store.record(1);
       await record.put(db, {
-        'test': {'sub': 1}
+        'test': {'sub': 1},
       });
       var snapshot = (await store.findFirst(db))!;
       expect(snapshot.value, {
-        'test': {'sub': 1}
+        'test': {'sub': 1},
       });
       try {
         (snapshot.value['test'] as Map)['sub'] = 2;
@@ -135,7 +137,7 @@ void defineTests(DatabaseTestContext ctx) {
       } on StateError catch (_) {}
 
       expect(snapshot.value, {
-        'test': {'sub': 1}
+        'test': {'sub': 1},
       });
     });
 
@@ -226,11 +228,11 @@ void defineTests(DatabaseTestContext ctx) {
         var key = await store.add(db, map);
         var record = store.record(key);
         expect(await record.get(db), {
-          'test': {'sub': 1}
+          'test': {'sub': 1},
         });
         innerMap['sub'] = 2;
         expect(await record.get(db), {
-          'test': {'sub': 1}
+          'test': {'sub': 1},
         });
       });
 
@@ -241,7 +243,7 @@ void defineTests(DatabaseTestContext ctx) {
           'double': 0.1,
           'String': 'text',
           'List': [1],
-          'Map': {'sub': 1}
+          'Map': {'sub': 1},
         };
         var key = await store.add(db, map);
         var record = store.record(key);
@@ -250,7 +252,7 @@ void defineTests(DatabaseTestContext ctx) {
           'double': 0.1,
           'String': 'text',
           'List': [1],
-          'Map': {'sub': 1}
+          'Map': {'sub': 1},
         });
       });
 
@@ -570,7 +572,7 @@ void defineTests(DatabaseTestContext ctx) {
         expect(await store.records([key1, key2, key3]).get(db!), [
           {'name': 'fish', 'age': 4},
           {'name': 'cat'},
-          {'name': 'dog', 'age': 4}
+          {'name': 'dog', 'age': 4},
         ]);
 
         // Update within transaction (not necessary, update is already done in
@@ -581,17 +583,20 @@ void defineTests(DatabaseTestContext ctx) {
         expect(await store.records([key1, key2, key3]).get(db!), [
           {'name': 'fish', 'age': 5},
           {'name': 'cat'},
-          {'name': 'dog', 'age': 5}
+          {'name': 'dog', 'age': 5},
         ]);
 
         expect(
-            await store.delete(db!,
-                finder: Finder(filter: Filter.equals('age', 5))),
-            2);
+          await store.delete(
+            db!,
+            finder: Finder(filter: Filter.equals('age', 5)),
+          ),
+          2,
+        );
         expect(await store.records([key1, key2, key3]).get(db!), [
           null,
           {'name': 'cat'},
-          null
+          null,
         ]);
       });
     });

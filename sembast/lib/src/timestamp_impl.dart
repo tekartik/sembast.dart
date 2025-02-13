@@ -30,7 +30,8 @@ class Timestamp implements Comparable<Timestamp> {
     }
     if (nanoseconds < 0 || nanoseconds > 999999999) {
       throw ArgumentError(
-          'invalid nanoseconds part ${toDateTime(isUtc: true)}');
+        'invalid nanoseconds part ${toDateTime(isUtc: true)}',
+      );
     }
   }
 
@@ -166,8 +167,10 @@ class Timestamp implements Comparable<Timestamp> {
   /// Convert a Timestamp to a [DateTime] object. This conversion
   /// causes a loss of precision and support millisecond precision.
   DateTime toDateTime({bool? isUtc}) {
-    return DateTime.fromMicrosecondsSinceEpoch(microsecondsSinceEpoch,
-        isUtc: isUtc == true);
+    return DateTime.fromMicrosecondsSinceEpoch(
+      microsecondsSinceEpoch,
+      isUtc: isUtc == true,
+    );
   }
 
   static String _threeDigits(int n) {

@@ -14,8 +14,8 @@ class SembastBoundary implements Boundary {
   ///
   /// user withParam
   SembastBoundary({RecordSnapshot? record, bool? include, this.values})
-      : include = include == true,
-        snapshot = makeImmutableRecordSnapshot(record);
+    : include = include == true,
+      snapshot = makeImmutableRecordSnapshot(record);
 
   Map<String, Object?> _toDebugMap() {
     final debugMap = <String, Object?>{};

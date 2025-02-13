@@ -49,8 +49,8 @@ class SembastTransaction extends Object
 
   @override
   Future<T> inTransaction<T>(
-          FutureOr<T> Function(SembastTransaction transaction) action) async =>
-      action(this);
+    FutureOr<T> Function(SembastTransaction transaction) action,
+  ) async => action(this);
 
   @override
   SembastTransaction get sembastTransaction => this;

@@ -11,9 +11,13 @@ import 'test_common.dart';
 void main() {
   test('type', () {
     expect(
-        memoryFileSystemContext.fs.runtimeType.toString(), 'FileSystemMemory');
-    expect(memoryDatabaseContext.factory,
-        const TypeMatcher<DatabaseFactoryMemory>());
+      memoryFileSystemContext.fs.runtimeType.toString(),
+      'FileSystemMemory',
+    );
+    expect(
+      memoryDatabaseContext.factory,
+      const TypeMatcher<DatabaseFactoryMemory>(),
+    );
   });
 
   defineMemoryDatabaseTests(memoryDatabaseContext);

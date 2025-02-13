@@ -60,8 +60,9 @@ int compareKey(dynamic key1, dynamic key2) => compareValue(key1, key2);
 
 /// compare record keys.
 int compareRecordKey(
-        ImmutableSembastRecord record1, ImmutableSembastRecord record2) =>
-    compareKey(record1.key, record2.key);
+  ImmutableSembastRecord record1,
+  ImmutableSembastRecord record2,
+) => compareKey(record1.key, record2.key);
 
 /// Compare 2 values.
 ///
@@ -251,7 +252,8 @@ K cloneKey<K>(K key) {
 Value cloneValue(Value value) {
   if (value is Map) {
     return value.map<String, Object?>(
-        (key, value) => MapEntry(key as String, cloneValueOrNull(value)));
+      (key, value) => MapEntry(key as String, cloneValueOrNull(value)),
+    );
   }
   if (value is Iterable) {
     return value.map((value) => cloneValueOrNull(value)).toList();
@@ -263,7 +265,8 @@ Value cloneValue(Value value) {
 dynamic cloneValueOrNull(dynamic value) {
   if (value is Map) {
     return value.map<String, Object?>(
-        (key, value) => MapEntry(key as String, cloneValueOrNull(value)));
+      (key, value) => MapEntry(key as String, cloneValueOrNull(value)),
+    );
   }
   if (value is Iterable) {
     return value.map((value) => cloneValueOrNull(value)).toList();
@@ -326,8 +329,12 @@ typedef SmartMatchValueFunction = bool Function(Object? value);
 
 /// Wild card for index
 const smartMatchIndexWildcard = '@';
-bool _smartMatchPartsAnyValue(Object? value, String part,
-    Iterable<String> parts, SmartMatchValueFunction match) {
+bool _smartMatchPartsAnyValue(
+  Object? value,
+  String part,
+  Iterable<String> parts,
+  SmartMatchValueFunction match,
+) {
   bool matchItem(Object? item) {
     if (parts.isEmpty) {
       return match(item);
@@ -364,7 +371,10 @@ bool _smartMatchPartsAnyValue(Object? value, String part,
 ///
 /// When match works for null value, behavior is unpredictable.
 bool smartMatchPartsMapValue(
-    Map map, Iterable<String> parts, SmartMatchValueFunction match) {
+  Map map,
+  Iterable<String> parts,
+  SmartMatchValueFunction match,
+) {
   if (parts.isEmpty) {
     return false;
   }
@@ -451,8 +461,11 @@ void setMapFieldValue<T>(Map map, String field, T value) {
 /// Merge an existing value with a new value, Map only
 ///
 /// either [existingValue] or [newValue] must not be null
-Object mergeValue(Object? existingValue, Object? newValue,
-    {bool? allowDotsInKeys}) {
+Object mergeValue(
+  Object? existingValue,
+  Object? newValue, {
+  bool? allowDotsInKeys,
+}) {
   // both cannot be null.
   assert(existingValue != null || newValue != null);
   allowDotsInKeys ??= false;
@@ -540,10 +553,12 @@ Stream<Uint8List> intListStreamToUint8ListStream(Stream stream) {
     return stream;
   } else if (stream is Stream<List<int>>) {
     return stream.transform(
-        StreamTransformer<List<int>, Uint8List>.fromHandlers(
-            handleData: (list, sink) {
-      sink.add(Uint8List.fromList(list));
-    }));
+      StreamTransformer<List<int>, Uint8List>.fromHandlers(
+        handleData: (list, sink) {
+          sink.add(Uint8List.fromList(list));
+        },
+      ),
+    );
   } else {
     throw ArgumentError('Invalid stream type: ${stream.runtimeType}');
   }

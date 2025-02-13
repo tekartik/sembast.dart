@@ -8,8 +8,12 @@ void main() {
   defineTests(memoryDatabaseContext, 10);
 }
 
-void defineTests(DatabaseTestContext ctx, int putCount,
-    {int randomCount = 10, int randomChoices = 10}) {
+void defineTests(
+  DatabaseTestContext ctx,
+  int putCount, {
+  int randomCount = 10,
+  int randomChoices = 10,
+}) {
   group('perf', () {
     late Database db;
 

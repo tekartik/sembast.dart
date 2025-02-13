@@ -14,26 +14,38 @@ Iterable<String> getNonEmptyStoreNames(Database database) =>
 ///
 /// if [storeNames] is not specified, it handles stores from both the source
 /// and destination database.
-Future<void> databaseMerge(Database db,
-    {required Database sourceDatabase, List<String>? storeNames}) async {
-  var names = storeNames ??
-      List.from(Set.from(getNonEmptyStoreNames(db))
-        ..addAll(Set.from(getNonEmptyStoreNames(sourceDatabase))));
+Future<void> databaseMerge(
+  Database db, {
+  required Database sourceDatabase,
+  List<String>? storeNames,
+}) async {
+  var names =
+      storeNames ??
+      List.from(
+        Set.from(getNonEmptyStoreNames(db))
+          ..addAll(Set.from(getNonEmptyStoreNames(sourceDatabase))),
+      );
   await db.transaction((transaction) async {
     for (var store in names) {
-      await txnMergeStore(transaction,
-          sourceDatabase: sourceDatabase, storeName: store);
+      await txnMergeStore(
+        transaction,
+        sourceDatabase: sourceDatabase,
+        storeName: store,
+      );
     }
   });
 }
 
 /// Merge a given store in a transaction, assuming source database does not change
-Future<void> txnMergeStore(Transaction txn,
-    {required Database sourceDatabase, required String storeName}) async {
+Future<void> txnMergeStore(
+  Transaction txn, {
+  required Database sourceDatabase,
+  required String storeName,
+}) async {
   var store = SembastStoreRef<Key, Value>(storeName);
   var originalRecords = await store.find(txn);
   var originalMap = <dynamic, RecordSnapshot<Object, Object>>{
-    for (var v in originalRecords) v.ref.key: v
+    for (var v in originalRecords) v.ref.key: v,
   };
 
   var sourceRecords = await store.find(sourceDatabase);

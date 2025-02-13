@@ -64,9 +64,9 @@ void defineJdbDatabaseFormatTests(DatabaseTestContextJdb ctx) {
         'infos': [
           {
             'id': 'meta',
-            'value': {'version': 1, 'sembast': 1}
+            'value': {'version': 1, 'sembast': 1},
           },
-        ]
+        ],
       });
       expect(getExportStat(db).lineCount, 0);
       expect(getExportStat(db).obsoleteLineCount, 0);
@@ -82,9 +82,9 @@ void defineJdbDatabaseFormatTests(DatabaseTestContextJdb ctx) {
         'infos': [
           {
             'id': 'meta',
-            'value': {'version': 2, 'sembast': 1}
+            'value': {'version': 2, 'sembast': 1},
           },
-        ]
+        ],
       });
       expect(getExportStat(db).lineCount, 0);
       await db.close();
@@ -100,9 +100,9 @@ void defineJdbDatabaseFormatTests(DatabaseTestContextJdb ctx) {
         'infos': [
           {
             'id': 'meta',
-            'value': {'version': 2, 'sembast': 1}
+            'value': {'version': 2, 'sembast': 1},
           },
-        ]
+        ],
       });
       await db.close();
     });
@@ -116,16 +116,16 @@ void defineJdbDatabaseFormatTests(DatabaseTestContextJdb ctx) {
           'entries': [
             {
               'id': 1,
-              'value': {'key': 1, 'value': 'hi'}
-            }
+              'value': {'key': 1, 'value': 'hi'},
+            },
           ],
           'infos': [
             {
               'id': 'meta',
-              'value': {'version': 1, 'sembast': 1}
+              'value': {'version': 1, 'sembast': 1},
             },
             {'id': 'revision', 'value': 1},
-          ]
+          ],
         });
         db = await reOpen(db);
         expect(await store.record(1).get(db), 'hi');
@@ -137,16 +137,18 @@ void defineJdbDatabaseFormatTests(DatabaseTestContextJdb ctx) {
     test('1 string record with codec', () async {
       var codec = SembastBase64Codec();
       var dbPath = await prepareForDb();
-      var db = await factory.openDatabase(dbPath,
-          codec: SembastCodec(signature: 'custom', codec: codec));
+      var db = await factory.openDatabase(
+        dbPath,
+        codec: SembastCodec(signature: 'custom', codec: codec),
+      );
       try {
         await store.record(1).put(db, 'hi');
         expect(await getJdbDatabase(db).exportToMap(), {
           'entries': [
             {
               'id': 1,
-              'value': {'key': 1, 'value': 'ImhpIg=='}
-            }
+              'value': {'key': 1, 'value': 'ImhpIg=='},
+            },
           ],
           'infos': [
             {
@@ -154,11 +156,11 @@ void defineJdbDatabaseFormatTests(DatabaseTestContextJdb ctx) {
               'value': {
                 'version': 1,
                 'sembast': 1,
-                'codec': 'eyJzaWduYXR1cmUiOiJjdXN0b20ifQ=='
-              }
+                'codec': 'eyJzaWduYXR1cmUiOiJjdXN0b20ifQ==',
+              },
             },
             {'id': 'revision', 'value': 1},
-          ]
+          ],
         });
         db = await reOpen(db);
         expect(await store.record(1).get(db), 'hi');
@@ -170,16 +172,19 @@ void defineJdbDatabaseFormatTests(DatabaseTestContextJdb ctx) {
     test('1 string record with async codec', () async {
       var codec = SembastBase64CodecAsync();
       var dbPath = await prepareForDb();
-      var db = await factory.openDatabase(dbPath,
-          version: 2, codec: SembastCodec(signature: 'custom', codec: codec));
+      var db = await factory.openDatabase(
+        dbPath,
+        version: 2,
+        codec: SembastCodec(signature: 'custom', codec: codec),
+      );
       try {
         await store.record(1).put(db, 'hi');
         expect(await getJdbDatabase(db).exportToMap(), {
           'entries': [
             {
               'id': 1,
-              'value': {'key': 1, 'value': 'ImhpIg=='}
-            }
+              'value': {'key': 1, 'value': 'ImhpIg=='},
+            },
           ],
           'infos': [
             {
@@ -187,11 +192,11 @@ void defineJdbDatabaseFormatTests(DatabaseTestContextJdb ctx) {
               'value': {
                 'version': 2,
                 'sembast': 1,
-                'codec': 'eyJzaWduYXR1cmUiOiJjdXN0b20ifQ=='
-              }
+                'codec': 'eyJzaWduYXR1cmUiOiJjdXN0b20ifQ==',
+              },
             },
             {'id': 'revision', 'value': 1},
-          ]
+          ],
         });
         db = await reOpen(db);
         expect(await store.record(1).get(db), 'hi');
@@ -210,32 +215,32 @@ void defineJdbDatabaseFormatTests(DatabaseTestContextJdb ctx) {
           'entries': [
             {
               'id': 1,
-              'value': {'key': 1, 'value': 'hi'}
-            }
+              'value': {'key': 1, 'value': 'hi'},
+            },
           ],
           'infos': [
             {
               'id': 'meta',
-              'value': {'version': 1, 'sembast': 1}
+              'value': {'version': 1, 'sembast': 1},
             },
             {'id': 'revision', 'value': 1},
-          ]
+          ],
         });
         await store.record(1).delete(db);
         expect(await getJdbDatabase(db).exportToMap(), {
           'entries': [
             {
               'id': 2,
-              'value': {'key': 1, 'deleted': true}
-            }
+              'value': {'key': 1, 'deleted': true},
+            },
           ],
           'infos': [
             {
               'id': 'meta',
-              'value': {'version': 1, 'sembast': 1}
+              'value': {'version': 1, 'sembast': 1},
             },
-            {'id': 'revision', 'value': 2}
-          ]
+            {'id': 'revision', 'value': 2},
+          ],
         });
         await compact(db);
         expect(await getJdbDatabase(db).exportToMap(), {
@@ -244,10 +249,10 @@ void defineJdbDatabaseFormatTests(DatabaseTestContextJdb ctx) {
             {'id': 'deltaMinRevision', 'value': 2},
             {
               'id': 'meta',
-              'value': {'version': 1, 'sembast': 1}
+              'value': {'version': 1, 'sembast': 1},
             },
-            {'id': 'revision', 'value': 2}
-          ]
+            {'id': 'revision', 'value': 2},
+          ],
         });
       } finally {
         await db.close();
@@ -263,16 +268,16 @@ void defineJdbDatabaseFormatTests(DatabaseTestContextJdb ctx) {
           'entries': [
             {
               'id': 1,
-              'value': {'key': 1, 'value': 'hi'}
-            }
+              'value': {'key': 1, 'value': 'hi'},
+            },
           ],
           'infos': [
             {
               'id': 'meta',
-              'value': {'version': 1, 'sembast': 1}
+              'value': {'version': 1, 'sembast': 1},
             },
             {'id': 'revision', 'value': 1},
-          ]
+          ],
         });
         db = await reOpen(db);
         var exportStat = getDatabaseExportStat(db);
@@ -285,16 +290,16 @@ void defineJdbDatabaseFormatTests(DatabaseTestContextJdb ctx) {
           'entries': [
             {
               'id': 2,
-              'value': {'key': 1, 'deleted': true}
-            }
+              'value': {'key': 1, 'deleted': true},
+            },
           ],
           'infos': [
             {
               'id': 'meta',
-              'value': {'version': 1, 'sembast': 1}
+              'value': {'version': 1, 'sembast': 1},
             },
-            {'id': 'revision', 'value': 2}
-          ]
+            {'id': 'revision', 'value': 2},
+          ],
         });
 
         db = await reOpen(db);
@@ -309,10 +314,10 @@ void defineJdbDatabaseFormatTests(DatabaseTestContextJdb ctx) {
             {'id': 'deltaMinRevision', 'value': 2},
             {
               'id': 'meta',
-              'value': {'version': 1, 'sembast': 1}
+              'value': {'version': 1, 'sembast': 1},
             },
-            {'id': 'revision', 'value': 2}
-          ]
+            {'id': 'revision', 'value': 2},
+          ],
         });
         db = await reOpen(db);
         exportStat = getDatabaseExportStat(db);
@@ -331,25 +336,26 @@ void defineJdbDatabaseFormatTests(DatabaseTestContextJdb ctx) {
         await store.record(1).put(db, 'hi');
         var storeEmptyFuture =
             store.query().onSnapshots(db).where((event) => event.isEmpty).first;
-        var recordDeleteFuture = store
-            .record(1)
-            .onSnapshot(db)
-            .where((snapshot) => snapshot == null)
-            .first;
+        var recordDeleteFuture =
+            store
+                .record(1)
+                .onSnapshot(db)
+                .where((snapshot) => snapshot == null)
+                .first;
         await dbImportFromMap(db, {
           'entries': [
             {
               'id': 2,
-              'value': {'key': 1, 'deleted': true}
-            }
+              'value': {'key': 1, 'deleted': true},
+            },
           ],
           'infos': [
             {
               'id': 'meta',
-              'value': {'version': 1, 'sembast': 1}
+              'value': {'version': 1, 'sembast': 1},
             },
-            {'id': 'revision', 'value': 2}
-          ]
+            {'id': 'revision', 'value': 2},
+          ],
         });
         // db = await factory.openDatabase(dbPath);
         // devPrint('0');
@@ -358,16 +364,16 @@ void defineJdbDatabaseFormatTests(DatabaseTestContextJdb ctx) {
           'entries': [
             {
               'id': 2,
-              'value': {'key': 1, 'deleted': true}
-            }
+              'value': {'key': 1, 'deleted': true},
+            },
           ],
           'infos': [
             {
               'id': 'meta',
-              'value': {'version': 1, 'sembast': 1}
+              'value': {'version': 1, 'sembast': 1},
             },
-            {'id': 'revision', 'value': 2}
-          ]
+            {'id': 'revision', 'value': 2},
+          ],
         });
         await storeEmptyFuture;
         await recordDeleteFuture;
@@ -381,22 +387,23 @@ void defineJdbDatabaseFormatTests(DatabaseTestContextJdb ctx) {
       var db = await factory.openDatabase(dbPath);
       try {
         await store.record(1).put(db, 'hi');
-        var recordDeleteFuture = store
-            .record(1)
-            .onSnapshot(db)
-            .where((snapshot) => snapshot == null)
-            .first;
+        var recordDeleteFuture =
+            store
+                .record(1)
+                .onSnapshot(db)
+                .where((snapshot) => snapshot == null)
+                .first;
 
         await dbImportFromMap(db, {
           'entries': <Object>[],
           'infos': [
             {
               'id': 'meta',
-              'value': {'version': 1, 'sembast': 1}
+              'value': {'version': 1, 'sembast': 1},
             },
             {'id': 'revision', 'value': 2},
-            {'id': 'deltaMinRevision', 'value': 2}
-          ]
+            {'id': 'deltaMinRevision', 'value': 2},
+          ],
         });
         // A full import will be performed
         await deltaImport(db, 2);
@@ -407,10 +414,10 @@ void defineJdbDatabaseFormatTests(DatabaseTestContextJdb ctx) {
             {'id': 'deltaMinRevision', 'value': 2},
             {
               'id': 'meta',
-              'value': {'version': 1, 'sembast': 1}
+              'value': {'version': 1, 'sembast': 1},
             },
-            {'id': 'revision', 'value': 2}
-          ]
+            {'id': 'revision', 'value': 2},
+          ],
         });
 
         await recordDeleteFuture;
@@ -426,15 +433,15 @@ void defineJdbDatabaseFormatTests(DatabaseTestContextJdb ctx) {
         'entries': [
           {
             'id': 1,
-            'value': {'key': 1, 'value': 'hi'}
-          }
+            'value': {'key': 1, 'value': 'hi'},
+          },
         ],
         'infos': [
           {
             'id': 'meta',
-            'value': {'version': 1, 'sembast': 1}
-          }
-        ]
+            'value': {'version': 1, 'sembast': 1},
+          },
+        ],
       });
       var db = await factory.openDatabase(dbPath);
 
@@ -444,15 +451,15 @@ void defineJdbDatabaseFormatTests(DatabaseTestContextJdb ctx) {
           'entries': [
             {
               'id': 1,
-              'value': {'key': 1, 'value': 'hi'}
-            }
+              'value': {'key': 1, 'value': 'hi'},
+            },
           ],
           'infos': [
             {
               'id': 'meta',
-              'value': {'version': 1, 'sembast': 1}
+              'value': {'version': 1, 'sembast': 1},
             },
-          ]
+          ],
         });
       } finally {
         await db.close();
@@ -465,15 +472,15 @@ void defineJdbDatabaseFormatTests(DatabaseTestContextJdb ctx) {
         'entries': [
           {
             'id': 1,
-            'value': {'key': 1, 'deleted': true}
-          }
+            'value': {'key': 1, 'deleted': true},
+          },
         ],
         'infos': [
           {
             'id': 'meta',
-            'value': {'version': 1, 'sembast': 1}
-          }
-        ]
+            'value': {'version': 1, 'sembast': 1},
+          },
+        ],
       });
       var db = await factory.openDatabase(dbPath);
 
@@ -483,15 +490,15 @@ void defineJdbDatabaseFormatTests(DatabaseTestContextJdb ctx) {
           'entries': [
             {
               'id': 1,
-              'value': {'key': 1, 'deleted': true}
-            }
+              'value': {'key': 1, 'deleted': true},
+            },
           ],
           'infos': [
             {
               'id': 'meta',
-              'value': {'version': 1, 'sembast': 1}
+              'value': {'version': 1, 'sembast': 1},
             },
-          ]
+          ],
         });
       } finally {
         await db.close();
@@ -504,43 +511,44 @@ void defineJdbDatabaseFormatTests(DatabaseTestContextJdb ctx) {
         'entries': [
           {
             'id': 1,
-            'value': {'key': 1, 'value': 'ha'}
+            'value': {'key': 1, 'value': 'ha'},
           },
           {
             'id': 2,
-            'value': {'key': 2}
+            'value': {'key': 2},
           },
           {
             'id': 3,
-            'value': {'key': 3, 'value': 'he'}
+            'value': {'key': 3, 'value': 'he'},
           },
           {
             'id': 3,
-            'value': {'key': 1, 'value': 'hi'}
+            'value': {'key': 1, 'value': 'hi'},
           },
           {
             'id': 5,
-            'value': {'key': 4, 'value': 'ho'}
-          }
+            'value': {'key': 4, 'value': 'ho'},
+          },
         ],
         'infos': [
           {
             'id': 'meta',
-            'value': {'version': 1, 'sembast': 1}
-          }
-        ]
+            'value': {'version': 1, 'sembast': 1},
+          },
+        ],
       });
       var db = await factory.openDatabase(dbPath);
 
       try {
         //await store.record(1).put(db, 'hi');
         var exportMap = await getJdbDatabase(db).exportToMap();
-        var entriesValues =
-            (exportMap['entries'] as List).map((e) => (e as Map)['value']);
+        var entriesValues = (exportMap['entries'] as List).map(
+          (e) => (e as Map)['value'],
+        );
         expect(entriesValues, [
           {'key': 3, 'value': 'he'},
           {'key': 1, 'value': 'hi'},
-          {'key': 4, 'value': 'ho'}
+          {'key': 4, 'value': 'ho'},
         ]);
       } finally {
         await db.close();
@@ -553,16 +561,16 @@ void defineJdbDatabaseFormatTests(DatabaseTestContextJdb ctx) {
         'entries': [
           {
             'id': 1,
-            'value': {'key': 1, 'value': 'hi'}
-          }
+            'value': {'key': 1, 'value': 'hi'},
+          },
         ],
         'infos': [
           {
             'id': 'meta',
-            'value': {'version': 1, 'sembast': 1}
+            'value': {'version': 1, 'sembast': 1},
           },
-          {'id': 'revision', 'value': 1}
-        ]
+          {'id': 'revision', 'value': 1},
+        ],
       });
       var db = await factory.openDatabase(dbPath);
       expect(await store.record(1).get(db), 'hi');
@@ -570,16 +578,16 @@ void defineJdbDatabaseFormatTests(DatabaseTestContextJdb ctx) {
         'entries': [
           {
             'id': 1,
-            'value': {'key': 1, 'value': 'hi'}
-          }
+            'value': {'key': 1, 'value': 'hi'},
+          },
         ],
         'infos': [
           {
             'id': 'meta',
-            'value': {'version': 1, 'sembast': 1}
+            'value': {'version': 1, 'sembast': 1},
           },
-          {'id': 'revision', 'value': 1}
-        ]
+          {'id': 'revision', 'value': 1},
+        ],
       });
 
       await db.close();
@@ -589,16 +597,16 @@ void defineJdbDatabaseFormatTests(DatabaseTestContextJdb ctx) {
         'entries': [
           {
             'id': 1,
-            'value': {'key': 1, 'value': 'hi'}
-          }
+            'value': {'key': 1, 'value': 'hi'},
+          },
         ],
         'infos': [
           {
             'id': 'meta',
-            'value': {'version': 1, 'sembast': 1}
+            'value': {'version': 1, 'sembast': 1},
           },
-          {'id': 'revision', 'value': 1}
-        ]
+          {'id': 'revision', 'value': 1},
+        ],
       });
       expect(getExportStat(db).lineCount, 1);
       expect(getExportStat(db).obsoleteLineCount, 0); // don't count meta
@@ -618,8 +626,10 @@ void defineJdbDatabaseFormatTests(DatabaseTestContextJdb ctx) {
 
         void checkRecords() async {
           var records = store.findSync(db);
-          expect(
-              records.keysAndValues, [('key1', 'value1'), ('key2', 'value2')]);
+          expect(records.keysAndValues, [
+            ('key1', 'value1'),
+            ('key2', 'value2'),
+          ]);
         }
 
         var content = await exportToMap(db);
@@ -637,8 +647,10 @@ void defineJdbDatabaseFormatTests(DatabaseTestContextJdb ctx) {
             .onSnapshot(db)
             .firstWhere((snapshot) => snapshot?.value == 'value2');
         var records = store.findSync(db);
-        expect(
-            records.keysAndValues, [('key2', 'value2bis'), ('key3', 'value3')]);
+        expect(records.keysAndValues, [
+          ('key2', 'value2bis'),
+          ('key3', 'value3'),
+        ]);
 
         // Write and reload
         await jdbDatabaseImportFromMap(getJdbDatabase(db), content);

@@ -27,10 +27,11 @@ void main() {
       expect(_match(filter, {'test': <String, Object>{}}), isFalse);
       expect(_match(filter, {'test': <int>[]}), isFalse);
       expect(
-          _match(filter, {
-            'test': [1]
-          }),
-          isFalse);
+        _match(filter, {
+          'test': [1],
+        }),
+        isFalse,
+      );
       expect(_match(filter, {'no_test': null}), isFalse);
       expect(_match(filter, <String, Object>{}), isFalse);
       // expect(_match(filter, null), isFalse);
@@ -39,15 +40,17 @@ void main() {
 
       filter = Filter.equals('test', 1, anyInList: true);
       expect(
-          _match(filter, {
-            'test': [1]
-          }),
-          isTrue);
+        _match(filter, {
+          'test': [1],
+        }),
+        isTrue,
+      );
       expect(
-          _match(filter, {
-            'test': ['no', 1, true]
-          }),
-          isTrue);
+        _match(filter, {
+          'test': ['no', 1, true],
+        }),
+        isTrue,
+      );
       expect(_match(filter, {'test': <String, Object>{}}), isFalse);
       expect(_match(filter, {'test': 1}), isFalse);
       expect(_match(filter, {'test': null}), isFalse);
@@ -69,14 +72,14 @@ void main() {
       }
 
       testEquals({
-        'test': {'sub': 1}
+        'test': {'sub': 1},
       }, true);
       testEquals({'no_test': null}, false);
       testEquals({'test': null}, false);
       testEquals({'test': <String, Object>{}}, false);
       testEquals({'test': <Object>[]}, false);
       testEquals({
-        'test': {'sub': 2}
+        'test': {'sub': 2},
       }, false);
     });
 
@@ -90,14 +93,14 @@ void main() {
       }
 
       testEquals({
-        'test': [1]
+        'test': [1],
       }, true);
       testEquals({'no_test': null}, false);
       testEquals({'test': null}, false);
       testEquals({'test': <String, Object>{}}, false);
       testEquals({'test': <Object>[]}, false);
       testEquals({
-        'test': [2]
+        'test': [2],
       }, false);
     });
 
@@ -105,82 +108,93 @@ void main() {
       var filter = Filter.equals('sub.field', 1);
       expect(_match(filter, {'sub.field': 1}), isFalse);
       expect(
-          _match(filter, {
-            'sub': {'field': 1}
-          }),
-          isTrue);
+        _match(filter, {
+          'sub': {'field': 1},
+        }),
+        isTrue,
+      );
     });
     test('sub.field not null', () {
       var filter = Filter.notEquals('sub.field', null);
       expect(
-          _match(filter, {
-            'sub': {'field': 1}
-          }),
-          isTrue);
+        _match(filter, {
+          'sub': {'field': 1},
+        }),
+        isTrue,
+      );
       expect(
-          _match(filter, {
-            'sub': {'field': null}
-          }),
-          isFalse);
+        _match(filter, {
+          'sub': {'field': null},
+        }),
+        isFalse,
+      );
     });
     test('sub.field null', () {
       var filter = Filter.equals('sub.field', null);
       expect(
-          _match(filter, {
-            'sub': {'field': 1}
-          }),
-          isFalse);
+        _match(filter, {
+          'sub': {'field': 1},
+        }),
+        isFalse,
+      );
       expect(
-          _match(filter, {
-            'sub': {'field': null}
-          }),
-          isTrue);
+        _match(filter, {
+          'sub': {'field': null},
+        }),
+        isTrue,
+      );
       expect(_match(filter, {}), isTrue);
     });
     test('sub.listfield', () {
       var filter = Filter.equals('sub.field', 1, anyInList: true);
       expect(
-          _match(filter, {
-            'sub.field': [1]
-          }),
-          isFalse);
+        _match(filter, {
+          'sub.field': [1],
+        }),
+        isFalse,
+      );
       expect(
-          _match(filter, {
-            'sub': {
-              'field': [1]
-            }
-          }),
-          isTrue);
+        _match(filter, {
+          'sub': {
+            'field': [1],
+          },
+        }),
+        isTrue,
+      );
     });
     test('item_array', () {
       var filter = Filter.equals('sub.0', 1);
       expect(_match(filter, {'sub': <Object?>[]}), isFalse);
       expect(
-          _match(filter, {
-            'sub': [1]
-          }),
-          isTrue);
+        _match(filter, {
+          'sub': [1],
+        }),
+        isTrue,
+      );
       expect(
-          _match(filter, {
-            'sub': {'0': 1}
-          }),
-          isTrue);
+        _match(filter, {
+          'sub': {'0': 1},
+        }),
+        isTrue,
+      );
       filter = Filter.equals('sub.@', 1);
       expect(_match(filter, {'sub': <Object?>[]}), isFalse);
       expect(
-          _match(filter, {
-            'sub': [1]
-          }),
-          isTrue);
+        _match(filter, {
+          'sub': [1],
+        }),
+        isTrue,
+      );
     });
     test('field_with_dot', () {
       var filter = Filter.equals(FieldKey.escape('sub.field'), 1);
       expect(_match(filter, {'sub.field': 1}), isTrue);
       expect(
-          _match(filter, {
-            'sub': {'field': 1}
-          }),
-          isFalse);
+        _match(filter, {
+          'sub': {'field': 1},
+        }),
+        isFalse,
+      );
     });
 
     test('greaterThanOrEguals', () {
@@ -200,8 +214,10 @@ void main() {
     });
 
     test('or', () {
-      var filter =
-          Filter.or([Filter.equals('test', 1), Filter.equals('test', 2)]);
+      var filter = Filter.or([
+        Filter.equals('test', 1),
+        Filter.equals('test', 2),
+      ]);
       expect(_match(filter, {'test': 1}), isTrue);
       expect(_match(filter, {'test': 2}), isTrue);
       expect(_match(filter, {'test': 3}), isFalse);
@@ -229,45 +245,73 @@ void main() {
       // precedence
       // Dart's precedence rules specify & to have higher precedence than |
       expect(
-          _match(neverMatchFilter | alwaysMatchFilter & alwaysMatchFilter,
-              'dummy'),
-          isTrue);
+        _match(
+          neverMatchFilter | alwaysMatchFilter & alwaysMatchFilter,
+          'dummy',
+        ),
+        isTrue,
+      );
       expect(
-          _match(
-              alwaysMatchFilter | neverMatchFilter & neverMatchFilter, 'dummy'),
-          isTrue);
+        _match(
+          alwaysMatchFilter | neverMatchFilter & neverMatchFilter,
+          'dummy',
+        ),
+        isTrue,
+      );
       expect(
-          _match(
-              neverMatchFilter | alwaysMatchFilter & neverMatchFilter, 'dummy'),
-          isFalse);
+        _match(
+          neverMatchFilter | alwaysMatchFilter & neverMatchFilter,
+          'dummy',
+        ),
+        isFalse,
+      );
       expect(
-          _match(
-              neverMatchFilter | neverMatchFilter & alwaysMatchFilter, 'dummy'),
-          isFalse);
+        _match(
+          neverMatchFilter | neverMatchFilter & alwaysMatchFilter,
+          'dummy',
+        ),
+        isFalse,
+      );
       expect(
-          _match(neverMatchFilter & alwaysMatchFilter | alwaysMatchFilter,
-              'dummy'),
-          isTrue);
+        _match(
+          neverMatchFilter & alwaysMatchFilter | alwaysMatchFilter,
+          'dummy',
+        ),
+        isTrue,
+      );
       expect(
-          _match(
-              neverMatchFilter & neverMatchFilter | alwaysMatchFilter, 'dummy'),
-          isTrue);
+        _match(
+          neverMatchFilter & neverMatchFilter | alwaysMatchFilter,
+          'dummy',
+        ),
+        isTrue,
+      );
       expect(
-          _match(
-              neverMatchFilter & alwaysMatchFilter | neverMatchFilter, 'dummy'),
-          isFalse);
+        _match(
+          neverMatchFilter & alwaysMatchFilter | neverMatchFilter,
+          'dummy',
+        ),
+        isFalse,
+      );
       expect(
-          _match(
-              alwaysMatchFilter & neverMatchFilter | neverMatchFilter, 'dummy'),
-          isFalse);
+        _match(
+          alwaysMatchFilter & neverMatchFilter | neverMatchFilter,
+          'dummy',
+        ),
+        isFalse,
+      );
     });
 
     test('and', () {
-      var filter =
-          Filter.and([Filter.equals('test1', 1), Filter.equals('test2', 2)]);
+      var filter = Filter.and([
+        Filter.equals('test1', 1),
+        Filter.equals('test2', 2),
+      ]);
       expect(_match(filter, {'test1': 1, 'test2': 2}), isTrue);
       expect(
-          _match(filter, {'test1': 1, 'test2': 2, 'dummy': 'value'}), isTrue);
+        _match(filter, {'test1': 1, 'test2': 2, 'dummy': 'value'}),
+        isTrue,
+      );
       expect(_match(filter, {'test1': 1}), isFalse);
       expect(_match(filter, {'test2': 2}), isFalse);
       expect(_match(filter, {'test1': 1, 'test2': 3}), isFalse);
@@ -288,23 +332,32 @@ void main() {
       var store = StoreRef<String, Object>.main();
       var filter = Filter.byKey(1);
       expect(_match(filter, 'dummy'), isTrue);
-      expect(filterMatchesRecord(filter, intStore.record(1).snapshot('dummy')),
-          isTrue);
       expect(
-          filterMatchesRecord(filter, store.record('dummy').snapshot('dummy')),
-          isFalse);
-      expect(filterMatchesRecord(filter, intStore.record(2).snapshot('dummy')),
-          isFalse);
+        filterMatchesRecord(filter, intStore.record(1).snapshot('dummy')),
+        isTrue,
+      );
+      expect(
+        filterMatchesRecord(filter, store.record('dummy').snapshot('dummy')),
+        isFalse,
+      );
+      expect(
+        filterMatchesRecord(filter, intStore.record(2).snapshot('dummy')),
+        isFalse,
+      );
       filter = Filter.byKey('my_key');
       expect(
-          filterMatchesRecord(filter, store.record('my_key').snapshot('dummy')),
-          isTrue);
+        filterMatchesRecord(filter, store.record('my_key').snapshot('dummy')),
+        isTrue,
+      );
       expect(_match(filter, 'dummy'), isFalse);
-      expect(filterMatchesRecord(filter, intStore.record(1).snapshot('dummy')),
-          isFalse);
       expect(
-          filterMatchesRecord(filter, store.record('dummy').snapshot('dummy')),
-          isFalse);
+        filterMatchesRecord(filter, intStore.record(1).snapshot('dummy')),
+        isFalse,
+      );
+      expect(
+        filterMatchesRecord(filter, store.record('dummy').snapshot('dummy')),
+        isFalse,
+      );
       filter = Filter.byKey(null);
       expect(_match(filter, 'dummy'), isFalse);
     });
@@ -340,10 +393,11 @@ void main() {
       expect(_match(filter, {'test': <String, Object?>{}}), isFalse);
       expect(_match(filter, {'test': <Object>[]}), isFalse);
       expect(
-          _match(filter, {
-            'test': [1]
-          }),
-          isFalse);
+        _match(filter, {
+          'test': [1],
+        }),
+        isFalse,
+      );
       expect(_match(filter, {'no_test': null}), isFalse);
       expect(_match(filter, <String, Object>{}), isFalse);
       expect(_match(filter, 'dummy'), isFalse);
@@ -353,46 +407,58 @@ void main() {
       /// The key!
       filter = Filter.matches(Field.key, '^f');
 
-      expect(filterMatchesRecord(filter, store.record('f').snapshot('dummy')),
-          isTrue);
-      expect(filterMatchesRecord(filter, store.record('e').snapshot('dummy')),
-          isFalse);
+      expect(
+        filterMatchesRecord(filter, store.record('f').snapshot('dummy')),
+        isTrue,
+      );
+      expect(
+        filterMatchesRecord(filter, store.record('e').snapshot('dummy')),
+        isFalse,
+      );
 
       var intStore = StoreRef<int, Object>.main();
-      expect(filterMatchesRecord(filter, intStore.record(1).snapshot('dummy')),
-          isFalse);
+      expect(
+        filterMatchesRecord(filter, intStore.record(1).snapshot('dummy')),
+        isFalse,
+      );
 
       filter = Filter.matches('test', '^f', anyInList: true);
       expect(
-          _match(filter, {
-            'test': ['fish']
-          }),
-          isTrue);
+        _match(filter, {
+          'test': ['fish'],
+        }),
+        isTrue,
+      );
       expect(
-          _match(filter, {
-            'test': ['no', 'food', true]
-          }),
-          isTrue);
+        _match(filter, {
+          'test': ['no', 'food', true],
+        }),
+        isTrue,
+      );
       expect(
-          _match(filter, {
-            'test': ['f']
-          }),
-          isTrue);
+        _match(filter, {
+          'test': ['f'],
+        }),
+        isTrue,
+      );
       expect(
-          _match(filter, {
-            'test': ['e']
-          }),
-          isFalse);
+        _match(filter, {
+          'test': ['e'],
+        }),
+        isFalse,
+      );
       expect(
-          _match(filter, {
-            'test': ['g']
-          }),
-          isFalse);
+        _match(filter, {
+          'test': ['g'],
+        }),
+        isFalse,
+      );
       expect(
-          _match(filter, {
-            'test': [1]
-          }),
-          isFalse);
+        _match(filter, {
+          'test': [1],
+        }),
+        isFalse,
+      );
 
       expect(_match(filter, {'test': <String, Object>{}}), isFalse);
       expect(_match(filter, {'test': 1}), isFalse);

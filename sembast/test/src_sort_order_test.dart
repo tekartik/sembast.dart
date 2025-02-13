@@ -28,10 +28,10 @@ void main() {
       var field = 'my.field';
       var sortOrder = SembastSortOrder(field);
       var record1 = SembastRecordSnapshot(record, {
-        'my': {'field': 1}
+        'my': {'field': 1},
       });
       var record2 = SembastRecordSnapshot(record, {
-        'my': {'field': 2}
+        'my': {'field': 2},
       });
       expect(sortOrder.compareAscending(record1, record2), -1);
     });
@@ -40,10 +40,10 @@ void main() {
       var field = 'my.0';
       var sortOrder = SembastSortOrder(field);
       var record1 = SembastRecordSnapshot(record, {
-        'my': [1]
+        'my': [1],
       });
       var record2 = SembastRecordSnapshot(record, {
-        'my': [2]
+        'my': [2],
       });
       expect(sortOrder.compareAscending(record1, record2), -1);
     });
@@ -62,11 +62,13 @@ void main() {
       var record2 = SembastRecordSnapshot(record, '10');
 
       var sortOrder = SembastSortOrder(field);
-      var sortOrderParseInt = SortOrder<String>.custom(
-              field,
-              (value1, value2) =>
-                  int.parse(value1).compareTo(int.parse(value2)))
-          as SembastSortOrder<String>;
+      var sortOrderParseInt =
+          SortOrder<String>.custom(
+                field,
+                (value1, value2) =>
+                    int.parse(value1).compareTo(int.parse(value2)),
+              )
+              as SembastSortOrder<String>;
       expect(sortOrder.compareAscending(record1, record2), greaterThan(0));
       expect(sortOrderParseInt.compareAscending(record1, record2), -1);
     });

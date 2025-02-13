@@ -8,15 +8,18 @@ import 'package:sembast/src/type_adapter_impl.dart';
 /// as format is expected to be compatible
 SembastCodec sembastCodecWithAdapters(Iterable<SembastTypeAdapter> adapters) {
   var sembastCodec = SembastCodec(
-      codec: null,
-      signature: null,
-      jsonEncodableCodec: JsonEncodableCodec(adapters: adapters));
+    codec: null,
+    signature: null,
+    jsonEncodableCodec: JsonEncodableCodec(adapters: adapters),
+  );
   return sembastCodec;
 }
 
 /// Json Codec with supports for DateTime and Blobs (UInt8List)
-SembastCodec sembastCodecDefault =
-    sembastCodecWithAdapters([sembastBlobAdapter, sembastTimestampAdapter]);
+SembastCodec sembastCodecDefault = sembastCodecWithAdapters([
+  sembastBlobAdapter,
+  sembastTimestampAdapter,
+]);
 
 /// Get content codec.
 Codec<Object?, String> sembastCodecContentCodec(SembastCodec? sembastCodec) =>
@@ -25,8 +28,8 @@ Codec<Object?, String> sembastCodecContentCodec(SembastCodec? sembastCodec) =>
 /// Get content codec. Needed for indexeddb where we save the value as is if no
 /// codec is specified.
 Codec<Object?, String>? sembastCodecContentCodecOrNull(
-        SembastCodec? sembastCodec) =>
-    sembastCodec?.codec;
+  SembastCodec? sembastCodec,
+) => sembastCodec?.codec;
 
 /// Get json encodable codec.
 JsonEncodableCodec sembastCodecJsonEncodableCodec(SembastCodec? sembastCodec) =>
@@ -38,5 +41,6 @@ Object sembastCodecToJsonEncodable(SembastCodec? sembastCodec, Object value) =>
 
 /// Decode a sembast value from json encodable format.
 Object sembastCodecFromJsonEncodable(
-        SembastCodec? sembastCodec, Object value) =>
-    sembastCodecJsonEncodableCodec(sembastCodec).decode(value);
+  SembastCodec? sembastCodec,
+  Object value,
+) => sembastCodecJsonEncodableCodec(sembastCodec).decode(value);

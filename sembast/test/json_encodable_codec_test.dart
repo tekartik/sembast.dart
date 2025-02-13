@@ -14,58 +14,68 @@ void main() {
     var codec = JsonEncodableCodec(adapters: [sembastTimestampAdapter]);
     group('encode', () {
       test('map', () {
-        expect(codec.encode(<Object?, Object?>{'test': Timestamp(1, 2)}),
-            const TypeMatcher<Map<String, Object?>>());
-        expect(codec.encode(<Object?, Object?>{'test': 1}),
-            const TypeMatcher<Map<String, Object?>>());
+        expect(
+          codec.encode(<Object?, Object?>{'test': Timestamp(1, 2)}),
+          const TypeMatcher<Map<String, Object?>>(),
+        );
+        expect(
+          codec.encode(<Object?, Object?>{'test': 1}),
+          const TypeMatcher<Map<String, Object?>>(),
+        );
       });
       test('custom', () {
-        expect(codec.encode(Timestamp(1, 2)),
-            {'@Timestamp': '1970-01-01T00:00:01.000000002Z'});
+        expect(codec.encode(Timestamp(1, 2)), {
+          '@Timestamp': '1970-01-01T00:00:01.000000002Z',
+        });
       });
       test('custom in list', () {
         expect(codec.encode([Timestamp(1, 2)]), [
-          {'@Timestamp': '1970-01-01T00:00:01.000000002Z'}
+          {'@Timestamp': '1970-01-01T00:00:01.000000002Z'},
         ]);
       });
       test('look like custom', () {
         expect(codec.encode({'@Timestamp': '1970-01-01T00:00:01.000000002Z'}), {
-          '@': {'@Timestamp': '1970-01-01T00:00:01.000000002Z'}
+          '@': {'@Timestamp': '1970-01-01T00:00:01.000000002Z'},
         });
         expect(
-            codec.encode({
-              '@Timestamp': '1970-01-01T00:00:01.000000002Z',
-              'other': 'dummy'
-            }),
-            {'@Timestamp': '1970-01-01T00:00:01.000000002Z', 'other': 'dummy'});
+          codec.encode({
+            '@Timestamp': '1970-01-01T00:00:01.000000002Z',
+            'other': 'dummy',
+          }),
+          {'@Timestamp': '1970-01-01T00:00:01.000000002Z', 'other': 'dummy'},
+        );
         expect(codec.encode({'@': 1}), {
-          '@': {'@': 1}
+          '@': {'@': 1},
         });
         // fail to encode
         expect(codec.encode({'@': Timestamp(1, 2)}), {
-          '@': {'@': Timestamp(1, 2)}
+          '@': {'@': Timestamp(1, 2)},
         });
       });
     });
     group('decode', () {
       test('custom', () {
-        expect(codec.decode({'@Timestamp': '1970-01-01T00:00:01.000000002Z'}),
-            Timestamp(1, 2));
+        expect(
+          codec.decode({'@Timestamp': '1970-01-01T00:00:01.000000002Z'}),
+          Timestamp(1, 2),
+        );
       });
       test('not_custom', () {
         expect(
-            codec.decode({
-              '@Timestamp': '1970-01-01T00:00:01.000000002Z',
-              'other': 'dummy'
-            }),
-            {'@Timestamp': '1970-01-01T00:00:01.000000002Z', 'other': 'dummy'});
+          codec.decode({
+            '@Timestamp': '1970-01-01T00:00:01.000000002Z',
+            'other': 'dummy',
+          }),
+          {'@Timestamp': '1970-01-01T00:00:01.000000002Z', 'other': 'dummy'},
+        );
       });
       test('look like custom', () {
         expect(
-            codec.decode({
-              '@': {'@Timestamp': '1970-01-01T00:00:01.000000002Z'}
-            }),
-            {'@Timestamp': '1970-01-01T00:00:01.000000002Z'});
+          codec.decode({
+            '@': {'@Timestamp': '1970-01-01T00:00:01.000000002Z'},
+          }),
+          {'@Timestamp': '1970-01-01T00:00:01.000000002Z'},
+        );
       });
     });
     test('all', () {
@@ -97,8 +107,8 @@ void main() {
             [
               {'sub': 1},
               {'subcustom': Timestamp(2, 3)},
-            ]
-          ]
+            ],
+          ],
         },
       ]) {
         loop(value);
@@ -107,11 +117,12 @@ void main() {
 
     test('allAdapters', () {
       var codec = JsonEncodableCodec(
-          adapters: ([
-        sembastDateTimeAdapter,
-        sembastBlobAdapter,
-        sembastTimestampAdapter
-      ]));
+        adapters: ([
+          sembastDateTimeAdapter,
+          sembastBlobAdapter,
+          sembastTimestampAdapter,
+        ]),
+      );
       var decoded = {
         'null': null,
         'int': 1,
@@ -123,7 +134,7 @@ void main() {
         'looksLikeDateTime': {'@DateTime': '1970-01-01T00:00:00.001Z'},
         'looksLikeTimestamp': {'@Timestamp': '1970-01-01T00:00:00.000001Z'},
         'looksLikeBlob': {'@Blob': 'AQID'},
-        'looksLikeDummy': {'@': null}
+        'looksLikeDummy': {'@': null},
       };
       var encoded = {
         'null': null,
@@ -134,17 +145,17 @@ void main() {
         'timestamp': {'@Timestamp': '1970-01-01T00:00:00.000001Z'},
         'blob': {'@Blob': 'AQID'},
         'looksLikeDateTime': {
-          '@': {'@DateTime': '1970-01-01T00:00:00.001Z'}
+          '@': {'@DateTime': '1970-01-01T00:00:00.001Z'},
         },
         'looksLikeTimestamp': {
-          '@': {'@Timestamp': '1970-01-01T00:00:00.000001Z'}
+          '@': {'@Timestamp': '1970-01-01T00:00:00.000001Z'},
         },
         'looksLikeBlob': {
-          '@': {'@Blob': 'AQID'}
+          '@': {'@Blob': 'AQID'},
         },
         'looksLikeDummy': {
-          '@': {'@': null}
-        }
+          '@': {'@': null},
+        },
       };
       expect(codec.encode(decoded), encoded);
     });
@@ -168,25 +179,28 @@ void main() {
             'test': [
               1,
               true,
-              [4.5]
-            ]
-          }
+              [4.5],
+            ],
+          },
         ],
         <String, Object?>{
           'test': [
             1,
             true,
-            [4.5]
-          ]
-        }
+            [4.5],
+          ],
+        },
       ];
       for (var value in identicals) {
         var encoded = value;
         encoded = codec.encode(value);
         expect(codec.decode(encoded), value);
-        expect(identical(encoded, value), isTrue,
-            reason:
-                '$value ${identityHashCode(value)} vs ${identityHashCode(encoded)}');
+        expect(
+          identical(encoded, value),
+          isTrue,
+          reason:
+              '$value ${identityHashCode(value)} vs ${identityHashCode(encoded)}',
+        );
       }
       var notIdenticals = [
         <Object?, Object?>{}, // being cast
@@ -194,16 +208,19 @@ void main() {
         [Timestamp(1, 2)],
         <String, Object?>{'test': Timestamp(1, 2)},
         <String, Object?>{
-          'test': [Timestamp(1, 2)]
-        }
+          'test': [Timestamp(1, 2)],
+        },
       ];
       for (var value in notIdenticals) {
         Object? encoded = value;
         encoded = codec.encode(value);
         expect(codec.decode(encoded), value);
-        expect(!identical(encoded, value), isTrue,
-            reason:
-                '$value ${identityHashCode(value)} vs ${identityHashCode(encoded)}');
+        expect(
+          !identical(encoded, value),
+          isTrue,
+          reason:
+              '$value ${identityHashCode(value)} vs ${identityHashCode(encoded)}',
+        );
       }
     });
   });
@@ -211,14 +228,16 @@ void main() {
     var adapters = sembastDefaultTypeAdapters;
     var adaptersMap = sembastTypeAdaptersToMap(adapters);
     test('timestamp', () {
-      expect(toJsonEncodable(Timestamp(1, 2), adapters),
-          {'@Timestamp': '1970-01-01T00:00:01.000000002Z'});
+      expect(toJsonEncodable(Timestamp(1, 2), adapters), {
+        '@Timestamp': '1970-01-01T00:00:01.000000002Z',
+      });
     });
     test('dateTime', () {
       try {
         expect(
-            toJsonEncodable(DateTime.fromMillisecondsSinceEpoch(1), adapters),
-            {'@Timestamp': '1970-01-01T00:00:01.000000002Z'});
+          toJsonEncodable(DateTime.fromMillisecondsSinceEpoch(1), adapters),
+          {'@Timestamp': '1970-01-01T00:00:01.000000002Z'},
+        );
         fail('should fail');
       } on ArgumentError catch (_) {}
     });
@@ -282,20 +301,24 @@ void main() {
 
     test('FieldValue', () {
       try {
-        expect(toJsonEncodable(FieldValue.delete, adapters),
-            {'@Timestamp': '1970-01-01T00:00:01.000000002Z'});
+        expect(toJsonEncodable(FieldValue.delete, adapters), {
+          '@Timestamp': '1970-01-01T00:00:01.000000002Z',
+        });
         fail('should fail');
       } on ArgumentError catch (_) {}
     });
 
     test('Dummy', () {
-      expect(fromJsonEncodable({'@Dummy': 'test'}, adaptersMap),
-          {'@Dummy': 'test'});
-      expect(toJsonEncodable({'@Dummy': 'test'}, adapters), {
-        '@': {'@Dummy': 'test'}
+      expect(fromJsonEncodable({'@Dummy': 'test'}, adaptersMap), {
+        '@Dummy': 'test',
       });
-      expect(toJsonEncodable({'@Dummy': 'test', 'other': 1}, adapters),
-          {'@Dummy': 'test', 'other': 1});
+      expect(toJsonEncodable({'@Dummy': 'test'}, adapters), {
+        '@': {'@Dummy': 'test'},
+      });
+      expect(toJsonEncodable({'@Dummy': 'test', 'other': 1}, adapters), {
+        '@Dummy': 'test',
+        'other': 1,
+      });
     });
 
     test('allAdapters', () {
@@ -305,14 +328,14 @@ void main() {
         'int': 1,
         'list': [1, 2, 3],
         'map': {
-          'sub': [1, 2, 3]
+          'sub': [1, 2, 3],
         },
         'string': 'text',
         'timestamp': Timestamp(1, 2),
         'blob': Blob.fromList([1, 2, 3]),
         '@Dummy': 'test',
         'dummy': {'@Dummy': 'test'},
-        'dummyMap': {'@': 'test'}
+        'dummyMap': {'@': 'test'},
       };
       var encoded = {
         'null': null,
@@ -320,18 +343,18 @@ void main() {
         'int': 1,
         'list': [1, 2, 3],
         'map': {
-          'sub': [1, 2, 3]
+          'sub': [1, 2, 3],
         },
         'string': 'text',
         'timestamp': {'@Timestamp': '1970-01-01T00:00:01.000000002Z'},
         'blob': {'@Blob': 'AQID'},
         '@Dummy': 'test',
         'dummy': {
-          '@': {'@Dummy': 'test'}
+          '@': {'@Dummy': 'test'},
         },
         'dummyMap': {
-          '@': {'@': 'test'}
-        }
+          '@': {'@': 'test'},
+        },
       };
       expect(toJsonEncodable(decoded, adapters), encoded);
       expect(fromJsonEncodable(encoded, adaptersMap), decoded);
@@ -352,28 +375,34 @@ void main() {
             'test': [
               1,
               true,
-              [4.5]
-            ]
-          }
+              [4.5],
+            ],
+          },
         ],
         <String, Object?>{
           'test': [
             1,
             true,
-            [4.5]
-          ]
-        }
+            [4.5],
+          ],
+        },
       ];
       for (var value in identicals) {
         var encoded = toJsonEncodable(value, adapters);
 
-        expect(identical(encoded, value), isTrue,
-            reason:
-                '$value ${identityHashCode(value)} vs ${identityHashCode(encoded)}');
+        expect(
+          identical(encoded, value),
+          isTrue,
+          reason:
+              '$value ${identityHashCode(value)} vs ${identityHashCode(encoded)}',
+        );
         value = fromJsonEncodable(value, adaptersMap);
-        expect(identical(encoded, value), isTrue,
-            reason:
-                '$value ${identityHashCode(value)} vs ${identityHashCode(encoded)}');
+        expect(
+          identical(encoded, value),
+          isTrue,
+          reason:
+              '$value ${identityHashCode(value)} vs ${identityHashCode(encoded)}',
+        );
       }
       var notIdenticals = [
         <Object?, Object?>{}, // being cast
@@ -382,21 +411,24 @@ void main() {
         [Timestamp(1, 2)],
         <String, Object?>{'test': Timestamp(1, 2)},
         <String, Object?>{
-          'test': [Timestamp(1, 2)]
+          'test': [Timestamp(1, 2)],
         },
         [
-          {'test': Timestamp(1, 2)}
+          {'test': Timestamp(1, 2)},
         ],
-        {'@Dummy': 'test'}
+        {'@Dummy': 'test'},
       ];
       for (var value in notIdenticals) {
         Object? encoded = value;
         encoded = toJsonEncodable(value, adapters);
 
         expect(fromJsonEncodable(encoded, adaptersMap), value);
-        expect(!identical(encoded, value), isTrue,
-            reason:
-                '$value ${identityHashCode(value)} vs ${identityHashCode(encoded)}');
+        expect(
+          !identical(encoded, value),
+          isTrue,
+          reason:
+              '$value ${identityHashCode(value)} vs ${identityHashCode(encoded)}',
+        );
       }
     });
   });

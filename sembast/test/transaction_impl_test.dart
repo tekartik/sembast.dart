@@ -16,8 +16,9 @@ void defineTests(DatabaseTestContext ctx) {
     late SembastDatabase db;
 
     setUp(() async {
-      db = await setupForTest(ctx, 'compat/transaction_impl.db')
-          as SembastDatabase;
+      db =
+          await setupForTest(ctx, 'compat/transaction_impl.db')
+              as SembastDatabase;
     });
 
     tearDown(() {
@@ -34,10 +35,12 @@ void defineTests(DatabaseTestContext ctx) {
       // expect(db.currentTransaction, isNull);
       // here the value should not be loaded yet
 
-      futures.add(record.get(db).then((value) {
-        //expect(db.currentTransaction, isNull);
-        expect(value, null);
-      }));
+      futures.add(
+        record.get(db).then((value) {
+          //expect(db.currentTransaction, isNull);
+          expect(value, null);
+        }),
+      );
       return Future.wait(futures);
     });
 

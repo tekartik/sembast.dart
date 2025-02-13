@@ -176,9 +176,9 @@ void defineTests(DatabaseTestContext ctx) {
         'nested': {'sub': 4321},
         'list': [
           {
-            'nested': {'sub': 4321}
-          }
-        ]
+            'nested': {'sub': 4321},
+          },
+        ],
       };
       expect(await record.exists(db), isFalse);
       await record.put(db, map);

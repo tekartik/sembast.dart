@@ -38,12 +38,15 @@ extension SembastRecordsRefExtension<K, V> on RecordsRef<K, V> {
 
   /// Get all records snapshot.
   Future<List<RecordSnapshot<K, V>?>> getSnapshots(
-      DatabaseClient databaseClient) async {
+    DatabaseClient databaseClient,
+  ) async {
     var client = getClient(databaseClient);
 
-    return snapshotsFromImmutableRecords(await client
-        .getSembastStore(store)
-        .txnGetImmutableRecords(client.sembastTransaction, this));
+    return snapshotsFromImmutableRecords(
+      await client
+          .getSembastStore(store)
+          .txnGetImmutableRecords(client.sembastTransaction, this),
+    );
   }
 
   /// Create records that don't exist.
@@ -70,17 +73,19 @@ extension SembastRecordsRefExtension<K, V> on RecordsRef<K, V> {
   /// The list of [values] must match the list of keys.
   ///
   /// Returns the updated values.
-  Future<List<V>> put(DatabaseClient databaseClient, List<V> values,
-      {bool? merge}) {
+  Future<List<V>> put(
+    DatabaseClient databaseClient,
+    List<V> values, {
+    bool? merge,
+  }) {
     if (values.length != keys.length) {
       throw ArgumentError('the list of values must match the list of keys');
     }
     var client = getClient(databaseClient);
     return client.inTransaction((txn) async {
       return (await client
-              .getSembastStore(store)
-              .txnPutAll<K, V>(txn, values, keys, merge: merge))
-          .cast<V>();
+          .getSembastStore(store)
+          .txnPutAll<K, V>(txn, values, keys, merge: merge)).cast<V>();
     });
   }
 
@@ -100,17 +105,15 @@ extension SembastRecordsRefExtension<K, V> on RecordsRef<K, V> {
     var client = getClient(databaseClient);
     return client.inTransaction((txn) async {
       return (await client
-              .getSembastStore(store)
-              .txnUpdateAll(txn, values, keys))
-          .cast<V?>();
+          .getSembastStore(store)
+          .txnUpdateAll(txn, values, keys)).cast<V?>();
     });
   }
 
   /// Get all records values.
-  Future<List<V?>> get(DatabaseClient client) async =>
-      (await getSnapshots(client))
-          .map((snapshot) => snapshot?.value)
-          .toList(growable: false);
+  Future<List<V?>> get(DatabaseClient client) async => (await getSnapshots(
+    client,
+  )).map((snapshot) => snapshot?.value).toList(growable: false);
 
   /// Get a stream of a record snapshots from the database.
   ///
@@ -129,15 +132,17 @@ extension SembastRecordsRefSyncExtension<K, V> on RecordsRef<K, V> {
   List<RecordSnapshot<K, V>?> getSnapshotsSync(DatabaseClient databaseClient) {
     var client = getClient(databaseClient);
 
-    return snapshotsFromImmutableRecords(client
-        .getSembastStore(store)
-        .txnGetImmutableRecordsSync(client.sembastTransaction, this));
+    return snapshotsFromImmutableRecords(
+      client
+          .getSembastStore(store)
+          .txnGetImmutableRecordsSync(client.sembastTransaction, this),
+    );
   }
 
   /// Get all records values synchronously.
-  List<V?> getSync(DatabaseClient client) => (getSnapshotsSync(client))
-      .map((snapshot) => snapshot?.value)
-      .toList(growable: false);
+  List<V?> getSync(DatabaseClient client) => (getSnapshotsSync(
+    client,
+  )).map((snapshot) => snapshot?.value).toList(growable: false);
 
   /// Get a stream of a record snapshots from the database.
   ///
@@ -181,10 +186,11 @@ class SembastRecordsRef<K, V> with RecordsRefMixin<K, V> {
 extension SembastRecordsRefExtensionPrv<K, V> on RecordsRef<K, V> {
   /// Create a snapshot list from a record list
   List<RecordSnapshot<K, V>?> snapshotsFromImmutableRecords(
-      List<ImmutableSembastRecord?> records) {
+    List<ImmutableSembastRecord?> records,
+  ) {
     return [
       for (var i = 0; i < keys.length; i++)
-        store.snapshotFromImmutableRecordOrNull(records[i])
+        store.snapshotFromImmutableRecordOrNull(records[i]),
     ];
   }
 }

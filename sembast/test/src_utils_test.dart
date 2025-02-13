@@ -14,8 +14,9 @@ void main() {
     late SembastDatabase db;
     setUpAll(() async {
       // Dummy database to access sanitizeInputValue
-      db = (await newDatabaseFactoryMemory().openDatabase('dummy'))
-          as SembastDatabase;
+      db =
+          (await newDatabaseFactoryMemory().openDatabase('dummy'))
+              as SembastDatabase;
     });
     tearDownAll(() async {
       await db.close();
@@ -66,18 +67,18 @@ void main() {
         'test': <Object?, List>{
           'sub': [
             {
-              'value': {'sub': 'value'}
-            }
-          ]
+              'value': {'sub': 'value'},
+            },
+          ],
         },
         'list': <Object?, List<Map<String, Object?>>>{
           'sub': [
             {
               'value': {'sub': 'value'},
-              'list': [1]
-            }
-          ]
-        }
+              'list': [1],
+            },
+          ],
+        },
       };
       final sanitizedMap = sanitizeInputValue<Map<String, Object?>>(map);
       sanitizeInputValue<Map<String, Object?>>(map);
@@ -87,12 +88,12 @@ void main() {
     test('sanitize iterable', () {
       try {
         sanitizeInputValue<Map>(<String, Object?>{
-          'item': [1].map((e) => e)
+          'item': [1].map((e) => e),
         });
         fail('should fail');
       } on ArgumentError catch (_) {}
       sanitizeInputValue<Map>(<String, Object?>{
-        'item': [1].map((e) => e).toList()
+        'item': [1].map((e) => e).toList(),
       });
     });
 
@@ -108,9 +109,9 @@ void main() {
           'list': [
             {'n': 1},
             null,
-            2
-          ]
-        }
+            2,
+          ],
+        },
       };
       var cloned = cloneValue(existing);
       expect(cloned, existing);
@@ -125,9 +126,9 @@ void main() {
           'list': [
             {'n': 5},
             null,
-            2
-          ]
-        }
+            2,
+          ],
+        },
       });
       expect(cloned, {
         'test': 1,
@@ -136,22 +137,23 @@ void main() {
           'list': [
             {'n': 1},
             null,
-            2
-          ]
-        }
+            2,
+          ],
+        },
       });
     });
     test('check_value', () {
       expect(
-          checkValue({
-            'test': [
-              true,
-              1.0,
-              1,
-              {'sub': 1}
-            ]
-          }),
-          isTrue);
+        checkValue({
+          'test': [
+            true,
+            1.0,
+            1,
+            {'sub': 1},
+          ],
+        }),
+        isTrue,
+      );
       expect(checkValue(DateTime.now()), isFalse);
       expect(checkValue([DateTime.now()]), isFalse);
       expect(checkValue({'test': DateTime.now()}), isFalse);
@@ -161,51 +163,65 @@ void main() {
 
     test('mergeInnerMap', () {
       expect(
-          mergeValue({
-            't1': {'s1': 1}
-          }, {
-            't1': {'s2': 2}
-          }),
+        mergeValue(
           {
-            't1': {'s2': 2}
-          });
+            't1': {'s1': 1},
+          },
+          {
+            't1': {'s2': 2},
+          },
+        ),
+        {
+          't1': {'s2': 2},
+        },
+      );
       expect(
-          mergeValue({
-            't1': {'s1': 1}
-          }, {
-            't1.s2': 2
-          }),
+        mergeValue(
           {
-            't1': {'s1': 1, 's2': 2}
-          });
+            't1': {'s1': 1},
+          },
+          {'t1.s2': 2},
+        ),
+        {
+          't1': {'s1': 1, 's2': 2},
+        },
+      );
     });
     test('mergeSubInnerMap', () {
       expect(
-          mergeValue({
-            't1': {
-              's1': {'u1': 1}
-            }
-          }, {
-            't1': {'s2': 2}
-          }),
+        mergeValue(
           {
-            't1': {'s2': 2}
-          });
+            't1': {
+              's1': {'u1': 1},
+            },
+          },
+          {
+            't1': {'s2': 2},
+          },
+        ),
+        {
+          't1': {'s2': 2},
+        },
+      );
       expect(
-          mergeValue({
-            't1': {
-              's1': {'u1': 1}
-            },
-            's2': 2
-          }, {
-            't1.s1': {'u2': 3}
-          }),
+        mergeValue(
           {
             't1': {
-              's1': {'u2': 3}
+              's1': {'u1': 1},
             },
-            's2': 2
-          });
+            's2': 2,
+          },
+          {
+            't1.s1': {'u2': 3},
+          },
+        ),
+        {
+          't1': {
+            's1': {'u2': 3},
+          },
+          's2': 2,
+        },
+      );
     });
 
     test('mergeValue', () {
@@ -221,77 +237,90 @@ void main() {
       expect(mergeValue({'t': 1}, {'u': 2, 't': null}), {'t': null, 'u': 2});
       expect(mergeValue({'t': 1}, {'u': 2, 't': FieldValue.delete}), {'u': 2});
       expect(
-          mergeValue({
-            'sub': {'t': 1}
-          }, {
-            'sub': {'u': 2}
-          }),
+        mergeValue(
           {
-            'sub': {'u': 2}
-          });
+            'sub': {'t': 1},
+          },
+          {
+            'sub': {'u': 2},
+          },
+        ),
+        {
+          'sub': {'u': 2},
+        },
+      );
 
       expect(
-          mergeValue({
-            'sub': {'t': 1, 'u': 2}
-          }, {
-            'sub.t': FieldValue.delete
-          }),
+        mergeValue(
           {
-            'sub': {'u': 2}
-          });
+            'sub': {'t': 1, 'u': 2},
+          },
+          {'sub.t': FieldValue.delete},
+        ),
+        {
+          'sub': {'u': 2},
+        },
+      );
       expect(
-          mergeValue({
-            'sub': {'t': 1, 'u': 2}
-          }, {
-            'sub.dummy': FieldValue.delete
-          }),
+        mergeValue(
           {
-            'sub': {'t': 1, 'u': 2}
-          });
+            'sub': {'t': 1, 'u': 2},
+          },
+          {'sub.dummy': FieldValue.delete},
+        ),
+        {
+          'sub': {'t': 1, 'u': 2},
+        },
+      );
       expect(
-          mergeValue({
-            'sub': {
-              't': 1,
-              'nested': {'t': 1, 'u': 2}
-            }
-          }, {
-            'sub.nested.t': FieldValue.delete
-          }),
+        mergeValue(
           {
             'sub': {
               't': 1,
-              'nested': {'u': 2}
-            }
-          });
+              'nested': {'t': 1, 'u': 2},
+            },
+          },
+          {'sub.nested.t': FieldValue.delete},
+        ),
+        {
+          'sub': {
+            't': 1,
+            'nested': {'u': 2},
+          },
+        },
+      );
       expect(
-          mergeValue({
-            'sub': {'t': 1}
-          }, {
-            'sub.u': 2
-          }),
+        mergeValue(
           {
-            'sub': {'t': 1, 'u': 2}
-          });
+            'sub': {'t': 1},
+          },
+          {'sub.u': 2},
+        ),
+        {
+          'sub': {'t': 1, 'u': 2},
+        },
+      );
       expect(
-          mergeValue({
+        mergeValue(
+          {
             'sub': {
               't': 1,
-              'nested': {'t': 1, 'u': 2}
-            }
-          }, {
-            'sub.nested.u': 3,
-            'sub.nested.v.w': 4
-          }),
-          {
-            'sub': {
+              'nested': {'t': 1, 'u': 2},
+            },
+          },
+          {'sub.nested.u': 3, 'sub.nested.v.w': 4},
+        ),
+        {
+          'sub': {
+            't': 1,
+            'nested': {
               't': 1,
-              'nested': {
-                't': 1,
-                'u': 3,
-                'v': {'w': 4}
-              }
-            }
-          });
+              'u': 3,
+              'v': {'w': 4},
+            },
+          },
+        },
+      );
     });
 
     test('mapValue', () {
@@ -299,16 +328,16 @@ void main() {
       expect(getPartsMapValue<int>(map, ['test', 'sub']), null);
       setPartsMapValue(map, ['test', 'sub'], 1);
       expect(map, {
-        'test': {'sub': 1}
+        'test': {'sub': 1},
       });
       expect(getPartsMapValue<int>(map, ['test', 'sub']), 1);
       setPartsMapValue(map, ['test', 'sub'], 2);
       expect(map, {
-        'test': {'sub': 2}
+        'test': {'sub': 2},
       });
       setPartsMapValue(map, ['test', 'sub2'], 3);
       expect(map, {
-        'test': {'sub': 2, 'sub2': 3}
+        'test': {'sub': 2, 'sub2': 3},
       });
       setPartsMapValue(map, ['test'], 1);
       expect(map, {'test': 1});
@@ -327,17 +356,25 @@ void main() {
           [
             {
               'test': {
-                'sub': [0, 1]
-              }
-            }
-          ]
-        ]
+                'sub': [0, 1],
+              },
+            },
+          ],
+        ],
       };
 
       expect(
-          getPartsMapValue<int>(
-              map, ['test', 'sub', '0', '0', 'test', 'sub', '1']),
-          1);
+        getPartsMapValue<int>(map, [
+          'test',
+          'sub',
+          '0',
+          '0',
+          'test',
+          'sub',
+          '1',
+        ]),
+        1,
+      );
     });
 
     test('backtick', () {
@@ -354,15 +391,13 @@ void main() {
     test('mergeValue with backticks', () {
       expect(mergeValue({'foo.bar': 1}, {'foo.bar': 2}), {
         'foo.bar': 1,
-        'foo': {'bar': 2}
+        'foo': {'bar': 2},
       });
       expect(
-          mergeValue({'foo.bar': 1}, {'foo.bar': 2}, allowDotsInKeys: true), {
-        'foo.bar': 2,
-      });
-      expect(mergeValue({'foo.bar': 1}, {'`foo.bar`': 2}), {
-        'foo.bar': 2,
-      });
+        mergeValue({'foo.bar': 1}, {'foo.bar': 2}, allowDotsInKeys: true),
+        {'foo.bar': 2},
+      );
+      expect(mergeValue({'foo.bar': 1}, {'`foo.bar`': 2}), {'foo.bar': 2});
     });
     // Note the special behavior...
     test('smartMatch null', () {
@@ -373,21 +408,25 @@ void main() {
       // Unpredictable behavior, returns true although the field does not exist
       expect(smartMatchPartsMapValue({}, ['test'], match), isTrue);
       expect(
-          smartMatchPartsMapValue({
-            'sub': {'test': null}
-          }, [
-            'sub',
-            'test'
-          ], match),
-          isTrue);
+        smartMatchPartsMapValue(
+          {
+            'sub': {'test': null},
+          },
+          ['sub', 'test'],
+          match,
+        ),
+        isTrue,
+      );
       expect(
-          smartMatchPartsMapValue({
-            'sub': {'test': 1}
-          }, [
-            'sub',
-            'test'
-          ], match),
-          isFalse);
+        smartMatchPartsMapValue(
+          {
+            'sub': {'test': 1},
+          },
+          ['sub', 'test'],
+          match,
+        ),
+        isFalse,
+      );
       // Unpredictable behavior here, the field is athough null (i.e. not existing)
       expect(smartMatchPartsMapValue({}, ['sub', 'test'], match), isFalse);
     });
@@ -395,106 +434,105 @@ void main() {
       bool match(Object? value) => valuesAreEquals(value, 1);
       expect(smartMatchPartsMapValue({}, [], match), false);
       expect(
-          smartMatchPartsMapValue({
-            'test': [1]
-          }, [
-            'test',
-            '@'
-          ], match),
-          isTrue);
+        smartMatchPartsMapValue(
+          {
+            'test': [1],
+          },
+          ['test', '@'],
+          match,
+        ),
+        isTrue,
+      );
       expect(
-          smartMatchPartsMapValue({
-            'test': [2]
-          }, [
-            'test',
-            '@'
-          ], match),
-          isFalse);
+        smartMatchPartsMapValue(
+          {
+            'test': [2],
+          },
+          ['test', '@'],
+          match,
+        ),
+        isFalse,
+      );
       expect(
-          smartMatchPartsMapValue({
-            'test': [1]
-          }, [
-            'test',
-            '0'
-          ], match),
-          isTrue);
+        smartMatchPartsMapValue(
+          {
+            'test': [1],
+          },
+          ['test', '0'],
+          match,
+        ),
+        isTrue,
+      );
       expect(
-          smartMatchPartsMapValue({
-            'test': [1]
-          }, [
-            'test',
-            '1'
-          ], match),
-          isFalse);
+        smartMatchPartsMapValue(
+          {
+            'test': [1],
+          },
+          ['test', '1'],
+          match,
+        ),
+        isFalse,
+      );
       expect(
-          smartMatchPartsMapValue({
+        smartMatchPartsMapValue(
+          {
             'test': [
               [
                 {
                   'sub1': {
                     'sub2': [
-                      [1]
-                    ]
-                  }
-                }
-              ]
-            ]
-          }, [
-            'test',
-            '@',
-            '@',
-            'sub1',
-            'sub2',
-            '@',
-            '@'
-          ], match),
-          isTrue);
+                      [1],
+                    ],
+                  },
+                },
+              ],
+            ],
+          },
+          ['test', '@', '@', 'sub1', 'sub2', '@', '@'],
+          match,
+        ),
+        isTrue,
+      );
       expect(
-          smartMatchPartsMapValue({
+        smartMatchPartsMapValue(
+          {
             'test': [
               [
                 {
                   'sub1': {
                     'sub2': [
-                      [2]
-                    ]
-                  }
-                }
-              ]
-            ]
-          }, [
-            'test',
-            '@',
-            '@',
-            'sub1',
-            'sub2',
-            '@',
-            '@'
-          ], match),
-          isFalse);
+                      [2],
+                    ],
+                  },
+                },
+              ],
+            ],
+          },
+          ['test', '@', '@', 'sub1', 'sub2', '@', '@'],
+          match,
+        ),
+        isFalse,
+      );
       expect(
-          smartMatchPartsMapValue({
+        smartMatchPartsMapValue(
+          {
             'test': [
               [
                 {
                   'sub1': {
                     'sub2': [
-                      [1]
-                    ]
-                  }
-                }
-              ]
-            ]
-          }, [
-            'test',
-            '@',
-            '@',
-            'sub1',
-            'sub2',
-            '@',
-            '0'
-          ], match),
-          isTrue);
+                      [1],
+                    ],
+                  },
+                },
+              ],
+            ],
+          },
+          ['test', '@', '@', 'sub1', 'sub2', '@', '0'],
+          match,
+        ),
+        isTrue,
+      );
     });
   });
 }

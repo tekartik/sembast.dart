@@ -84,7 +84,7 @@ class _IoFileSystemException implements fs.FileSystemException {
   io.FileSystemException ioFse;
 
   _IoFileSystemException(this.ioFse)
-      : osError = _IoOSError(ioFse.osError ?? io.OSError(ioFse.message));
+    : osError = _IoOSError(ioFse.osError ?? io.OSError(ioFse.message));
 
   @override
   final _IoOSError osError;
@@ -127,7 +127,9 @@ Future<T> _wrap<T>(Future<T> future) {
       Error.throwWithStackTrace(e, st);
     } else {
       Error.throwWithStackTrace(
-          _FileSystemExceptionIoDefault('error ${e.toString()}'), st);
+        _FileSystemExceptionIoDefault('error ${e.toString()}'),
+        st,
+      );
     }
   });
 }
@@ -176,10 +178,12 @@ class FileSystemIo implements fs.FileSystem {
       io.FileSystemEntity.isDirectorySync(_normalizeWithRoot(path));
 
   @override
-  Future<fs.FileSystemEntityType> type(String path,
-          {bool followLinks = true}) async =>
-      fsFileType(io.FileSystemEntity.typeSync(_normalizeWithRoot(path),
-          followLinks: true));
+  Future<fs.FileSystemEntityType> type(
+    String path, {
+    bool followLinks = true,
+  }) async => fsFileType(
+    io.FileSystemEntity.typeSync(_normalizeWithRoot(path), followLinks: true),
+  );
 
   @override
   DirectoryIo get currentDirectory {
@@ -216,9 +220,9 @@ abstract class FileSystemEntityIo implements fs.FileSystemEntity {
 
   @override
   Future<fs.FileSystemEntity> delete({bool recursive = false}) //
-      =>
-      _wrap(ioFileSystemEntity.delete(recursive: recursive))
-          .then((io.FileSystemEntity ioFileSystemEntity) => this);
+  => _wrap(
+    ioFileSystemEntity.delete(recursive: recursive),
+  ).then((io.FileSystemEntity ioFileSystemEntity) => this);
 
   @override
   String toString() => ioFileSystemEntity.toString();
@@ -248,16 +252,18 @@ class DirectoryIo extends FileSystemEntityIo implements fs.Directory {
 
   @override
   Future<DirectoryIo> create({bool recursive = false}) //
-      =>
-      _wrap(ioDir.create(recursive: recursive))
-          .then((io.Directory ioDir) => this);
+  => _wrap(
+    ioDir.create(recursive: recursive),
+  ).then((io.Directory ioDir) => this);
 
   @override
   Future<fs.FileSystemEntity> rename(String newPath) //
-      =>
-      _wrap(ioFileSystemEntity.rename(fileSystemIo._normalizeWithRoot(path)))
-          .then((io.FileSystemEntity ioFileSystemEntity) =>
-              DirectoryIo(fileSystemIo, newPath));
+  => _wrap(
+    ioFileSystemEntity.rename(fileSystemIo._normalizeWithRoot(path)),
+  ).then(
+    (io.FileSystemEntity ioFileSystemEntity) =>
+        DirectoryIo(fileSystemIo, newPath),
+  );
 
   @override
   String toString() => "DirectoryIo: '$path'";
@@ -281,26 +287,26 @@ class FileIo extends FileSystemEntityIo implements fs.File {
 
   @override
   Future<fs.File> create({bool recursive = false}) //
-      =>
-      _wrap(ioFile.create(recursive: recursive)).then((io.File ioFile) => this);
+  => _wrap(ioFile.create(recursive: recursive)).then((io.File ioFile) => this);
 
   @override
   Stream<Uint8List> openRead([int? start, int? end]) //
-      =>
-      intListStreamToUint8ListStream(ioFile.openRead(start, end));
+  => intListStreamToUint8ListStream(ioFile.openRead(start, end));
 
   @override
-  fs.IOSink openWrite(
-          {fs.FileMode mode = fs.FileMode.write, Encoding encoding = utf8}) //
-      =>
-      _IoIOSink(ioFile.openWrite(mode: _fileMode(mode), encoding: encoding));
+  fs.IOSink openWrite({
+    fs.FileMode mode = fs.FileMode.write,
+    Encoding encoding = utf8,
+  }) //
+  => _IoIOSink(ioFile.openWrite(mode: _fileMode(mode), encoding: encoding));
 
   @override
   Future<FileIo> rename(String newPath) //
-      =>
-      _wrap(ioFileSystemEntity.rename(fileSystemIo._normalizeWithRoot(newPath)))
-          .then((io.FileSystemEntity ioFileSystemEntity) =>
-              FileIo(fileSystemIo, newPath));
+  => _wrap(
+    ioFileSystemEntity.rename(fileSystemIo._normalizeWithRoot(newPath)),
+  ).then(
+    (io.FileSystemEntity ioFileSystemEntity) => FileIo(fileSystemIo, newPath),
+  );
 
   @override
   String toString() => "FileIo: '$path'";

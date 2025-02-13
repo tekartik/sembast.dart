@@ -12,44 +12,62 @@ void main() {
   group('type_adapter', () {
     test('dateTime', () {
       expect(
-          sembastDateTimeAdapter
-              .encode(DateTime.fromMillisecondsSinceEpoch(1, isUtc: true)),
-          '1970-01-01T00:00:00.001Z');
+        sembastDateTimeAdapter.encode(
+          DateTime.fromMillisecondsSinceEpoch(1, isUtc: true),
+        ),
+        '1970-01-01T00:00:00.001Z',
+      );
       if (dateTimeSupportsMicroseconds) {
         expect(
-            sembastDateTimeAdapter
-                .encode(DateTime.fromMicrosecondsSinceEpoch(1, isUtc: true)),
-            '1970-01-01T00:00:00.000001Z');
+          sembastDateTimeAdapter.encode(
+            DateTime.fromMicrosecondsSinceEpoch(1, isUtc: true),
+          ),
+          '1970-01-01T00:00:00.000001Z',
+        );
       } else {
         expect(
-            sembastDateTimeAdapter
-                .encode(DateTime.fromMicrosecondsSinceEpoch(1, isUtc: true)),
-            '1970-01-01T00:00:00.000Z');
+          sembastDateTimeAdapter.encode(
+            DateTime.fromMicrosecondsSinceEpoch(1, isUtc: true),
+          ),
+          '1970-01-01T00:00:00.000Z',
+        );
       }
-      expect(sembastDateTimeAdapter.decode('1970-01-01T00:00:00.000001Z'),
-          DateTime.fromMicrosecondsSinceEpoch(1, isUtc: true));
-      expect(sembastDateTimeAdapter.decode('1970-01-01T00:00:00.001Z'),
-          DateTime.fromMillisecondsSinceEpoch(1, isUtc: true));
+      expect(
+        sembastDateTimeAdapter.decode('1970-01-01T00:00:00.000001Z'),
+        DateTime.fromMicrosecondsSinceEpoch(1, isUtc: true),
+      );
+      expect(
+        sembastDateTimeAdapter.decode('1970-01-01T00:00:00.001Z'),
+        DateTime.fromMillisecondsSinceEpoch(1, isUtc: true),
+      );
     });
     test('timestamp', () {
-      expect(sembastTimestampAdapter.encode(Timestamp(1234, 5678)),
-          '1970-01-01T00:20:34.000005678Z');
       expect(
-          sembastTimestampAdapter
-              .encode(Timestamp.fromMillisecondsSinceEpoch(1)),
-          '1970-01-01T00:00:00.001Z');
+        sembastTimestampAdapter.encode(Timestamp(1234, 5678)),
+        '1970-01-01T00:20:34.000005678Z',
+      );
+      expect(
+        sembastTimestampAdapter.encode(Timestamp.fromMillisecondsSinceEpoch(1)),
+        '1970-01-01T00:00:00.001Z',
+      );
 
       expect(
-          sembastTimestampAdapter
-              .encode(Timestamp.fromMicrosecondsSinceEpoch(1)),
-          '1970-01-01T00:00:00.000001Z');
+        sembastTimestampAdapter.encode(Timestamp.fromMicrosecondsSinceEpoch(1)),
+        '1970-01-01T00:00:00.000001Z',
+      );
 
-      expect(sembastTimestampAdapter.decode('1970-01-01T00:00:00.000001Z'),
-          Timestamp.fromMicrosecondsSinceEpoch(1));
-      expect(sembastTimestampAdapter.decode('1970-01-01T00:00:00.001Z'),
-          Timestamp.fromMillisecondsSinceEpoch(1));
-      expect(sembastTimestampAdapter.decode('1970-01-01T00:20:34.000005678Z'),
-          Timestamp(1234, 5678));
+      expect(
+        sembastTimestampAdapter.decode('1970-01-01T00:00:00.000001Z'),
+        Timestamp.fromMicrosecondsSinceEpoch(1),
+      );
+      expect(
+        sembastTimestampAdapter.decode('1970-01-01T00:00:00.001Z'),
+        Timestamp.fromMillisecondsSinceEpoch(1),
+      );
+      expect(
+        sembastTimestampAdapter.decode('1970-01-01T00:20:34.000005678Z'),
+        Timestamp(1234, 5678),
+      );
     });
     test('blob', () {
       expect(sembastBlobAdapter.encode(Blob.fromList([1, 2, 3])), 'AQID');
@@ -75,7 +93,7 @@ void main() {
         'listList': [1, 2, 3],
         'string': 'text',
         'timestamp': {'@Timestamp': '1970-01-01T00:00:00.000001Z'},
-        'blob': {'@Blob': 'AQID'}
+        'blob': {'@Blob': 'AQID'},
       };
 
       expect(sembastCodec.jsonEncodableCodec.encode(decoded), encoded);
@@ -83,9 +101,7 @@ void main() {
     });
     test('custom type', () {
       var sembastCodec = sembastCodecDefault;
-      var decoded = {
-        'timestamp': Timestamp.fromMicrosecondsSinceEpoch(1),
-      };
+      var decoded = {'timestamp': Timestamp.fromMicrosecondsSinceEpoch(1)};
       var encoded = {
         'timestamp': {'@Timestamp': '1970-01-01T00:00:00.000001Z'},
       };
@@ -97,7 +113,7 @@ void main() {
       var sembastCodec = sembastCodecWithAdapters([
         sembastDateTimeAdapter,
         sembastBlobAdapter,
-        sembastTimestampAdapter
+        sembastTimestampAdapter,
       ]);
       var decoded = {
         'null': null,
@@ -110,7 +126,7 @@ void main() {
         'looksLikeDateTime': {'@DateTime': '1970-01-01T00:00:00.001Z'},
         'looksLikeTimestamp': {'@Timestamp': '1970-01-01T00:00:00.000001Z'},
         'looksLikeBlob': {'@Blob': 'AQID'},
-        'looksLikeDummy': {'@': null}
+        'looksLikeDummy': {'@': null},
       };
       var encoded = {
         'null': null,
@@ -121,28 +137,26 @@ void main() {
         'timestamp': {'@Timestamp': '1970-01-01T00:00:00.000001Z'},
         'blob': {'@Blob': 'AQID'},
         'looksLikeDateTime': {
-          '@': {'@DateTime': '1970-01-01T00:00:00.001Z'}
+          '@': {'@DateTime': '1970-01-01T00:00:00.001Z'},
         },
         'looksLikeTimestamp': {
-          '@': {'@Timestamp': '1970-01-01T00:00:00.000001Z'}
+          '@': {'@Timestamp': '1970-01-01T00:00:00.000001Z'},
         },
         'looksLikeBlob': {
-          '@': {'@Blob': 'AQID'}
+          '@': {'@Blob': 'AQID'},
         },
         'looksLikeDummy': {
-          '@': {'@': null}
-        }
+          '@': {'@': null},
+        },
       };
 
       expect(sembastCodec.jsonEncodableCodec.encode(decoded), encoded);
       expect(sembastCodec.jsonEncodableCodec.decode(encoded), decoded);
 
       // Empty blob
-      decoded = {
-        'blob': Blob.fromList([]),
-      };
+      decoded = {'blob': Blob.fromList([])};
       encoded = {
-        'blob': {'@Blob': ''}
+        'blob': {'@Blob': ''},
       };
       expect(sembastCodec.jsonEncodableCodec.encode(decoded), encoded);
       expect(sembastCodec.jsonEncodableCodec.decode(encoded), decoded);
@@ -150,51 +164,51 @@ void main() {
       // Bad format
       encoded = {
         'dateTime': {'@DateTime': 'dummy'},
-        'blob': {'@Blob': 'dummy'}
+        'blob': {'@Blob': 'dummy'},
       };
 
       expect(sembastCodec.jsonEncodableCodec.decode(encoded), {
         'dateTime': {'@DateTime': 'dummy'},
-        'blob': {'@Blob': 'dummy'}
+        'blob': {'@Blob': 'dummy'},
       });
 
       // Bad type
       encoded = {
         'dateTime': {'@DateTime': 1},
-        'blob': {'@Blob': 1}
+        'blob': {'@Blob': 1},
       };
 
       expect(sembastCodec.jsonEncodableCodec.decode(encoded), {
         'dateTime': {'@DateTime': 1},
-        'blob': {'@Blob': 1}
+        'blob': {'@Blob': 1},
       });
 
       // Null value
       encoded = {
         'dateTime': {'@DateTime': null},
-        'blob': {'@Blob': null}
+        'blob': {'@Blob': null},
       };
 
       expect(sembastCodec.jsonEncodableCodec.decode(encoded), {
         'dateTime': {'@DateTime': null},
-        'blob': {'@Blob': null}
+        'blob': {'@Blob': null},
       });
 
       // Nested
       encoded = {
         'dateTime': {
           '@DateTime': {
-            'blob': {'@Blob': 'AQID'}
+            'blob': {'@Blob': 'AQID'},
           },
-        }
+        },
       };
 
       expect(sembastCodec.jsonEncodableCodec.decode(encoded), {
         'dateTime': {
           '@DateTime': {
-            'blob': Blob.fromList([1, 2, 3])
+            'blob': Blob.fromList([1, 2, 3]),
           },
-        }
+        },
       });
     });
   });

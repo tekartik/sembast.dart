@@ -62,8 +62,10 @@ void defineTests(DatabaseTestContextJdb ctx) {
 
     testWithCodec(null);
     testWithCodec(
-        SembastCodec(signature: 'base64', codec: SembastBase64Codec()));
-    testWithCodec(SembastCodec(
-        signature: 'async_base64', codec: SembastBase64CodecAsync()));
+      SembastCodec(signature: 'base64', codec: SembastBase64Codec()),
+    );
+    testWithCodec(
+      SembastCodec(signature: 'async_base64', codec: SembastBase64CodecAsync()),
+    );
   });
 }

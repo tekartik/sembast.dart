@@ -72,5 +72,10 @@ class JdbReadEntryEncoded implements JdbEntryEncoded {
 
   /// Encoded read entry from cursor. decoded later.
   JdbReadEntryEncoded(
-      this.id, this.storeName, this.recordKey, this.deleted, this.valueEncoded);
+    this.id,
+    this.storeName,
+    this.recordKey,
+    this.deleted,
+    this.valueEncoded,
+  );
 }

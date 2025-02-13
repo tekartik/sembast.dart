@@ -29,7 +29,7 @@ class TestException implements Exception {
 class FileSystemTestContext {
   FileSystem? fs;
 
-//String get outPath => fs.currentDirectory.path;
+  //String get outPath => fs.currentDirectory.path;
 }
 
 FileSystemTestContext get memoryFileSystemContext =>
@@ -38,8 +38,11 @@ FileSystemTestContext get memoryFileSystemContext =>
 String dbPathFromName(String name) =>
     join('.dart_tool', 'sembast', 'test', name);
 
-Future<Database> setupForTest(DatabaseTestContext ctx, String name,
-    {SembastCodec? codec}) {
+Future<Database> setupForTest(
+  DatabaseTestContext ctx,
+  String name, {
+  SembastCodec? codec,
+}) {
   return ctx.deleteAndOpen(dbPathFromName(name), codec: codec);
 }
 
@@ -59,8 +62,9 @@ Future<List<String>> readContent(FileSystem fs, String filePath) {
       .bind(fs.file(filePath).openRead())
       .transform(const LineSplitter())
       .listen((String line) {
-    content.add(line);
-  }).asFuture(content);
+        content.add(line);
+      })
+      .asFuture(content);
 }
 
 Future writeContent(FileSystem fs, String filePath, List<String> lines) async {
@@ -78,8 +82,9 @@ void devPrintJson(Map json) {
 }
 
 Future<Database> reOpen(Database db, {DatabaseMode? mode}) {
-  return (db as SembastDatabase)
-      .reOpen(DatabaseOpenOptions(mode: mode, codec: db.sembastCodec));
+  return (db as SembastDatabase).reOpen(
+    DatabaseOpenOptions(mode: mode, codec: db.sembastCodec),
+  );
 }
 
 bool hasStorage(DatabaseFactory factory) =>
@@ -90,7 +95,9 @@ bool hasStorageJdb(DatabaseFactory? factory) => factory is DatabaseFactoryJdb;
 
 /// Get an existing database version
 Future<int> getExistingDatabaseVersion(
-    DatabaseFactory factory, String path) async {
+  DatabaseFactory factory,
+  String path,
+) async {
   var db = await factory.openDatabase(path, mode: DatabaseMode.existing);
   final version = db.version;
   await db.close();

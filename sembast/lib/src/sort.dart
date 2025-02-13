@@ -41,7 +41,11 @@ class Sort {
 
   /// Sorts the list in the interval [:left:] to [:right:] (both inclusive).
   Future _doSort<E>(
-      List<E> a, int left, int right, int Function(E a, E b) compare) async {
+    List<E> a,
+    int left,
+    int right,
+    int Function(E a, E b) compare,
+  ) async {
     if ((right - left) <= _insertionSortThreshold) {
       return _insertionSort(a, left, right, compare);
     } else {
@@ -50,7 +54,11 @@ class Sort {
   }
 
   Future _insertionSort<E>(
-      List<E> a, int left, int right, int Function(E a, E b) compare) async {
+    List<E> a,
+    int left,
+    int right,
+    int Function(E a, E b) compare,
+  ) async {
     for (var i = left + 1; i <= right; i++) {
       var el = a[i];
       var j = i;
@@ -66,7 +74,11 @@ class Sort {
   }
 
   Future _dualPivotQuicksort<E>(
-      List<E> a, int left, int right, int Function(E a, E b) compare) async {
+    List<E> a,
+    int left,
+    int right,
+    int Function(E a, E b) compare,
+  ) async {
     assert(right - left > _insertionSortThreshold);
 
     // Compute the two pivots by looking at 5 elements.

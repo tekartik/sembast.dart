@@ -20,7 +20,9 @@ class SembastTransactionRecordChange<K, V> implements RecordChange<K, V> {
       return this as RecordChange<RK, RV>;
     } else {
       return SembastTransactionRecordChange(
-          oldSnapshot?.cast<RK, RV>(), newSnapshot?.cast<RK, RV>());
+        oldSnapshot?.cast<RK, RV>(),
+        newSnapshot?.cast<RK, RV>(),
+      );
     }
   }
 
@@ -40,10 +42,9 @@ class StoreChangesListener<K, V> {
   /// Call on change
   FutureOr<void> onChange(Transaction transaction, List<RecordChange> changes) {
     return onChangeListener(
-        transaction,
-        changes
-            .map<RecordChange<K, V>>((change) => change.cast<K, V>())
-            .toList());
+      transaction,
+      changes.map<RecordChange<K, V>>((change) => change.cast<K, V>()).toList(),
+    );
   }
 
   @override
@@ -70,7 +71,7 @@ mixin _ChangeListeners {
   List<RecordChange> getAndClearChanges() {
     var list = [
       for (var i = 0; i < _txnNewSnapshot.length; i++)
-        SembastTransactionRecordChange(_txnOldSnapshot[i], _txnNewSnapshot[i])
+        SembastTransactionRecordChange(_txnOldSnapshot[i], _txnNewSnapshot[i]),
     ];
     txnClearChanges();
     return list;
@@ -107,8 +108,10 @@ class _AllStoresChangesListener with _ChangeListeners {
   final TransactionRecordChangeListener onChanges;
   final Set<String> excludedStoreNames;
 
-  _AllStoresChangesListener(
-      {required this.onChanges, required this.excludedStoreNames});
+  _AllStoresChangesListener({
+    required this.onChanges,
+    required this.excludedStoreNames,
+  });
 
   Future<void> handleChanges(SembastTransaction txn) async {
     var changes = getAndClearChanges();
@@ -122,8 +125,10 @@ class _AllStoresChangesListener with _ChangeListeners {
 class _AllStoresChangesListeners {
   final _all = <TransactionRecordChangeListener, _AllStoresChangesListener>{};
 
-  void addChange(RecordSnapshot<Key?, Value?>? oldSnapshot,
-      RecordSnapshot<Key?, Value?>? newSnapshot) {
+  void addChange(
+    RecordSnapshot<Key?, Value?>? oldSnapshot,
+    RecordSnapshot<Key?, Value?>? newSnapshot,
+  ) {
     for (var listener in _all.values) {
       var storeName =
           oldSnapshot?.ref.store.name ?? newSnapshot?.ref.store.name;
@@ -134,11 +139,14 @@ class _AllStoresChangesListeners {
     }
   }
 
-  void addAllStoresChangesListener(TransactionRecordChangeListener onChanges,
-      {List<String>? excludedStoreNames}) {
+  void addAllStoresChangesListener(
+    TransactionRecordChangeListener onChanges, {
+    List<String>? excludedStoreNames,
+  }) {
     _all[onChanges] = _AllStoresChangesListener(
-        onChanges: onChanges,
-        excludedStoreNames: excludedStoreNames?.toSet() ?? {});
+      onChanges: onChanges,
+      excludedStoreNames: excludedStoreNames?.toSet() ?? {},
+    );
   }
 
   Iterable<_AllStoresChangesListener> get all => _all.values;
@@ -242,11 +250,15 @@ class DatabaseChangesListener {
   }
 
   /// Add a global change listener
-  void addGlobalChangesListener(TransactionRecordChangeListener onChanges,
-      {List<String>? excludedStoreNames}) {
+  void addGlobalChangesListener(
+    TransactionRecordChangeListener onChanges, {
+    List<String>? excludedStoreNames,
+  }) {
     _allStoresChangesListenersOrNull ??= _AllStoresChangesListeners();
-    _allStoresChangesListeners.addAllStoresChangesListener(onChanges,
-        excludedStoreNames: excludedStoreNames);
+    _allStoresChangesListeners.addAllStoresChangesListener(
+      onChanges,
+      excludedStoreNames: excludedStoreNames,
+    );
   }
 
   /// Add a store change listener
@@ -259,7 +271,9 @@ class DatabaseChangesListener {
 
   /// Add a store change listener
   void addStoreChangesListener<K, V>(
-      StoreRef<K, V> store, TransactionRecordChangeListener<K, V> onChanges) {
+    StoreRef<K, V> store,
+    TransactionRecordChangeListener<K, V> onChanges,
+  ) {
     var storeChangesListeners = _stores[store];
     if (storeChangesListeners == null) {
       _stores[store] = storeChangesListeners = StoreChangesListeners();
@@ -269,11 +283,14 @@ class DatabaseChangesListener {
 
   /// Add a store change listener
   void removeStoreChangesListener<K, V>(
-      StoreRef<K, V> store, TransactionRecordChangeListener<K, V> onChanges) {
+    StoreRef<K, V> store,
+    TransactionRecordChangeListener<K, V> onChanges,
+  ) {
     var storeChangesListeners = _stores[store];
     if (storeChangesListeners != null) {
-      storeChangesListeners.onChanges
-          .remove(StoreChangesListener<K, V>(onChanges));
+      storeChangesListeners.onChanges.remove(
+        StoreChangesListener<K, V>(onChanges),
+      );
       if (storeChangesListeners.onChanges.isEmpty) {
         _stores.remove(store);
       }

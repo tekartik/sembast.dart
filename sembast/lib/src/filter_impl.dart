@@ -15,8 +15,9 @@ bool filterMatchesRecord(Filter? filter, RecordSnapshot record) {
   }
 
   /// Allow raw access to record from within filters
-  return (filter as SembastFilterBase)
-      .matchesRecord(SembastRecordRawSnapshot(record));
+  return (filter as SembastFilterBase).matchesRecord(
+    SembastRecordRawSnapshot(record),
+  );
 }
 
 /// Filter base.
@@ -83,7 +84,9 @@ mixin FilterFieldMixin implements SembastFilterBase, _FilterField {
 
 mixin _FilterSmartMatchMixin implements _FilterAnyInList, _FilterField {
   bool smartMatchesRecord(
-      RecordSnapshot record, SmartMatchValueFunction match) {
+    RecordSnapshot record,
+    SmartMatchValueFunction match,
+  ) {
     var field = this.field;
     final recordValue = record.value;
     if (!canMatch(field, recordValue)) {
@@ -116,7 +119,10 @@ mixin _FilterSmartMatchMixin implements _FilterAnyInList, _FilterField {
       }
       // We know it is a map here
       return smartMatchPartsMapValue(
-          recordValue as Map, getFieldParts(field), match);
+        recordValue as Map,
+        getFieldParts(field),
+        match,
+      );
     }
   }
 }

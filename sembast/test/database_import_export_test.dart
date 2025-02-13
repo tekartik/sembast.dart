@@ -29,8 +29,12 @@ void defineTests(DatabaseTestContext ctx) {
 
       // import and reexport to test content
       final importDbPath = dbPathFromName('compat/import_export.db');
-      var importedDb = await importDatabase(export, ctx.factory, importDbPath,
-          codec: db.sembastCodec);
+      var importedDb = await importDatabase(
+        export,
+        ctx.factory,
+        importDbPath,
+        codec: db.sembastCodec,
+      );
       expect(await exportDatabase(importedDb), expectedExport);
 
       await importedDb.close();
@@ -44,7 +48,9 @@ void defineTests(DatabaseTestContext ctx) {
     }
 
     Future<void> checkExportImportLines(
-        Database db, List expectedExport) async {
+      Database db,
+      List expectedExport,
+    ) async {
       List export = await exportDatabaseLines(db);
       await db.close();
 
@@ -54,8 +60,11 @@ void defineTests(DatabaseTestContext ctx) {
 
       // import and reexport to test content
       final importDbPath = dbPathFromName('compat/import_export_lines.db');
-      var importedDb =
-          await importDatabaseLines(export, ctx.factory, importDbPath);
+      var importedDb = await importDatabaseLines(
+        export,
+        ctx.factory,
+        importDbPath,
+      );
       expect(await exportDatabaseLines(importedDb), expectedExport);
 
       await importedDb.close();
@@ -75,15 +84,18 @@ void defineTests(DatabaseTestContext ctx) {
 
     test('version_2', () async {
       final db = await ctx.open(
-          dbPathFromName('compat/import_export/version_2.db'),
-          version: 2);
+        dbPathFromName('compat/import_export/version_2.db'),
+        version: 2,
+      );
       await checkExportImport(db, {'sembast_export': 1, 'version': 2});
     });
 
     var store = StoreRef<int, String>.main();
     test('1_string_record', () async {
-      final db =
-          await setupForTest(ctx, 'compat/import_export/1_string_record.db');
+      final db = await setupForTest(
+        ctx,
+        'compat/import_export/1_string_record.db',
+      );
       await store.record(1).put(db, 'hi');
       await checkExportImport(db, {
         'sembast_export': 1,
@@ -92,20 +104,22 @@ void defineTests(DatabaseTestContext ctx) {
           {
             'name': '_main',
             'keys': [1],
-            'values': ['hi']
-          }
-        ]
+            'values': ['hi'],
+          },
+        ],
       });
       await checkExportImportLines(db, [
         {'sembast_export': 1, 'version': 1},
         {'store': '_main'},
-        [1, 'hi']
+        [1, 'hi'],
       ]);
     });
 
     test('1_string_record_with_codec', () async {
-      final db =
-          await setupForTest(ctx, 'compat/import_export/1_string_record.db');
+      final db = await setupForTest(
+        ctx,
+        'compat/import_export/1_string_record.db',
+      );
       await store.record(1).put(db, 'hi');
       await checkExportImport(db, {
         'sembast_export': 1,
@@ -114,20 +128,22 @@ void defineTests(DatabaseTestContext ctx) {
           {
             'name': '_main',
             'keys': [1],
-            'values': ['hi']
-          }
-        ]
+            'values': ['hi'],
+          },
+        ],
       });
       await checkExportImportLines(db, [
         {'sembast_export': 1, 'version': 1},
         {'store': '_main'},
-        [1, 'hi']
+        [1, 'hi'],
       ]);
     });
 
     test('1_deleted_record', () async {
-      final db =
-          await setupForTest(ctx, 'compat/import_export/1_deleted_record.db');
+      final db = await setupForTest(
+        ctx,
+        'compat/import_export/1_deleted_record.db',
+      );
       var record = store.record(1);
       await record.put(db, 'hi');
       await record.delete(db);
@@ -139,8 +155,10 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     test('twice_same_record', () async {
-      final db =
-          await setupForTest(ctx, 'compat/import_export/twice_same_record.db');
+      final db = await setupForTest(
+        ctx,
+        'compat/import_export/twice_same_record.db',
+      );
       await store.record(1).put(db, 'hi');
       await store.record(1).put(db, 'hi');
       await checkExportImport(db, {
@@ -150,15 +168,17 @@ void defineTests(DatabaseTestContext ctx) {
           {
             'name': '_main',
             'keys': [1],
-            'values': ['hi']
-          }
-        ]
+            'values': ['hi'],
+          },
+        ],
       });
     });
 
     test('three_stores', () async {
-      final db =
-          await setupForTest(ctx, 'compat/import_export/three_stores.db');
+      final db = await setupForTest(
+        ctx,
+        'compat/import_export/three_stores.db',
+      );
       var store2 = StoreRef<int, String>('store2');
       var store3 = StoreRef<int, String>('store3');
       // Put 3 first to test order
@@ -173,19 +193,19 @@ void defineTests(DatabaseTestContext ctx) {
           {
             'name': '_main',
             'keys': [1],
-            'values': ['hi']
+            'values': ['hi'],
           },
           {
             'name': 'store2',
             'keys': [1],
-            'values': ['hi']
+            'values': ['hi'],
           },
           {
             'name': 'store3',
             'keys': [1],
-            'values': ['hi']
-          }
-        ]
+            'values': ['hi'],
+          },
+        ],
       });
       await checkExportImportLines(db, [
         {'sembast_export': 1, 'version': 1},
@@ -194,13 +214,15 @@ void defineTests(DatabaseTestContext ctx) {
         {'store': 'store2'},
         [1, 'hi'],
         {'store': 'store3'},
-        [1, 'hi']
+        [1, 'hi'],
       ]);
     });
 
     test('three_records', () async {
-      final db =
-          await setupForTest(ctx, 'compat/import_export/three_records.db');
+      final db = await setupForTest(
+        ctx,
+        'compat/import_export/three_records.db',
+      );
       // Put 3 first to test order
       await store.record(3).put(db, 'ho');
       await store.record(1).put(db, 'hu');
@@ -213,22 +235,24 @@ void defineTests(DatabaseTestContext ctx) {
           {
             'name': '_main',
             'keys': [1, 2, 3],
-            'values': ['hu', 'ha', 'ho']
-          }
-        ]
+            'values': ['hu', 'ha', 'ho'],
+          },
+        ],
       });
       await checkExportImportLines(db, [
         {'sembast_export': 1, 'version': 1},
         {'store': '_main'},
         [1, 'hu'],
         [2, 'ha'],
-        [3, 'ho']
+        [3, 'ho'],
       ]);
     });
 
     test('1_map_record', () async {
-      final db =
-          await setupForTest(ctx, 'compat/import_export/1_map_record.db');
+      final db = await setupForTest(
+        ctx,
+        'compat/import_export/1_map_record.db',
+      );
 
       var store = intMapStoreFactory.store();
       await store.record(1).put(db, {'test': 2});
@@ -241,16 +265,18 @@ void defineTests(DatabaseTestContext ctx) {
             'name': '_main',
             'keys': [1],
             'values': [
-              {'test': 2}
-            ]
-          }
-        ]
+              {'test': 2},
+            ],
+          },
+        ],
       });
     });
 
     test('1_map_record_with_all_types', () async {
       final db = await setupForTest(
-          ctx, 'compat/import_export/1_map_record_with_all_types.db');
+        ctx,
+        'compat/import_export/1_map_record_with_all_types.db',
+      );
 
       var store = stringMapStoreFactory.store();
       await store.record('my_key').put(db, {
@@ -266,10 +292,10 @@ void defineTests(DatabaseTestContext ctx) {
           {
             'sub': [
               {
-                'inner': [7, 8, 9]
-              }
-            ]
-          }
+                'inner': [7, 8, 9],
+              },
+            ],
+          },
         ],
       });
 
@@ -294,15 +320,15 @@ void defineTests(DatabaseTestContext ctx) {
                   {
                     'sub': [
                       {
-                        'inner': [7, 8, 9]
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          }
-        ]
+                        'inner': [7, 8, 9],
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
       });
       await checkExportImportLines(db, [
         {'sembast_export': 1, 'version': 1},
@@ -322,13 +348,13 @@ void defineTests(DatabaseTestContext ctx) {
               {
                 'sub': [
                   {
-                    'inner': [7, 8, 9]
-                  }
-                ]
-              }
-            ]
-          }
-        ]
+                    'inner': [7, 8, 9],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
       ]);
     });
   });

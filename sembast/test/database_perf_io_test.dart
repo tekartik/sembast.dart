@@ -13,20 +13,28 @@ import 'test_common.dart';
 
 void main() {
   test('perf', () async {
-    Future<void> perf(int recordCount, int times,
-        {int? recordSize,
-        bool? bigRecord,
-        int? transactionCount,
-        bool? inTransaction}) async {
+    Future<void> perf(
+      int recordCount,
+      int times, {
+      int? recordSize,
+      bool? bigRecord,
+      int? transactionCount,
+      bool? inTransaction,
+    }) async {
       inTransaction ??= transactionCount != null && transactionCount > 0;
       transactionCount ??= inTransaction ? 1 : 0;
-      final recordContent = bigRecord == true
-          ? List.generate(3000, (i) => '$i').join('')
-          : 'some value';
+      final recordContent =
+          bigRecord == true
+              ? List.generate(3000, (i) => '$i').join('')
+              : 'some value';
       recordSize = recordContent.length;
 
-      var dbPath = join('.dart_tool', 'sembast', 'test',
-          'perf_${recordCount}_${times}_${recordSize}_$transactionCount.db');
+      var dbPath = join(
+        '.dart_tool',
+        'sembast',
+        'test',
+        'perf_${recordCount}_${times}_${recordSize}_$transactionCount.db',
+      );
       try {
         await File(dbPath).delete();
       } catch (_) {}
@@ -63,7 +71,7 @@ void main() {
           if (inTransaction) '$transactionCount' else ' ',
           // bigRecord == true ? 'BIG': ' ',
           '${recordContent.length}',
-          '${sw.elapsedMilliseconds}'
+          '${sw.elapsedMilliseconds}',
         ];
         //print('$recordCount record(s) $times times: ${sw.elapsed}${inTransaction == true ? ' in transaction' : ''}');
 

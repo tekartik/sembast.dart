@@ -77,7 +77,9 @@ extension SembastRecordSnapshotExt<K, V> on RecordSnapshot<K, V> {
 class SembastRecordSnapshot<K, V> with RecordSnapshotMixin<K, V> {
   /// Snapshot from an immutable record.
   SembastRecordSnapshot.fromRecord(
-      StoreRef<K, V> store, ImmutableSembastRecord record) {
+    StoreRef<K, V> store,
+    ImmutableSembastRecord record,
+  ) {
     ref = store.record(record.key as K);
     rawValue = record.value as V;
   }
@@ -98,7 +100,7 @@ class SembastRecordRawSnapshot<K, V> implements RecordSnapshot<K, V> {
 
   /// Constructor.
   SembastRecordRawSnapshot(RecordSnapshot<K, V> snapshot)
-      : snapshot = snapshot as RecordSnapshotMixin<K, V>;
+    : snapshot = snapshot as RecordSnapshotMixin<K, V>;
 
   /// Raw access to data
   @override

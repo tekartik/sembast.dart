@@ -29,7 +29,9 @@ void defineQueryTests(DatabaseTestContext ctx) {
     });
 
     Future expectQueryAndFirstSnapshotKeys(
-        Finder? finder, List<int> keys) async {
+      Finder? finder,
+      List<int> keys,
+    ) async {
       var store = StoreRef<int, Object>.main();
       var query = store.query(finder: finder);
       var results = await query.onSnapshots(db).first;
@@ -105,21 +107,26 @@ void defineQueryTests(DatabaseTestContext ctx) {
       await record1.put(db, 'test');
       await record2.put(db, 'test2');
       var query = store.query();
-      expect((await query.getSnapshots(db)).map((snapshot) => snapshot.key),
-          [1, 2]);
+      expect((await query.getSnapshots(db)).map((snapshot) => snapshot.key), [
+        1,
+        2,
+      ]);
       expect((await query.getSnapshot(db))!.key, 1);
       await expectQueryAndFirstSnapshotKeys(null, [1, 2]);
       var finder = Finder(filter: Filter.equals(Field.value, 'test2'));
       query = store.query(finder: finder);
       await expectQueryAndFirstSnapshotKeys(finder, [2]);
-      expect(
-          (await query.getSnapshots(db)).map((snapshot) => snapshot.key), [2]);
+      expect((await query.getSnapshots(db)).map((snapshot) => snapshot.key), [
+        2,
+      ]);
       expect((await query.getSnapshot(db))!.key, 2);
       finder = Finder(filter: Filter.equals(Field.value, 'test3'));
       query = store.query(finder: finder);
       await expectQueryAndFirstSnapshotKeys(finder, []);
-      expect((await query.getSnapshots(db)).map((snapshot) => snapshot.key),
-          isEmpty);
+      expect(
+        (await query.getSnapshots(db)).map((snapshot) => snapshot.key),
+        isEmpty,
+      );
       expect((await query.getSnapshot(db)), isNull);
     });
 
@@ -514,11 +521,12 @@ void defineQueryTests(DatabaseTestContext ctx) {
     test('onSnapshotsNonNull', () async {
       var store = StoreRef<int, String>.main();
       var record = store.record(1);
-      var future = store
-          .query()
-          .onSnapshots(db)
-          .where((snapshots) => snapshots.isNotEmpty)
-          .first;
+      var future =
+          store
+              .query()
+              .onSnapshots(db)
+              .where((snapshots) => snapshots.isNotEmpty)
+              .first;
       // ignore: unawaited_futures
       record.put(db, 'test1');
       await future;
@@ -539,11 +547,12 @@ void defineQueryTests(DatabaseTestContext ctx) {
       var store = StoreRef<int, String>.main();
       var record = store.record(1);
       await record.put(db, 'test1');
-      var future = store
-          .query()
-          .onSnapshots(db)
-          .where((snapshots) => snapshots.isEmpty)
-          .first;
+      var future =
+          store
+              .query()
+              .onSnapshots(db)
+              .where((snapshots) => snapshots.isEmpty)
+              .first;
       // ignore: unawaited_futures
       record.delete(db);
       await future;
@@ -557,10 +566,12 @@ void defineQueryTests(DatabaseTestContext ctx) {
 
       // When starting listening the record does not exists yet
       var query = store.query(
-          finder: Finder(
-              filter: Filter.greaterThan(Field.value, 'test'),
-              limit: 1,
-              sortOrders: [SortOrder(Field.value)]));
+        finder: Finder(
+          filter: Filter.greaterThan(Field.value, 'test'),
+          limit: 1,
+          sortOrders: [SortOrder(Field.value)],
+        ),
+      );
       expect(await query.getSnapshots(db), hasLength(0));
 
       var sub = query.onSnapshots(db).listen((snapshots) {
@@ -618,8 +629,9 @@ void defineQueryTests(DatabaseTestContext ctx) {
       expect((await store.query().onSnapshots(db).first).first.value, 'test');
       // with offset
       expect(
-          (await store.query(finder: Finder(offset: 1)).onSnapshots(db).first),
-          isEmpty);
+        (await store.query(finder: Finder(offset: 1)).onSnapshots(db).first),
+        isEmpty,
+      );
     });
 
     test('onSnapshotsBeforeCreationAndUpdate', () async {
@@ -647,7 +659,8 @@ void defineQueryTests(DatabaseTestContext ctx) {
       var record1 = store.record(1);
       var record2 = store.record(2);
       var query = store.query(
-          finder: Finder(filter: Filter.greaterThan(Field.value, 'abc')));
+        finder: Finder(filter: Filter.greaterThan(Field.value, 'abc')),
+      );
       var future1 = query.onSnapshots(db).first;
       await record1.put(db, 'abcd');
       var future2 = query.onSnapshots(db).first;
@@ -711,10 +724,12 @@ void defineQueryTests(DatabaseTestContext ctx) {
       await db.close();
       await ctx.factory.deleteDatabase(db.path);
       var codec = SembastCodec(
-          signature: 'datetime',
-          codec: json,
-          jsonEncodableCodec:
-              JsonEncodableCodec(adapters: [sembastDateTimeAdapter]));
+        signature: 'datetime',
+        codec: json,
+        jsonEncodableCodec: JsonEncodableCodec(
+          adapters: [sembastDateTimeAdapter],
+        ),
+      );
       db = await ctx.factory.openDatabase(db.path, codec: codec);
       var store = intMapStoreFactory.store();
       var record1 = store.record(1);
@@ -737,8 +752,9 @@ void defineQueryTests(DatabaseTestContext ctx) {
       var record2 = store.record(2);
       var finder = Finder(sortOrders: [SortOrder(Field.value)]);
       var results1 = <List<RecordSnapshot>>[];
-      var subscription =
-          store.query(finder: finder).onSnapshots(db).listen((event) {
+      var subscription = store.query(finder: finder).onSnapshots(db).listen((
+        event,
+      ) {
         results1.add(event);
       });
       await db.transaction((txn) async {
@@ -752,7 +768,7 @@ void defineQueryTests(DatabaseTestContext ctx) {
       await expectQueryAndFirstSnapshotKeys(finder, [2, 1]);
       expect(results1.map((e) => e.map((e) => e.key)), [
         <int>[],
-        [2, 1]
+        [2, 1],
       ]);
       await subscription.cancel();
     });
@@ -762,11 +778,13 @@ void defineQueryTests(DatabaseTestContext ctx) {
       var record1 = store.record(1);
       var record2 = store.record(2);
       var finder = Finder(
-          sortOrders: [SortOrder(Field.value)],
-          start: Boundary(include: true, values: ['test2']));
+        sortOrders: [SortOrder(Field.value)],
+        start: Boundary(include: true, values: ['test2']),
+      );
       var results1 = <List<RecordSnapshot>>[];
-      var subscription =
-          store.query(finder: finder).onSnapshots(db).listen((event) {
+      var subscription = store.query(finder: finder).onSnapshots(db).listen((
+        event,
+      ) {
         results1.add(event);
       });
       // var future1 = store.query(finder: finder).onSnapshots(db).first;
@@ -784,7 +802,7 @@ void defineQueryTests(DatabaseTestContext ctx) {
         <int>[],
         [2],
         [2, 1],
-        [1]
+        [1],
       ]);
 
       await subscription.cancel();
@@ -795,11 +813,13 @@ void defineQueryTests(DatabaseTestContext ctx) {
       var record1 = store.record(1);
       var record2 = store.record(2);
       var finder = Finder(
-          sortOrders: [SortOrder(Field.value)],
-          end: Boundary(include: false, values: ['test2']));
+        sortOrders: [SortOrder(Field.value)],
+        end: Boundary(include: false, values: ['test2']),
+      );
       var results1 = <List<RecordSnapshot>>[];
-      var subscription =
-          store.query(finder: finder).onSnapshots(db).listen((event) {
+      var subscription = store.query(finder: finder).onSnapshots(db).listen((
+        event,
+      ) {
         results1.add(event);
       });
       await db.transaction((txn) async {
@@ -809,7 +829,7 @@ void defineQueryTests(DatabaseTestContext ctx) {
       await expectQueryAndFirstSnapshotKeys(finder, [2]);
       expect(results1.map((e) => e.map((e) => e.key).toList()).toList(), [
         <int>[],
-        [2]
+        [2],
       ]);
       await subscription.cancel();
     });
@@ -821,8 +841,9 @@ void defineQueryTests(DatabaseTestContext ctx) {
       var record2 = store.record(2);
       var finder = Finder(sortOrders: [SortOrder(Field.value)]);
       var results1 = <List<RecordSnapshot>>[];
-      var subscription =
-          store.query(finder: finder).onSnapshots(db).listen((event) {
+      var subscription = store.query(finder: finder).onSnapshots(db).listen((
+        event,
+      ) {
         results1.add(event);
       });
       await db.transaction((txn) async {
@@ -833,7 +854,7 @@ void defineQueryTests(DatabaseTestContext ctx) {
       expect(results.map((e) => e.key), [2, 1]);
       expect(results1.map((e) => e.map((e) => e.key).toList()).toList(), [
         <int>[],
-        [2, 1]
+        [2, 1],
       ]);
 
       await subscription.cancel();
@@ -846,8 +867,9 @@ void defineQueryTests(DatabaseTestContext ctx) {
       var record2 = store.record(2);
       var finder = Finder(offset: 1);
       var results1 = <List<RecordSnapshot>>[];
-      var subscription =
-          store.query(finder: finder).onSnapshots(db).listen((event) {
+      var subscription = store.query(finder: finder).onSnapshots(db).listen((
+        event,
+      ) {
         results1.add(event);
       });
       await db.transaction((txn) async {
@@ -858,7 +880,7 @@ void defineQueryTests(DatabaseTestContext ctx) {
       expect(results.map((e) => e.key), [2]);
       expect(results1.map((e) => e.map((e) => e.key).toList()).toList(), [
         <int>[],
-        [2]
+        [2],
       ]);
 
       await subscription.cancel();
@@ -870,8 +892,9 @@ void defineQueryTests(DatabaseTestContext ctx) {
       var record2 = store.record(2);
       var finder = Finder(limit: 1);
       var results1 = <List<RecordSnapshot>>[];
-      var subscription =
-          store.query(finder: finder).onSnapshots(db).listen((event) {
+      var subscription = store.query(finder: finder).onSnapshots(db).listen((
+        event,
+      ) {
         results1.add(event);
       });
       await db.transaction((txn) async {
@@ -904,53 +927,60 @@ void defineQueryTests(DatabaseTestContext ctx) {
       var record3 = store.record(3);
       var record4 = store.record(4);
       var finder = Finder(
-          sortOrders: [SortOrder('dateTime', true)],
-          end: Boundary(
-              values: [Timestamp.fromDateTime(DateTime.utc(2020))],
-              include: false),
-          start: Boundary(
-              values: [Timestamp.fromDateTime(DateTime.utc(2010))],
-              include: true),
-          limit: 2,
-          offset: 1,
-          filter: Filter.custom((record) =>
+        sortOrders: [SortOrder('dateTime', true)],
+        end: Boundary(
+          values: [Timestamp.fromDateTime(DateTime.utc(2020))],
+          include: false,
+        ),
+        start: Boundary(
+          values: [Timestamp.fromDateTime(DateTime.utc(2010))],
+          include: true,
+        ),
+        limit: 2,
+        offset: 1,
+        filter: Filter.custom(
+          (record) =>
               (record['dateTime'] as Timestamp).toDateTime(isUtc: true).month ==
-              DateTime.january));
+              DateTime.january,
+        ),
+      );
       var results1 = <List<RecordSnapshot>>[];
-      var subscription =
-          store.query(finder: finder).onSnapshots(db).listen((event) {
+      var subscription = store.query(finder: finder).onSnapshots(db).listen((
+        event,
+      ) {
         results1.add(event);
       });
       await db.transaction((txn) async {
         await record1.put(txn, <String, Object?>{
-          'dateTime': Timestamp.fromDateTime(DateTime.utc(2020))
+          'dateTime': Timestamp.fromDateTime(DateTime.utc(2020)),
         });
         await record2.put(txn, <String, Object?>{
-          'dateTime': Timestamp.fromDateTime(DateTime.utc(2018))
+          'dateTime': Timestamp.fromDateTime(DateTime.utc(2018)),
         });
         await record3.put(txn, <String, Object?>{
-          'dateTime': Timestamp.fromDateTime(DateTime.utc(2016))
+          'dateTime': Timestamp.fromDateTime(DateTime.utc(2016)),
         });
         await record4.put(txn, <String, Object?>{
-          'dateTime': Timestamp.fromDateTime(DateTime.utc(2009))
+          'dateTime': Timestamp.fromDateTime(DateTime.utc(2009)),
         });
       });
       await expectQueryAndFirstSnapshotKeys(finder, [2]);
 
       await db.transaction((txn) async {
         await record1.put(txn, <String, Object?>{
-          'dateTime': Timestamp.fromDateTime(DateTime.utc(2010))
+          'dateTime': Timestamp.fromDateTime(DateTime.utc(2010)),
         });
         await record2.put(txn, <String, Object?>{
-          'dateTime': Timestamp.fromDateTime(DateTime.utc(2018, 2))
+          'dateTime': Timestamp.fromDateTime(DateTime.utc(2018, 2)),
         });
         await record4.put(txn, <String, Object?>{
-          'dateTime': Timestamp.fromDateTime(DateTime.utc(2014))
+          'dateTime': Timestamp.fromDateTime(DateTime.utc(2014)),
         });
       });
       await expectQueryAndFirstSnapshotKeys(finder, [4, 3]);
-      await record2
-          .put(db, {'dateTime': Timestamp.fromDateTime(DateTime.utc(2017))});
+      await record2.put(db, {
+        'dateTime': Timestamp.fromDateTime(DateTime.utc(2017)),
+      });
       await expectQueryAndFirstSnapshotKeys(finder, [4, 3]);
 
       await db.transaction((txn) async {
@@ -963,7 +993,7 @@ void defineQueryTests(DatabaseTestContext ctx) {
         [2],
         [4, 3],
         [4, 3],
-        [2]
+        [2],
       ]);
       await subscription.cancel();
     });
@@ -975,53 +1005,60 @@ void defineQueryTests(DatabaseTestContext ctx) {
       var record3 = store.record(3);
       var record4 = store.record(4);
       var finder = Finder(
-          sortOrders: [SortOrder('dateTime', false)],
-          start: Boundary(
-              values: [Timestamp.fromDateTime(DateTime.utc(2020))],
-              include: false),
-          end: Boundary(
-              values: [Timestamp.fromDateTime(DateTime.utc(2010))],
-              include: true),
-          limit: 2,
-          offset: 1,
-          filter: Filter.custom((record) =>
+        sortOrders: [SortOrder('dateTime', false)],
+        start: Boundary(
+          values: [Timestamp.fromDateTime(DateTime.utc(2020))],
+          include: false,
+        ),
+        end: Boundary(
+          values: [Timestamp.fromDateTime(DateTime.utc(2010))],
+          include: true,
+        ),
+        limit: 2,
+        offset: 1,
+        filter: Filter.custom(
+          (record) =>
               (record['dateTime'] as Timestamp).toDateTime(isUtc: true).month ==
-              DateTime.january));
+              DateTime.january,
+        ),
+      );
       var results1 = <List<RecordSnapshot>>[];
-      var subscription =
-          store.query(finder: finder).onSnapshots(db).listen((event) {
+      var subscription = store.query(finder: finder).onSnapshots(db).listen((
+        event,
+      ) {
         results1.add(event);
       });
       await db.transaction((txn) async {
         await record1.put(txn, <String, Object?>{
-          'dateTime': Timestamp.fromDateTime(DateTime.utc(2020))
+          'dateTime': Timestamp.fromDateTime(DateTime.utc(2020)),
         });
         await record2.put(txn, <String, Object?>{
-          'dateTime': Timestamp.fromDateTime(DateTime.utc(2018))
+          'dateTime': Timestamp.fromDateTime(DateTime.utc(2018)),
         });
         await record3.put(txn, <String, Object?>{
-          'dateTime': Timestamp.fromDateTime(DateTime.utc(2016))
+          'dateTime': Timestamp.fromDateTime(DateTime.utc(2016)),
         });
         await record4.put(txn, <String, Object?>{
-          'dateTime': Timestamp.fromDateTime(DateTime.utc(2009))
+          'dateTime': Timestamp.fromDateTime(DateTime.utc(2009)),
         });
       });
       await expectQueryAndFirstSnapshotKeys(finder, [3]);
 
       await db.transaction((txn) async {
         await record1.put(txn, <String, Object?>{
-          'dateTime': Timestamp.fromDateTime(DateTime.utc(2010))
+          'dateTime': Timestamp.fromDateTime(DateTime.utc(2010)),
         });
         await record2.put(txn, <String, Object?>{
-          'dateTime': Timestamp.fromDateTime(DateTime.utc(2018, 2))
+          'dateTime': Timestamp.fromDateTime(DateTime.utc(2018, 2)),
         });
         await record4.put(txn, <String, Object?>{
-          'dateTime': Timestamp.fromDateTime(DateTime.utc(2014))
+          'dateTime': Timestamp.fromDateTime(DateTime.utc(2014)),
         });
       });
       await expectQueryAndFirstSnapshotKeys(finder, [4, 1]);
-      await record2
-          .put(db, {'dateTime': Timestamp.fromDateTime(DateTime.utc(2017))});
+      await record2.put(db, {
+        'dateTime': Timestamp.fromDateTime(DateTime.utc(2017)),
+      });
       await expectQueryAndFirstSnapshotKeys(finder, [3, 4]);
 
       await db.transaction((txn) async {
@@ -1049,7 +1086,8 @@ void defineQueryTests(DatabaseTestContext ctx) {
       });
 
       var query = store.query(
-          finder: Finder(sortOrders: [SortOrder(Field.key)], offset: 1));
+        finder: Finder(sortOrders: [SortOrder(Field.key)], offset: 1),
+      );
       await query.delete(db);
       expect(await store.query().getKeys(db), [1]);
     });

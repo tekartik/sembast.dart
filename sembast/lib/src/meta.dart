@@ -30,7 +30,7 @@ class Meta {
   Map<String, Object?> toMap() {
     var map = <String, Object?>{
       dbVersionKey: version,
-      dbDembastVersionKey: sembastVersion
+      dbDembastVersionKey: sembastVersion,
     };
     if (codecSignature != null) {
       map[dbDembastCodecSignatureKey] = codecSignature;

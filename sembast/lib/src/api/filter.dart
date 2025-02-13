@@ -31,7 +31,10 @@ abstract class Filter {
   /// specified [value].
   factory Filter.lessThanOrEquals(String field, Object? value) {
     return SembastFilterPredicate(
-        field, FilterOperation.lessThanOrEquals, value);
+      field,
+      FilterOperation.lessThanOrEquals,
+      value,
+    );
   }
 
   /// Filter where the [field] is greater than the specified [value]
@@ -42,7 +45,10 @@ abstract class Filter {
   /// Filter where the [field] is less than or equals to the specified [value]
   factory Filter.greaterThanOrEquals(String field, Object? value) {
     return SembastFilterPredicate(
-        field, FilterOperation.greaterThanOrEquals, value);
+      field,
+      FilterOperation.greaterThanOrEquals,
+      value,
+    );
   }
 
   /// Filter where the [field] is in the [list] of values

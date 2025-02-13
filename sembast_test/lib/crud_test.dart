@@ -42,18 +42,21 @@ void defineTests(DatabaseTestContext ctx) {
       expect(await record.update(db, {'new': FieldValue.delete, 'a.b.c': 3}), {
         'test': 1,
         'a': {
-          'b': {'c': 3}
-        }
+          'b': {'c': 3},
+        },
       });
       expect(
-          await record.put(db, {'test': FieldValue.delete, 'a.b.c': 4},
-              merge: true),
-          {
-            'a': {
-              'b': {'c': 3}
-            },
-            'a.b.c': 4
-          });
+        await record.put(db, {
+          'test': FieldValue.delete,
+          'a.b.c': 4,
+        }, merge: true),
+        {
+          'a': {
+            'b': {'c': 3},
+          },
+          'a.b.c': 4,
+        },
+      );
     });
 
     test('add_with_dot', () async {
@@ -101,8 +104,9 @@ void defineTests(DatabaseTestContext ctx) {
       final store = intMapStoreFactory.store();
       var record = store.record(1);
       await record.put(db, {'test': 1});
-      var snapshot = (await record.getSnapshot(db))
-          as RecordSnapshot<int, Map<String, Object?>>;
+      var snapshot =
+          (await record.getSnapshot(db))
+              as RecordSnapshot<int, Map<String, Object?>>;
       try {
         snapshot.value['test'] = 2;
         fail('should fail');

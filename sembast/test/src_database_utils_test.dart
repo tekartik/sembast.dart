@@ -20,21 +20,29 @@ void main() {
       var sourceDatabase = await initDb1();
 
       var codec = SembastCodec(signature: 'base64', codec: MyCustomCodec());
-      var db =
-          await newDatabaseFactoryMemory().openDatabase('db', codec: codec);
+      var db = await newDatabaseFactoryMemory().openDatabase(
+        'db',
+        codec: codec,
+      );
       await databaseMerge(db, sourceDatabase: sourceDatabase);
       expect(await record1.get(db), 1);
       await databaseMerge(db, sourceDatabase: sourceDatabase);
       expect(await record1.get(db), 1);
-      await databaseMerge(db,
-          sourceDatabase: sourceDatabase, storeNames: [store1.name]);
+      await databaseMerge(
+        db,
+        sourceDatabase: sourceDatabase,
+        storeNames: [store1.name],
+      );
       expect(await record1.get(db), 1);
 
       await record1.delete(sourceDatabase);
       await databaseMerge(db, sourceDatabase: sourceDatabase, storeNames: []);
       expect(await record1.get(db), 1);
-      await databaseMerge(db,
-          sourceDatabase: sourceDatabase, storeNames: [store1.name]);
+      await databaseMerge(
+        db,
+        sourceDatabase: sourceDatabase,
+        storeNames: [store1.name],
+      );
 
       expect(await record1.get(db), isNull);
     });

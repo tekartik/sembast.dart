@@ -31,8 +31,11 @@ class SembastStorageJdb extends StorageBase implements StorageJdb {
   final bool _logV = databaseStorageLogLevel == SembastLogLevel.verbose;
 
   /// New storage instance. allow null options for delete only.
-  SembastStorageJdb(this.jdbFactory, this.path,
-      {DatabaseOpenOptions? options}) {
+  SembastStorageJdb(
+    this.jdbFactory,
+    this.path, {
+    DatabaseOpenOptions? options,
+  }) {
     _optionsOrNull = options;
   }
 
@@ -163,10 +166,11 @@ class StorageJdbWriteQuery {
   final int? revision;
 
   /// Write query.
-  StorageJdbWriteQuery(
-      {required this.revision,
-      required this.infoEntries,
-      required this.entries});
+  StorageJdbWriteQuery({
+    required this.revision,
+    required this.infoEntries,
+    required this.entries,
+  });
 }
 
 /// Write result.

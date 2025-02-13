@@ -12,38 +12,58 @@ final dateTimeSupportsMicroseconds = () {
 void main() {
   group('timestamp', () {
     test('dateTime parse', () {
-      expect(DateTime.parse('1970-01-01T00:00:00.000000001Z').toIso8601String(),
-          '1970-01-01T00:00:00.000Z');
-      expect(DateTime.parse('1970-01-01T00:00:00.000000999Z').toIso8601String(),
-          '1970-01-01T00:00:00.000Z');
+      expect(
+        DateTime.parse('1970-01-01T00:00:00.000000001Z').toIso8601String(),
+        '1970-01-01T00:00:00.000Z',
+      );
+      expect(
+        DateTime.parse('1970-01-01T00:00:00.000000999Z').toIso8601String(),
+        '1970-01-01T00:00:00.000Z',
+      );
       if (!dateTimeSupportsMicroseconds) {
-        expect(DateTime.parse('1970-01-01T00:00:00.000001Z').toIso8601String(),
-            '1970-01-01T00:00:00.000Z');
-        expect(DateTime.parse('1970-01-01T00:00:00.000999Z').toIso8601String(),
-            '1970-01-01T00:00:00.001Z'); // !!!
         expect(
-            DateTime.parse('1970-01-01T00:00:00.000999999Z').toIso8601String(),
-            '1970-01-01T00:00:00.001Z'); // !!!
+          DateTime.parse('1970-01-01T00:00:00.000001Z').toIso8601String(),
+          '1970-01-01T00:00:00.000Z',
+        );
         expect(
-            DateTime.parse('1970-01-01T00:00:00.999999999Z').toIso8601String(),
-            '1970-01-01T00:00:01.000Z'); // !!
+          DateTime.parse('1970-01-01T00:00:00.000999Z').toIso8601String(),
+          '1970-01-01T00:00:00.001Z',
+        ); // !!!
+        expect(
+          DateTime.parse('1970-01-01T00:00:00.000999999Z').toIso8601String(),
+          '1970-01-01T00:00:00.001Z',
+        ); // !!!
+        expect(
+          DateTime.parse('1970-01-01T00:00:00.999999999Z').toIso8601String(),
+          '1970-01-01T00:00:01.000Z',
+        ); // !!
       } else {
-        expect(DateTime.parse('1970-01-01T00:00:00.000999Z').toIso8601String(),
-            '1970-01-01T00:00:00.000999Z');
-        expect(DateTime.parse('1970-01-01T00:00:00.000001Z').toIso8601String(),
-            '1970-01-01T00:00:00.000001Z');
         expect(
-            DateTime.parse('1970-01-01T00:00:00.000999999Z').toIso8601String(),
-            '1970-01-01T00:00:00.000999Z');
+          DateTime.parse('1970-01-01T00:00:00.000999Z').toIso8601String(),
+          '1970-01-01T00:00:00.000999Z',
+        );
         expect(
-            DateTime.parse('1970-01-01T00:00:00.999999999Z').toIso8601String(),
-            '1970-01-01T00:00:00.999999Z');
+          DateTime.parse('1970-01-01T00:00:00.000001Z').toIso8601String(),
+          '1970-01-01T00:00:00.000001Z',
+        );
+        expect(
+          DateTime.parse('1970-01-01T00:00:00.000999999Z').toIso8601String(),
+          '1970-01-01T00:00:00.000999Z',
+        );
+        expect(
+          DateTime.parse('1970-01-01T00:00:00.999999999Z').toIso8601String(),
+          '1970-01-01T00:00:00.999999Z',
+        );
       }
 
-      expect(DateTime.parse('1970-01-01T00:00:00.001Z').toIso8601String(),
-          '1970-01-01T00:00:00.001Z');
-      expect(DateTime.parse('1970-01-01T00:00:00.001Z').toIso8601String(),
-          '1970-01-01T00:00:00.001Z');
+      expect(
+        DateTime.parse('1970-01-01T00:00:00.001Z').toIso8601String(),
+        '1970-01-01T00:00:00.001Z',
+      );
+      expect(
+        DateTime.parse('1970-01-01T00:00:00.001Z').toIso8601String(),
+        '1970-01-01T00:00:00.001Z',
+      );
     });
     test('epoch', () {
       var timestamp = Timestamp(0, 0);
@@ -85,25 +105,27 @@ void main() {
 
       timestamp = Timestamp.parse('1234-12-12T12:34:56.789Z');
       expect(
-          Timestamp.fromMillisecondsSinceEpoch(
-              timestamp.millisecondsSinceEpoch),
-          timestamp);
+        Timestamp.fromMillisecondsSinceEpoch(timestamp.millisecondsSinceEpoch),
+        timestamp,
+      );
       timestamp = Timestamp.parse('1234-12-12T12:34:56.789123Z');
       expect(
-          Timestamp.fromMicrosecondsSinceEpoch(timestamp.microsecondsSinceEpoch)
-              .toIso8601String(),
-          startsWith('1234-12-12T12:34:56.789')); // missing some precision !
+        Timestamp.fromMicrosecondsSinceEpoch(
+          timestamp.microsecondsSinceEpoch,
+        ).toIso8601String(),
+        startsWith('1234-12-12T12:34:56.789'),
+      ); // missing some precision !
 
       timestamp = Timestamp(1, 123000000);
       expect(
-          Timestamp.fromMillisecondsSinceEpoch(
-              timestamp.millisecondsSinceEpoch),
-          timestamp);
+        Timestamp.fromMillisecondsSinceEpoch(timestamp.millisecondsSinceEpoch),
+        timestamp,
+      );
       timestamp = Timestamp(1, 123456000);
       expect(
-          Timestamp.fromMicrosecondsSinceEpoch(
-              timestamp.microsecondsSinceEpoch),
-          timestamp);
+        Timestamp.fromMicrosecondsSinceEpoch(timestamp.microsecondsSinceEpoch),
+        timestamp,
+      );
     });
     test('equals', () {
       expect(Timestamp(1, 2), Timestamp(1, 2));
@@ -120,37 +142,60 @@ void main() {
     test('millisecondsSinceEpoch', () {
       var now = Timestamp(1, 1);
       expect(
-          now.millisecondsSinceEpoch, now.toDateTime().millisecondsSinceEpoch);
+        now.millisecondsSinceEpoch,
+        now.toDateTime().millisecondsSinceEpoch,
+      );
       now = Timestamp.fromMillisecondsSinceEpoch(now.millisecondsSinceEpoch);
       expect(
-          now.millisecondsSinceEpoch, now.toDateTime().millisecondsSinceEpoch);
+        now.millisecondsSinceEpoch,
+        now.toDateTime().millisecondsSinceEpoch,
+      );
 
       expect(
-          now.microsecondsSinceEpoch, now.toDateTime().microsecondsSinceEpoch);
+        now.microsecondsSinceEpoch,
+        now.toDateTime().microsecondsSinceEpoch,
+      );
       now = Timestamp.fromMillisecondsSinceEpoch(now.millisecondsSinceEpoch);
       expect(
-          now.millisecondsSinceEpoch, now.toDateTime().millisecondsSinceEpoch);
+        now.millisecondsSinceEpoch,
+        now.toDateTime().millisecondsSinceEpoch,
+      );
     });
 
     void checkToIso8601(
-        Timestamp timestamp,
-        String expectedTimestampToIso8601String,
-        String expectedDateTimeToIso8601String) {
+      Timestamp timestamp,
+      String expectedTimestampToIso8601String,
+      String expectedDateTimeToIso8601String,
+    ) {
       var reason = '${timestamp.seconds} s ${timestamp.nanoseconds} ns';
-      expect(timestamp.toIso8601String(), expectedTimestampToIso8601String,
-          reason: 'timestamp $reason');
-      expect(timestamp.toDateTime(isUtc: true).toIso8601String(),
-          expectedDateTimeToIso8601String,
-          reason: 'dateTime $reason');
-      expect(Timestamp.parse(timestamp.toIso8601String()), timestamp,
-          reason: 'timestamp $timestamp');
+      expect(
+        timestamp.toIso8601String(),
+        expectedTimestampToIso8601String,
+        reason: 'timestamp $reason',
+      );
+      expect(
+        timestamp.toDateTime(isUtc: true).toIso8601String(),
+        expectedDateTimeToIso8601String,
+        reason: 'dateTime $reason',
+      );
+      expect(
+        Timestamp.parse(timestamp.toIso8601String()),
+        timestamp,
+        reason: 'timestamp $timestamp',
+      );
     }
 
     test('toIso8601', () {
-      checkToIso8601(Timestamp(0, 0), '1970-01-01T00:00:00.000Z',
-          '1970-01-01T00:00:00.000Z');
-      checkToIso8601(Timestamp(0, 100000000), '1970-01-01T00:00:00.100Z',
-          '1970-01-01T00:00:00.100Z');
+      checkToIso8601(
+        Timestamp(0, 0),
+        '1970-01-01T00:00:00.000Z',
+        '1970-01-01T00:00:00.000Z',
+      );
+      checkToIso8601(
+        Timestamp(0, 100000000),
+        '1970-01-01T00:00:00.100Z',
+        '1970-01-01T00:00:00.100Z',
+      );
       checkToIso8601(
         Timestamp(0, 100000),
         '1970-01-01T00:00:00.000100Z',
@@ -168,8 +213,7 @@ void main() {
         '1970-01-01T00:00:00.999999999Z',
         dateTimeSupportsMicroseconds
             ? '1970-01-01T00:00:00.999999Z'
-            : '1970-01-01T00:00:01.000Z' // Precision issue
-        ,
+            : '1970-01-01T00:00:01.000Z', // Precision issue
       );
     });
 
@@ -189,61 +233,92 @@ void main() {
         String expectedDateTimeToIso8601String,
       ) {
         var timestamp = Timestamp.parse(text);
-        return checkToIso8601(timestamp, expectedTimestampToIso8601String,
-            expectedDateTimeToIso8601String);
+        return checkToIso8601(
+          timestamp,
+          expectedTimestampToIso8601String,
+          expectedDateTimeToIso8601String,
+        );
       }
 
       void checkParseSecondsNanos(
-          String text, int expectedSeconds, int expectedNanos) {
+        String text,
+        int expectedSeconds,
+        int expectedNanos,
+      ) {
         var timestamp = Timestamp.parse(text);
         expect(timestamp.seconds, expectedSeconds, reason: text);
         expect(timestamp.nanoseconds, expectedNanos, reason: text);
       }
 
       checkParseToIso(
-          '2018-10-20T05:13:45.985343123Z',
-          '2018-10-20T05:13:45.985343123Z',
-          dateTimeSupportsMicroseconds
-              ? '2018-10-20T05:13:45.985343Z'
-              : '2018-10-20T05:13:45.985Z');
+        '2018-10-20T05:13:45.985343123Z',
+        '2018-10-20T05:13:45.985343123Z',
+        dateTimeSupportsMicroseconds
+            ? '2018-10-20T05:13:45.985343Z'
+            : '2018-10-20T05:13:45.985Z',
+      );
       checkParseToIso(
-          '2018-10-20T05:13:45.98534312Z',
-          '2018-10-20T05:13:45.985343120Z',
-          dateTimeSupportsMicroseconds
-              ? '2018-10-20T05:13:45.985343Z'
-              : '2018-10-20T05:13:45.985Z');
+        '2018-10-20T05:13:45.98534312Z',
+        '2018-10-20T05:13:45.985343120Z',
+        dateTimeSupportsMicroseconds
+            ? '2018-10-20T05:13:45.985343Z'
+            : '2018-10-20T05:13:45.985Z',
+      );
       checkParseToIso(
-          '2018-10-20T05:13:45.985343Z',
-          '2018-10-20T05:13:45.985343Z',
-          dateTimeSupportsMicroseconds
-              ? '2018-10-20T05:13:45.985343Z'
-              : '2018-10-20T05:13:45.985Z');
-      checkParseToIso('2018-10-20T05:13:45.985Z', '2018-10-20T05:13:45.985Z',
-          '2018-10-20T05:13:45.985Z');
-      checkParseToIso('1234-01-23T01:23:45.123Z', '1234-01-23T01:23:45.123Z',
-          '1234-01-23T01:23:45.123Z');
+        '2018-10-20T05:13:45.985343Z',
+        '2018-10-20T05:13:45.985343Z',
+        dateTimeSupportsMicroseconds
+            ? '2018-10-20T05:13:45.985343Z'
+            : '2018-10-20T05:13:45.985Z',
+      );
+      checkParseToIso(
+        '2018-10-20T05:13:45.985Z',
+        '2018-10-20T05:13:45.985Z',
+        '2018-10-20T05:13:45.985Z',
+      );
+      checkParseToIso(
+        '1234-01-23T01:23:45.123Z',
+        '1234-01-23T01:23:45.123Z',
+        '1234-01-23T01:23:45.123Z',
+      );
 
-      checkParseToIso('2018-10-20T05:13:45Z', '2018-10-20T05:13:45.000Z',
-          '2018-10-20T05:13:45.000Z');
-      checkParseToIso('2018-10-20T05:13Z', '2018-10-20T05:13:00.000Z',
-          '2018-10-20T05:13:00.000Z');
-      checkParseToIso('2018-10-20T05Z', '2018-10-20T05:00:00.000Z',
-          '2018-10-20T05:00:00.000Z');
+      checkParseToIso(
+        '2018-10-20T05:13:45Z',
+        '2018-10-20T05:13:45.000Z',
+        '2018-10-20T05:13:45.000Z',
+      );
+      checkParseToIso(
+        '2018-10-20T05:13Z',
+        '2018-10-20T05:13:00.000Z',
+        '2018-10-20T05:13:00.000Z',
+      );
+      checkParseToIso(
+        '2018-10-20T05Z',
+        '2018-10-20T05:00:00.000Z',
+        '2018-10-20T05:00:00.000Z',
+      );
 
       // 10 digits ignored!
       checkParseToIso(
-          '2018-10-20T05:13:45.9853431239Z',
-          '2018-10-20T05:13:45.985343123Z',
-          dateTimeSupportsMicroseconds
-              ? '2018-10-20T05:13:45.985343Z'
-              : '2018-10-20T05:13:45.985Z');
+        '2018-10-20T05:13:45.9853431239Z',
+        '2018-10-20T05:13:45.985343123Z',
+        dateTimeSupportsMicroseconds
+            ? '2018-10-20T05:13:45.985343Z'
+            : '2018-10-20T05:13:45.985Z',
+      );
 
       // Limit
-      checkParseToIso('0001-01-01T00:00:00Z', '0001-01-01T00:00:00.000Z',
-          '0001-01-01T00:00:00.000Z');
+      checkParseToIso(
+        '0001-01-01T00:00:00Z',
+        '0001-01-01T00:00:00.000Z',
+        '0001-01-01T00:00:00.000Z',
+      );
       if (!isWeb) {
-        checkParseToIso('9999-12-31T23:59:59.999999999Z',
-            '9999-12-31T23:59:59.999999999Z', '9999-12-31T23:59:59.999999Z');
+        checkParseToIso(
+          '9999-12-31T23:59:59.999999999Z',
+          '9999-12-31T23:59:59.999999999Z',
+          '9999-12-31T23:59:59.999999Z',
+        );
       } else {
         // Before 2.7.1
         // isWeb ? '+010000-01-01T00:00:00.000Z' // Precision issue
@@ -251,21 +326,27 @@ void main() {
         // Invalid argument(s): invalid seconds part 10000-01-01 00:00:01.000Z
       }
       // Parse local converted to utc
-      expect(Timestamp.tryParse('2018-10-20T05:13:45.985')!.toIso8601String(),
-          endsWith('.985Z'));
       expect(
-          Timestamp.tryParse('2018-10-20T05:13:45.985123')!.toIso8601String(),
-          endsWith('.985123Z'));
+        Timestamp.tryParse('2018-10-20T05:13:45.985')!.toIso8601String(),
+        endsWith('.985Z'),
+      );
       expect(
-          Timestamp.tryParse('2018-10-20T05:13:45.985123100')!
-              .toIso8601String(),
-          endsWith('.985123100Z'));
+        Timestamp.tryParse('2018-10-20T05:13:45.985123')!.toIso8601String(),
+        endsWith('.985123Z'),
+      );
+      expect(
+        Timestamp.tryParse('2018-10-20T05:13:45.985123100')!.toIso8601String(),
+        endsWith('.985123100Z'),
+      );
 
       // Limit
       checkParseSecondsNanos('0001-01-01T00:00:00Z', -62135596800, 0);
       if (!isWeb) {
         checkParseSecondsNanos(
-            '9999-12-31T23:59:59.999999999Z', 253402300799, 999999999);
+          '9999-12-31T23:59:59.999999999Z',
+          253402300799,
+          999999999,
+        );
       } else {
         // After 2.7.1
         // Invalid argument(s): invalid seconds part 10000-01-01 00:00:01.000Z
@@ -273,29 +354,41 @@ void main() {
     });
 
     test('anyAsTimestamp', () {
-      expect(Timestamp.tryAnyAsTimestamp(1000)!.toIso8601String(),
-          '1970-01-01T00:00:01.000Z');
       expect(
-          Timestamp.tryAnyAsTimestamp('1970-01-01T00:00:01.000Z')!
-              .toIso8601String(),
-          '1970-01-01T00:00:01.000Z');
+        Timestamp.tryAnyAsTimestamp(1000)!.toIso8601String(),
+        '1970-01-01T00:00:01.000Z',
+      );
       expect(
-          Timestamp.tryAnyAsTimestamp('1970-01-01T00:00:01.000000Z')!
-              .toIso8601String(),
-          '1970-01-01T00:00:01.000Z');
-      expect(Timestamp.tryAnyAsTimestamp(Timestamp(1, 0))!.toIso8601String(),
-          '1970-01-01T00:00:01.000Z');
+        Timestamp.tryAnyAsTimestamp(
+          '1970-01-01T00:00:01.000Z',
+        )!.toIso8601String(),
+        '1970-01-01T00:00:01.000Z',
+      );
       expect(
-          Timestamp.tryAnyAsTimestamp(
-                  DateTime.fromMillisecondsSinceEpoch(1000))!
-              .toIso8601String(),
-          '1970-01-01T00:00:01.000Z');
+        Timestamp.tryAnyAsTimestamp(
+          '1970-01-01T00:00:01.000000Z',
+        )!.toIso8601String(),
+        '1970-01-01T00:00:01.000Z',
+      );
+      expect(
+        Timestamp.tryAnyAsTimestamp(Timestamp(1, 0))!.toIso8601String(),
+        '1970-01-01T00:00:01.000Z',
+      );
+      expect(
+        Timestamp.tryAnyAsTimestamp(
+          DateTime.fromMillisecondsSinceEpoch(1000),
+        )!.toIso8601String(),
+        '1970-01-01T00:00:01.000Z',
+      );
       expect(Timestamp.tryAnyAsTimestamp('dummy'), null);
     });
 
     test('various', () {
-      void checkTimestamp(Timestamp timestamp,
-          {bool? testMillis, bool? testMicros}) {
+      void checkTimestamp(
+        Timestamp timestamp, {
+        bool? testMillis,
+        bool? testMicros,
+      }) {
         testMillis ??= false;
         testMicros ??= testMillis;
         var other = Timestamp.parse(timestamp.toIso8601String());
@@ -304,12 +397,14 @@ void main() {
         expect(other, timestamp);
         if (testMillis) {
           other = Timestamp.fromMillisecondsSinceEpoch(
-              timestamp.millisecondsSinceEpoch);
+            timestamp.millisecondsSinceEpoch,
+          );
           expect(other, timestamp);
         }
         if (testMicros) {
           other = Timestamp.fromMicrosecondsSinceEpoch(
-              timestamp.microsecondsSinceEpoch);
+            timestamp.microsecondsSinceEpoch,
+          );
           expect(other, timestamp);
         }
       }
@@ -337,32 +432,51 @@ void main() {
     });
     test('addDuration', () {
       var timestamp = Timestamp(3, 300000);
-      expect(timestamp.addDuration(const Duration(microseconds: 200)),
-          Timestamp(3, 500000));
-      expect(timestamp.substractDuration(const Duration(microseconds: 200)),
-          Timestamp(3, 100000));
       expect(
-          timestamp.addDuration(const Duration(seconds: 2, microseconds: 400)),
-          Timestamp(5, 700000));
+        timestamp.addDuration(const Duration(microseconds: 200)),
+        Timestamp(3, 500000),
+      );
       expect(
-          timestamp
-              .substractDuration(const Duration(seconds: 2, microseconds: 400)),
-          Timestamp(2, 999900000));
+        timestamp.substractDuration(const Duration(microseconds: 200)),
+        Timestamp(3, 100000),
+      );
+      expect(
+        timestamp.addDuration(const Duration(seconds: 2, microseconds: 400)),
+        Timestamp(5, 700000),
+      );
+      expect(
+        timestamp.substractDuration(
+          const Duration(seconds: 2, microseconds: 400),
+        ),
+        Timestamp(2, 999900000),
+      );
     });
     test('difference', () {
-      expect(Timestamp(3, 1000).difference(Timestamp(3, 2000)),
-          const Duration(microseconds: -1));
-      expect(Timestamp(3, 2000).difference(Timestamp(3, 1000)),
-          const Duration(microseconds: 1));
-      expect(Timestamp(2, 1000).difference(Timestamp(3, 2000)),
-          const Duration(microseconds: -1000001));
-      expect(Timestamp(3, 1000).difference(Timestamp(2, 2000)),
-          const Duration(microseconds: 999999));
-      expect(Timestamp(62, 1000).difference(Timestamp(1, 2000)),
-          const Duration(minutes: 1, microseconds: 999999));
+      expect(
+        Timestamp(3, 1000).difference(Timestamp(3, 2000)),
+        const Duration(microseconds: -1),
+      );
+      expect(
+        Timestamp(3, 2000).difference(Timestamp(3, 1000)),
+        const Duration(microseconds: 1),
+      );
+      expect(
+        Timestamp(2, 1000).difference(Timestamp(3, 2000)),
+        const Duration(microseconds: -1000001),
+      );
+      expect(
+        Timestamp(3, 1000).difference(Timestamp(2, 2000)),
+        const Duration(microseconds: 999999),
+      );
+      expect(
+        Timestamp(62, 1000).difference(Timestamp(1, 2000)),
+        const Duration(minutes: 1, microseconds: 999999),
+      );
       var now = DateTime.timestamp();
-      expect(Timestamp.fromDateTime(now).difference(Timestamp.zero),
-          now.difference(Timestamp.zero.toDateTime(isUtc: true)));
+      expect(
+        Timestamp.fromDateTime(now).difference(Timestamp.zero),
+        now.difference(Timestamp.zero.toDateTime(isUtc: true)),
+      );
     });
     test('zero', () {
       expect(Timestamp.zero.toIso8601String(), '1970-01-01T00:00:00.000Z');

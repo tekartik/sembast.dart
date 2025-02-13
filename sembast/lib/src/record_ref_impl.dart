@@ -81,17 +81,30 @@ extension SembastRecordRefExtension<K, V> on RecordRef<K, V> {
   /// Both [merge] and [ifNotExists] cannot be true at the same time.
   /// Returns the updated value or existing value if [ifNotExists] is true and
   /// the record exists
-  Future<V> put(DatabaseClient databaseClient, V value,
-      {bool? merge, bool? ifNotExists}) async {
+  Future<V> put(
+    DatabaseClient databaseClient,
+    V value, {
+    bool? merge,
+    bool? ifNotExists,
+  }) async {
     var client = getClient(databaseClient);
     _checkValueArgument(value);
-    value = client.sembastDatabase
-        .sanitizeInputValue<V>(value as Value, update: merge);
+    value = client.sembastDatabase.sanitizeInputValue<V>(
+      value as Value,
+      update: merge,
+    );
     return (await client.inTransaction((txn) {
-      return client.getSembastStore(store).txnPut(
-          txn, value as Value, key as Key,
-          merge: merge, ifNotExists: ifNotExists);
-    }) as V?)!;
+          return client
+              .getSembastStore(store)
+              .txnPut(
+                txn,
+                value as Value,
+                key as Key,
+                merge: merge,
+                ifNotExists: ifNotExists,
+              );
+        })
+        as V?)!;
   }
 
   /// Update a record.
@@ -102,13 +115,16 @@ extension SembastRecordRefExtension<K, V> on RecordRef<K, V> {
   /// Returns the updated value.
   Future<V?> update(DatabaseClient databaseClient, V value) async {
     var client = getClient(databaseClient);
-    value = client.sembastDatabase
-        .sanitizeInputValue<V>(value as Value, update: true);
+    value = client.sembastDatabase.sanitizeInputValue<V>(
+      value as Value,
+      update: true,
+    );
     return await client.inTransaction((txn) {
-      return client
-          .getSembastStore(store)
-          .txnUpdate(txn, value as Value, key as Key);
-    }) as V?;
+          return client
+              .getSembastStore(store)
+              .txnUpdate(txn, value as Value, key as Key);
+        })
+        as V?;
   }
 
   /// Get a record value from the database.
@@ -117,12 +133,15 @@ extension SembastRecordRefExtension<K, V> on RecordRef<K, V> {
 
   /// Get a record snapshot from the database.
   Future<RecordSnapshot<K, V>?> getSnapshot(
-      DatabaseClient databaseClient) async {
+    DatabaseClient databaseClient,
+  ) async {
     var client = getClient(databaseClient);
 
-    return snapshotFromImmutableRecordOrNull(await client
-        .getSembastStore(store)
-        .txnGetImmutableRecord(client.sembastTransaction, key as Key));
+    return snapshotFromImmutableRecordOrNull(
+      await client
+          .getSembastStore(store)
+          .txnGetImmutableRecord(client.sembastTransaction, key as Key),
+    );
   }
 
   /// Get a stream of a record snapshot from the database.
@@ -131,25 +150,28 @@ extension SembastRecordRefExtension<K, V> on RecordRef<K, V> {
   Stream<RecordSnapshot<K, V>?> onSnapshot(Database database) {
     var db = getDatabase(database);
     late RecordListenerController<K, V> ctlr;
-    ctlr = db.listener.addRecord(this, onListen: () {
-      // Read right away
-      () async {
-        await ctlr.lock.synchronized(() async {
-          // Don't crash here, the database might have been closed
-          try {
-            // Add the existing snapshot
-            var snapshot = await getSnapshot(database);
-            if (debugListener) {
-              // ignore: avoid_print
-              print('matching $ctlr: $snapshot on $this');
+    ctlr = db.listener.addRecord(
+      this,
+      onListen: () {
+        // Read right away
+        () async {
+          await ctlr.lock.synchronized(() async {
+            // Don't crash here, the database might have been closed
+            try {
+              // Add the existing snapshot
+              var snapshot = await getSnapshot(database);
+              if (debugListener) {
+                // ignore: avoid_print
+                print('matching $ctlr: $snapshot on $this');
+              }
+              ctlr.add(snapshot);
+            } catch (error, stackTrace) {
+              ctlr.addError(error, stackTrace);
             }
-            ctlr.add(snapshot);
-          } catch (error, stackTrace) {
-            ctlr.addError(error, stackTrace);
-          }
-        });
-      }();
-    });
+          });
+        }();
+      },
+    );
     return ctlr.stream;
   }
 
@@ -183,9 +205,11 @@ extension SembastRecordRefSyncExtension<K, V> on RecordRef<K, V> {
   RecordSnapshot<K, V>? getSnapshotSync(DatabaseClient databaseClient) {
     var client = getClient(databaseClient);
 
-    return snapshotFromImmutableRecordOrNull(client
-        .getSembastStore(store)
-        .txnGetImmutableRecordSync(client.sembastTransaction, key));
+    return snapshotFromImmutableRecordOrNull(
+      client
+          .getSembastStore(store)
+          .txnGetImmutableRecordSync(client.sembastTransaction, key),
+    );
   }
 
   /// Return true if the record exists synchronously.
@@ -205,25 +229,28 @@ extension SembastRecordRefSyncExtension<K, V> on RecordRef<K, V> {
   Stream<RecordSnapshot<K, V>?> onSnapshotSync(Database database) {
     var db = getDatabase(database);
     late RecordListenerController<K, V> ctlr;
-    ctlr = db.listener.addRecord(this, onListen: () {
-      // Read right away
-      () async {
-        await ctlr.lock.synchronized(() async {
-          // Don't crash here, the database might have been closed
-          try {
-            // Add the existing snapshot
-            var snapshot = getSnapshotSync(database);
-            if (debugListener) {
-              // ignore: avoid_print
-              print('matching $ctlr: $snapshot on $this');
+    ctlr = db.listener.addRecord(
+      this,
+      onListen: () {
+        // Read right away
+        () async {
+          await ctlr.lock.synchronized(() async {
+            // Don't crash here, the database might have been closed
+            try {
+              // Add the existing snapshot
+              var snapshot = getSnapshotSync(database);
+              if (debugListener) {
+                // ignore: avoid_print
+                print('matching $ctlr: $snapshot on $this');
+              }
+              ctlr.add(snapshot);
+            } catch (error, stackTrace) {
+              ctlr.addError(error, stackTrace);
             }
-            ctlr.add(snapshot);
-          } catch (error, stackTrace) {
-            ctlr.addError(error, stackTrace);
-          }
-        });
-      }();
-    });
+          });
+        }();
+      },
+    );
     return ctlr.stream;
   }
 }
@@ -232,11 +259,11 @@ extension SembastRecordRefSyncExtension<K, V> on RecordRef<K, V> {
 extension SembastRecordsRefExtensionPrv<K, V> on RecordRef<K, V> {
   /// Create a snapshot from a record.
   RecordSnapshot<K, V> snapshotFromImmutableRecord(
-          ImmutableSembastRecord record) =>
-      snapshot(record.value as V);
+    ImmutableSembastRecord record,
+  ) => snapshot(record.value as V);
 
   /// Create a snapshot from a record (or null);
   RecordSnapshot<K, V>? snapshotFromImmutableRecordOrNull(
-          ImmutableSembastRecord? record) =>
-      record == null ? null : snapshotFromImmutableRecord(record);
+    ImmutableSembastRecord? record,
+  ) => record == null ? null : snapshotFromImmutableRecord(record);
 }

@@ -26,8 +26,9 @@ void defineTests(DatabaseTestContext ctx) {
 
     group('no_db', () {
       test('immutable_value', () {
-        final record =
-            ImmutableSembastRecord(mainStoreRef.record(1), {'foo': 'bar'});
+        final record = ImmutableSembastRecord(mainStoreRef.record(1), {
+          'foo': 'bar',
+        });
         var map = record.value as Map;
         try {
           map['foo'] = 'doe';

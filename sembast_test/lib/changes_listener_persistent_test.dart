@@ -17,7 +17,9 @@ void defineTests(DatabaseTestContext ctx) {
       var db = await setupForTest(ctx, 'changes_listener_persistent_add.db');
 
       Future<void> onChanges(
-          Transaction txn, List<RecordChange> changes) async {
+        Transaction txn,
+        List<RecordChange> changes,
+      ) async {
         for (var change in changes) {
           await storeDup
               .record(change.ref.key as int)

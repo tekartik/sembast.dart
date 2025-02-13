@@ -52,7 +52,7 @@ void defineTests(DatabaseTestContextFs ctx) {
 
       await db.close();
       expect(await dbFileExportToMapList(), [
-        {'version': 1, 'sembast': 1}
+        {'version': 1, 'sembast': 1},
       ]);
       expect(getExportStat(db).lineCount, 1);
       expect(getExportStat(db).obsoleteLineCount, 0);
@@ -65,7 +65,7 @@ void defineTests(DatabaseTestContextFs ctx) {
       await db.close();
 
       expect(await dbFileExportToMapList(), [
-        {'version': 2, 'sembast': 1}
+        {'version': 2, 'sembast': 1},
       ]);
       expect(getExportStat(db).lineCount, 1);
     });
@@ -79,7 +79,7 @@ void defineTests(DatabaseTestContextFs ctx) {
 
       expect(await dbFileExportToMapList(), [
         {'version': 1, 'sembast': 1},
-        {'version': 2, 'sembast': 1}
+        {'version': 2, 'sembast': 1},
       ]);
       expect(getExportStat(db).lineCount, 2);
       expect(getExportStat(db).obsoleteLineCount, 0); // don't count meta
@@ -92,7 +92,7 @@ void defineTests(DatabaseTestContextFs ctx) {
       await db.close();
       expect(await dbFileExportToMapList(), [
         {'version': 1, 'sembast': 1},
-        {'key': 1, 'value': 'hi'}
+        {'key': 1, 'value': 'hi'},
       ]);
     });
 
@@ -103,7 +103,7 @@ void defineTests(DatabaseTestContextFs ctx) {
       await db.close();
       expect(await dbFileExportToMapList(), [
         {'version': 1, 'sembast': 1},
-        {'key': 1, 'value': 'hi'}
+        {'key': 1, 'value': 'hi'},
       ]);
       db = await factory.openDatabase(dbPath!);
       await store.record(1).delete(db);
@@ -111,7 +111,7 @@ void defineTests(DatabaseTestContextFs ctx) {
       expect(await dbFileExportToMapList(), [
         {'version': 1, 'sembast': 1},
         {'key': 1, 'value': 'hi'},
-        {'key': 1, 'deleted': true}
+        {'key': 1, 'deleted': true},
       ]);
       db = await factory.openDatabase(dbPath!);
       await compact(db);
@@ -125,13 +125,13 @@ void defineTests(DatabaseTestContextFs ctx) {
       await prepareForDb();
       await importFromMapList([
         {'version': 1, 'sembast': 1},
-        {'key': 1, 'value': 'hi'}
+        {'key': 1, 'value': 'hi'},
       ]);
       var db = await factory.openDatabase(dbPath!);
       await db.close();
       expect(await dbFileExportToMapList(), [
         {'version': 1, 'sembast': 1},
-        {'key': 1, 'value': 'hi'}
+        {'key': 1, 'value': 'hi'},
       ]);
       expect(getExportStat(db).lineCount, 2);
       expect(getExportStat(db).obsoleteLineCount, 0); // don't count meta
@@ -143,18 +143,16 @@ void defineTests(DatabaseTestContextFs ctx) {
         {'version': 1, 'sembast': 1},
         {'key': 1, 'value': 'hi'},
 
-        {
-          'key': 2,
-        }, // no value
+        {'key': 2}, // no value
         {'key': 3, 'deleted': true},
-        {'key': 4, 'value': 'hi'}
+        {'key': 4, 'value': 'hi'},
       ]);
       var db = await factory.openDatabase(dbPath!);
       await db.close();
       expect(await dbFileExportToMapList(), [
         {'version': 1, 'sembast': 1},
         {'key': 1, 'value': 'hi'},
-        {'key': 4, 'value': 'hi'}
+        {'key': 4, 'value': 'hi'},
       ]);
       expect(getExportStat(db).lineCount, 3);
       expect(getExportStat(db).obsoleteLineCount, 0); // don't count meta
@@ -164,7 +162,7 @@ void defineTests(DatabaseTestContextFs ctx) {
       await prepareForDb();
       await importFromMapList([
         {'version': 1, 'sembast': 1},
-        {'store': '_main', 'key': 1, 'value': 'hi'}
+        {'store': '_main', 'key': 1, 'value': 'hi'},
       ]);
       var db = await factory.openDatabase(dbPath!);
       expect(await store.record(1).get(db), 'hi');
@@ -172,7 +170,7 @@ void defineTests(DatabaseTestContextFs ctx) {
 
       expect(await dbFileExportToMapList(), [
         {'version': 1, 'sembast': 1},
-        {'store': '_main', 'key': 1, 'value': 'hi'}
+        {'store': '_main', 'key': 1, 'value': 'hi'},
       ]);
 
       db = await factory.openDatabase(dbPath!);
@@ -181,7 +179,7 @@ void defineTests(DatabaseTestContextFs ctx) {
 
       expect(await dbFileExportToMapList(), [
         {'version': 1, 'sembast': 1},
-        {'key': 1, 'value': 'hi'}
+        {'key': 1, 'value': 'hi'},
       ]);
       expect(getExportStat(db).lineCount, 2);
       expect(getExportStat(db).obsoleteLineCount, 0); // don't count meta
@@ -192,16 +190,16 @@ void defineTests(DatabaseTestContextFs ctx) {
       var db = await factory.openDatabase(dbPath!);
 
       var store = StoreRef<int, String>.main();
-// Add records
+      // Add records
       await store.addAll(db, ['hi', 'ho']);
 
-// ...
+      // ...
 
-// Instead of doing (that will create 2 transactions)
+      // Instead of doing (that will create 2 transactions)
       await store.delete(db);
       await store.addAll(db, ['hi', 'ha']);
 
-// Delete and re-add in transaction
+      // Delete and re-add in transaction
       await db.transaction((transaction) async {
         await store.delete(transaction);
         await store.addAll(transaction, ['hi', 'hu']);
@@ -219,7 +217,7 @@ void defineTests(DatabaseTestContextFs ctx) {
         {'key': 3, 'deleted': true},
         {'key': 4, 'deleted': true},
         {'key': 5, 'value': 'hi'},
-        {'key': 6, 'value': 'hu'}
+        {'key': 6, 'value': 'hu'},
       ]);
     });
   });

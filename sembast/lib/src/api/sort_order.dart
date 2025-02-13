@@ -12,8 +12,11 @@ class SortOrder<T extends Object?> {
   ///
   /// [nullLast] means nulls are sorted last in ascending order
   /// so if not [ascending], it means null are sorted first
-  factory SortOrder(String field,
-      [bool ascending = true, bool nullLast = false]) {
+  factory SortOrder(
+    String field, [
+    bool ascending = true,
+    bool nullLast = false,
+  ]) {
     return SembastSortOrder<T>(field, ascending, nullLast);
   }
 
@@ -26,8 +29,11 @@ class SortOrder<T extends Object?> {
   /// [nullLast] means nulls are sorted last in ascending order
   /// so if not [ascending], it means null are sorted first
   factory SortOrder.custom(
-      String field, int Function(T value1, T value2) compare,
-      [bool ascending = true, bool nullLast = false]) {
+    String field,
+    int Function(T value1, T value2) compare, [
+    bool ascending = true,
+    bool nullLast = false,
+  ]) {
     return SembastCustomSortOrder<T>(field, compare, ascending, nullLast);
   }
 }

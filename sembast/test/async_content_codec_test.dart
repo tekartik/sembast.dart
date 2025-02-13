@@ -25,15 +25,17 @@ void main() {
     test('sembast_codec', () {
       var sembastCodecSync = SembastCodec(signature: 'sync', codec: codecSync);
       expect(sembastCodecSync.hasAsyncCodec, isFalse);
-      var sembastCodecAsync =
-          SembastCodec(signature: 'sync', codec: codecAsync);
+      var sembastCodecAsync = SembastCodec(
+        signature: 'sync',
+        codec: codecAsync,
+      );
       expect(sembastCodecAsync.hasAsyncCodec, isTrue);
     });
     test('json', () async {
       for (var value in [
         // ignore: inference_failure_on_collection_literal
         {},
-        {'blue': 'hotel'}
+        {'blue': 'hotel'},
       ]) {
         var encoded = codecSync.encode(value);
         expect(codecSync.encode(value), encoded);

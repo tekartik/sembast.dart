@@ -18,13 +18,15 @@ DatabaseFactory get databaseFactoryMemoryJdb => memory.databaseFactoryMemoryJdb;
 DatabaseFactory newDatabaseFactoryMemory() => memory.DatabaseFactoryMemory();
 
 /// Open a memory database, always blank
-Future<Database> openNewInMemoryDatabase(
-        {int? version,
-        OnVersionChangedFunction? onVersionChanged,
-        DatabaseMode? mode,
-        SembastCodec? codec}) =>
-    databaseFactoryMemory.openDatabase(sembastInMemoryDatabasePath,
-        version: version,
-        mode: mode,
-        codec: codec,
-        onVersionChanged: onVersionChanged);
+Future<Database> openNewInMemoryDatabase({
+  int? version,
+  OnVersionChangedFunction? onVersionChanged,
+  DatabaseMode? mode,
+  SembastCodec? codec,
+}) => databaseFactoryMemory.openDatabase(
+  sembastInMemoryDatabasePath,
+  version: version,
+  mode: mode,
+  codec: codec,
+  onVersionChanged: onVersionChanged,
+);

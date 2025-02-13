@@ -32,8 +32,9 @@ StoreRef<Key, Value> mainStoreRef = SembastStoreRef<Key, Value>(dbMainStore);
 StoreRef<int, Value> intMainStoreRef = SembastStoreRef<int, Value>(dbMainStore);
 
 /// Main store reference, key as String, value untyped
-StoreRef<String, Value> stringMainStoreRef =
-    SembastStoreRef<String, Value>(dbMainStore);
+StoreRef<String, Value> stringMainStoreRef = SembastStoreRef<String, Value>(
+  dbMainStore,
+);
 
 /// Jdb revision.
 const String jdbRevisionKey = 'revision';

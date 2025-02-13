@@ -118,7 +118,7 @@ void defineTests(FileSystemTestContext ctx) {
         line,
         line,
         line,
-        line
+        line,
       ]);
       final db = await factory.openDatabase(dbPath!) as SembastDatabase;
       expect(await store.record(1).get(db), 2);
@@ -143,7 +143,7 @@ void defineTests(FileSystemTestContext ctx) {
         line,
         line,
         line,
-        line
+        line,
       ]);
       final db = await factory.openDatabase(dbPath!) as SembastDatabase;
       expect(await store.record(1).get(db), 2);

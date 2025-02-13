@@ -18,7 +18,10 @@ abstract class SembastSortOrderBase<T extends Object?> implements SortOrder<T> {
 
   /// Compare with a boundary in ascending order.
   int compareToBoundaryAscending(
-      RecordSnapshot record, Boundary boundary, int index);
+    RecordSnapshot record,
+    Boundary boundary,
+    int index,
+  );
 
   /// Compare 2 record.
   int compare(RecordSnapshot record1, RecordSnapshot record2) {
@@ -69,11 +72,13 @@ class SembastSortOrder<T extends Object?> extends SembastSortOrderBase<T> {
   ///
   /// user withParam
   SembastSortOrder(this.field, [bool? ascending, bool? nullLast])
-      : super(ascending ?? true, nullLast ?? false);
+    : super(ascending ?? true, nullLast ?? false);
 
   /// Compare a record to a snapshot.
   int compareToSnapshotAscending(
-      RecordSnapshot record, RecordSnapshot snapshot) {
+    RecordSnapshot record,
+    RecordSnapshot snapshot,
+  ) {
     var value1 = record[field];
     var value2 = snapshot[field];
     return compareValueAscending(value1, value2);
@@ -82,7 +87,10 @@ class SembastSortOrder<T extends Object?> extends SembastSortOrderBase<T> {
   /// Compare a record to a boundary in ascending order.
   @override
   int compareToBoundaryAscending(
-      RecordSnapshot record, Boundary boundary, int index) {
+    RecordSnapshot record,
+    Boundary boundary,
+    int index,
+  ) {
     final sembastBoundary = boundary as SembastBoundary;
     if (sembastBoundary.values != null) {
       var value = sembastBoundary.values![index];
@@ -104,7 +112,7 @@ class SembastSortOrder<T extends Object?> extends SembastSortOrderBase<T> {
   Map<String, Object?> _toDebugMap() {
     final map = <String, Object?>{
       field: ascending ? 'asc' : 'desc',
-      if (nullLast) 'nullLast': true
+      if (nullLast) 'nullLast': true,
     };
     return map;
   }
@@ -116,8 +124,8 @@ class SembastSortOrder<T extends Object?> extends SembastSortOrderBase<T> {
 }
 
 /// Custom compare value function.
-typedef SembastCustomSortOrderCompareFunction<T> = int Function(
-    T value1, T value2);
+typedef SembastCustomSortOrderCompareFunction<T> =
+    int Function(T value1, T value2);
 
 /// Custom sort order compare function.
 class SembastCustomSortOrder<T extends Object?> extends SembastSortOrder<T> {
@@ -125,9 +133,11 @@ class SembastCustomSortOrder<T extends Object?> extends SembastSortOrder<T> {
 
   /// Custom sort order compare function.
   SembastCustomSortOrder(
-      super.field, SembastCustomSortOrderCompareFunction<T> compare,
-      [super.ascending, super.nullLast])
-      : _compare = compare;
+    super.field,
+    SembastCustomSortOrderCompareFunction<T> compare, [
+    super.ascending,
+    super.nullLast,
+  ]) : _compare = compare;
 
   @override
   int compareValue(Object? value1, Object? value2) {

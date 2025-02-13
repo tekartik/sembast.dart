@@ -71,8 +71,9 @@ mixin StoreRefMixin<K, V> implements StoreRef<K, V> {
 extension SembastStoreRefExtensionImpl<K, V> on StoreRef<K, V> {
   /// Find immutables records.
   Future<List<ImmutableSembastRecord>> findImmutableRecords(
-      DatabaseClient databaseClient,
-      {SembastFinder? finder}) async {
+    DatabaseClient databaseClient, {
+    SembastFinder? finder,
+  }) async {
     final client = getClient(databaseClient);
 
     return await client
@@ -82,8 +83,9 @@ extension SembastStoreRefExtensionImpl<K, V> on StoreRef<K, V> {
 
   /// Find immutables records. synchronous access.
   List<ImmutableSembastRecord> findImmutableRecordsSync(
-      DatabaseClient databaseClient,
-      {SembastFinder? finder}) {
+    DatabaseClient databaseClient, {
+    SembastFinder? finder,
+  }) {
     final client = getClient(databaseClient);
 
     return client
@@ -92,14 +94,15 @@ extension SembastStoreRefExtensionImpl<K, V> on StoreRef<K, V> {
   }
 
   /// Find key set.
-  Future<Set<K>> filterKeys(DatabaseClient databaseClient,
-      {Filter? filter}) async {
+  Future<Set<K>> filterKeys(
+    DatabaseClient databaseClient, {
+    Filter? filter,
+  }) async {
     final client = getClient(databaseClient);
 
     return (await client
-            .getSembastStore(this)
-            .txnFilterKeys(client.sembastTransaction, filter))
-        .cast<K>();
+        .getSembastStore(this)
+        .txnFilterKeys(client.sembastTransaction, filter)).cast<K>();
   }
 }
 
@@ -111,27 +114,32 @@ extension SembastStoreRefExtensionPrv<K, V> on StoreRef<K, V> {
 
   /// Create a snapshot of a record with a given value.
   RecordSnapshot<K, V> snapshotFromImmutableRecord(
-      ImmutableSembastRecord record) {
+    ImmutableSembastRecord record,
+  ) {
     return SembastRecordSnapshot<K, V>.fromRecord(this, record);
   }
 
   /// Create a snapshot of a record with a given value (or null).
   RecordSnapshot<K, V>? snapshotFromImmutableRecordOrNull(
-          ImmutableSembastRecord? record) =>
-      record == null ? null : snapshotFromImmutableRecord(record);
+    ImmutableSembastRecord? record,
+  ) => record == null ? null : snapshotFromImmutableRecord(record);
 
   /// create snapshot list.
   Iterable<K> immutableRecordIterableToKeys(
-      Iterable<ImmutableSembastRecord> records) {
+    Iterable<ImmutableSembastRecord> records,
+  ) {
     return records.map((immutable) => immutable.key as K);
   }
 
   /// create snapshot list.
   List<SembastRecordSnapshot<K, V>> immutableRecordIterableToSnapshots(
-      List<ImmutableSembastRecord> records) {
+    List<ImmutableSembastRecord> records,
+  ) {
     return records
-        .map((immutable) =>
-            SembastRecordSnapshot<K, V>.fromRecord(this, immutable))
+        .map(
+          (immutable) =>
+              SembastRecordSnapshot<K, V>.fromRecord(this, immutable),
+        )
         .toList(growable: false);
   }
 }
@@ -159,8 +167,10 @@ extension SembastStoreRefExtension<K, V> on StoreRef<K, V> {
   /// Find a single record.
   ///
   /// Returns null if not found.
-  Future<RecordSnapshot<K, V>?> findFirst(DatabaseClient databaseClient,
-      {Finder? finder}) async {
+  Future<RecordSnapshot<K, V>?> findFirst(
+    DatabaseClient databaseClient, {
+    Finder? finder,
+  }) async {
     final client = getClient(databaseClient);
 
     var record = await client
@@ -178,10 +188,14 @@ extension SembastStoreRefExtension<K, V> on StoreRef<K, V> {
   ///
   /// Returns an empty array if none found.
   ///
-  Future<List<RecordSnapshot<K, V>>> find(DatabaseClient databaseClient,
-      {Finder? finder}) async {
-    var records = await findImmutableRecords(databaseClient,
-        finder: finder as SembastFinder?);
+  Future<List<RecordSnapshot<K, V>>> find(
+    DatabaseClient databaseClient, {
+    Finder? finder,
+  }) async {
+    var records = await findImmutableRecords(
+      databaseClient,
+      finder: finder as SembastFinder?,
+    );
     return immutableRecordIterableToSnapshots(records);
   }
 
@@ -211,8 +225,10 @@ extension SembastStoreRefExtension<K, V> on StoreRef<K, V> {
   ///
   /// Return an empty array if none found.
   ///
-  Future<List<K>> findKeys(DatabaseClient databaseClient,
-      {Finder? finder}) async {
+  Future<List<K>> findKeys(
+    DatabaseClient databaseClient, {
+    Finder? finder,
+  }) async {
     final client = getClient(databaseClient);
 
     var keys = await client
@@ -222,8 +238,10 @@ extension SembastStoreRefExtension<K, V> on StoreRef<K, V> {
   }
 
   /// Unsorted record stream
-  Stream<RecordSnapshot<K, V>> stream(DatabaseClient databaseClient,
-      {Filter? filter}) {
+  Stream<RecordSnapshot<K, V>> stream(
+    DatabaseClient databaseClient, {
+    Filter? filter,
+  }) {
     final client = getClient(databaseClient);
 
     return client
@@ -289,8 +307,9 @@ extension SembastStoreRefExtension<K, V> on StoreRef<K, V> {
   ///
   Future<List<K>> addAll(DatabaseClient databaseClient, List<V> values) async {
     final client = getClient(databaseClient);
-    var sanitizedValues = values.map((value) =>
-        client.sembastDatabase.sanitizeInputValue<V>(value as Value));
+    var sanitizedValues = values.map(
+      (value) => client.sembastDatabase.sanitizeInputValue<V>(value as Value),
+    );
     var keys = <K>[];
     await client.inTransaction((txn) async {
       var store = client.getSembastStore(this);
@@ -306,13 +325,18 @@ extension SembastStoreRefExtension<K, V> on StoreRef<K, V> {
   /// Return the count updated. [value] is merged to the existing.
   Future<int> update(DatabaseClient databaseClient, V value, {Finder? finder}) {
     final client = getClient(databaseClient);
-    value = client.sembastDatabase
-        .sanitizeInputValue<V>(value as Value, update: true);
+    value = client.sembastDatabase.sanitizeInputValue<V>(
+      value as Value,
+      update: true,
+    );
     return client.inTransaction((txn) async {
-      return (await client.getSembastStore(this).txnUpdateWhere(
-              txn, value as Value,
-              finder: finder as SembastFinder?))
-          .length;
+      return (await client
+          .getSembastStore(this)
+          .txnUpdateWhere(
+            txn,
+            value as Value,
+            finder: finder as SembastFinder?,
+          )).length;
     });
   }
 
@@ -323,9 +347,8 @@ extension SembastStoreRefExtension<K, V> on StoreRef<K, V> {
     final client = getClient(databaseClient);
     return client.inTransaction((txn) async {
       return (await client
-              .getSembastStore(this)
-              .txnClear(txn, finder: finder as SembastFinder?))
-          .length;
+          .getSembastStore(this)
+          .txnClear(txn, finder: finder as SembastFinder?)).length;
     });
   }
 
@@ -340,7 +363,9 @@ extension SembastStoreRefExtension<K, V> on StoreRef<K, V> {
   /// Like transaction, it can run multiple times, so limit your changes to the
   /// database.
   void addOnChangesListener(
-      Database database, TransactionRecordChangeListener<K, V> onChanges) {
+    Database database,
+    TransactionRecordChangeListener<K, V> onChanges,
+  ) {
     (database as SembastDatabase).addOnChangesListener<K, V>(this, onChanges);
   }
 
@@ -348,18 +373,25 @@ extension SembastStoreRefExtension<K, V> on StoreRef<K, V> {
   ///
   /// Make sure the same callback is used than the one used in addOnChangesListener.
   void removeOnChangesListener(
-      Database database, TransactionRecordChangeListener<K, V> onChanges) {
-    (database as SembastDatabase)
-        .removeOnChangesListener<K, V>(this, onChanges);
+    Database database,
+    TransactionRecordChangeListener<K, V> onChanges,
+  ) {
+    (database as SembastDatabase).removeOnChangesListener<K, V>(
+      this,
+      onChanges,
+    );
   }
 
   /// create snapshot list.
   @Deprecated('needed?')
   List<SembastRecordSnapshot<K, V>> immutableListToSnapshots(
-      List<ImmutableSembastRecord> records) {
+    List<ImmutableSembastRecord> records,
+  ) {
     return records
-        .map((immutable) =>
-            SembastRecordSnapshot<K, V>.fromRecord(this, immutable))
+        .map(
+          (immutable) =>
+              SembastRecordSnapshot<K, V>.fromRecord(this, immutable),
+        )
         .toList(growable: false);
   }
 }
@@ -371,8 +403,10 @@ extension SembastStoreRefSyncExtension<K, V> on StoreRef<K, V> {
   /// Find a single record.
   ///
   /// Returns null if not found.
-  RecordSnapshot<K, V>? findFirstSync(DatabaseClient databaseClient,
-      {Finder? finder}) {
+  RecordSnapshot<K, V>? findFirstSync(
+    DatabaseClient databaseClient, {
+    Finder? finder,
+  }) {
     final client = getClient(databaseClient);
 
     var record = client
@@ -390,10 +424,14 @@ extension SembastStoreRefSyncExtension<K, V> on StoreRef<K, V> {
   ///
   /// Returns an empty array if none found.
   ///
-  List<RecordSnapshot<K, V>> findSync(DatabaseClient databaseClient,
-      {Finder? finder}) {
-    var records = findImmutableRecordsSync(databaseClient,
-        finder: finder as SembastFinder?);
+  List<RecordSnapshot<K, V>> findSync(
+    DatabaseClient databaseClient, {
+    Finder? finder,
+  }) {
+    var records = findImmutableRecordsSync(
+      databaseClient,
+      finder: finder as SembastFinder?,
+    );
     return immutableRecordIterableToSnapshots(records);
   }
 

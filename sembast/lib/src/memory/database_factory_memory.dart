@@ -55,7 +55,9 @@ class DatabaseFactoryMemory extends SembastDatabaseFactory
 
   @override
   Future<Database> openDatabaseWithOptions(
-      String path, DatabaseOpenOptions options) async {
+    String path,
+    DatabaseOpenOptions options,
+  ) async {
     // Handle in memory special db here
     // Basic implementation: delete it...
     if (path == sembastInMemoryDatabasePath) {

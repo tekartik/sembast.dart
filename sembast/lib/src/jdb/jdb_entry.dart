@@ -16,10 +16,7 @@ class JdbInfoEntry {
 
   /// Debug map.
   Map<String, Object?> exportToMap() {
-    var map = <String, Object?>{
-      'id': id,
-      if (value != null) 'value': value,
-    };
+    var map = <String, Object?>{'id': id, if (value != null) 'value': value};
     return map;
   }
 }
@@ -160,12 +157,13 @@ class JdbRawWriteEntry extends JdbWriteEntryBase {
   int? get idOrNull => _id;
 
   /// Raw entry.
-  JdbRawWriteEntry(
-      {int? id,
-      required Value? value,
-      this.deleted = false,
-      required this.record,
-      this.revision}) {
+  JdbRawWriteEntry({
+    int? id,
+    required Value? value,
+    this.deleted = false,
+    required this.record,
+    this.revision,
+  }) {
     valueOrNull = value;
     _id = id;
   }

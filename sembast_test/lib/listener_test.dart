@@ -154,11 +154,11 @@ void defineTests(DatabaseTestContext ctx) {
           .query(finder: Finder(sortOrders: [SortOrder(Field.value)]))
           .onSnapshots(db)
           .listen((snapshots) {
-        if (snapshots.length == 3) {
-          expect(snapshots.map((e) => e.key), [1, 3, 2]);
-          done.complete();
-        }
-      });
+            if (snapshots.length == 3) {
+              expect(snapshots.map((e) => e.key), [1, 3, 2]);
+              done.complete();
+            }
+          });
       unawaited(store.add(db, 'test1'));
       unawaited(store.add(db, 'test3'));
       unawaited(store.add(db, 'test2'));
@@ -174,11 +174,11 @@ void defineTests(DatabaseTestContext ctx) {
           .query(finder: Finder(sortOrders: [SortOrder(Field.value)]))
           .onKeys(db)
           .listen((keys) {
-        if (keys.length == 3) {
-          expect(keys, [1, 3, 2]);
-          done.complete();
-        }
-      });
+            if (keys.length == 3) {
+              expect(keys, [1, 3, 2]);
+              done.complete();
+            }
+          });
       unawaited(store.add(db, 'test1'));
       unawaited(store.add(db, 'test3'));
       unawaited(store.add(db, 'test2'));
@@ -193,11 +193,16 @@ void defineTests(DatabaseTestContext ctx) {
 
       var completer = Completer<void>();
 
-      record.onSnapshot(db).listen((snapshot) {
-        fail('should be closed');
-      }, onDone: () {
-        completer.complete();
-      });
+      record
+          .onSnapshot(db)
+          .listen(
+            (snapshot) {
+              fail('should be closed');
+            },
+            onDone: () {
+              completer.complete();
+            },
+          );
       expect(database.listener.isNotEmpty, isTrue);
       await db.close();
       expect(database.listener.isEmpty, isTrue);
@@ -259,11 +264,16 @@ void defineTests(DatabaseTestContext ctx) {
       var query = store.query();
 
       var completer = Completer<void>();
-      query.onSnapshots(db).listen((snapshots) {
-        fail('should be closed');
-      }, onDone: () {
-        completer.complete();
-      });
+      query
+          .onSnapshots(db)
+          .listen(
+            (snapshots) {
+              fail('should be closed');
+            },
+            onDone: () {
+              completer.complete();
+            },
+          );
       expect(database.listener.isNotEmpty, isTrue);
       await db.close();
       expect(database.listener.isEmpty, isTrue);
@@ -276,20 +286,27 @@ void defineTests(DatabaseTestContext ctx) {
       var record = store.record(1);
       await record.put(db, 'test');
       var query = store.query(
-          finder: Finder(filter: Filter.custom((record) => throw 'crash')));
+        finder: Finder(filter: Filter.custom((record) => throw 'crash')),
+      );
 
       var completer = Completer<void>();
-      query.onSnapshots(db).listen((snapshot) {
-        fail('should be closed');
-      }, onDone: () {
-        // devPrint('onDone');
-        completer.complete();
-      });
+      query
+          .onSnapshots(db)
+          .listen(
+            (snapshot) {
+              fail('should be closed');
+            },
+            onDone: () {
+              // devPrint('onDone');
+              completer.complete();
+            },
+          );
       expect(database.listener.isNotEmpty, isTrue);
-      var ctlr = database.listener
-          .getStore(store)!
-          .getStoreListenerControllers<int, String>()
-          .first;
+      var ctlr =
+          database.listener
+              .getStore(store)!
+              .getStoreListenerControllers<int, String>()
+              .first;
       ctlr.close();
 
       await completer.future;

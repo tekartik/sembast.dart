@@ -23,15 +23,19 @@ void main() {
       test('codec', () {
         testCodec(getEncryptSembastCodec(password: 'test'));
         testCodec(getEncryptSembastCodec(password: ''));
-        testCodec(getEncryptSembastCodec(
+        testCodec(
+          getEncryptSembastCodec(
             password:
-                'veryveryveryverylongpasswordveryveryveryverylongpasswordveryveryveryverylongpasswordveryveryveryverylongpassword'));
+                'veryveryveryverylongpasswordveryveryveryverylongpasswordveryveryveryverylongpasswordveryveryveryverylongpassword',
+          ),
+        );
       });
       test('decode', () {
         dynamic testDecode(String encrypted) {
           expect(
-              getEncryptSembastCodec(password: 'test').codec!.decode(encrypted),
-              {'test': 1});
+            getEncryptSembastCodec(password: 'test').codec!.decode(encrypted),
+            {'test': 1},
+          );
         }
 
         testDecode('57PnR5KpJv8=sKlpSc7eSt1F+w==');

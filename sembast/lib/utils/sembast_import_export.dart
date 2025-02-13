@@ -28,15 +28,22 @@ const int _exportSignatureVersion = 1;
 /// An optional [storeNames] can specify the list of stores to export. If null
 /// All stores are exported.
 ///
-Future<Map<String, Object?>> exportDatabase(Database db,
-    {List<String>? storeNames}) async {
+Future<Map<String, Object?>> exportDatabase(
+  Database db, {
+  List<String>? storeNames,
+}) async {
   var export = newModel();
   final storesExport = <Map<String, Object?>>[];
-  await _exportDatabase(db, exportMeta: (Model map) {
-    export.addAll(map);
-  }, exportStore: (Model map) {
-    storesExport.add(map);
-  }, storeNames: storeNames);
+  await _exportDatabase(
+    db,
+    exportMeta: (Model map) {
+      export.addAll(map);
+    },
+    exportStore: (Model map) {
+      storesExport.add(map);
+    },
+    storeNames: storeNames,
+  );
 
   if (storesExport.isNotEmpty) {
     export[_stores] = storesExport;
@@ -52,20 +59,27 @@ Future<Map<String, Object?>> exportDatabase(Database db,
 /// An optional [storeNames] can specify the list of stores to export. If null
 /// All stores are exported.
 ///
-Future<List<Object>> exportDatabaseLines(Database db,
-    {List<String>? storeNames}) async {
+Future<List<Object>> exportDatabaseLines(
+  Database db, {
+  List<String>? storeNames,
+}) async {
   var lines = <Object>[];
 
-  await _exportDatabase(db, storeNames: storeNames, exportMeta: (Model map) {
-    lines.add(map);
-  }, exportStore: (Model map) {
-    lines.add(newModel()..[_store] = map[_name]);
-    var keys = map[_keys] as List;
-    var values = map[_values] as List;
-    for (var i = 0; i < keys.length; i++) {
-      lines.add([keys[i], values[i]]);
-    }
-  });
+  await _exportDatabase(
+    db,
+    storeNames: storeNames,
+    exportMeta: (Model map) {
+      lines.add(map);
+    },
+    exportStore: (Model map) {
+      lines.add(newModel()..[_store] = map[_name]);
+      var keys = map[_keys] as List;
+      var values = map[_values] as List;
+      for (var i = 0; i < keys.length; i++) {
+        lines.add([keys[i], values[i]]);
+      }
+    },
+  );
 
   return lines;
 }
@@ -76,16 +90,18 @@ Future<List<Object>> exportDatabaseLines(Database db,
 /// An optional [storeNames] can specify the list of stores to export. If null
 /// All stores are exported.
 ///
-Future<void> _exportDatabase(Database db,
-    {List<String>? storeNames,
-    required void Function(Map<String, Object?>) exportMeta,
-    required void Function(Map<String, Object?>) exportStore}) {
+Future<void> _exportDatabase(
+  Database db, {
+  List<String>? storeNames,
+  required void Function(Map<String, Object?>) exportMeta,
+  required void Function(Map<String, Object?>) exportStore,
+}) {
   return db.transaction((txn) async {
     var metaExport = <String, Object?>{
       // our export signature
       _exportSignatureKey: _exportSignatureVersion,
       // the db version
-      _dbVersion: db.version
+      _dbVersion: db.version,
     };
     exportMeta(metaExport);
 
@@ -107,7 +123,7 @@ Future<void> _exportDatabase(Database db,
       final storeExport = <String, Object?>{
         _name: store.name,
         _keys: keys,
-        _values: values
+        _values: values,
       };
 
       var currentRecords = store.currentRecords;
@@ -134,8 +150,12 @@ Future<void> _exportDatabase(Database db,
 /// All stores are exported.
 ///
 Future<Database> importDatabaseLines(
-    List srcData, DatabaseFactory dstFactory, String dstPath,
-    {SembastCodec? codec, List<String>? storeNames}) async {
+  List srcData,
+  DatabaseFactory dstFactory,
+  String dstPath, {
+  SembastCodec? codec,
+  List<String>? storeNames,
+}) async {
   if (srcData.isEmpty) {
     throw const FormatException('invalid export format (empty)');
   }
@@ -160,7 +180,7 @@ Future<Database> importDatabaseLines(
         final storeExport = <String, Object?>{
           _name: currentStore,
           _keys: List<Object>.from(keys),
-          _values: List<Object>.from(values)
+          _values: List<Object>.from(values),
         };
         stores.add(storeExport);
         keys.clear();
@@ -194,8 +214,13 @@ Future<Database> importDatabaseLines(
   }
   closeCurrentStore();
   mapSrcData[_stores] = stores;
-  return await importDatabase(mapSrcData, dstFactory, dstPath,
-      codec: codec, storeNames: storeNames);
+  return await importDatabase(
+    mapSrcData,
+    dstFactory,
+    dstPath,
+    codec: codec,
+    storeNames: storeNames,
+  );
 }
 
 void _checkMeta(Map meta) {
@@ -213,8 +238,12 @@ void _checkMeta(Map meta) {
 ///
 /// If a codec was used, you must specify the same codec for import.
 Future<Database> importDatabase(
-    Map srcData, DatabaseFactory dstFactory, String dstPath,
-    {SembastCodec? codec, List<String>? storeNames}) async {
+  Map srcData,
+  DatabaseFactory dstFactory,
+  String dstPath, {
+  SembastCodec? codec,
+  List<String>? storeNames,
+}) async {
   await dstFactory.deleteDatabase(dstPath);
 
   // check signature
@@ -222,8 +251,12 @@ Future<Database> importDatabase(
 
   final version = srcData[_dbVersion] as int?;
 
-  final db = await dstFactory.openDatabase(dstPath,
-      version: version, mode: DatabaseMode.empty, codec: codec);
+  final db = await dstFactory.openDatabase(
+    dstPath,
+    version: version,
+    mode: DatabaseMode.empty,
+    codec: codec,
+  );
   var sembastDatabase = db as SembastDatabase;
   await db.transaction((txn) async {
     final storesExport =
@@ -242,12 +275,16 @@ Future<Database> importDatabase(
         final keys = (storeExport[_keys] as Iterable).toList(growable: false);
         final values = List<Object>.from(storeExport[_values] as Iterable);
 
-        var store = (txn as SembastTransaction)
-            .getSembastStore(SembastStoreRef(storeName));
+        var store = (txn as SembastTransaction).getSembastStore(
+          SembastStoreRef(storeName),
+        );
         for (var i = 0; i < keys.length; i++) {
           var key = keys[i] as Object;
           await store.txnPut(
-              txn, sembastDatabase.fromJsonEncodable(values[i]), key);
+            txn,
+            sembastDatabase.fromJsonEncodable(values[i]),
+            key,
+          );
         }
       }
     }
@@ -262,16 +299,30 @@ Future<Database> importDatabase(
 /// All stores are exported.
 ///
 Future<Database> importDatabaseAny(
-    Object srcData, DatabaseFactory dstFactory, String dstPath,
-    {SembastCodec? codec, List<String>? storeNames}) {
+  Object srcData,
+  DatabaseFactory dstFactory,
+  String dstPath, {
+  SembastCodec? codec,
+  List<String>? storeNames,
+}) {
   Future<Database> mapImport(Map map) {
-    return importDatabase(map, dstFactory, dstPath,
-        codec: codec, storeNames: storeNames);
+    return importDatabase(
+      map,
+      dstFactory,
+      dstPath,
+      codec: codec,
+      storeNames: storeNames,
+    );
   }
 
   Future<Database> linesImport(List lines) {
-    return importDatabaseLines(lines, dstFactory, dstPath,
-        codec: codec, storeNames: storeNames);
+    return importDatabaseLines(
+      lines,
+      dstFactory,
+      dstPath,
+      codec: codec,
+      storeNames: storeNames,
+    );
   }
 
   srcData = decodeImportAny(srcData);
@@ -344,7 +395,8 @@ Object decodeImportAny(Object srcData) {
     throw FormatException('decode invalid export format (error: $e)');
   }
   throw FormatException(
-      'decode invalid export format (${srcData.runtimeType})');
+    'decode invalid export format (${srcData.runtimeType})',
+  );
 }
 
 /// Convert export as a list of string (export is is a List or non null objects)

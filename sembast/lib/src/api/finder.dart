@@ -34,19 +34,21 @@ abstract class Finder {
   /// are specified. start/end is done after filtering.
   ///
   /// A finder without any info does not filter anything
-  factory Finder(
-      {Filter? filter,
-      List<SortOrder>? sortOrders,
-      int? limit,
-      int? offset,
-      Boundary? start,
-      Boundary? end}) {
+  factory Finder({
+    Filter? filter,
+    List<SortOrder>? sortOrders,
+    int? limit,
+    int? offset,
+    Boundary? start,
+    Boundary? end,
+  }) {
     return SembastFinder(
-        filter: filter,
-        sortOrders: sortOrders,
-        limit: limit,
-        offset: offset,
-        start: start,
-        end: end);
+      filter: filter,
+      sortOrders: sortOrders,
+      limit: limit,
+      offset: offset,
+      start: start,
+      end: end,
+    );
   }
 }

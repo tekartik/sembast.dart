@@ -93,10 +93,14 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     group('async_json_codec', () {
-      var codec =
-          SembastCodec(signature: 'json', codec: AsyncContentJsonCodec());
-      var codecAlt =
-          SembastCodec(signature: 'json_alt', codec: AsyncContentJsonCodec());
+      var codec = SembastCodec(
+        signature: 'json',
+        codec: AsyncContentJsonCodec(),
+      );
+      var codecAlt = SembastCodec(
+        signature: 'json_alt',
+        codec: AsyncContentJsonCodec(),
+      );
       commonTests(codec);
 
       test('wrong_signature', () async {
@@ -112,10 +116,14 @@ void defineTests(DatabaseTestContext ctx) {
     });
 
     group('codec_throw', () {
-      var codecDecoderThrow =
-          SembastCodec(signature: 'json', codec: MyJsonCodecDecoderThrow());
-      var codecEncoderThrow =
-          SembastCodec(signature: 'json', codec: MyJsonCodecEncoderThrow());
+      var codecDecoderThrow = SembastCodec(
+        signature: 'json',
+        codec: MyJsonCodecDecoderThrow(),
+      );
+      var codecEncoderThrow = SembastCodec(
+        signature: 'json',
+        codec: MyJsonCodecEncoderThrow(),
+      );
 
       test('decode_throw', () async {
         var db = await prepareOneRecordDatabase(codec: codecDecoderThrow);
@@ -126,16 +134,18 @@ void defineTests(DatabaseTestContext ctx) {
         await db.close();
 
         await expectLater(
-            factory.openDatabase(dbPath!, codec: codecDecoderThrow),
-            throwsA(isA<Exception>()));
+          factory.openDatabase(dbPath!, codec: codecDecoderThrow),
+          throwsA(isA<Exception>()),
+        );
       });
       try {
         test('encode_throw', () async {
           var dbPath = await prepareForDb();
           // If codec fails, the error is transferred
           await expectLater(
-              factory.openDatabase(dbPath, codec: codecEncoderThrow),
-              throwsA(isA<StateError>()));
+            factory.openDatabase(dbPath, codec: codecEncoderThrow),
+            throwsA(isA<StateError>()),
+          );
 
           // Open without codec to make sure the db is closed
           var db = await factory.openDatabase(dbPath);
@@ -148,7 +158,9 @@ void defineTests(DatabaseTestContext ctx) {
 
     group('base64_random_codec', () {
       var codec = SembastCodec(
-          signature: 'base64_random', codec: MyCustomRandomCodec());
+        signature: 'base64_random',
+        codec: MyCustomRandomCodec(),
+      );
       commonTests(codec);
     });
 

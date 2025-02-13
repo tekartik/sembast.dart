@@ -18,11 +18,13 @@ void main() {
       var exportLines = [
         {'sembast_export': 1, 'version': 3},
         {'store': '_main'},
-        [1, 'hi']
+        [1, 'hi'],
       ];
       expect(decodeImportAny(exportLines), exportLines);
       expect(
-          decodeImportAny(exportLines.map((e) => jsonEncode(e))), exportLines);
+        decodeImportAny(exportLines.map((e) => jsonEncode(e))),
+        exportLines,
+      );
       expect(decodeImportAny(jsonEncode(exportLines)), exportLines);
       expect(exportLinesToJsonlString(exportLines), '''
 {"sembast_export":1,"version":3}
@@ -34,7 +36,9 @@ void main() {
       ];
       expect(decodeImportAny(exportLines), exportLines);
       expect(
-          decodeImportAny(exportLines.map((e) => jsonEncode(e))), exportLines);
+        decodeImportAny(exportLines.map((e) => jsonEncode(e))),
+        exportLines,
+      );
       expect(decodeImportAny(jsonEncode(exportLines)), exportLines);
     });
   });

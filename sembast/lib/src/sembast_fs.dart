@@ -143,56 +143,62 @@ class FsDatabaseStorage extends DatabaseStorage {
     const endOfLine = 10;
     const lineFeed = 13;
     late StreamController<String> ctlr;
-    ctlr = StreamController<String>(onListen: () {
-      void addCurrentLine() {
-        if (currentLine?.isNotEmpty ?? false) {
-          try {
-            ctlr.add(utf8.decode(currentLine!));
-          } catch (_) {
-            // Ignore non utf8 lines
+    ctlr = StreamController<String>(
+      onListen: () {
+        void addCurrentLine() {
+          if (currentLine?.isNotEmpty ?? false) {
+            try {
+              ctlr.add(utf8.decode(currentLine!));
+            } catch (_) {
+              // Ignore non utf8 lines
+            }
+          }
+          currentLine = null;
+        }
+
+        void addToCurrentLine(Uint8List data) {
+          if (currentLine == null) {
+            currentLine = data;
+          } else {
+            var newCurrentLine = Uint8List(currentLine!.length + data.length);
+            newCurrentLine.setAll(0, currentLine!);
+            newCurrentLine.setAll(currentLine!.length, data);
+            currentLine = newCurrentLine;
           }
         }
-        currentLine = null;
-      }
 
-      void addToCurrentLine(Uint8List data) {
-        if (currentLine == null) {
-          currentLine = data;
-        } else {
-          var newCurrentLine = Uint8List(currentLine!.length + data.length);
-          newCurrentLine.setAll(0, currentLine!);
-          newCurrentLine.setAll(currentLine!.length, data);
-          currentLine = newCurrentLine;
-        }
-      }
-
-      subscription = file.openRead().listen((data) {
-        // devPrint('read $data');
-        // look for \n (10)
-        var start = 0;
-        for (var i = 0; i < data.length; i++) {
-          var byte = data[i];
-          if (byte == endOfLine || byte == lineFeed) {
-            addToCurrentLine(data.sublist(start, i));
-            addCurrentLine();
-            // Skip it
-            start = i + 1;
-          }
-        }
-        // Store last current line
-        if (data.length > start) {
-          addToCurrentLine(data.sublist(start, data.length));
-        }
-      }, onDone: () {
-        // Last one
-        if (currentLine != null) {
-          addCurrentLine();
-        }
-        ctlr.close();
-      });
-    }, onCancel: () async {
-      await subscription?.cancel();
-    });
+        subscription = file.openRead().listen(
+          (data) {
+            // devPrint('read $data');
+            // look for \n (10)
+            var start = 0;
+            for (var i = 0; i < data.length; i++) {
+              var byte = data[i];
+              if (byte == endOfLine || byte == lineFeed) {
+                addToCurrentLine(data.sublist(start, i));
+                addCurrentLine();
+                // Skip it
+                start = i + 1;
+              }
+            }
+            // Store last current line
+            if (data.length > start) {
+              addToCurrentLine(data.sublist(start, data.length));
+            }
+          },
+          onDone: () {
+            // Last one
+            if (currentLine != null) {
+              addCurrentLine();
+            }
+            ctlr.close();
+          },
+        );
+      },
+      onCancel: () async {
+        await subscription?.cancel();
+      },
+    );
 
     return ctlr.stream;
   }

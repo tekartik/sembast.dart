@@ -112,7 +112,9 @@ class TxnDatabaseContent extends DatabaseContent {
 
   /// Add transaction records for a give store
   void addTxnStoreRecords(
-      StoreRef<Key?, Value?> store, Iterable<TxnRecord> records) {
+    StoreRef<Key?, Value?> store,
+    Iterable<TxnRecord> records,
+  ) {
     addStore(store).addAll(records.map((record) => record.record));
     _records.addAll(records);
   }

@@ -24,7 +24,8 @@ abstract class SembastDatabaseClient implements DatabaseClient {
 
   /// Will create a transaction if needed
   Future<T> inTransaction<T>(
-      FutureOr<T> Function(SembastTransaction txn) action);
+    FutureOr<T> Function(SembastTransaction txn) action,
+  );
 }
 
 /// Database client extension methods.

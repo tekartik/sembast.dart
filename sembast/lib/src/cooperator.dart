@@ -17,14 +17,16 @@ const _cooperatorWebDelayMicrosecondsDefault = 24000;
 const _cooperatorWebPauseMicrosecondsDefault = 1;
 
 /// Default delay
-const _cooperatorDelayMicrosecondsDefault = isRunningAsJavascript
-    ? _cooperatorWebDelayMicrosecondsDefault
-    : _cooperatorIoDelayMicrosecondsDefault;
+const _cooperatorDelayMicrosecondsDefault =
+    isRunningAsJavascript
+        ? _cooperatorWebDelayMicrosecondsDefault
+        : _cooperatorIoDelayMicrosecondsDefault;
 
 /// Default pause
-const _cooperatorPauseMicrosecondsDefault = isRunningAsJavascript
-    ? _cooperatorWebPauseMicrosecondsDefault
-    : _cooperatorIoPauseMicrosecondsDefault;
+const _cooperatorPauseMicrosecondsDefault =
+    isRunningAsJavascript
+        ? _cooperatorWebPauseMicrosecondsDefault
+        : _cooperatorIoPauseMicrosecondsDefault;
 
 /// Cooperator delay
 var cooperatorDelayMicroseconds = _cooperatorDelayMicrosecondsDefault;

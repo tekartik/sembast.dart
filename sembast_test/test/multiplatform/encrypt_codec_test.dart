@@ -11,7 +11,9 @@ void main() {
     var factory = DatabaseFactoryFs(fs);
     var dbPath = 'test';
     var encryptedFactory = EncryptedDatabaseFactory(
-        databaseFactory: factory, password: 'user_password');
+      databaseFactory: factory,
+      password: 'user_password',
+    );
     var db = await encryptedFactory.openDatabase(dbPath);
     var store = StoreRef<int, String>.main();
     await store.add(db, 'test');
@@ -20,8 +22,9 @@ void main() {
     print(lines);
     expect(lines.length, 2);
     var codec = encryptedFactory.codec.codec!;
-    expect(codec.decode((json.decode(lines.first) as Map)['codec'] as String),
-        {'signature': 'encrypt'});
+    expect(codec.decode((json.decode(lines.first) as Map)['codec'] as String), {
+      'signature': 'encrypt',
+    });
     expect(codec.decode(lines[1]), {'key': 1, 'value': 'test'});
   });
 }

@@ -14,9 +14,9 @@ class DatabaseFactoryJdb extends SembastDatabaseFactory
 
   @override
   SembastDatabase newDatabase(DatabaseOpenHelper openHelper) => SembastDatabase(
-      openHelper,
-      SembastStorageJdb(jdbFactory, openHelper.path,
-          options: openHelper.options));
+    openHelper,
+    SembastStorageJdb(jdbFactory, openHelper.path, options: openHelper.options),
+  );
 
   @override
   Future doDeleteDatabase(String path) async {

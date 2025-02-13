@@ -17,8 +17,11 @@ abstract class RecordChange<K, V> {
 }
 
 /// Record change listener
-typedef TransactionRecordChangeListener<K, V> = FutureOr<void> Function(
-    Transaction transaction, List<RecordChange<K, V>> changes);
+typedef TransactionRecordChangeListener<K, V> =
+    FutureOr<void> Function(
+      Transaction transaction,
+      List<RecordChange<K, V>> changes,
+    );
 
 /// Record change helper.
 extension SembastRecordChangeExtension<K, V> on RecordChange<K, V> {

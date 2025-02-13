@@ -41,11 +41,12 @@ void encryptIoGroup(FileSystemTestContext ctx) {
     //_commonTests(codec);
 
     test('read existing', () async {
-      dbPath =
-          dbPathFromName('compat/database_code/encrypt_codec/read_existing.db');
+      dbPath = dbPathFromName(
+        'compat/database_code/encrypt_codec/read_existing.db',
+      );
       await writeContent(fs, dbPath!, [
         '{"version":1,"sembast":1,"codec":"i6/eGhL+yC4=gYCjWHqkgdawwoROer5+jQ0EzCdgFrk="}',
-        'GY9lA8yc56M=FSqctQswKkhfgzp/XaFdxOxSJhRGHB3a'
+        'GY9lA8yc56M=FSqctQswKkhfgzp/XaFdxOxSJhRGHB3a',
       ]);
       var db = await factory.openDatabase(dbPath!, codec: codec);
       expect(await store.record(1).get(db), 'test');
@@ -58,9 +59,11 @@ void encryptIoGroup(FileSystemTestContext ctx) {
       // print(lines);
       expect(lines.length, 2);
       expect(
-          codec.codec
-              ?.decode((json.decode(lines.first) as Map)['codec'] as String),
-          {'signature': 'encrypt'});
+        codec.codec?.decode(
+          (json.decode(lines.first) as Map)['codec'] as String,
+        ),
+        {'signature': 'encrypt'},
+      );
       expect(codec.codec?.decode(lines[1]), {'key': 1, 'value': 'test'});
     });
 
@@ -80,9 +83,11 @@ void encryptIoGroup(FileSystemTestContext ctx) {
         'sembast': 1,
       });
       expect(
-          codec.codec
-              ?.decode((json.decode(lines.first) as Map)['codec'] as String),
-          {'signature': 'encrypt'});
+        codec.codec?.decode(
+          (json.decode(lines.first) as Map)['codec'] as String,
+        ),
+        {'signature': 'encrypt'},
+      );
 
       expect(codec.codec?.decode(lines[1]), {'key': 1, 'value': 'test'});
 
@@ -94,8 +99,9 @@ void encryptIoGroup(FileSystemTestContext ctx) {
       await db.close();
 
       try {
-        var codecWithABadPassword =
-            getEncryptSembastCodec(password: 'bad_password');
+        var codecWithABadPassword = getEncryptSembastCodec(
+          password: 'bad_password',
+        );
         // Open again with a bad password
         db = await factory.openDatabase(dbPath!, codec: codecWithABadPassword);
 

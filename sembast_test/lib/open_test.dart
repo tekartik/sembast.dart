@@ -29,12 +29,14 @@ void defineTests(DatabaseTestContext ctx) {
       var path = dbPathFromName('open/no_version.db');
 
       await factory.deleteDatabase(path);
-      var db = await factory.openDatabase(path,
-          onVersionChanged: (db, oldVersion, newVersion) async {
-        expect(oldVersion, 0);
-        expect(newVersion, 1);
-        expect(db.version, 0);
-      });
+      var db = await factory.openDatabase(
+        path,
+        onVersionChanged: (db, oldVersion, newVersion) async {
+          expect(oldVersion, 0);
+          expect(newVersion, 1);
+          expect(db.version, 0);
+        },
+      );
       expect(db.version, 1);
       await db.close();
     });
@@ -43,21 +45,27 @@ void defineTests(DatabaseTestContext ctx) {
 
       await factory.deleteDatabase(path);
 
-      var db = await factory.openDatabase(path, version: 1,
-          onVersionChanged: (db, oldVersion, newVersion) async {
-        expect(oldVersion, 0);
-        expect(db.version, 0);
-        expect(newVersion, 1);
-      });
+      var db = await factory.openDatabase(
+        path,
+        version: 1,
+        onVersionChanged: (db, oldVersion, newVersion) async {
+          expect(oldVersion, 0);
+          expect(db.version, 0);
+          expect(newVersion, 1);
+        },
+      );
       expect(db.version, 1);
       await db.close();
 
-      db = await factory.openDatabase(path, version: 2,
-          onVersionChanged: (db, oldVersion, newVersion) async {
-        expect(oldVersion, 1);
-        expect(newVersion, 2);
-        expect(db.version, 1);
-      });
+      db = await factory.openDatabase(
+        path,
+        version: 2,
+        onVersionChanged: (db, oldVersion, newVersion) async {
+          expect(oldVersion, 1);
+          expect(newVersion, 2);
+          expect(db.version, 1);
+        },
+      );
       expect(db.version, 2);
     });
 
@@ -83,8 +91,11 @@ void defineTests(DatabaseTestContext ctx) {
       var store = StoreRef<int, int>.main();
       await factory.deleteDatabase(path);
 
-      var db = await factory.openDatabase(path,
-          version: 2, mode: DatabaseMode.empty);
+      var db = await factory.openDatabase(
+        path,
+        version: 2,
+        mode: DatabaseMode.empty,
+      );
       expect(db.version, 2);
       await store.record(1).put(db, 2);
       // ignore: unawaited_futures
@@ -107,19 +118,24 @@ void defineTests(DatabaseTestContext ctx) {
       var store = StoreRef<int, int>.main();
 
       Future<Database> openDatabase(String path, int version) async {
-        return await factory.openDatabase(path, version: version,
-            onVersionChanged: (db, oldVersion, newVersion) async {
-          if (oldVersion == 1 && newVersion == 2) {
-            await db.transaction((txn) async {
-              var records = await store.find(txn);
+        return await factory.openDatabase(
+          path,
+          version: version,
+          onVersionChanged: (db, oldVersion, newVersion) async {
+            if (oldVersion == 1 && newVersion == 2) {
+              await db.transaction((txn) async {
+                var records = await store.find(txn);
 
-              for (var item in records) {
-                await store.delete(txn,
-                    finder: Finder(filter: Filter.byKey(item.key)));
-              }
-            });
-          }
-        });
+                for (var item in records) {
+                  await store.delete(
+                    txn,
+                    finder: Finder(filter: Filter.byKey(item.key)),
+                  );
+                }
+              });
+            }
+          },
+        );
       }
 
       var path = dbPathFromName('open/compacting_during_open.db');
@@ -153,8 +169,11 @@ void defineTests(DatabaseTestContext ctx) {
         }
       }
 
-      Future<Database> openDatabaseV2(String path) => factory.openDatabase(path,
-          version: 2, onVersionChanged: changeFrom1To2);
+      Future<Database> openDatabaseV2(String path) => factory.openDatabase(
+        path,
+        version: 2,
+        onVersionChanged: changeFrom1To2,
+      );
 
       Database? db;
 
@@ -188,16 +207,17 @@ void defineTests(DatabaseTestContext ctx) {
       final dbPath = dbPathFromName(join('open', 'read_only.db'));
       await factory.deleteDatabase(dbPath);
       try {
-        await factory.openDatabase(dbPath,
-            mode: DatabaseMode.readOnly, version: 1);
+        await factory.openDatabase(
+          dbPath,
+          mode: DatabaseMode.readOnly,
+          version: 1,
+        );
         fail('Should fail');
       } on ArgumentError catch (_) {}
       var store = StoreRef<int, String>.main();
       var record = store.record(1);
 
-      var db = await factory.openDatabase(
-        dbPath,
-      );
+      var db = await factory.openDatabase(dbPath);
       await record.put(db, 'hi');
       await db.close();
 

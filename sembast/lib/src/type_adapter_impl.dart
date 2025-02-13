@@ -20,8 +20,9 @@ class _DateTimeAdapter extends SembastTypeAdapter<DateTime, String>
     with _TypeAdapterCodecMixin<DateTime, String> {
   _DateTimeAdapter() {
     // Encode to string
-    encoder =
-        _Converter<DateTime, String>((dateTime) => dateTime.toIso8601String());
+    encoder = _Converter<DateTime, String>(
+      (dateTime) => dateTime.toIso8601String(),
+    );
     // Decode from string
     decoder = _Converter<String, DateTime>((text) => DateTime.parse(text));
   }
@@ -39,7 +40,8 @@ class _TimestampAdapter extends SembastTypeAdapter<Timestamp, String>
   _TimestampAdapter() {
     // Encode to string
     encoder = _Converter<Timestamp, String>(
-        (timestamp) => timestamp.toIso8601String());
+      (timestamp) => timestamp.toIso8601String(),
+    );
     // Decode from string
     decoder = _Converter<String, Timestamp>((text) => Timestamp.parse(text));
   }
@@ -101,5 +103,5 @@ mixin _TypeAdapterCodecMixin<S, T> implements SembastTypeAdapter<S, T> {
 /// Support Timestamp and Blob
 final sembastDefaultTypeAdapters = [
   sembastTimestampAdapter,
-  sembastBlobAdapter
+  sembastBlobAdapter,
 ];

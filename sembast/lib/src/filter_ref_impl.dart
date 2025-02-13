@@ -17,9 +17,10 @@ class SembastFilterRef<K, V> implements FilterRef<K, V> {
 
   /// Query ref implementation.
   SembastFilterRef(
-      this.store,
-      // ignore: deprecated_member_use_from_same_package
-      this.filter);
+    this.store,
+    // ignore: deprecated_member_use_from_same_package
+    this.filter,
+  );
 
   @override
   String toString() => '$store $filter';
@@ -38,31 +39,36 @@ extension SembastFilterRefExtensionPrv<K, V> on FilterRef<K, V> {
     var db = getDatabase(database);
     // Create the query but don't add it until first result is set
     late CountListenerController<K, V> ctlr;
-    ctlr = db.listener.addCount(this, onListen: () async {
-      // Add the existing snapshot
+    ctlr = db.listener.addCount(
+      this,
+      onListen: () async {
+        // Add the existing snapshot
 
-      // Read right away to get the content at call time
+        // Read right away to get the content at call time
 
-      // Just filter
-      try {
-        await ctlr.lock.synchronized(() async {
-          // Find all matching, ignoring offset/limit but order them
-          var keys = await sembastFilterRef.store
-              .filterKeys(database, filter: sembastFilterRef.filter);
-          // ignore: unawaited_futures
+        // Just filter
+        try {
+          await ctlr.lock.synchronized(() async {
+            // Find all matching, ignoring offset/limit but order them
+            var keys = await sembastFilterRef.store.filterKeys(
+              database,
+              filter: sembastFilterRef.filter,
+            );
+            // ignore: unawaited_futures
 
-          // Get the result at query time first
-          if (debugListener) {
-            // ignore: avoid_print
-            print('matching $ctlr: ${keys.length} on $this');
-          }
+            // Get the result at query time first
+            if (debugListener) {
+              // ignore: avoid_print
+              print('matching $ctlr: ${keys.length} on $this');
+            }
 
-          ctlr.add(keys, db.cooperator);
-        });
-      } catch (error, stackTrace) {
-        ctlr.addError(error, stackTrace);
-      }
-    });
+            ctlr.add(keys, db.cooperator);
+          });
+        } catch (error, stackTrace) {
+          ctlr.addError(error, stackTrace);
+        }
+      },
+    );
     return ctlr.stream;
   }
 }

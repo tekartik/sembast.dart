@@ -10,7 +10,9 @@ import 'package:sembast/src/utils.dart';
 
 /// Check filter and start/end boundaries, not the deleted flags
 bool finderMatchesFilterAndBoundaries(
-    SembastFinder? finder, RecordSnapshot record) {
+  SembastFinder? finder,
+  RecordSnapshot record,
+) {
   if (finder == null) {
     return true;
   }
@@ -25,7 +27,9 @@ bool finderMatchesFilterAndBoundaries(
 
 /// Limit a sorted list
 List<ImmutableSembastRecord>? recordsLimit(
-    List<ImmutableSembastRecord>? results, SembastFinder? finder) {
+  List<ImmutableSembastRecord>? results,
+  SembastFinder? finder,
+) {
   if (finder != null) {
     // offset
     if (finder.offset != null) {
@@ -51,13 +55,14 @@ class SembastFinder implements Finder {
   int? limit;
 
   /// Builder.
-  SembastFinder(
-      {this.filter,
-      this.sortOrders,
-      this.limit,
-      this.offset,
-      this.start,
-      this.end});
+  SembastFinder({
+    this.filter,
+    this.sortOrders,
+    this.limit,
+    this.offset,
+    this.start,
+    this.end,
+  });
 
   /// Start boundary.
   Boundary? start;
@@ -105,8 +110,11 @@ class SembastFinder implements Finder {
     if (sortOrders != null) {
       for (var i = 0; i < sortOrders!.length; i++) {
         final order = sortOrders![i];
-        result =
-            (order as SembastSortOrder).compareToBoundary(record, boundary!, i);
+        result = (order as SembastSortOrder).compareToBoundary(
+          record,
+          boundary!,
+          i,
+        );
         // stop as soon as they differ
         if (result != 0) {
           break;
@@ -146,32 +154,30 @@ class SembastFinder implements Finder {
   /// Clone a filter with a given limit.
   SembastFinder clone({int? limit}) {
     return SembastFinder(
-        filter: filter,
-        sortOrders: sortOrders,
-        //
-        limit: limit ?? this.limit,
-        //
-        offset: offset,
-        start: start,
-        end: end);
+      filter: filter,
+      sortOrders: sortOrders,
+      //
+      limit: limit ?? this.limit,
+      //
+      offset: offset,
+      start: start,
+      end: end,
+    );
   }
 
   /// Clone a filter without Limits (and offset).
   Finder cloneWithoutLimits() {
     return Finder(
-        filter: filter, sortOrders: sortOrders, start: start, end: end);
+      filter: filter,
+      sortOrders: sortOrders,
+      start: start,
+      end: end,
+    );
   }
 
   @override
   String toString() {
-    return 'Finder(${{
-      if (filter != null) 'filter': filter,
-      if (sortOrders != null) 'sort': sortOrders,
-      if (offset != null) 'offset': offset,
-      if (limit != null) 'limit': limit,
-      if (start != null) 'start': start,
-      if (end != null) 'limit': end,
-    }})';
+    return 'Finder(${{if (filter != null) 'filter': filter, if (sortOrders != null) 'sort': sortOrders, if (offset != null) 'offset': offset, if (limit != null) 'limit': limit, if (start != null) 'start': start, if (end != null) 'limit': end}})';
   }
 }
 

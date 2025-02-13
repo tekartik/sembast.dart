@@ -118,7 +118,7 @@ void main() {
         DatabaseException.errBadParam,
         DatabaseException.errDatabaseClosed,
         DatabaseException.errDatabaseNotFound,
-        DatabaseException.errInvalidCodec
+        DatabaseException.errInvalidCodec,
       ];
     });
   });

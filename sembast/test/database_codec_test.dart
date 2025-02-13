@@ -92,8 +92,11 @@ void defineTests(FileSystemTestContext ctx) {
         final lines = await readContent(fs, dbPath!);
         expect(lines.length, 2);
         var metaMap = json.decode(lines.first) as Map?;
-        expect(metaMap,
-            {'version': 1, 'sembast': 1, 'codec': '{"signature":"json"}'});
+        expect(metaMap, {
+          'version': 1,
+          'sembast': 1,
+          'codec': '{"signature":"json"}',
+        });
         expect(json.decode(lines[1]), {'key': 1, 'value': 'test'});
       });
 
@@ -110,10 +113,14 @@ void defineTests(FileSystemTestContext ctx) {
     });
 
     group('async_json_codec', () {
-      var codec =
-          SembastCodec(signature: 'json', codec: AsyncContentJsonCodec());
-      var codecAlt =
-          SembastCodec(signature: 'json_alt', codec: AsyncContentJsonCodec());
+      var codec = SembastCodec(
+        signature: 'json',
+        codec: AsyncContentJsonCodec(),
+      );
+      var codecAlt = SembastCodec(
+        signature: 'json_alt',
+        codec: AsyncContentJsonCodec(),
+      );
       database_format_test.defineTestsWithCodec(ctx, codec: codec);
       commonTests(codec);
 
@@ -123,8 +130,11 @@ void defineTests(FileSystemTestContext ctx) {
         final lines = await readContent(fs, dbPath!);
         expect(lines.length, 2);
         var metaMap = json.decode(lines.first) as Map?;
-        expect(metaMap,
-            {'version': 1, 'sembast': 1, 'codec': '{"signature":"json"}'});
+        expect(metaMap, {
+          'version': 1,
+          'sembast': 1,
+          'codec': '{"signature":"json"}',
+        });
         expect(json.decode(lines[1]), {'key': 1, 'value': 'test'});
       });
 
@@ -141,10 +151,14 @@ void defineTests(FileSystemTestContext ctx) {
     });
 
     group('codec_throw', () {
-      var codecDecoderThrow =
-          SembastCodec(signature: 'json', codec: MyJsonCodecDecoderThrow());
-      var codecEncoderThrow =
-          SembastCodec(signature: 'json', codec: MyJsonCodecEncoderThrow());
+      var codecDecoderThrow = SembastCodec(
+        signature: 'json',
+        codec: MyJsonCodecDecoderThrow(),
+      );
+      var codecEncoderThrow = SembastCodec(
+        signature: 'json',
+        codec: MyJsonCodecEncoderThrow(),
+      );
 
       test('decode_throw', () async {
         var db = await prepareOneRecordDatabase(codec: codecDecoderThrow);
@@ -155,21 +169,25 @@ void defineTests(FileSystemTestContext ctx) {
         await db.close();
 
         await expectLater(
-            factory.openDatabase(dbPath!, codec: codecDecoderThrow),
-            throwsA(isA<Exception>()));
+          factory.openDatabase(dbPath!, codec: codecDecoderThrow),
+          throwsA(isA<Exception>()),
+        );
       });
       test('encode_throw', () async {
         await prepareForDb();
         // If codec fails, the error is transferred
         await expectLater(
-            factory.openDatabase(dbPath!, codec: codecEncoderThrow),
-            throwsA(isA<StateError>()));
+          factory.openDatabase(dbPath!, codec: codecEncoderThrow),
+          throwsA(isA<StateError>()),
+        );
       });
     });
 
     group('base64_random_codec', () {
       var codec = SembastCodec(
-          signature: 'base64_random', codec: MyCustomRandomCodec());
+        signature: 'base64_random',
+        codec: MyCustomRandomCodec(),
+      );
       database_format_test.defineTestsWithCodec(ctx, codec: codec);
       commonTests(codec);
     });
@@ -187,10 +205,12 @@ void defineTests(FileSystemTestContext ctx) {
         expect(json.decode(lines.first), {
           'version': 1,
           'sembast': 1,
-          'codec': 'eyJzaWduYXR1cmUiOiJiYXNlNjQifQ=='
+          'codec': 'eyJzaWduYXR1cmUiOiJiYXNlNjQifQ==',
         });
-        expect(json.decode(utf8.decode(base64.decode(lines[1]))),
-            {'key': 1, 'value': 'test'});
+        expect(json.decode(utf8.decode(base64.decode(lines[1]))), {
+          'key': 1,
+          'value': 'test',
+        });
 
         // reopen
       });
@@ -208,10 +228,12 @@ void defineTests(FileSystemTestContext ctx) {
         expect(json.decode(lines.first), {
           'version': 1,
           'sembast': 1,
-          'codec': 'eyJzaWduYXR1cmUiOiJiYXNlNjQifQ=='
+          'codec': 'eyJzaWduYXR1cmUiOiJiYXNlNjQifQ==',
         });
-        expect(json.decode(utf8.decode(base64.decode(lines[1]))),
-            {'key': 1, 'value': 'test'});
+        expect(json.decode(utf8.decode(base64.decode(lines[1]))), {
+          'key': 1,
+          'value': 'test',
+        });
 
         await db.close();
       });

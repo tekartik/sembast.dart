@@ -33,8 +33,9 @@ void defineTests(DatabaseTestContext ctx) {
       });
       // Sorting by key requires using the special Field.key
       var finder = Finder(
-          filter: Filter.equals('macAddress', macAddress),
-          sortOrders: [SortOrder(Field.key, false)]);
+        filter: Filter.equals('macAddress', macAddress),
+        sortOrders: [SortOrder(Field.key, false)],
+      );
       // finding one record automatically set limit to 1
       expect((await store.findFirst(db!, finder: finder))!.key, lastKey);
     });
@@ -63,7 +64,7 @@ void defineTests(DatabaseTestContext ctx) {
       expect(await store.records(await store.findKeys(db!)).get(db!), [
         {'name': 'beacon1'},
         {'name': 'beacon2', 'flushed': true},
-        {'name': 'beacon3', 'flushed': true}
+        {'name': 'beacon3', 'flushed': true},
       ]);
     });
   });

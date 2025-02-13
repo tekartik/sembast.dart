@@ -24,11 +24,13 @@ abstract class DatabaseFactory {
   /// A custom [codec] can be used to load/save a record, allowing for user encryption.
   ///
   /// Custom [settings] can be specified.
-  Future<Database> openDatabase(String path,
-      {int? version,
-      OnVersionChangedFunction? onVersionChanged,
-      DatabaseMode? mode,
-      SembastCodec? codec});
+  Future<Database> openDatabase(
+    String path, {
+    int? version,
+    OnVersionChangedFunction? onVersionChanged,
+    DatabaseMode? mode,
+    SembastCodec? codec,
+  });
 
   /// Delete a database if existing
   Future<void> deleteDatabase(String path);
@@ -41,5 +43,5 @@ abstract class DatabaseFactory {
 /// one expected.
 ///
 /// Allow to perform migration or data change. Can return a future or not.
-typedef OnVersionChangedFunction = FutureOr<dynamic> Function(
-    Database db, int oldVersion, int newVersion);
+typedef OnVersionChangedFunction =
+    FutureOr<dynamic> Function(Database db, int oldVersion, int newVersion);

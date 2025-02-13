@@ -33,9 +33,9 @@ void main() {
           'sub': 2,
           'list': [
             {'n': 1},
-            2
-          ]
-        }
+            2,
+          ],
+        },
       };
       var cloned = utils.cloneMap(existing);
       expect(cloned, existing);
@@ -49,9 +49,9 @@ void main() {
           'sub': 4,
           'list': [
             {'n': 5},
-            2
-          ]
-        }
+            2,
+          ],
+        },
       });
       expect(cloned, {
         'test': 1,
@@ -59,18 +59,18 @@ void main() {
           'sub': 2,
           'list': [
             {'n': 1},
-            2
-          ]
-        }
+            2,
+          ],
+        },
       });
     });
     test('cloneValueList', () {
       var value = [
         [
           [
-            {'t': 1}
-          ]
-        ]
+            {'t': 1},
+          ],
+        ],
       ];
 
       dynamic clone;
@@ -88,7 +88,7 @@ void main() {
     });
     test('cloneValueMap', () {
       var value = {
-        't': [1, 2]
+        't': [1, 2],
       };
       dynamic clone;
       void checkValue() {
@@ -149,14 +149,15 @@ void main() {
       expect(jsonEncodeSorted({'b': 2, 'a': 1}), '{"a":1,"b":2}');
       expect(jsonEncodeSorted({'a': 1, 'b': 2}), '{"a":1,"b":2}');
       expect(
-          jsonEncodeSorted({
-            'sub': [
-              {
-                'inner': {'b': 2, 'a': 1}
-              }
-            ]
-          }),
-          '{"sub":[{"inner":{"a":1,"b":2}}]}');
+        jsonEncodeSorted({
+          'sub': [
+            {
+              'inner': {'b': 2, 'a': 1},
+            },
+          ],
+        }),
+        '{"sub":[{"inner":{"a":1,"b":2}}]}',
+      );
     });
   });
 }

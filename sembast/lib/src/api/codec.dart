@@ -21,12 +21,13 @@ abstract class SembastCodec {
   JsonEncodableCodec get jsonEncodableCodec;
 
   /// [codec] must convert between a map and a single line string
-  factory SembastCodec(
-          {required String? signature,
-          required Codec<Object?, String>? codec,
-          JsonEncodableCodec? jsonEncodableCodec}) =>
-      SembastCodecImpl(
-          signature: signature,
-          codec: codec,
-          jsonEncodableCodec: jsonEncodableCodec);
+  factory SembastCodec({
+    required String? signature,
+    required Codec<Object?, String>? codec,
+    JsonEncodableCodec? jsonEncodableCodec,
+  }) => SembastCodecImpl(
+    signature: signature,
+    codec: codec,
+    jsonEncodableCodec: jsonEncodableCodec,
+  );
 }

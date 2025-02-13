@@ -16,12 +16,12 @@ class SembastCodecImpl implements SembastCodec {
   JsonEncodableCodec jsonEncodableCodec;
 
   /// Sembast codec implementation.
-  SembastCodecImpl(
-      {required this.signature,
-      required this.codec,
-      required JsonEncodableCodec? jsonEncodableCodec})
-      : jsonEncodableCodec =
-            jsonEncodableCodec ?? sembastDefaultJsonEncodableCodec;
+  SembastCodecImpl({
+    required this.signature,
+    required this.codec,
+    required JsonEncodableCodec? jsonEncodableCodec,
+  }) : jsonEncodableCodec =
+           jsonEncodableCodec ?? sembastDefaultJsonEncodableCodec;
 
   @override
   String toString() => 'SembastCodec($signature)';
@@ -49,7 +49,9 @@ FutureOr<String?> getCodecEncodedSignatureOrNull(SembastCodec? codec) =>
 
 /// Get sync codec signature, never fails.
 FutureOr<Map?> getCodecDecodedSignature(
-    SembastCodec? codec, String? encodedSignature) {
+  SembastCodec? codec,
+  String? encodedSignature,
+) {
   if (codec != null && encodedSignature != null) {
     return codec.decodeContent(encodedSignature);
   }
@@ -57,7 +59,10 @@ FutureOr<Map?> getCodecDecodedSignature(
 }
 
 void _checkSignaturesMatch(
-    Map? rawSignatureMap, String? encodedSignature, Map? decodedSignature) {
+  Map? rawSignatureMap,
+  String? encodedSignature,
+  Map? decodedSignature,
+) {
   var matches = true;
   if (rawSignatureMap == null) {
     if (encodedSignature != null) {
@@ -89,7 +94,9 @@ void _checkSignaturesMatch(
 ///
 /// We decode the signature to make sure it matches the raw decoded one
 Future<void> checkCodecEncodedSignature(
-    SembastCodec? codec, String? encodedSignature) async {
+  SembastCodec? codec,
+  String? encodedSignature,
+) async {
   if (codec?.signature == null && encodedSignature == null) {
     // Ignore if both signature are null
     return;

@@ -6,7 +6,7 @@ enum SembastLogLevel {
   none,
 
   /// Log native verbose
-  verbose
+  verbose,
 }
 
 /// Default log level.

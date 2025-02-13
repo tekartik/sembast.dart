@@ -53,7 +53,7 @@ class DirectoryMemoryImpl extends FileSystemEntityMemoryImpl {
 
   /// Memory implementation.
   DirectoryMemoryImpl(DirectoryMemoryImpl? parent, String segment)
-      : super(parent, fs.FileSystemEntityType.directory, segment);
+    : super(parent, fs.FileSystemEntityType.directory, segment);
 
   /// get a file system entity.
   FileSystemEntityMemoryImpl? getEntity(List<String> segments) {
@@ -83,29 +83,30 @@ class FileMemoryImpl extends FileSystemEntityMemoryImpl {
 
   /// In memory file.
   FileMemoryImpl(DirectoryMemoryImpl parent, String segment)
-      : super(parent, fs.FileSystemEntityType.file, segment);
+    : super(parent, fs.FileSystemEntityType.file, segment);
 
   /// Open for read.
   Stream<Uint8List> openRead() {
     late StreamController<Uint8List> ctlr;
     ctlr = StreamController<Uint8List>(
-        sync: true,
-        onListen: () async {
-          openCount++;
-          if (content != null) {
-            for (var line in content!) {
-              ctlr.add(Uint8List.fromList(line.codeUnits));
-              ctlr.add(Uint8List.fromList('\n'.codeUnits));
-            }
+      sync: true,
+      onListen: () async {
+        openCount++;
+        if (content != null) {
+          for (var line in content!) {
+            ctlr.add(Uint8List.fromList(line.codeUnits));
+            ctlr.add(Uint8List.fromList('\n'.codeUnits));
           }
-          try {
-            await close();
-          } catch (e) {
-            ctlr.addError(e);
-          }
+        }
+        try {
+          await close();
+        } catch (e) {
+          ctlr.addError(e);
+        }
 
-          await ctlr.close();
-        });
+        await ctlr.close();
+      },
+    );
 
     return ctlr.stream;
   }
@@ -241,7 +242,10 @@ class _TmpSink implements fs.IOSink {
   Future close() {
     if (real == null) {
       throw FileSystemExceptionMemory(
-          path, 'Cannot open file', _noSuchPathError);
+        path,
+        'Cannot open file',
+        _noSuchPathError,
+      );
     } else {
       return real!.close();
     }
@@ -291,8 +295,10 @@ class FileSystemMemoryImpl {
   }
 
   /// Create a file.
-  FileMemoryImpl? createFileBySegments(List<String> segments,
-      {bool recursive = false}) {
+  FileMemoryImpl? createFileBySegments(
+    List<String> segments, {
+    bool recursive = false,
+  }) {
     var fileImpl = getEntityBySegment(segments);
     // if it exists we're fine
     if (fileImpl == null) {
@@ -301,8 +307,10 @@ class FileSystemMemoryImpl {
       var parent = getEntityBySegment(parentSegments);
       if (parent == null) {
         if (recursive) {
-          parent =
-              createDirectoryBySegments(parentSegments, recursive: recursive);
+          parent = createDirectoryBySegments(
+            parentSegments,
+            recursive: recursive,
+          );
           // let it continue to create the last segment
         }
       }
@@ -318,8 +326,10 @@ class FileSystemMemoryImpl {
   }
 
   /// Create a directory.
-  DirectoryMemoryImpl? createDirectoryBySegments(List<String> segments,
-      {bool recursive = false}) {
+  DirectoryMemoryImpl? createDirectoryBySegments(
+    List<String> segments, {
+    bool recursive = false,
+  }) {
     var directoryImpl = getEntityBySegment(segments);
     // if it exists we're fine
     if (directoryImpl == null) {
@@ -328,8 +338,10 @@ class FileSystemMemoryImpl {
       var parent = getEntityBySegment(parentSegments);
       if (parent == null) {
         if (recursive) {
-          parent =
-              createDirectoryBySegments(parentSegments, recursive: recursive);
+          parent = createDirectoryBySegments(
+            parentSegments,
+            recursive: recursive,
+          );
           // let it continue to create the last segment
         }
       }
@@ -348,19 +360,25 @@ class FileSystemMemoryImpl {
   Stream<Uint8List> openRead(String path) {
     late StreamController<Uint8List> ctlr;
     ctlr = StreamController<Uint8List>(
-        sync: true,
-        onListen: () {
-          final fileImpl = getEntity(path);
-          // if it exists we're fine
-          if (fileImpl is FileMemoryImpl) {
-            ctlr.addStream(fileImpl.openRead()).then((_) {
-              ctlr.close();
-            });
-          } else {
-            ctlr.addError(FileSystemExceptionMemory(
-                path, 'Cannot open file', _noSuchPathError));
-          }
-        });
+      sync: true,
+      onListen: () {
+        final fileImpl = getEntity(path);
+        // if it exists we're fine
+        if (fileImpl is FileMemoryImpl) {
+          ctlr.addStream(fileImpl.openRead()).then((_) {
+            ctlr.close();
+          });
+        } else {
+          ctlr.addError(
+            FileSystemExceptionMemory(
+              path,
+              'Cannot open file',
+              _noSuchPathError,
+            ),
+          );
+        }
+      },
+    );
 
     return ctlr.stream;
   }
@@ -415,13 +433,19 @@ class FileSystemMemoryImpl {
     final entityImpl = getEntity(path);
     if (entityImpl == null) {
       throw FileSystemExceptionMemory(
-          path, 'Deletion failed', _noSuchPathError);
+        path,
+        'Deletion failed',
+        _noSuchPathError,
+      );
     }
     if (entityImpl is! RootDirectoryMemoryImpl) {
       if (entityImpl is DirectoryMemoryImpl) {
         if (!recursive && (entityImpl.children.isNotEmpty)) {
-          throw FileSystemExceptionMemory(path, 'Deletion failed',
-              OSErrorMemory(39, 'Directory is not empty'));
+          throw FileSystemExceptionMemory(
+            path,
+            'Deletion failed',
+            OSErrorMemory(39, 'Directory is not empty'),
+          );
         }
       }
       entityImpl.delete();
@@ -443,7 +467,9 @@ class FileSystemMemoryImpl {
     var newEntityImpl = getEntityBySegment(segments);
     if (newEntityImpl != null) {
       throw FileSystemExceptionMemory(
-          path, 'Rename failed, destination $newPath exists');
+        path,
+        'Rename failed, destination $newPath exists',
+      );
     }
     final segment = segments.last;
 
@@ -451,7 +477,9 @@ class FileSystemMemoryImpl {
     final newParentImpl = getEntityBySegment(getParentSegments(segments));
     if (newParentImpl == null) {
       throw FileSystemExceptionMemory(
-          path, 'Rename failed, parent destination $newPath does not exist');
+        path,
+        'Rename failed, parent destination $newPath does not exist',
+      );
     }
     if (newParentImpl is DirectoryMemoryImpl) {
       entityImpl.delete();
@@ -466,7 +494,9 @@ class FileSystemMemoryImpl {
       return newEntityImpl;
     } else {
       throw FileSystemExceptionMemory(
-          path, 'Rename failed, parent destination $newPath not a directory');
+        path,
+        'Rename failed, parent destination $newPath not a directory',
+      );
     }
   }
 

@@ -69,7 +69,9 @@ void main() {
     test('cooperate100ms', () async {
       var totalMs = 2000;
       enableSembastCooperator(
-          delayMicroseconds: 100000, pauseMicroseconds: 100000);
+        delayMicroseconds: 100000,
+        pauseMicroseconds: 100000,
+      );
       var tasksElapsedMs = await runCooperate(totalMs: totalMs);
       enableSembastCooperator();
       expect(tasksElapsedMs, lessThan(totalMs * 0.8));

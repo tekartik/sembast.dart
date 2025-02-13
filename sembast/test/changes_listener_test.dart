@@ -40,7 +40,8 @@ void main() {
       store.addOnChangesListener(db, onChanges);
 
       Future<T> runInTransaction<T>(
-          FutureOr<T> Function(Transaction transaction) action) async {
+        FutureOr<T> Function(Transaction transaction) action,
+      ) async {
         return await db.transaction((txn) async {
           inTransaction = true;
           try {
@@ -123,7 +124,9 @@ void main() {
     test('cascade', () async {
       var list = <RecordChange>[];
       Future<void> onChanges(
-          Transaction txn, List<RecordChange<int, int>> changes) async {
+        Transaction txn,
+        List<RecordChange<int, int>> changes,
+      ) async {
         for (var change in changes) {
           if (change.newValue! < 3) {
             // Update
@@ -140,7 +143,9 @@ void main() {
     test('deleteAll', () async {
       var list = <RecordChange>[];
       Future<void> onChanges(
-          Transaction txn, List<RecordChange<int, int>> changes) async {
+        Transaction txn,
+        List<RecordChange<int, int>> changes,
+      ) async {
         list.addAll(changes);
       }
 

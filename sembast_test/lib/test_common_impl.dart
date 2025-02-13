@@ -5,5 +5,6 @@ import 'package:sembast/src/database_impl.dart';
 
 DatabaseExportStat getDatabaseExportStat(Database db) {
   return DatabaseExportStat.fromJson(
-      (db as SembastDatabase).toJson()['exportStat'] as Map);
+    (db as SembastDatabase).toJson()['exportStat'] as Map,
+  );
 }

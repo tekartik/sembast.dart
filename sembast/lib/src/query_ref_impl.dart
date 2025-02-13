@@ -19,10 +19,10 @@ class SembastQueryRef<K, V> implements QueryRef<K, V> {
   /// Query ref implementation.
 
   SembastQueryRef(
-      this.store,
-      // ignore: deprecated_member_use_from_same_package
-      SembastFinder? finder)
-      : finder = finder?.clone();
+    this.store,
+    // ignore: deprecated_member_use_from_same_package
+    SembastFinder? finder,
+  ) : finder = finder?.clone();
 
   @override
   String toString() => '$store $finder)';
@@ -53,47 +53,55 @@ extension SembastQueryRefExtension<K, V> on QueryRef<K, V> {
     var db = getDatabase(database);
     // Create the query but don't add it until first result is set
     late QueryListenerController<K, V> ctlr;
-    ctlr = db.listener.addQuery(this, onListen: () async {
-      // Add the existing snapshot
+    ctlr = db.listener.addQuery(
+      this,
+      onListen: () async {
+        // Add the existing snapshot
 
-      // Read right away to get the content at call time
+        // Read right away to get the content at call time
 
-      // Just filter
-      try {
-        // Make sure the first read matches the existing content.
-        await ctlr.lock.synchronized(() async {
-          // Find all matching, ignoring offset/limit but order them
-          var allMatching = await sembastQueryRef.store.findImmutableRecords(
+        // Just filter
+        try {
+          // Make sure the first read matches the existing content.
+          await ctlr.lock.synchronized(() async {
+            // Find all matching, ignoring offset/limit but order them
+            var allMatching = await sembastQueryRef.store.findImmutableRecords(
               database,
-              finder: sembastQueryRef.finder?.cloneWithoutLimits()
-                  as SembastFinder?);
-          // ignore: unawaited_futures
+              finder:
+                  sembastQueryRef.finder?.cloneWithoutLimits()
+                      as SembastFinder?,
+            );
+            // ignore: unawaited_futures
 
-          // Get the result at query time first
-          if (debugListener) {
-            // ignore: avoid_print
-            print('matching $ctlr: ${allMatching.length} on $this');
-          }
+            // Get the result at query time first
+            if (debugListener) {
+              // ignore: avoid_print
+              print('matching $ctlr: ${allMatching.length} on $this');
+            }
 
-          await ctlr.add(allMatching, db.cooperator);
-        });
-      } catch (error, stackTrace) {
-        ctlr.addError(error, stackTrace);
-      }
-    });
+            await ctlr.add(allMatching, db.cooperator);
+          });
+        } catch (error, stackTrace) {
+          ctlr.addError(error, stackTrace);
+        }
+      },
+    );
     return ctlr.stream;
   }
 
-  Future<void> _onListen(SembastDatabase database,
-      QueryRecordsListenerController<K, V> ctlr) async {
+  Future<void> _onListen(
+    SembastDatabase database,
+    QueryRecordsListenerController<K, V> ctlr,
+  ) async {
     try {
       // Make sure the first read matches the existing content.
       await ctlr.lock.synchronized(() async {
         // Find all matching, ignoring offset/limit but order them
         var allMatching = await sembastQueryRef.store.findImmutableRecords(
-            database,
-            finder:
-                sembastQueryRef.finder?.cloneWithoutLimits() as SembastFinder?);
+          database,
+          finder:
+              sembastQueryRef.finder?.cloneWithoutLimits() as SembastFinder?,
+        );
         // ignore: unawaited_futures
 
         // Get the result at query time first
@@ -117,9 +125,12 @@ extension SembastQueryRefExtension<K, V> on QueryRef<K, V> {
 
     // Create the query but don't add it until first result is set
     late QueryKeysListenerController<K, V> ctlr;
-    ctlr = db.listener.addQueryKeys(this, onListen: () async {
-      await _onListen(db, ctlr);
-    });
+    ctlr = db.listener.addQueryKeys(
+      this,
+      onListen: () async {
+        await _onListen(db, ctlr);
+      },
+    );
     return ctlr.stream;
   }
 
@@ -152,12 +163,14 @@ extension SembastQueryRefExtension<K, V> on QueryRef<K, V> {
   /// Returns a single subscriber stream that must be cancelled.
   Stream<RecordSnapshot<K, V>?> onSnapshot(Database database) {
     if (sembastQueryRef.finder?.limit != 1) {
-      return SembastQueryRef(sembastQueryRef.store,
-              cloneFinderFindFirst(sembastQueryRef.finder))
-          .onSnapshot(database);
+      return SembastQueryRef(
+        sembastQueryRef.store,
+        cloneFinderFindFirst(sembastQueryRef.finder),
+      ).onSnapshot(database);
     }
-    return onSnapshots(database)
-        .map((list) => list.isNotEmpty ? list.first : null);
+    return onSnapshots(
+      database,
+    ).map((list) => list.isNotEmpty ? list.first : null);
   }
 
   /// Find first record key (null if none) and listen for changes.
@@ -165,9 +178,10 @@ extension SembastQueryRefExtension<K, V> on QueryRef<K, V> {
   /// Returns a single subscriber stream that must be cancelled.
   Stream<K?> onKey(Database database) {
     if (sembastQueryRef.finder?.limit != 1) {
-      return SembastQueryRef(sembastQueryRef.store,
-              cloneFinderFindFirst(sembastQueryRef.finder))
-          .onKey(database);
+      return SembastQueryRef(
+        sembastQueryRef.store,
+        cloneFinderFindFirst(sembastQueryRef.finder),
+      ).onKey(database);
     }
 
     /// We know the list is limited to 1 here
@@ -206,8 +220,10 @@ extension SembastQueryRefSyncExtension<K, V> on QueryRef<K, V> {
   ///
   /// Returns null if none found.
   RecordSnapshot<K, V>? getSnapshotSync(DatabaseClient client) =>
-      sembastQueryRef.store
-          .findFirstSync(client, finder: sembastQueryRef.finder);
+      sembastQueryRef.store.findFirstSync(
+        client,
+        finder: sembastQueryRef.finder,
+      );
 
   /// Find first record key matching the query. Synchrnous version.
   ///
@@ -225,12 +241,14 @@ extension SembastQueryRefSyncExtension<K, V> on QueryRef<K, V> {
   /// Returns a single subscriber stream that must be cancelled.
   Stream<RecordSnapshot<K, V>?> onSnapshotSync(Database database) {
     if (sembastQueryRef.finder?.limit != 1) {
-      return SembastQueryRef(sembastQueryRef.store,
-              cloneFinderFindFirst(sembastQueryRef.finder))
-          .onSnapshotSync(database);
+      return SembastQueryRef(
+        sembastQueryRef.store,
+        cloneFinderFindFirst(sembastQueryRef.finder),
+      ).onSnapshotSync(database);
     }
-    return onSnapshotsSync(database)
-        .map((list) => list.isNotEmpty ? list.first : null);
+    return onSnapshotsSync(
+      database,
+    ).map((list) => list.isNotEmpty ? list.first : null);
   }
 
   /// Find first record key (null if none) and listen for changes.
@@ -240,12 +258,14 @@ extension SembastQueryRefSyncExtension<K, V> on QueryRef<K, V> {
   /// Returns a single subscriber stream that must be cancelled.
   Stream<K?> onKeySync(Database database) {
     if (sembastQueryRef.finder?.limit != 1) {
-      return SembastQueryRef(sembastQueryRef.store,
-              cloneFinderFindFirst(sembastQueryRef.finder))
-          .onKeySync(database);
+      return SembastQueryRef(
+        sembastQueryRef.store,
+        cloneFinderFindFirst(sembastQueryRef.finder),
+      ).onKeySync(database);
     }
-    return onKeysSync(database)
-        .map((list) => list.isNotEmpty ? list.first : null);
+    return onKeysSync(
+      database,
+    ).map((list) => list.isNotEmpty ? list.first : null);
   }
 
   /// Find multiple records and listen for changes.
@@ -257,46 +277,54 @@ extension SembastQueryRefSyncExtension<K, V> on QueryRef<K, V> {
     var db = getDatabase(database);
     // Create the query but don't add it until first result is set
     late QueryListenerController<K, V> ctlr;
-    ctlr = db.listener.addQuery(this, onListen: () async {
-      // Add the existing snapshot
+    ctlr = db.listener.addQuery(
+      this,
+      onListen: () async {
+        // Add the existing snapshot
 
-      // Read right away to get the content at call time
+        // Read right away to get the content at call time
 
-      // Just filter
-      try {
-        await ctlr.lock.synchronized(() async {
-          // Find all matching, ignoring offset/limit but order them
-          var allMatching = sembastQueryRef.store.findImmutableRecordsSync(
+        // Just filter
+        try {
+          await ctlr.lock.synchronized(() async {
+            // Find all matching, ignoring offset/limit but order them
+            var allMatching = sembastQueryRef.store.findImmutableRecordsSync(
               database,
-              finder: sembastQueryRef.finder?.cloneWithoutLimits()
-                  as SembastFinder?);
-          // ignore: unawaited_futures
+              finder:
+                  sembastQueryRef.finder?.cloneWithoutLimits()
+                      as SembastFinder?,
+            );
+            // ignore: unawaited_futures
 
-          // Get the result at query time first
-          if (debugListener) {
-            // ignore: avoid_print
-            print('matching $ctlr: ${allMatching.length} on $this');
-          }
+            // Get the result at query time first
+            if (debugListener) {
+              // ignore: avoid_print
+              print('matching $ctlr: ${allMatching.length} on $this');
+            }
 
-          await ctlr.add(allMatching, db.cooperator);
-        });
-      } catch (error, stackTrace) {
-        ctlr.addError(error, stackTrace);
-      }
-    });
+            await ctlr.add(allMatching, db.cooperator);
+          });
+        } catch (error, stackTrace) {
+          ctlr.addError(error, stackTrace);
+        }
+      },
+    );
     return ctlr.stream;
   }
 
-  Future<void> _onListenSync(SembastDatabase database,
-      QueryRecordsListenerController<K, V> ctlr) async {
+  Future<void> _onListenSync(
+    SembastDatabase database,
+    QueryRecordsListenerController<K, V> ctlr,
+  ) async {
     try {
       // Make sure the first read matches the existing content.
       await ctlr.lock.synchronized(() async {
         // Find all matching, ignoring offset/limit but order them
         var allMatching = sembastQueryRef.store.findImmutableRecordsSync(
-            database,
-            finder:
-                sembastQueryRef.finder?.cloneWithoutLimits() as SembastFinder?);
+          database,
+          finder:
+              sembastQueryRef.finder?.cloneWithoutLimits() as SembastFinder?,
+        );
         // ignore: unawaited_futures
 
         // Get the result at query time first
@@ -321,9 +349,12 @@ extension SembastQueryRefSyncExtension<K, V> on QueryRef<K, V> {
     var db = getDatabase(database);
     // Create the query but don't add it until first result is set
     late QueryKeysListenerController<K, V> ctlr;
-    ctlr = db.listener.addQueryKeys(this, onListen: () async {
-      await _onListenSync(db, ctlr);
-    });
+    ctlr = db.listener.addQueryKeys(
+      this,
+      onListen: () async {
+        await _onListenSync(db, ctlr);
+      },
+    );
     return ctlr.stream;
   }
 

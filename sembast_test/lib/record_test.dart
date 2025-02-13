@@ -32,11 +32,14 @@ void defineRecordTests(DatabaseTestContext ctx) {
       expect(record1, StoreRef<int, Object?>.main().record(1));
       expect(record1, isNot(StoreRef<String?, Object?>.main().record('test')));
       expect(
-          StoreRef<String, Object>.main().record('test'),
-          StoreRef<String?, Object?>.main().record((StringBuffer()
+        StoreRef<String, Object>.main().record('test'),
+        StoreRef<String?, Object?>.main().record(
+          (StringBuffer()
                 ..write('te')
                 ..write('st'))
-              .toString()));
+              .toString(),
+        ),
+      );
     });
 
     test('put/get timing', () async {
@@ -218,11 +221,16 @@ void defineRecordTests(DatabaseTestContext ctx) {
       var completer = Completer<void>();
       var doneCompleter = Completer<void>();
       // Wait for first event before closing the db
-      var subscription = record.onSnapshot(db).listen((snapshot) {
-        completer.complete();
-      }, onDone: () {
-        doneCompleter.complete();
-      });
+      var subscription = record
+          .onSnapshot(db)
+          .listen(
+            (snapshot) {
+              completer.complete();
+            },
+            onDone: () {
+              doneCompleter.complete();
+            },
+          );
       await completer.future;
       await db.close();
       await doneCompleter.future;

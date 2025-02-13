@@ -64,11 +64,12 @@ class JdbEntryMemory implements jdb.JdbReadEntryEncoded {
   final bool deleted;
 
   /// In memory entry.
-  JdbEntryMemory(
-      {required this.id,
-      required this.valueEncoded,
-      required this.record,
-      required this.deleted});
+  JdbEntryMemory({
+    required this.id,
+    required this.valueEncoded,
+    required this.record,
+    required this.deleted,
+  });
 
   /// Debug map.
   Map<String, Object?> exportToMap() {
@@ -78,8 +79,8 @@ class JdbEntryMemory implements jdb.JdbReadEntryEncoded {
         if (!_isMainStore(record.store.name)) 'store': record.store.name,
         'key': record.key,
         if (!deleted) 'value': valueEncoded,
-        if (deleted) 'deleted': true
-      }
+        if (deleted) 'deleted': true,
+      },
     };
     return map;
   }
@@ -120,12 +121,12 @@ class JdbDatabaseMemory implements jdb.JdbDatabase {
   /// Debug map.
   Map<String, Object?> toDebugMap() {
     var map = <String, Object?>{
-      'entries':
-          _entries.map((entry) => entry.exportToMap()).toList(growable: false),
-      'infos': (List<jdb.JdbInfoEntry>.from(_infoEntries.values)
-            ..sort((entry1, entry2) => entry1.id!.compareTo(entry2.id!)))
-          .map((info) => info.exportToMap())
+      'entries': _entries
+          .map((entry) => entry.exportToMap())
           .toList(growable: false),
+      'infos': (List<jdb.JdbInfoEntry>.from(_infoEntries.values)..sort(
+        (entry1, entry2) => entry1.id!.compareTo(entry2.id!),
+      )).map((info) => info.exportToMap()).toList(growable: false),
     };
     return map;
   }
@@ -162,10 +163,11 @@ class JdbDatabaseMemory implements jdb.JdbDatabase {
     var record = jdbWriteEntry.record;
     var deleted = jdbWriteEntry.deleted;
     var entry = JdbEntryMemory(
-        record: record,
-        id: _nextId,
-        deleted: deleted,
-        valueEncoded: jdbWriteEntry.valueEncoded);
+      record: record,
+      id: _nextId,
+      deleted: deleted,
+      valueEncoded: jdbWriteEntry.valueEncoded,
+    );
     return entry;
   }
 
@@ -214,17 +216,20 @@ class JdbDatabaseMemory implements jdb.JdbDatabase {
     for (var i = 0; i < count; i++) {
       keys.add(++lastId);
     }
-    await setInfoEntry(jdb.JdbInfoEntry()
-      ..id = infoKey
-      ..value = lastId);
+    await setInfoEntry(
+      jdb.JdbInfoEntry()
+        ..id = infoKey
+        ..value = lastId,
+    );
 
     return keys;
   }
 
   @override
   Future<List<String>> generateUniqueStringKeys(
-          String store, int count) async =>
-      List.generate(count, (_) => generateStringKey());
+    String store,
+    int count,
+  ) async => List.generate(count, (_) => generateStringKey());
 
   @override
   Stream<jdb.JdbEntry> get entries {
@@ -263,7 +268,8 @@ class JdbDatabaseMemory implements jdb.JdbDatabase {
 
   @override
   Future<StorageJdbWriteResult> writeIfRevision(
-      StorageJdbWriteQuery query) async {
+    StorageJdbWriteQuery query,
+  ) async {
     var expectedRevision = query.revision ?? 0;
     var readRevision = _getRevision();
     var success = (expectedRevision == readRevision);
@@ -285,7 +291,10 @@ class JdbDatabaseMemory implements jdb.JdbDatabase {
       _setRevision(_lastEntryId);
     }
     return StorageJdbWriteResult(
-        revision: readRevision, query: query, success: success);
+      revision: readRevision,
+      query: query,
+      success: success,
+    );
   }
 
   @override
@@ -327,13 +336,17 @@ class JdbDatabaseMemory implements jdb.JdbDatabase {
 
   int _getRevision() => _getInfoEntry(_revisionKey)?.value as int? ?? 0;
 
-  void _setDeltaMinRevision(int revision) => _setInfoEntry(JdbInfoEntry()
-    ..id = deltaMinRevisionKey
-    ..value = revision);
+  void _setDeltaMinRevision(int revision) => _setInfoEntry(
+    JdbInfoEntry()
+      ..id = deltaMinRevisionKey
+      ..value = revision,
+  );
 
-  void _setRevision(int revision) => _setInfoEntry(JdbInfoEntry()
-    ..id = _revisionKey
-    ..value = revision);
+  void _setRevision(int revision) => _setInfoEntry(
+    JdbInfoEntry()
+      ..id = _revisionKey
+      ..value = revision,
+  );
 
   @override
   Future<int> getDeltaMinRevision() async => _getDeltaMinRevision();

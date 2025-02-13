@@ -26,16 +26,18 @@ void main() {
       } on FormatException catch (_) {}
 
       expect(
-          await storage
-              .readSafeLines()
-              .firstWhere((element) => true, orElse: () => ''),
-          '');
+        await storage.readSafeLines().firstWhere(
+          (element) => true,
+          orElse: () => '',
+        ),
+        '',
+      );
 
       await storage.delete();
       await io.File(path).writeAsBytes([
         ...'1'.codeUnits,
         ...[10, 195, 9, 10],
-        ...'2'.codeUnits
+        ...'2'.codeUnits,
       ], flush: true);
 
       var lines = await storage.readSafeLines().toList();
@@ -45,7 +47,7 @@ void main() {
       await io.File(path).writeAsBytes([
         ...'first\r\n2'.codeUnits,
         ...[10, 195, 9, 10, 51, 10],
-        ...utf8.encode('éà')
+        ...utf8.encode('éà'),
       ], flush: true);
 
       lines = await storage.readSafeLines().toList();
