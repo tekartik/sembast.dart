@@ -24,5 +24,5 @@ OutBuffer _outBuffer = OutBuffer(100);
 final _output = document.getElementById('output') as HTMLElement;
 void write([Object? message]) {
   print(message);
-  _output.text = (_outBuffer..add('$message')).toString();
+  _output.textContent = (_outBuffer..add('$message')).toString();
 }

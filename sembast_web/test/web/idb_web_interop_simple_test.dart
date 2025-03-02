@@ -63,15 +63,15 @@ Future main() async {
       var store = StoreRef<String, String>.main();
       await factory.deleteDatabase('test');
       var db = await factory.openDatabase('test');
-      expect(window.localStorage['sembast_web/revision:test'], isNull);
+      expect(window.localStorage.getItem('sembast_web/revision:test'), isNull);
       var record = store.record('my_key');
       await record.put(db, 'my_value');
-      expect(window.localStorage['sembast_web/revision:test'], '1');
+      expect(window.localStorage.getItem('sembast_web/revision:test'), '1');
       await db.close();
-      expect(window.localStorage['sembast_web/revision:test'], '1');
+      expect(window.localStorage.getItem('sembast_web/revision:test'), '1');
       // Make sure the storage gets clears on deletion
       await factory.deleteDatabase('test');
-      expect(window.localStorage['sembast_web/revision:test'], isNull);
+      expect(window.localStorage.getItem('sembast_web/revision:test'), isNull);
     });
 
     idb_jdb_test.defineTests(
