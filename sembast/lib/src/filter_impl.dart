@@ -20,9 +20,16 @@ bool filterMatchesRecord(Filter? filter, RecordSnapshot record) {
   );
 }
 
-/// Filter base.
-abstract class SembastFilterBase implements Filter {
+/// Sembast filter.
+abstract interface class SembastFilter implements Filter {
   /// True if the record matches.
+  bool matchesRecord(RecordSnapshot record);
+}
+
+/// Filter base.
+abstract class SembastFilterBase implements SembastFilter {
+  /// True if the record matches.
+  @override
   bool matchesRecord(RecordSnapshot record);
 }
 
