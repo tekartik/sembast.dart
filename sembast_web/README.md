@@ -68,3 +68,7 @@ some changes happens, new data is loaded and transaction is ran again.
 
 The only exported API is `databaseFactoryWeb`. For more information on the API see [sembast](https://pub.dev/packages/sembast) documentation.
 
+### More information
+
+- [Opening a web database](https://github.com/tekartik/sembast.dart/blob/master/sembast_web/doc/opening.md)
+- [Some implementation details](https://github.com/tekartik/sembast.dart/blob/master/sembast_web/doc/implementation_details.md)
