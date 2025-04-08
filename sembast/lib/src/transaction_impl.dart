@@ -1,10 +1,21 @@
-import 'dart:async';
-
+import 'package:sembast/src/common_import.dart';
 import 'package:sembast/src/database_client_impl.dart';
 import 'package:sembast/src/database_impl.dart';
 import 'package:sembast/src/store_impl.dart';
 
 import 'import_common.dart';
+
+/// Warning when using database object in transaction in debug mode
+/// could become the default one day
+var debugSembastWarnDatabaseCallInTransaction = false; // devFalse;
+
+/// Key is the database object
+class DebugSembastTransactionZoneInfo {
+  @override
+  String toString() {
+    return 'Database in transaction';
+  }
+}
 
 /// Transaction implementation.
 class SembastTransaction extends Object

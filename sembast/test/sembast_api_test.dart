@@ -32,6 +32,7 @@ void main() {
       sembastDefaultTypeAdapters;
       sembastCodecDefault;
       sembastCodecWithAdapters;
+      SembastTransactionFunction;
       AsyncContentCodecBase;
       RecordKeyBase;
       RecordValueBase;

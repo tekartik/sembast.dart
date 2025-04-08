@@ -19,7 +19,8 @@ export 'package:sembast/src/api/records_ref.dart' show RecordsRef;
 export 'package:sembast/src/api/sort_order.dart' show SortOrder;
 export 'package:sembast/src/api/store_ref.dart'
     show StoreRef, StoreFactory, intMapStoreFactory, stringMapStoreFactory;
-export 'package:sembast/src/api/transaction.dart' show Transaction;
+export 'package:sembast/src/api/transaction.dart'
+    show Transaction, SembastTransactionFunction;
 export 'package:sembast/src/cooperator.dart'
     show enableSembastCooperator, disableSembastCooperator;
 
@@ -72,3 +73,7 @@ export 'package:sembast/src/database_impl.dart'
 /// V3.8.1
 export 'package:sembast/src/database_client_impl.dart'
     show SembastDatabaseClientExtension;
+
+/// V3.x.x
+export 'package:sembast/src/transaction_impl.dart'
+    show debugSembastWarnDatabaseCallInTransaction;

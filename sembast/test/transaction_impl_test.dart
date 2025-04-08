@@ -56,6 +56,25 @@ void defineTests(DatabaseTestContext ctx) {
       });
       expect(db.currentTransaction, null);
     });
+    /*
+    test('deadlock', () async {
+      expect(db.currentTransaction, null);
+      var currentDebugState = debugSembastWarnDatabaseCallInTransaction;
+      try {
+        debugSembastWarnDatabaseCallInTransaction = true;
+        await db.transaction((txn) async {
+          await db
+              .transaction((txn) async {})
+              .timeout(const Duration(milliseconds: 20));
+        });
+      } on TimeoutException catch (e) {
+        // ignore: avoid_print
+        print('dead lock $e');
+      } finally {
+        debugSembastWarnDatabaseCallInTransaction = currentDebugState;
+      }
+      expect(db.currentTransaction, null);
+    });*/
 
     test('two currentTransaction', () async {
       expect(db.currentTransaction, null);

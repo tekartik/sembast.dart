@@ -1378,13 +1378,39 @@ class SembastDatabase extends Object
   }
 
   @override
-  Future<T> transaction<T>(
-    FutureOr<T> Function(Transaction transaction) action,
-  ) async {
+  Future<T> transaction<T>(SembastTransactionFunction<T> action) async {
+    // during open?
+    if (debugSembastWarnDatabaseCallInTransaction) {
+      var futureValue = Future.value(_runTransaction(action));
+      try {
+        await futureValue.timeout(const Duration(seconds: 10));
+      } on TimeoutException catch (_) {
+        var txnInfo = Zone.current[this];
+        if (txnInfo is DebugSembastTransactionZoneInfo) {
+          // ignore: avoid_print
+          print('# Currrent stack trace:');
+          // ignore: avoid_print
+          print(buildStackTrack());
+          // ignore: avoid_print
+          print(
+            'Deadlock ? you likely called a database method in a '
+            'transaction. Please use the transaction method to call '
+            'database methods.',
+          );
+        }
+      }
+      return await futureValue;
+    } else {
+      return await _runTransaction(action);
+    }
+  }
+
+  Future<T> _runTransaction<T>(SembastTransactionFunction<T> action) async {
     // during open?
     if (_openTransaction != null) {
       return await action(_openTransaction!);
     }
+
     CommitData? commitData;
 
     /// Can be true during open only when version changes.
@@ -1426,7 +1452,17 @@ class SembastDatabase extends Object
 
             try {
               // devPrint('transaction ${jdbRevision}');
-              actionResult = await Future<T>.sync(() => action(_transaction!));
+              actionResult = await Future<T>.sync(
+                () =>
+                    (debugSembastWarnDatabaseCallInTransaction)
+                        ? runZoned(
+                          () {
+                            return action(_transaction!);
+                          },
+                          zoneValues: {this: DebugSembastTransactionZoneInfo()},
+                        )
+                        : action(_transaction!),
+              );
 
               // Commit directly on jdb to handle transaction changes
               if (storageJdb != null) {
@@ -1805,6 +1841,15 @@ class SembastDatabase extends Object
     TransactionRecordChangeListener onChanges,
   ) {
     changesListener.removeGlobalChangesListener(onChanges);
+  }
+}
+
+/// Build a stack trace
+StackTrace buildStackTrack() {
+  try {
+    throw StateError('Stack trace');
+  } catch (e, st) {
+    return st;
   }
 }
 
