@@ -291,6 +291,42 @@ void defineTests(DatabaseTestContext ctx) {
       });
     });
 
+    group('list_values', () {
+      late Database db;
+
+      var store = intMapStoreFactory.store();
+      var records = store.records([1, 2, 3]);
+      setUp(() async {
+        db = await setupForTest(ctx, 'find/list_values.db');
+        return records.put(db, [
+          {
+            'list1': [1, 4],
+            'list2': ['t1', 't2'],
+          },
+          {
+            'list1': [1, 4],
+            'list2': ['t1', 't3'],
+          },
+          {
+            'list1': [1, 'hi'],
+            'list2': [1, 2],
+          },
+        ]);
+      });
+      tearDown(() async {
+        await db.close();
+      });
+      test('contains', () async {
+        var finder = Finder(filter: Filter.arrayContains('list1', 1));
+        expect((await store.find(db, finder: finder)).keys, [1, 2, 3]);
+        finder = Finder(filter: Filter.arrayContainsAny('list1', [1]));
+        expect((await store.find(db, finder: finder)).keys, [1, 2, 3]);
+        finder = Finder(filter: Filter.arrayContainsAll('list1', [1, 4]));
+        expect((await store.find(db, finder: finder)).keys, [1, 2]);
+        finder = Finder(filter: Filter.arrayContainsAll('list2', ['t1', 't3']));
+        expect((await store.find(db, finder: finder)).keys, [2]);
+      });
+    });
     group('map_values', () {
       late Database db;
 
