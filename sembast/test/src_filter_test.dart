@@ -3,6 +3,7 @@ library;
 // basically same as the io runner but with extra output
 //import 'package:tekartik_test/test_config.dart';
 import 'package:sembast/src/filter_impl.dart' show filterMatchesRecord;
+import 'package:sembast/timestamp.dart';
 
 import 'test_common.dart';
 
@@ -469,6 +470,29 @@ void main() {
       expect(_match(filter, 'dummy'), isFalse);
       expect(_match(filter, 'test'), isFalse);
       expect(_match(filter, <Object>[]), isFalse);
+    });
+    test('arrayContains', () {
+      var filter = Filter.arrayContains('test', 1);
+      var filterAny = Filter.arrayContainsAny('test', [1, 2]);
+      var filterAll = Filter.arrayContainsAll('test', [1, 3]);
+      var content = <String, Object?>{
+        'test': [1],
+      };
+      expect(_match(filter, content), isTrue);
+      expect(_match(filterAny, content), isTrue);
+      expect(_match(filterAll, content), isFalse);
+      content = {
+        'test': [1, 3],
+      };
+      expect(_match(filter, content), isTrue);
+      expect(_match(filterAny, content), isTrue);
+      expect(_match(filterAll, content), isTrue);
+      var t1 = Timestamp(1, 2000000);
+      content = {
+        'test': [t1],
+      };
+      filter = Filter.arrayContains('test', t1);
+      expect(_match(filter, content), isTrue);
     });
   });
 }

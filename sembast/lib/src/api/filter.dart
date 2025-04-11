@@ -94,6 +94,29 @@ abstract class Filter {
   /// provides a raw access to the record internal value for efficiency.
   factory Filter.custom(bool Function(RecordSnapshot record) matches) =>
       SembastCustomFilter(matches);
+
+  /// Filter where the [field] is a list that contains a given value
+  factory Filter.arrayContains(String field, Object value) {
+    return SembastListFilter(field, value, SembastListFilterOptions.contains);
+  }
+
+  /// Filter where the [field] is a list that contains all values
+  factory Filter.arrayContainsAll(String field, List<Object> values) {
+    return SembastListFilter(
+      field,
+      values,
+      SembastListFilterOptions.containsAll,
+    );
+  }
+
+  /// Filter where the [field] is a list that contains any of the given values
+  factory Filter.arrayContainsAny(String field, List<Object> values) {
+    return SembastListFilter(
+      field,
+      values,
+      SembastListFilterOptions.containsAny,
+    );
+  }
 }
 
 /// Provides convenience methods for combining multiple [Filter]s.

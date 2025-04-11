@@ -164,6 +164,55 @@ class SembastEqualsFilter extends SembastFilterBase
   }
 }
 
+/// List filter options.
+enum SembastListFilterOptions {
+  /// Contains filter.
+  contains,
+
+  /// Contains all filter.
+  containsAll,
+
+  /// Contains any filter.
+  containsAny,
+}
+
+/// Equals filter.
+class SembastListFilter extends SembastFilterBase
+    with FilterValueMixin, FilterFieldMixin {
+  /// The list filter options.
+  final SembastListFilterOptions options;
+
+  /// The list of values for any and all
+  List get values => (value as List);
+
+  /// Equals filter.
+  SembastListFilter(String field, Object value, this.options) {
+    this.field = field;
+    this.value = value;
+  }
+
+  @override
+  bool matchesRecord(RecordSnapshot record) {
+    var existingValue = record[field];
+    if (existingValue is! List) {
+      return false;
+    }
+    switch (options) {
+      case SembastListFilterOptions.contains:
+        return existingValue.contains(value);
+      case SembastListFilterOptions.containsAll:
+        return values.every((element) => existingValue.contains(element));
+      case SembastListFilterOptions.containsAny:
+        return values.any((element) => existingValue.contains(element));
+    }
+  }
+
+  @override
+  String toString() {
+    return '$field ${options.name.split('.').last} $value';
+  }
+}
+
 /// Not equals filter.
 class SembastNotEqualsFilter extends SembastEqualsFilter {
   /// Not equals filter.
