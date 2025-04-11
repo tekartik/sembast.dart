@@ -1,3 +1,7 @@
+## 3.8.5
+
+* Add `Filter.arrayContains`, `Filter.arrayContainsAny`, `Filter.arrayContainsAll` to filter on list content.
+
 ## 3.8.4+1
 
 * Requires Dart 3.7
