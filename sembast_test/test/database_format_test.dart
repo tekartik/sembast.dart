@@ -235,7 +235,7 @@ void defineTestsWithCodec(FileSystemTestContext ctx, {SembastCodec? codec}) {
       var db = await factory.openDatabase(
         dbPath!,
         version: 2,
-        onVersionChanged: (db, _, __) async {
+        onVersionChanged: (db, _, _) async {
           await store.record(1).put(db, 'hi');
         },
         codec: codec,
@@ -262,7 +262,7 @@ void defineTestsWithCodec(FileSystemTestContext ctx, {SembastCodec? codec}) {
       var db = await factory.openDatabase(
         dbPath!,
         version: 2,
-        onVersionChanged: (db, _, __) async {
+        onVersionChanged: (db, _, _) async {
           await db.transaction((txn) async {
             await store.record(1).put(txn, 'hi');
           });

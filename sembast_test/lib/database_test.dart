@@ -170,7 +170,7 @@ void defineTests(DatabaseTestContext ctx) {
         var db = await factory.openDatabase(
           dbPath,
           version: 1,
-          onVersionChanged: (db, _, __) async {
+          onVersionChanged: (db, _, _) async {
             await store.record(1).put(db, 'test');
           },
         );
@@ -192,7 +192,7 @@ void defineTests(DatabaseTestContext ctx) {
         var db = await factory.openDatabase(
           dbPath,
           version: 1,
-          onVersionChanged: (db, _, __) async {
+          onVersionChanged: (db, _, _) async {
             await db.transaction((txn) async {
               await store.record(1).put(txn, 'test');
             });
@@ -214,7 +214,7 @@ void defineTests(DatabaseTestContext ctx) {
         db = await factory.openDatabase(
           dbPath,
           version: 2,
-          onVersionChanged: (db, oldVersion, __) async {
+          onVersionChanged: (db, oldVersion, _) async {
             if (oldVersion == 1) {
               await db.transaction((txn) async {
                 expect(await store.record(1).get(txn), 'test');
@@ -243,7 +243,7 @@ void defineTests(DatabaseTestContext ctx) {
           await factory.openDatabase(
             dbPath,
             version: 1,
-            onVersionChanged: (db, _, __) async {
+            onVersionChanged: (db, _, _) async {
               throw TestException();
             },
           );
@@ -265,7 +265,7 @@ void defineTests(DatabaseTestContext ctx) {
             await factory.openDatabase(
               dbPath,
               version: 2,
-              onVersionChanged: (db, _, __) async {
+              onVersionChanged: (db, _, _) async {
                 throw TestException();
               },
             );
