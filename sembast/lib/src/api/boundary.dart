@@ -15,7 +15,7 @@ abstract class Boundary {
   /// if [include] is true, the record at the boundary will be included
   /// Number of values should match the number or sort orders
   ///
-  /// [snapshot] superseeds record
+  /// [values] superseeds record
   ///
   factory Boundary({
     RecordSnapshot? record,
