@@ -1,6 +1,7 @@
-## 3.8.5
+## 3.8.5+1
 
 * Add `Filter.arrayContains`, `Filter.arrayContainsAny`, `Filter.arrayContainsAll` to filter on list content.
+* Update minimum `meta` version to 1.14.0
 
 ## 3.8.4+1
 
