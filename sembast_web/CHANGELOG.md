@@ -1,3 +1,8 @@
+## 2.4.2
+
+* Add `databaseFactoryWebWorker` to support web workers.
+* Use `BroadcastChannel` to support cross-tab/workers notifications.
+
 ## 2.4.1
 
 * Requires dart 3.7
