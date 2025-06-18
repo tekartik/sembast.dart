@@ -2,14 +2,14 @@ import 'package:sembast/sembast.dart';
 
 /// Sembast factory for the Web.
 ///
-/// Build on top of IndexedDB and localStorage.
+/// Build on top of IndexedDB and BroadcastChannel.
 DatabaseFactory get databaseFactoryWeb => _stub(
   'databaseFactoryWeb not support on Flutter/VM. Use `sembast_sqflite` or `sembast` io implementation',
 );
 
 /// Sembast factory for Web Worker
 ///
-/// Build on top of IndexedDB and localStorage.
+/// Build on top of IndexedDB and BroadcastChannel.
 DatabaseFactory get databaseFactoryWebWorker => _stub(
   'databaseFactoryWebWorker not support on Flutter/VM. Use `sembast_sqflite` or `sembast` io implementation',
 );

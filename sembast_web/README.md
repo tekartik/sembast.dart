@@ -63,7 +63,7 @@ When debugging, you should use the same port to keep the same indexeddb database
 ## How it works
 
 Like sembast the whole database is loaded into memory from indexedDB. It notifies cross tabs
-using localStorage. data is incrementally updated from indexedDB. If a transaction is ran after
+using `BroadcastChannel`. data is incrementally updated from indexedDB. If a transaction is ran after
 some changes happens, new data is loaded and transaction is ran again.
 
 The only exported API is `databaseFactoryWeb`. For more information on the API see [sembast](https://pub.dev/packages/sembast) documentation.

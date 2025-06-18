@@ -5,7 +5,6 @@ library;
 
 import 'package:sembast_web/sembast_web.dart';
 import 'package:test/test.dart';
-import 'package:web/web.dart';
 
 import '../multiplatform/idb_jdb_test.dart' as idb_jdb_test;
 import '../multiplatform/idb_jdb_test.dart';
@@ -55,21 +54,6 @@ Future main() async {
       await record.put(db, 'value');
       expect(await record.get(db), 'value');
       await db.close();
-    });
-
-    test('storage_notification', () async {
-      var store = StoreRef<String, String>.main();
-      await factory.deleteDatabase('test');
-      var db = await factory.openDatabase('test');
-      expect(window.localStorage.getItem('sembast_web/revision:test'), isNull);
-      var record = store.record('my_key');
-      await record.put(db, 'my_value');
-      expect(window.localStorage.getItem('sembast_web/revision:test'), '1');
-      await db.close();
-      expect(window.localStorage.getItem('sembast_web/revision:test'), '1');
-      // Make sure the storage gets clears on deletion
-      await factory.deleteDatabase('test');
-      expect(window.localStorage.getItem('sembast_web/revision:test'), isNull);
     });
 
     idb_jdb_test.defineTests(
