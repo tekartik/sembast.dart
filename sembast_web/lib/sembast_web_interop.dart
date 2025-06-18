@@ -5,3 +5,8 @@ import 'package:sembast_web/src/web_interop/sembast_web.dart' as src;
 ///
 /// Build on top of IndexedDB and localStorage.
 DatabaseFactory get databaseFactoryWeb => src.databaseFactoryWeb;
+
+/// Sembast factory for Web Workers.
+///
+/// Build on top of IndexedDB and localStorage.
+DatabaseFactory get databaseFactoryWebWorker => src.databaseFactoryWebWorker;

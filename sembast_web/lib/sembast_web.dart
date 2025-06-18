@@ -7,3 +7,8 @@ export 'package:sembast/sembast.dart';
 ///
 /// Build on top of IndexedDB and localStorage.
 DatabaseFactory get databaseFactoryWeb => src.databaseFactoryWeb;
+
+/// Sembast factory for Web Workers.
+///
+/// Build on top of IndexedDB and localStorage.
+DatabaseFactory get databaseFactoryWebWorker => src.databaseFactoryWebWorker;

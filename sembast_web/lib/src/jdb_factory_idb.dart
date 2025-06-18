@@ -85,7 +85,7 @@ class JdbFactoryIdb implements jdb.JdbFactory {
       checkAllClosed();
 
       await idbFactory.deleteDatabase(path);
-      notifyRevision(StorageRevision(path, 0));
+      notifyRevision(NotificationRevision(path, 0));
       if (_debug) {
         // ignore: avoid_print
         print('[idb] deleted $path');
@@ -136,10 +136,10 @@ class JdbFactoryIdb implements jdb.JdbFactory {
   void stop() {}
 
   /// Notify other app (web only))
-  void notifyRevision(StorageRevision storageRevision) {
-    if (debugStorageNotification) {
+  void notifyRevision(NotificationRevision notificationRevision) {
+    if (debugNotificationRevision) {
       // ignore: avoid_print
-      print('notifyRevision $storageRevision: not supported');
+      print('notifyRevision $notificationRevision: not supported');
     }
   }
 }

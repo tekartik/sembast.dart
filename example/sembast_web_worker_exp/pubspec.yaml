@@ -1,0 +1,44 @@
+name: sembast_web_worker_exp
+description: An absolute bare-bones web app.
+version: 1.0.0
+publish_to: none
+
+environment:
+  sdk: ^3.8.0
+
+# Add regular dependencies here.
+dependencies:
+  web: '>=1.0.0'
+  sembast:
+  sembast_web:
+  idb_shim: '>=2.6.4'
+  tekartik_js_utils_interop:
+    git:
+      url: https://github.com/tekartik/js_utils.dart
+      path: js_utils_interop
+      ref: dart3a
+    version: '>=0.1.0'
+dev_dependencies:
+  dev_build:
+  tekartik_lints:
+    git:
+      url: https://github.com/tekartik/common.dart
+      ref: dart3a
+      path: packages/lints
+    version: '>=0.1.0'
+  build_runner: ">=2.4.13"
+  build_web_compilers: ">=4.0.11"
+  lints: ">=5.0.0"
+  process_run: ">=1.2.1+1"
+  tekartik_app_web_build:
+    git:
+      url: https://github.com/tekartik/app_web_utils.dart
+      ref: dart3a
+      path: packages/app_build
+    version: '>=0.0.1'
+
+dependency_overrides:
+  sembast:
+    path: ../../sembast
+  sembast_web:
+    path: ../../sembast_web

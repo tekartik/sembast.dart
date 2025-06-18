@@ -1,5 +1,8 @@
+// ignore: unused_import
+import 'sembast_import.dart';
+
 /// The storage revision.
-class StorageRevision {
+class NotificationRevision {
   /// Name of the database.
   final String name;
 
@@ -7,11 +10,11 @@ class StorageRevision {
   final int revision;
 
   /// Revision for one storage
-  StorageRevision(this.name, this.revision);
+  NotificationRevision(this.name, this.revision);
 
   @override
   String toString() => '$name: $revision';
 }
 
 /// For storage notification debugging/logging.
-final debugStorageNotification = false; // devWarning(true); // false
+final debugNotificationRevision = false; // devWarning(true); // false

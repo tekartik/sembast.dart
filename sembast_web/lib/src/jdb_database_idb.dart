@@ -201,7 +201,7 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
 
   /// Notify other clients of the new revision
   void notifyRevision(int revision) {
-    _factory.notifyRevision(StorageRevision(_path, revision));
+    _factory.notifyRevision(NotificationRevision(_path, revision));
   }
 
   @override
