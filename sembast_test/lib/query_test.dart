@@ -511,8 +511,10 @@ void defineQueryTests(DatabaseTestContext ctx) {
     test('onSnapshotNonNull', () async {
       var store = StoreRef<int, String>.main();
       var record = store.record(1);
-      var future =
-          record.onSnapshot(db).where((snapshot) => snapshot != null).first;
+      var future = record
+          .onSnapshot(db)
+          .where((snapshot) => snapshot != null)
+          .first;
       // ignore: unawaited_futures
       record.put(db, 'test1');
       await future;
@@ -521,12 +523,11 @@ void defineQueryTests(DatabaseTestContext ctx) {
     test('onSnapshotsNonNull', () async {
       var store = StoreRef<int, String>.main();
       var record = store.record(1);
-      var future =
-          store
-              .query()
-              .onSnapshots(db)
-              .where((snapshots) => snapshots.isNotEmpty)
-              .first;
+      var future = store
+          .query()
+          .onSnapshots(db)
+          .where((snapshots) => snapshots.isNotEmpty)
+          .first;
       // ignore: unawaited_futures
       record.put(db, 'test1');
       await future;
@@ -536,8 +537,10 @@ void defineQueryTests(DatabaseTestContext ctx) {
       var store = StoreRef<int, String>.main();
       var record = store.record(1);
       await record.put(db, 'test1');
-      var future =
-          record.onSnapshot(db).where(((snapshot) => snapshot == null)).first;
+      var future = record
+          .onSnapshot(db)
+          .where(((snapshot) => snapshot == null))
+          .first;
       // ignore: unawaited_futures
       record.delete(db);
       await future;
@@ -547,12 +550,11 @@ void defineQueryTests(DatabaseTestContext ctx) {
       var store = StoreRef<int, String>.main();
       var record = store.record(1);
       await record.put(db, 'test1');
-      var future =
-          store
-              .query()
-              .onSnapshots(db)
-              .where((snapshots) => snapshots.isEmpty)
-              .first;
+      var future = store
+          .query()
+          .onSnapshots(db)
+          .where((snapshots) => snapshots.isEmpty)
+          .first;
       // ignore: unawaited_futures
       record.delete(db);
       await future;

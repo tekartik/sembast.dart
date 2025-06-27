@@ -302,11 +302,10 @@ void defineTests(DatabaseTestContext ctx) {
             },
           );
       expect(database.listener.isNotEmpty, isTrue);
-      var ctlr =
-          database.listener
-              .getStore(store)!
-              .getStoreListenerControllers<int, String>()
-              .first;
+      var ctlr = database.listener
+          .getStore(store)!
+          .getStoreListenerControllers<int, String>()
+          .first;
       ctlr.close();
 
       await completer.future;

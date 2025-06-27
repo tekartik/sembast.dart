@@ -84,8 +84,9 @@ extension SembastRecordsRefExtension<K, V> on RecordsRef<K, V> {
     var client = getClient(databaseClient);
     return client.inTransaction((txn) async {
       return (await client
-          .getSembastStore(store)
-          .txnPutAll<K, V>(txn, values, keys, merge: merge)).cast<V>();
+              .getSembastStore(store)
+              .txnPutAll<K, V>(txn, values, keys, merge: merge))
+          .cast<V>();
     });
   }
 
@@ -105,8 +106,9 @@ extension SembastRecordsRefExtension<K, V> on RecordsRef<K, V> {
     var client = getClient(databaseClient);
     return client.inTransaction((txn) async {
       return (await client
-          .getSembastStore(store)
-          .txnUpdateAll(txn, values, keys)).cast<V?>();
+              .getSembastStore(store)
+              .txnUpdateAll(txn, values, keys))
+          .cast<V?>();
     });
   }
 

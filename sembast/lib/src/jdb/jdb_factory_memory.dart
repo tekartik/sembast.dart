@@ -124,9 +124,11 @@ class JdbDatabaseMemory implements jdb.JdbDatabase {
       'entries': _entries
           .map((entry) => entry.exportToMap())
           .toList(growable: false),
-      'infos': (List<jdb.JdbInfoEntry>.from(_infoEntries.values)..sort(
-        (entry1, entry2) => entry1.id!.compareTo(entry2.id!),
-      )).map((info) => info.exportToMap()).toList(growable: false),
+      'infos':
+          (List<jdb.JdbInfoEntry>.from(_infoEntries.values)
+                ..sort((entry1, entry2) => entry1.id!.compareTo(entry2.id!)))
+              .map((info) => info.exportToMap())
+              .toList(growable: false),
     };
     return map;
   }

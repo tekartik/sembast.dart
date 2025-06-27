@@ -132,11 +132,10 @@ void defineTests(DatabaseTestContext ctx) {
           localNewVersion = newVersion;
         }
 
-        var db =
-            openedDb = await factory.openDatabase(
-              dbPath,
-              onVersionChanged: onVersionChanged,
-            );
+        var db = openedDb = await factory.openDatabase(
+          dbPath,
+          onVersionChanged: onVersionChanged,
+        );
         expect(localOldVersion, 0);
         expect(localNewVersion, 1);
         expect(db.version, 1);

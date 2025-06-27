@@ -101,8 +101,9 @@ extension SembastStoreRefExtensionImpl<K, V> on StoreRef<K, V> {
     final client = getClient(databaseClient);
 
     return (await client
-        .getSembastStore(this)
-        .txnFilterKeys(client.sembastTransaction, filter)).cast<K>();
+            .getSembastStore(this)
+            .txnFilterKeys(client.sembastTransaction, filter))
+        .cast<K>();
   }
 }
 
@@ -331,12 +332,13 @@ extension SembastStoreRefExtension<K, V> on StoreRef<K, V> {
     );
     return client.inTransaction((txn) async {
       return (await client
-          .getSembastStore(this)
-          .txnUpdateWhere(
-            txn,
-            value as Value,
-            finder: finder as SembastFinder?,
-          )).length;
+              .getSembastStore(this)
+              .txnUpdateWhere(
+                txn,
+                value as Value,
+                finder: finder as SembastFinder?,
+              ))
+          .length;
     });
   }
 
@@ -347,8 +349,9 @@ extension SembastStoreRefExtension<K, V> on StoreRef<K, V> {
     final client = getClient(databaseClient);
     return client.inTransaction((txn) async {
       return (await client
-          .getSembastStore(this)
-          .txnClear(txn, finder: finder as SembastFinder?)).length;
+              .getSembastStore(this)
+              .txnClear(txn, finder: finder as SembastFinder?))
+          .length;
     });
   }
 

@@ -114,10 +114,9 @@ JdbInfoEntry getStoreLastIntKeyInfoEntry(String store, int? lastIntKey) =>
       ..value = lastIntKey;
 
 /// Create meta info entry.
-JdbInfoEntry getMetaInfoEntry(Meta meta) =>
-    JdbInfoEntry()
-      ..id = metaKey
-      ..value = meta.toMap();
+JdbInfoEntry getMetaInfoEntry(Meta meta) => JdbInfoEntry()
+  ..id = metaKey
+  ..value = meta.toMap();
 
 /// Jdb implementation
 abstract class StorageJdb extends StorageBase {

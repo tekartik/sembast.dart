@@ -326,8 +326,8 @@ class SembastDatabase extends Object
     if (_storageFs?.supported ?? false) {
       final tmpStorage = _storageFs!.tmpStorage!;
       // new stat with compact + 1
-      final exportStat =
-          DatabaseExportStat()..compactCount = _exportStat!.compactCount + 1;
+      final exportStat = DatabaseExportStat()
+        ..compactCount = _exportStat!.compactCount + 1;
       await tmpStorage.delete();
       await tmpStorage.findOrCreate();
 
@@ -424,12 +424,11 @@ class SembastDatabase extends Object
       }
     }
 
-    var commitEntries =
-        CommitEntries()
-          ..txnRecords = txnRecords
-          ..upgrading = _upgrading
-          ..upgradingMeta = _upgradingMeta
-          ..revision = _jdbRevision;
+    var commitEntries = CommitEntries()
+      ..txnRecords = txnRecords
+      ..upgrading = _upgrading
+      ..upgradingMeta = _upgradingMeta
+      ..revision = _jdbRevision;
 
     return commitEntries;
   }
@@ -986,13 +985,12 @@ class SembastDatabase extends Object
                 // create a transaction during open
                 _openTransaction = txn;
 
-                meta =
-                    _upgradingMeta = Meta(
-                      version: newVersion,
-                      codecSignature: await getCodecEncodedSignatureOrNull(
-                        options.codec,
-                      ),
-                    );
+                meta = _upgradingMeta = Meta(
+                  version: newVersion,
+                  codecSignature: await getCodecEncodedSignatureOrNull(
+                    options.codec,
+                  ),
+                );
 
                 // Eventually run onVersionChanged
                 // Change will be committed when the transaction terminates
@@ -1453,15 +1451,11 @@ class SembastDatabase extends Object
             try {
               // devPrint('transaction ${jdbRevision}');
               actionResult = await Future<T>.sync(
-                () =>
-                    (debugSembastWarnDatabaseCallInTransaction)
-                        ? runZoned(
-                          () {
-                            return action(_transaction!);
-                          },
-                          zoneValues: {this: DebugSembastTransactionZoneInfo()},
-                        )
-                        : action(_transaction!),
+                () => (debugSembastWarnDatabaseCallInTransaction)
+                    ? runZoned(() {
+                        return action(_transaction!);
+                      }, zoneValues: {this: DebugSembastTransactionZoneInfo()})
+                    : action(_transaction!),
               );
 
               // Commit directly on jdb to handle transaction changes

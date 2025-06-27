@@ -81,28 +81,27 @@ Stream<NotificationRevision> get notificationRevisionStream {
   _notificationRevisionController ??=
       StreamController<NotificationRevision>.broadcast(
         onListen: () {
-          _broadcastChannel.onmessage =
-              (web.MessageEvent event) {
-                if (debugNotificationRevision) {
-                  // ignore: avoid_print
-                  print('getting ${event.data}');
+          _broadcastChannel.onmessage = (web.MessageEvent event) {
+            if (debugNotificationRevision) {
+              // ignore: avoid_print
+              print('getting ${event.data}');
+            }
+            var data = event.data;
+            if (data.isA<JSArray>()) {
+              var jsArray = data as JSArray;
+              if (jsArray.length == 2) {
+                var jsName = jsArray[0];
+                var jsRevision = jsArray[1];
+                if (jsName.isA<JSString>() && jsRevision.isA<JSNumber>()) {
+                  var name = (jsName as JSString).toDart;
+                  var revision = (jsRevision as JSNumber).toDartInt;
+                  _notificationRevisionController?.add(
+                    NotificationRevision(name, revision),
+                  );
                 }
-                var data = event.data;
-                if (data.isA<JSArray>()) {
-                  var jsArray = data as JSArray;
-                  if (jsArray.length == 2) {
-                    var jsName = jsArray[0];
-                    var jsRevision = jsArray[1];
-                    if (jsName.isA<JSString>() && jsRevision.isA<JSNumber>()) {
-                      var name = (jsName as JSString).toDart;
-                      var revision = (jsRevision as JSNumber).toDartInt;
-                      _notificationRevisionController?.add(
-                        NotificationRevision(name, revision),
-                      );
-                    }
-                  }
-                }
-              }.toJS;
+              }
+            }
+          }.toJS;
         },
         onCancel: () {
           _broadcastChannel.onmessage = null;

@@ -33,10 +33,9 @@ Future<void> jdbDatabaseImportFromMap(JdbDatabase jdb, Map map) async {
       .map((map) {
         var valueMap = map['value'] as Map;
         var storeName = valueMap['store'] as String?;
-        var store =
-            storeName == null
-                ? StoreRef<Object, Object>.main()
-                : StoreRef<Object, Object>(storeName);
+        var store = storeName == null
+            ? StoreRef<Object, Object>.main()
+            : StoreRef<Object, Object>(storeName);
         return JdbRawWriteEntry(
           deleted: (valueMap['deleted'] as bool?) ?? false,
           value: valueMap['value'],
@@ -50,10 +49,9 @@ Future<void> jdbDatabaseImportFromMap(JdbDatabase jdb, Map map) async {
   var infos = (map['infos'] as List?)
       ?.cast<Map>()
       .map(
-        (map) =>
-            JdbInfoEntry()
-              ..id = map['id'] as String?
-              ..value = map['value'],
+        (map) => JdbInfoEntry()
+          ..id = map['id'] as String?
+          ..value = map['value'],
       )
       .toList(growable: false);
   if (infos?.isNotEmpty ?? false) {

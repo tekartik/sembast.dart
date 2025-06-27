@@ -80,11 +80,10 @@ extension JdbDatabaseInternalExt on JdbDatabase {
     var store = SembastStoreRef<Key?, Value?>(encoded.storeName);
     var record = store.record(encoded.recordKey);
     var deleted = encoded.deleted;
-    var entry =
-        JdbReadEntry()
-          ..id = id
-          ..record = record
-          ..deleted = deleted;
+    var entry = JdbReadEntry()
+      ..id = id
+      ..record = record
+      ..deleted = deleted;
     if (!deleted) {
       entry.value = value!;
     }

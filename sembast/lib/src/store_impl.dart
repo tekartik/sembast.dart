@@ -322,10 +322,9 @@ class SembastStore {
       .toList(growable: false);
 
   /// Can be null
-  List<TxnRecord>? get currentTxnRecords =>
-      txnRecords == null
-          ? null
-          : List<TxnRecord>.from(txnRecords!.values, growable: false);
+  List<TxnRecord>? get currentTxnRecords => txnRecords == null
+      ? null
+      : List<TxnRecord>.from(txnRecords!.values, growable: false);
 
   /// Cancel if false is returned
   ///

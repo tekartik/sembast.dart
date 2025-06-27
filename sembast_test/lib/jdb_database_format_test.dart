@@ -334,14 +334,16 @@ void defineJdbDatabaseFormatTests(DatabaseTestContextJdb ctx) {
       var db = await factory.openDatabase(dbPath);
       try {
         await store.record(1).put(db, 'hi');
-        var storeEmptyFuture =
-            store.query().onSnapshots(db).where((event) => event.isEmpty).first;
-        var recordDeleteFuture =
-            store
-                .record(1)
-                .onSnapshot(db)
-                .where((snapshot) => snapshot == null)
-                .first;
+        var storeEmptyFuture = store
+            .query()
+            .onSnapshots(db)
+            .where((event) => event.isEmpty)
+            .first;
+        var recordDeleteFuture = store
+            .record(1)
+            .onSnapshot(db)
+            .where((snapshot) => snapshot == null)
+            .first;
         await dbImportFromMap(db, {
           'entries': [
             {
@@ -387,12 +389,11 @@ void defineJdbDatabaseFormatTests(DatabaseTestContextJdb ctx) {
       var db = await factory.openDatabase(dbPath);
       try {
         await store.record(1).put(db, 'hi');
-        var recordDeleteFuture =
-            store
-                .record(1)
-                .onSnapshot(db)
-                .where((snapshot) => snapshot == null)
-                .first;
+        var recordDeleteFuture = store
+            .record(1)
+            .onSnapshot(db)
+            .where((snapshot) => snapshot == null)
+            .first;
 
         await dbImportFromMap(db, {
           'entries': <Object>[],

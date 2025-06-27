@@ -259,8 +259,9 @@ Future<Database> importDatabase(
   );
   var sembastDatabase = db as SembastDatabase;
   await db.transaction((txn) async {
-    final storesExport =
-        (srcData[_stores] as Iterable?)?.toList(growable: false).cast<Map>();
+    final storesExport = (srcData[_stores] as Iterable?)
+        ?.toList(growable: false)
+        .cast<Map>();
     if (storesExport != null) {
       for (var storeExport in storesExport) {
         final storeName = storeExport[_name] as String;

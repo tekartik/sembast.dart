@@ -16,7 +16,8 @@ bool _checkStoreKey<K>(String name) {
     return true;
   }
 
-  final text = '''
+  final text =
+      '''
 *** WARNING ***
 
 Invalid key type $K.

@@ -562,15 +562,14 @@ void defineTests(DatabaseTestContext ctx) {
         //await store.addAll(db, products1);
 
         Future<List<Map<String, Object?>>> getProductMaps() async {
-          var results =
-              await store
-                  .stream(db)
-                  .map(
-                    ((snapshot) =>
-                        Map<String, Object?>.from(snapshot.value)
-                          ..['key'] = snapshot.key),
-                  )
-                  .toList();
+          var results = await store
+              .stream(db)
+              .map(
+                ((snapshot) =>
+                    Map<String, Object?>.from(snapshot.value)
+                      ..['key'] = snapshot.key),
+              )
+              .toList();
           return results;
         }
 
@@ -581,13 +580,10 @@ void defineTests(DatabaseTestContext ctx) {
         }
 
         Future<List<Map<String, Object?>>> getProductMapsNoKey() async {
-          var results =
-              await store
-                  .stream(db)
-                  .map(
-                    ((snapshot) => Map<String, Object?>.from(snapshot.value)),
-                  )
-                  .toList();
+          var results = await store
+              .stream(db)
+              .map(((snapshot) => Map<String, Object?>.from(snapshot.value)))
+              .toList();
           return results;
         }
 
@@ -661,8 +657,9 @@ void defineTests(DatabaseTestContext ctx) {
             List<Map<String, Object?>> products,
           ) async {
             await db.transaction((transaction) async {
-              var productIds =
-                  products.map((map) => map['id'] as String).toList();
+              var productIds = products
+                  .map((map) => map['id'] as String)
+                  .toList();
               var map = await getProductsByIds(db, productIds);
               // Watch for deleted item
               var keysToDelete = (await store.findKeys(transaction)).toList();
@@ -694,8 +691,9 @@ void defineTests(DatabaseTestContext ctx) {
             });
           }
 
-          var key1 =
-              (await getProductsByIds(db, ['lamp'])).entries.first.value.key;
+          var key1 = (await getProductsByIds(db, [
+            'lamp',
+          ])).entries.first.value.key;
           print(await getProductsByIds(db, ['lamp']));
           print('key1: $key1');
 
@@ -707,8 +705,9 @@ void defineTests(DatabaseTestContext ctx) {
 
           await updateProducts(products2);
 
-          var key2 =
-              (await getProductsByIds(db, ['lamp'])).entries.first.value.key;
+          var key2 = (await getProductsByIds(db, [
+            'lamp',
+          ])).entries.first.value.key;
           await printProducts();
           expect(await getProductMapsNoKey(), [
             {'name': 'Lamp', 'price': 17, 'id': 'lamp'},
@@ -772,15 +771,14 @@ void defineTests(DatabaseTestContext ctx) {
         );
 
         Future<List<Map<String, Object?>>> getProductMaps() async {
-          var results =
-              await store
-                  .stream(db)
-                  .map(
-                    ((snapshot) =>
-                        Map<String, Object?>.from(snapshot.value)
-                          ..['id'] = snapshot.key),
-                  )
-                  .toList();
+          var results = await store
+              .stream(db)
+              .map(
+                ((snapshot) =>
+                    Map<String, Object?>.from(snapshot.value)
+                      ..['id'] = snapshot.key),
+              )
+              .toList();
           return results;
         }
 

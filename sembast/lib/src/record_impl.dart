@@ -136,10 +136,9 @@ class ImmutableSembastRecord
   /// Record from row map.
   ImmutableSembastRecord.fromDatabaseRowMap(Map map) {
     final storeName = map[dbStoreNameKey] as String?;
-    final storeRef =
-        storeName == null
-            ? mainStoreRef
-            : SembastStoreRef<Key, Value>(storeName);
+    final storeRef = storeName == null
+        ? mainStoreRef
+        : SembastStoreRef<Key, Value>(storeName);
     var key = map[dbRecordKey] as Key?;
     var value = map[dbRecordValueKey] as Value?;
     if (key == null) {

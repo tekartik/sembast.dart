@@ -23,10 +23,9 @@ void main() {
     }) async {
       inTransaction ??= transactionCount != null && transactionCount > 0;
       transactionCount ??= inTransaction ? 1 : 0;
-      final recordContent =
-          bigRecord == true
-              ? List.generate(3000, (i) => '$i').join('')
-              : 'some value';
+      final recordContent = bigRecord == true
+          ? List.generate(3000, (i) => '$i').join('')
+          : 'some value';
       recordSize = recordContent.length;
 
       var dbPath = join(

@@ -57,8 +57,9 @@ class _EncryptEncoder extends Converter<Object?, String> {
     assert(ivEncoded.length == 12);
 
     // Encode the input value
-    final encoded =
-        Encrypter(salsa20).encrypt(json.encode(input), iv: IV(iv)).base64;
+    final encoded = Encrypter(
+      salsa20,
+    ).encrypt(json.encode(input), iv: IV(iv)).base64;
 
     // Prepend the initial value
     return '$ivEncoded$encoded';

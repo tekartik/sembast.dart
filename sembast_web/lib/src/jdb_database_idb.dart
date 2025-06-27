@@ -241,10 +241,9 @@ class JdbDatabaseIdb implements jdb.JdbDatabase {
     var asyncCodecLock = Lock();
     ctlr = StreamController<jdb.JdbEntry>(
       onListen: () async {
-        var keyRange =
-            afterRevision == null
-                ? null
-                : KeyRange.lowerBound(afterRevision, true);
+        var keyRange = afterRevision == null
+            ? null
+            : KeyRange.lowerBound(afterRevision, true);
         var asyncCodecFutures = <Future>[];
         await _idbDatabase
             .transaction(idbEntryStore, idbModeReadOnly)

@@ -258,12 +258,11 @@ class DirectoryIo extends FileSystemEntityIo implements fs.Directory {
 
   @override
   Future<fs.FileSystemEntity> rename(String newPath) //
-  => _wrap(
-    ioFileSystemEntity.rename(fileSystemIo._normalizeWithRoot(path)),
-  ).then(
-    (io.FileSystemEntity ioFileSystemEntity) =>
-        DirectoryIo(fileSystemIo, newPath),
-  );
+  => _wrap(ioFileSystemEntity.rename(fileSystemIo._normalizeWithRoot(path)))
+      .then(
+        (io.FileSystemEntity ioFileSystemEntity) =>
+            DirectoryIo(fileSystemIo, newPath),
+      );
 
   @override
   String toString() => "DirectoryIo: '$path'";
@@ -302,11 +301,11 @@ class FileIo extends FileSystemEntityIo implements fs.File {
 
   @override
   Future<FileIo> rename(String newPath) //
-  => _wrap(
-    ioFileSystemEntity.rename(fileSystemIo._normalizeWithRoot(newPath)),
-  ).then(
-    (io.FileSystemEntity ioFileSystemEntity) => FileIo(fileSystemIo, newPath),
-  );
+  => _wrap(ioFileSystemEntity.rename(fileSystemIo._normalizeWithRoot(newPath)))
+      .then(
+        (io.FileSystemEntity ioFileSystemEntity) =>
+            FileIo(fileSystemIo, newPath),
+      );
 
   @override
   String toString() => "FileIo: '$path'";
