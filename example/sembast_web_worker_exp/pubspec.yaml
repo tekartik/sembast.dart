@@ -9,7 +9,7 @@ environment:
 # Add regular dependencies here.
 dependencies:
   web: '>=1.0.0'
-  sembast:
+  sembast: ">=3.7.4+3"
   sembast_web:
   idb_shim: '>=2.6.4'
   tekartik_js_utils_interop:
@@ -19,7 +19,7 @@ dependencies:
       ref: dart3a
     version: '>=0.1.0'
 dev_dependencies:
-  dev_build:
+  dev_build: ">=1.1.2"
   tekartik_lints:
     git:
       url: https://github.com/tekartik/common.dart
