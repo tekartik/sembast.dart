@@ -1,6 +1,6 @@
 # sembast
 
-[![pub package](https://img.shields.io/pub/v/sembast.svg)](https://pub.dartlang.org/packages/sembast)
+[![pub package](https://img.shields.io/pub/v/sembast.svg)](https://pub.dev/packages/sembast)
 [![Build Status](https://travis-ci.org/tekartik/sembast.dart.svg?branch=master)](https://travis-ci.org/tekartik/sembast.dart)
 [![codecov](https://codecov.io/gh/tekartik/sembast.dart/branch/master/graph/badge.svg)](https://codecov.io/gh/tekartik/sembast.dart)
 
