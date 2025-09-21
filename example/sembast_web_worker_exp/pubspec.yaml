@@ -16,14 +16,12 @@ dependencies:
     git:
       url: https://github.com/tekartik/js_utils.dart
       path: js_utils_interop
-      ref: dart3a
     version: '>=0.1.0'
 dev_dependencies:
   dev_build: ">=1.1.2"
   tekartik_lints:
     git:
       url: https://github.com/tekartik/common.dart
-      ref: dart3a
       path: packages/lints
     version: '>=0.1.0'
   build_runner: ">=2.4.13"
@@ -33,7 +31,6 @@ dev_dependencies:
   tekartik_app_web_build:
     git:
       url: https://github.com/tekartik/app_web_utils.dart
-      ref: dart3a
       path: packages/app_build
     version: '>=0.0.1'
 
