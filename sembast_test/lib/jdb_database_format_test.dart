@@ -107,11 +107,16 @@ void defineJdbDatabaseFormatTests(DatabaseTestContextJdb ctx) {
       await db.close();
     });
 
-    test('1 string record no codec', () async {
+    test('1 string record no codec add and delete', () async {
       await prepareForDb();
       var db = await factory.openDatabase(dbPath);
       try {
-        await store.record(1).put(db, 'hi');
+        var record = store.record(1);
+        await record.put(db, 'hi');
+        var infoMeta = {
+          'id': 'meta',
+          'value': {'version': 1, 'sembast': 1},
+        };
         expect(await getJdbDatabase(db).exportToMap(), {
           'entries': [
             {
@@ -120,15 +125,36 @@ void defineJdbDatabaseFormatTests(DatabaseTestContextJdb ctx) {
             },
           ],
           'infos': [
-            {
-              'id': 'meta',
-              'value': {'version': 1, 'sembast': 1},
-            },
+            infoMeta,
             {'id': 'revision', 'value': 1},
           ],
         });
         db = await reOpen(db);
         expect(await store.record(1).get(db), 'hi');
+
+        /// Delete the record to see it gone from the storage
+        await record.delete(db);
+        expect(await getJdbDatabase(db).exportToMap(), {
+          'entries': [
+            {
+              'id': 2,
+              'value': {'key': 1, 'deleted': true},
+            },
+          ],
+          'infos': [
+            infoMeta,
+            {'id': 'revision', 'value': 2},
+          ],
+        });
+        await db.compact();
+        expect(await getJdbDatabase(db).exportToMap(), {
+          'entries': <Map<String, Object?>>[],
+          'infos': [
+            {'id': 'deltaMinRevision', 'value': 2},
+            infoMeta,
+            {'id': 'revision', 'value': 2},
+          ],
+        });
       } finally {
         await db.close();
       }
