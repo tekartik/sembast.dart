@@ -131,6 +131,15 @@ void defineTests(DatabaseTestContext ctx) {
       });
     });
 
+    test('openTwice', () async {
+      await factory.deleteDatabase(dbPath).then((_) {});
+      var db1 = await factory.openDatabase(dbPath);
+      expect(db1.path, dbPath);
+      var db2 = await factory.openDatabase(dbPath);
+      expect(db2.path, dbPath);
+      expect(identical(db1, db2), isTrue);
+    });
+
     group('openHelper', () {
       SembastDatabase? db;
 
