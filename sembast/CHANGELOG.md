@@ -1,4 +1,4 @@
-## 3.8.5+1
+## 3.8.5+2
 
 * Add `Filter.arrayContains`, `Filter.arrayContainsAny`, `Filter.arrayContainsAll` to filter on list content.
 * Update minimum `meta` version to 1.14.0
