@@ -1,3 +1,9 @@
+## 3.8.6-1
+
+* Export jdb implementation in utils
+* Improve race condition handling during re-open
+* Requires Dart 3.10
+
 ## 3.8.5+2
 
 * Add `Filter.arrayContains`, `Filter.arrayContainsAny`, `Filter.arrayContainsAll` to filter on list content.
