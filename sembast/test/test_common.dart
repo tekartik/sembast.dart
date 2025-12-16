@@ -27,6 +27,12 @@ void setDatabaseCooperator(Database db, Cooperator? cooperator) {
   (db as SembastDatabase).cooperator = cooperator;
 }
 
+SembastDatabase asSembastDatabase(Database db) => db as SembastDatabase;
+
+SembastDatabaseFactoryMixin asSembastDatabaseFactoryMixin(
+  DatabaseFactory factory,
+) => factory as SembastDatabaseFactoryMixin;
+
 Future<Database> reOpen(Database db, {DatabaseMode? mode}) {
   return (db as SembastDatabase).reOpen(
     DatabaseOpenOptions(

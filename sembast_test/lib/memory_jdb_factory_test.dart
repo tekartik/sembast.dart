@@ -1,8 +1,8 @@
 library;
 
-import 'package:sembast/src/api/v2/sembast_memory.dart'; // ignore: implementation_imports
 import 'package:sembast/src/memory/database_factory_memory.dart' // ignore: implementation_imports
     show DatabaseFactoryMemoryJdb;
+import 'package:sembast/utils/jdb.dart';
 import 'package:sembast_test/all_jdb_test.dart' as all_jdb_test;
 
 import 'all_test.dart';

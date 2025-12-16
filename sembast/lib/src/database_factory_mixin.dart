@@ -37,15 +37,15 @@ mixin SembastDatabaseFactoryMixin implements SembastDatabaseFactory {
   Future<Database> openDatabaseWithOptions(
     String path,
     DatabaseOpenOptions options,
-  ) {
+  ) async {
     if (options.mode == DatabaseMode.readOnly) {
       if (options.version != null) {
         throw ArgumentError('readOnly mode does not support version');
       }
     }
     // Always specify the default codec
-    var helper = getDatabaseOpenHelper(path, options);
-    return helper.openDatabase();
+    var helper = await getDatabaseOpenHelper(path, options);
+    return await helper.openDatabase();
   }
 
   @override
@@ -68,16 +68,27 @@ mixin SembastDatabaseFactoryMixin implements SembastDatabaseFactory {
   }
 
   /// Get or create the open helper for a given path.
-  DatabaseOpenHelper getDatabaseOpenHelper(
+  Future<DatabaseOpenHelper> getDatabaseOpenHelper(
     String path,
     DatabaseOpenOptions options,
-  ) {
+  ) async {
+    DatabaseOpenHelper newHelper() {
+      var helper = DatabaseOpenHelper(this, path, options);
+      setDatabaseOpenHelper(path, helper);
+      return helper;
+    }
+
     var helper = getExistingDatabaseOpenHelper(path);
     if (helper == null) {
-      helper = DatabaseOpenHelper(this, path, options);
-      setDatabaseOpenHelper(path, helper);
+      return newHelper();
+    } else {
+      /// Wait if closing and create a new one
+      if (helper.closing) {
+        await helper.closeCompleted;
+        return newHelper();
+      }
+      return helper;
     }
-    return helper;
   }
 
   /// Get existing open helper for a given path.
@@ -100,11 +111,9 @@ mixin SembastDatabaseFactoryMixin implements SembastDatabaseFactory {
   Future deleteDatabase(String path) async {
     // Close existing open instance
     var helper = getExistingDatabaseOpenHelper(path);
-    if (helper != null && helper.database != null) {
-      // Wait any pending open/close action
-      await helper.lock.synchronized(() {
-        return helper.lockedCloseDatabase();
-      });
+    var helperDatabase = helper?.database;
+    if (helperDatabase != null) {
+      await helperDatabase.close();
     }
     return doDeleteDatabase(path);
   }

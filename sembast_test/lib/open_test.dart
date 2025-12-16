@@ -82,6 +82,19 @@ void defineTests(DatabaseTestContext ctx) {
       await db.close();
     });
 
+    test('re_open no_wait', () async {
+      var path = dbPathFromName('open/re_open_no_wait.db');
+
+      await factory.deleteDatabase(path);
+
+      var db = await factory.openDatabase(path);
+      expect(db.version, 1);
+      unawaited(db.close()); // unawait on purpose here
+      db = await factory.openDatabase(path);
+      expect(db.version, 1);
+      await db.close();
+    });
+
     /// Edge case,
     /// While it fails on native due to not waiting for the transaction
     /// to complete, it brings a weird behavior on sembase where the old

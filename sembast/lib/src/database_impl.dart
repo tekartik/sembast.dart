@@ -1153,8 +1153,9 @@ class SembastDatabase extends Object
           return await openDone();
         }
       } catch (_) {
+        _closeStart();
         // on failure make sure to close the database
-        await lockedClose();
+        await _lockedClose();
         rethrow;
       }
     });
@@ -1266,19 +1267,8 @@ class SembastDatabase extends Object
     return JdbImportResult(delta: delta);
   }
 
-  /// To call when in a databaseLock
-  Future lockedClose() async {
-    _opened = false;
-    _closed = true;
-    // Close the jdb database
-    if (_storageJdb != null) {
-      _storageJdb!.close();
-    }
-    await openHelper.lockedCloseDatabase();
-  }
-
-  @override
-  Future close() async {
+  void _closeStart() {
+    openHelper.markClosing();
     if (debugPrintAbsoluteOpenedDatabasePath) {
       // ignore: avoid_print
       print('Closing ${normalize(absolute(path))}');
@@ -1288,14 +1278,47 @@ class SembastDatabase extends Object
     _storageJdbRevisionUpdateSubscription?.cancel();
     _storageJdbRevisionUpdateSubscription = null;
 
-    return openHelper.lock.synchronized(() async {
-      // Cancel listener
-      listener.close();
-      changesListener.close();
+    // Cancel listener
+    listener.close();
+    changesListener.close();
+  }
+
+  /// To call when in a open helper lock
+  Future _lockedClose() async {
+    _opened = false;
+    _closed = true;
+
+    try {
       // Make sure any pending changes are committed
       await flush();
+    } catch (e) {
+      // ignore
+      if (_debugStorage) {
+        // ignore: avoid_print
+        print('flush err $e');
+      }
+    }
+    try {
+      // Close the jdb database
+      if (_storageJdb != null) {
+        _storageJdb!.close();
+      }
+    } catch (e) {
+      // ignore
+      if (_debugStorage) {
+        // ignore: avoid_print
+        print('storage close err $e');
+      }
+    }
+    await openHelper.lockedCloseDatabase();
+  }
 
-      await lockedClose();
+  @override
+  Future close() async {
+    _closeStart();
+
+    return openHelper.lock.synchronized(() async {
+      await _lockedClose();
     });
   }
 

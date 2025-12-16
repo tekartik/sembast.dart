@@ -3,6 +3,7 @@ import 'package:sembast/sembast.dart';
 import 'package:synchronized/synchronized.dart';
 
 import 'api/protected/database.dart';
+import 'common_import.dart';
 import 'database_factory_mixin.dart';
 
 /// Open helper. not public.
@@ -22,6 +23,11 @@ class DatabaseOpenHelper {
   /// The locker.
   final lock = Lock();
 
+  var _closing = false;
+
+  /// True if closing
+  bool get closing => _closing;
+
   /// The database.
   SembastDatabase? database;
 
@@ -30,6 +36,11 @@ class DatabaseOpenHelper {
     /// Always set an open mode
     openMode ??= options.mode ?? DatabaseMode.defaultMode;
   }
+
+  final _closeCompleter = Completer<void>();
+
+  /// Set when the database is closed to handle race re-open cases
+  Future<void> get closeCompleted => _closeCompleter.future;
 
   /// Create a new database object.
   SembastDatabase newDatabase(String path) => factory.newDatabase(this);
@@ -57,10 +68,21 @@ class DatabaseOpenHelper {
     });
   }
 
+  /// Mark the database as closing.
+  /// others should wait for close to complete.
+  void markClosing() {
+    _closing = true;
+  }
+
   /// Closed the database.
   Future lockedCloseDatabase() async {
+    assert(_closing);
     if (database != null) {
+      /// Last step remove helper to allow re-open
       factory.removeDatabaseOpenHelper(path);
+      if (!_closeCompleter.isCompleted) {
+        _closeCompleter.complete();
+      }
     }
     return database;
   }
