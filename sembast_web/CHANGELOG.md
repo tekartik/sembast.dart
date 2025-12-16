@@ -1,3 +1,9 @@
+## 2.4.3-1
+
+* Deps update
+* requires Dart 3.10
+* Export jdb support
+
 ## 2.4.2
 
 * Add `databaseFactoryWebWorker` to support web workers.
