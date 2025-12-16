@@ -41,7 +41,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:sembast/sembast_io.dart';
 
 // get the application documents directory
-final dir = await getApplicationDocumentsDirectory();
+final dir = await getApplicationSupportDirectory();
 // make sure it exists
 await dir.create(recursive: true);
 // build the database path
