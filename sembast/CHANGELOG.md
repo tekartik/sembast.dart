@@ -1,4 +1,4 @@
-## 3.8.6-1
+## 3.8.6
 
 * Export jdb implementation in utils
 * Improve race condition handling during re-open
