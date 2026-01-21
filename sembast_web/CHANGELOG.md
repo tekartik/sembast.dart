@@ -1,3 +1,7 @@
+# 2.4.4-1
+
+* Move core jdb implementation to idb_shim
+
 # 2.4.3
 
 * Deps update
