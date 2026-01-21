@@ -9,8 +9,11 @@ import 'database_open_options.dart';
 /// Debug print the absolute path of the opened database.
 var debugPrintAbsoluteOpenedDatabasePath = false;
 
+/// Compat.
+typedef SembastDatabaseFactory = DatabaseFactorySembast;
+
 /// The factory implementation.
-abstract class SembastDatabaseFactory implements DatabaseFactory {
+abstract class DatabaseFactorySembast implements DatabaseFactory {
   /// The actual implementation
   SembastDatabase newDatabase(DatabaseOpenHelper openHelper);
 

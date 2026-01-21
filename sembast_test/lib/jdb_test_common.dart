@@ -5,8 +5,6 @@ import 'package:sembast_test/src/import_database.dart';
 import 'src/import_jdb.dart';
 import 'test_common.dart';
 
-export 'package:sembast_web/src/jdb_factory_idb.dart' show JdbFactoryIdb;
-
 class DatabaseTestContextJdb extends DatabaseTestContext {
   JdbFactory get jdbFactory => (factory as DatabaseFactoryJdb).jdbFactory;
 }

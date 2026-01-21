@@ -2,9 +2,9 @@ import 'dart:async';
 import 'dart:js_interop';
 
 import 'package:idb_shim/idb_client_native.dart';
-import 'package:sembast_web/src/jdb_factory_idb.dart';
+
 import 'package:sembast_web/src/jdb_import.dart';
-import 'package:sembast_web/src/web_defs.dart';
+
 import 'package:web/web.dart' as web;
 
 /// The web jdb factory

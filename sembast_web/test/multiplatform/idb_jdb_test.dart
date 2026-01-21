@@ -2,8 +2,6 @@ library;
 
 import 'package:idb_shim/utils/idb_import_export.dart';
 import 'package:sembast/sembast.dart' as sembast;
-import 'package:sembast_web/src/jdb_database_idb.dart' show JdbDatabaseIdb;
-import 'package:sembast_web/src/jdb_factory_idb.dart' show JdbFactoryIdb;
 import 'package:sembast_web/src/jdb_import.dart';
 import 'package:test/test.dart';
 

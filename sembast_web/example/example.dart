@@ -1,6 +1,11 @@
+import 'package:idb_shim/sdb.dart';
 import 'package:sembast_web/sembast_web.dart';
 
 Future main() async {
+  if (!kSdbDartIsWeb) {
+    print('This example is for the web only');
+    return;
+  }
   // Declare our store (records are mapd, ids are ints)
   var store = intMapStoreFactory.store();
   var factory = databaseFactoryWeb;

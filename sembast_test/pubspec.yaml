@@ -36,3 +36,5 @@ dependency_overrides:
     path: ../sembast
   sembast_web:
     path: ../sembast_web
+  idb_shim:
+    path: ../../idb_shim.dart/idb_shim

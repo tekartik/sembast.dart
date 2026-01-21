@@ -2,9 +2,8 @@
 library;
 
 import 'package:idb_shim/idb_io.dart';
+import 'package:idb_shim/idb_jdb.dart';
 import 'package:sembast/sembast.dart';
-import 'package:sembast/src/api/protected/jdb.dart';
-import 'package:sembast_web/src/jdb_factory_idb.dart';
 
 import 'package:test/test.dart';
 import 'multiplatform/idb_jdb_test.dart' as idb_jdb_test;
