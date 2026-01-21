@@ -9,7 +9,7 @@ environment:
 dependencies:
   path: '>=1.6.0'
   sembast: '>=3.4.3-3'
-  sembast_web: '>=2.1.2-1'
+  sembast_web: '>=2.4.4-1'
   test:
   collection:
   # Dependencies for encryption example
@@ -36,5 +36,3 @@ dependency_overrides:
     path: ../sembast
   sembast_web:
     path: ../sembast_web
-  idb_shim:
-    path: ../../idb_shim.dart/idb_shim
