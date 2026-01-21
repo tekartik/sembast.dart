@@ -17,7 +17,7 @@ dependencies:
   crypto: '>=3.0.0'
 
 dev_dependencies:
-  idb_shim: '>=2.7.1+2'
+  idb_shim: '>=2.8.0-1'
   lints: '>=1.0.1'
   http: '>=0.11.0'
   process_run: '>=0.12.0'

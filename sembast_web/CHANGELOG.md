@@ -1,4 +1,4 @@
-# 2.4.4-1
+# 2.4.4-2
 
 * Move core jdb implementation to idb_shim
 
