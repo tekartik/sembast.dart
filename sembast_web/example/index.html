@@ -11,6 +11,17 @@
     <li><a href="store.html">Store</a></li>
     <li><a href="alt_store.html">Alt store</a></li>
     <li><a href="record.html">Record</a></li>
+    <li><a href="frame.html">Frame</a></li>
+    <!-- Added entry that opens two new windows with record.html -->
+    <li><a href="#" onclick="openTwoRecords(); return false;">Open two record windows</a></li>
 </ul>
+
+<script>
+  // Open two separate windows/tabs loading record.html
+  function openTwoRecords() {
+    window.open('record.html', 'record-window-1');
+    window.open('record.html', 'record-window-2');
+  }
+</script>
 </body>
 </html>
