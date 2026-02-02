@@ -101,7 +101,7 @@ void defineTests(JdbFactoryIdb jdbFactoryIdb) {
         var record = store.record('key');
         await factory.deleteDatabase(dbName);
 
-        var sdb = await sdbImportDatabase(
+        var sdb = await idbImportDatabase(
           export,
           jdbFactoryIdb.idbFactory,
           dbName,
@@ -216,7 +216,7 @@ void defineTests(JdbFactoryIdb jdbFactoryIdb) {
         var record = store.record('key');
         await factory.deleteDatabase(dbName);
 
-        var sdb = await sdbImportDatabase(
+        var sdb = await idbImportDatabase(
           export,
           jdbFactoryIdb.idbFactory,
           dbName,

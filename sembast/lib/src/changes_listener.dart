@@ -281,7 +281,7 @@ class DatabaseChangesListener {
     storeChangesListeners.onChanges.add(StoreChangesListener<K, V>(onChanges));
   }
 
-  /// Add a store change listener
+  /// Remove a store change listener
   void removeStoreChangesListener<K, V>(
     StoreRef<K, V> store,
     TransactionRecordChangeListener<K, V> onChanges,
