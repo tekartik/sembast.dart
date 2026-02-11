@@ -1,6 +1,7 @@
-# 2.4.4
+# 2.4.4+1
 
 * Move core jdb implementation to idb_shim
+* Fixes #408
 
 # 2.4.3
 
