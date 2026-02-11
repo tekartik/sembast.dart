@@ -7,7 +7,7 @@ late Database db;
 var factory = databaseFactoryWeb;
 var counterRecord = StoreRef<String, int>.main().record('counter');
 Future main() async {
-  db = await factory.openDatabase('sembast_web_example');
+  db = await factory.openDatabase('sembast_web_example_record');
   write('hello');
 
   counterRecord.onSnapshot(db).listen((snapshot) {

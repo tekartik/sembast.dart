@@ -32,9 +32,14 @@ class JdbFactoryWeb extends JdbFactoryIdb {
     _revisionSubscription = notificationRevisionStream.listen((
       notificationRevision,
     ) {
-      var list = databases[notificationRevision.name]!;
-      for (var jdbDatabase in list) {
-        jdbDatabase.addRevision(notificationRevision.revision);
+      var list = databases[notificationRevision.name];
+      // list can be null if the database is not open in this tab
+      // fixes https://github.com/tekartik/sembast.dart/issues/408
+      // Thanks to @lukasnevosad
+      if (list != null) {
+        for (var jdbDatabase in list) {
+          jdbDatabase.addRevision(notificationRevision.revision);
+        }
       }
     });
   }
