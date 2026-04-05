@@ -119,19 +119,29 @@ class _FileSystemExceptionIoDefault implements fs.FileSystemException {
 @visibleForTesting
 Future<T> wrapIoException<T>(Future<T> future) => _wrap(future);
 
+Never _handleError(Object e, StackTrace st) {
+  if (e is io.FileSystemException) {
+    Error.throwWithStackTrace(_IoFileSystemException(e), st);
+  } else if (e is fs.FileSystemException) {
+    Error.throwWithStackTrace(e, st);
+  } else {
+    Error.throwWithStackTrace(
+      _FileSystemExceptionIoDefault('error ${e.toString()}'),
+      st,
+    );
+  }
+}
+
 Future<T> _wrap<T>(Future<T> future) {
-  return future.catchError((Object e, StackTrace st) {
-    if (e is io.FileSystemException) {
-      Error.throwWithStackTrace(_IoFileSystemException(e), st);
-    } else if (e is fs.FileSystemException) {
-      Error.throwWithStackTrace(e, st);
-    } else {
-      Error.throwWithStackTrace(
-        _FileSystemExceptionIoDefault('error ${e.toString()}'),
-        st,
-      );
-    }
-  });
+  return future.catchError(_handleError);
+}
+
+T _wrapSync<T>(T Function() action) {
+  try {
+    return action();
+  } catch (e, st) {
+    return _handleError(e, st);
+  }
 }
 
 /// File system io implementation.
@@ -216,7 +226,8 @@ abstract class FileSystemEntityIo implements fs.FileSystemEntity {
   FileSystemEntityIo(this._fs, this.path);
 
   @override
-  Future<bool> exists() => _wrap(ioFileSystemEntity.exists());
+  Future<bool> exists() async =>
+      _wrapSync(() => ioFileSystemEntity.existsSync());
 
   @override
   Future<fs.FileSystemEntity> delete({bool recursive = false}) //
