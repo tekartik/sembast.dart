@@ -107,10 +107,12 @@ class StoreChangesListeners with _ChangeListeners {
 class _AllStoresChangesListener with _ChangeListeners {
   final TransactionRecordChangeListener onChanges;
   final Set<String> excludedStoreNames;
+  final StoresTrackOnChangesStorePredicate? storePredicate;
 
   _AllStoresChangesListener({
     required this.onChanges,
     required this.excludedStoreNames,
+    required this.storePredicate,
   });
 
   Future<void> handleChanges(SembastTransaction txn) async {
@@ -132,19 +134,28 @@ class _AllStoresChangesListeners {
     for (var listener in _all.values) {
       var storeName =
           oldSnapshot?.ref.store.name ?? newSnapshot?.ref.store.name;
-      if (!listener.excludedStoreNames.contains(storeName)) {
-        listener._txnOldSnapshot.add(oldSnapshot);
-        listener._txnNewSnapshot.add(newSnapshot);
+      if (storeName != null) {
+        if (!listener.excludedStoreNames.contains(storeName)) {
+          /// handle predicated
+          if (listener.storePredicate != null &&
+              !listener.storePredicate!(storeName)) {
+            continue;
+          }
+          listener._txnOldSnapshot.add(oldSnapshot);
+          listener._txnNewSnapshot.add(newSnapshot);
+        }
       }
     }
   }
 
   void addAllStoresChangesListener(
     TransactionRecordChangeListener onChanges, {
-    List<String>? excludedStoreNames,
+    required List<String>? excludedStoreNames,
+    required StoresTrackOnChangesStorePredicate? storePredicate,
   }) {
     _all[onChanges] = _AllStoresChangesListener(
       onChanges: onChanges,
+      storePredicate: storePredicate,
       excludedStoreNames: excludedStoreNames?.toSet() ?? {},
     );
   }
@@ -252,12 +263,14 @@ class DatabaseChangesListener {
   /// Add a global change listener
   void addGlobalChangesListener(
     TransactionRecordChangeListener onChanges, {
-    List<String>? excludedStoreNames,
+    required List<String>? excludedStoreNames,
+    required StoresTrackOnChangesStorePredicate? storePredicate,
   }) {
     _allStoresChangesListenersOrNull ??= _AllStoresChangesListeners();
     _allStoresChangesListeners.addAllStoresChangesListener(
       onChanges,
       excludedStoreNames: excludedStoreNames,
+      storePredicate: storePredicate,
     );
   }
 

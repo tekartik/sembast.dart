@@ -1,3 +1,8 @@
+## 3.8.7-1
+
+* Add storePredicate in when tracking change on all stores
+* Requires Dart 3.11
+
 ## 3.8.6
 
 * Export jdb implementation in utils

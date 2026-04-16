@@ -50,6 +50,43 @@ void main() {
       expect(list.first.newValue, 3);
     });
 
+    test('simple add predicate out', () async {
+      var list = <RecordChange>[];
+      void onChanges(Transaction txn, List<RecordChange> changes) {
+        list.addAll(changes);
+      }
+
+      db.addAllStoresOnChangesListener(
+        onChanges,
+        storePredicate: (name) => record.store.name != name,
+      );
+
+      await record.add(db, 2);
+      expect(list.isEmpty, isTrue);
+      await store2Record.add(db, 3);
+      expect(list.first.ref, store2Record);
+      expect(list.first.oldValue, null);
+      expect(list.first.newValue, 3);
+    });
+    test('simple add predicate in', () async {
+      var list = <RecordChange>[];
+      void onChanges(Transaction txn, List<RecordChange> changes) {
+        list.addAll(changes);
+      }
+
+      db.addAllStoresOnChangesListener(
+        onChanges,
+        storePredicate: (name) => record.store.name == name,
+      );
+      await store2Record.add(db, 3);
+      expect(list.isEmpty, isTrue);
+      await record.add(db, 2);
+
+      expect(list.first.ref, record);
+      expect(list.first.oldValue, null);
+      expect(list.first.newValue, 2);
+    });
+
     test('simple in transaction', () async {
       var list = <List<RecordChange>>[];
       var inTransaction = false;

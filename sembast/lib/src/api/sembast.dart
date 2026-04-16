@@ -68,7 +68,10 @@ export 'package:sembast/src/query_ref_impl.dart'
 
 /// V3.5.0
 export 'package:sembast/src/database_impl.dart'
-    show SembastDatabaseAllStoresChangesListenerExtension;
+    show
+        SembastDatabaseAllStoresChangesListenerExtension,
+        /// v3.8.7
+        StoresTrackOnChangesStorePredicate;
 
 /// V3.8.1
 export 'package:sembast/src/database_client_impl.dart'

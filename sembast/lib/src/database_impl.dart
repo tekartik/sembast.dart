@@ -1845,11 +1845,13 @@ class SembastDatabase extends Object
   /// Listen for changes on all stores but.
   void addAllStoresOnChangesListener({
     required List<String>? excludedStoreNames,
+    required StoresTrackOnChangesStorePredicate? storePredicate,
     required TransactionRecordChangeListener onChanges,
   }) {
     changesListener.addGlobalChangesListener(
       onChanges,
       excludedStoreNames: excludedStoreNames,
+      storePredicate: storePredicate,
     );
   }
 
@@ -1946,6 +1948,10 @@ class _MetaAndImportResult {
   _MetaAndImportResult(this.corrupted, this.meta);
 }
 
+/// Check whether a store should track changes
+/// by default store ending with _local are excluded
+typedef StoresTrackOnChangesStorePredicate = bool Function(String store);
+
 /// All stores changes listener extension.
 extension SembastDatabaseAllStoresChangesListenerExtension on Database {
   /// Listen for changes on all stores
@@ -1959,10 +1965,14 @@ extension SembastDatabaseAllStoresChangesListenerExtension on Database {
   void addAllStoresOnChangesListener(
     TransactionRecordChangeListener onChanges, {
     List<String>? excludedStoreNames,
+
+    /// Optional predicate
+    StoresTrackOnChangesStorePredicate? storePredicate,
   }) {
     (this as SembastDatabase).addAllStoresOnChangesListener(
       excludedStoreNames: excludedStoreNames,
       onChanges: onChanges,
+      storePredicate: storePredicate,
     );
   }
 
