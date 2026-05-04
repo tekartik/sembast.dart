@@ -3,9 +3,28 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart';
-import 'package:encrypt/encrypt.dart';
+import 'package:pointycastle/export.dart';
 // ignore: implementation_imports
 import 'package:sembast/src/api/v2/sembast.dart';
+
+/// Salsa 20 encoding using pointycastle
+class Salsa20 {
+  final Uint8List key;
+
+  Salsa20(this.key);
+
+  Uint8List _process(Uint8List input, Uint8List iv, bool forEncryption) {
+    var params = ParametersWithIV<KeyParameter>(KeyParameter(key), iv);
+    var cipher = Salsa20Engine();
+    cipher.init(forEncryption, params);
+    return cipher.process(input);
+  }
+
+  Uint8List encrypt(Uint8List input, Uint8List iv) => _process(input, iv, true);
+
+  Uint8List decrypt(Uint8List input, Uint8List iv) =>
+      _process(input, iv, false);
+}
 
 final _random = () {
   try {
@@ -51,15 +70,15 @@ class _EncryptEncoder extends Converter<Object?, String> {
 
   @override
   String convert(dynamic input) {
-    // Generate random initial value
+    // Generate random initial value (nonce for Salsa20 is 8 bytes)
     final iv = _randBytes(8);
     final ivEncoded = base64.encode(iv);
     assert(ivEncoded.length == 12);
 
     // Encode the input value
-    final encoded = Encrypter(
-      salsa20,
-    ).encrypt(json.encode(input), iv: IV(iv)).base64;
+    final inputBytes = utf8.encode(json.encode(input));
+    final encryptedBytes = salsa20.encrypt(Uint8List.fromList(inputBytes), iv);
+    final encoded = base64.encode(encryptedBytes);
 
     // Prepend the initial value
     return '$ivEncoded$encoded';
@@ -79,10 +98,12 @@ class _EncryptDecoder extends Converter<String, Object?> {
     final iv = base64.decode(input.substring(0, 12));
 
     // Extract the real input
-    input = input.substring(12);
+    final encryptedBytes = base64.decode(input.substring(12));
 
     // Decode the input
-    var decoded = json.decode(Encrypter(salsa20).decrypt64(input, iv: IV(iv)));
+    final decryptedBytes = salsa20.decrypt(encryptedBytes, iv);
+    var decoded = json.decode(utf8.decode(decryptedBytes));
+
     if (decoded is Map) {
       return decoded.cast<String, Object?>();
     }
@@ -96,7 +117,7 @@ class _EncryptCodec extends Codec<Object?, String> {
   late _EncryptDecoder _decoder;
 
   _EncryptCodec(Uint8List passwordBytes) {
-    var salsa20 = Salsa20(Key(passwordBytes));
+    var salsa20 = Salsa20(passwordBytes);
     _encoder = _EncryptEncoder(salsa20);
     _decoder = _EncryptDecoder(salsa20);
   }

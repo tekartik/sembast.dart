@@ -9,7 +9,7 @@ In `pubspec.yaml`:
 ```yaml
 dependencies:
   # Dependencies for encryption example
-  encrypt: '>=3.1.0'
+  pointycastle: '>=3.7.3'
   crypto: '>=2.0.6'
 
 ```

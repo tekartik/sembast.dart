@@ -10,11 +10,12 @@ dependencies:
   path: '>=1.6.0'
   sembast: '>=3.4.3-3'
   sembast_web: '>=2.4.4-1'
-  test:
+  test_api:
   collection:
   # Dependencies for encryption example
-  encrypt: '>=5.0.0-0'
   crypto: '>=3.0.0'
+  pointycastle: ">=3.7.2"
+  test:
 
 dev_dependencies:
   idb_shim: '>=2.8.0-1'
