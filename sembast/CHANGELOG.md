@@ -1,4 +1,4 @@
-## 3.8.7-2
+## 3.8.7
 
 * Add storePredicate in when tracking change on all stores
 * Requires Dart 3.11
