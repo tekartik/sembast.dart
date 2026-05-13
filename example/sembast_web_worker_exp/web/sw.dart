@@ -8,6 +8,7 @@ import 'package:web/web.dart' as web;
 final scope = (globalContext as web.DedicatedWorkerGlobalScope);
 
 var _database = databaseFactoryWebWorker.openDatabase(databasePath);
+final _workerTrackSubscriptions = <String, StreamSubscription>{};
 
 void _handleMessageEvent(web.Event event) async {
   var messageEvent = event as web.MessageEvent;
@@ -39,6 +40,20 @@ void _handleMessageEvent(web.Event event) async {
             'result': {'key': key, 'value': value},
           }.jsify(),
         );
+      } else if (command == commandTrackStart) {
+        var data = rawData[1] as Map;
+        var key = data['key'] as String;
+        var db = await _database;
+        await _workerTrackSubscriptions[key]?.cancel();
+        _workerTrackSubscriptions[key] = db.trackValue(key).listen((snapshot) {
+          port.postMessage({'key': key, 'value': snapshot?.value}.jsify());
+        });
+      } else if (command == commandTrackStop) {
+        var data = rawData[1] as Map;
+        var key = data['key'] as String;
+        await _workerTrackSubscriptions[key]?.cancel();
+        _workerTrackSubscriptions.remove(key);
+        port.postMessage(null);
       } else {
         print('$command unknown');
         port.postMessage(null);

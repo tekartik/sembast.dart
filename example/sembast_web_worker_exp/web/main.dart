@@ -3,15 +3,13 @@ import 'dart:js_interop';
 
 import 'package:sembast_web/sembast_web.dart';
 import 'package:sembast_web_worker_exp/shared.dart';
+import 'package:sembast_web_worker_exp/ui.dart';
 import 'package:web/web.dart' as web;
-
-import 'ui.dart';
 
 Future<void> main() async {
   // sqliteFfiWebDebugWebWorker = true;
   initUi();
-
-  await incrementVarInWorker();
+  // await incrementVarInWorker();
 }
 
 var sharedWorkerUri = Uri.parse('sw.dart.js');
@@ -101,6 +99,58 @@ Future<void> incrementVarInMain() async {
   write('var after $value');
 }
 
+final _mainTrackSubscriptions = <String, StreamSubscription>{};
+final _workerTrackChannels = <String, web.MessageChannel>{};
+
+Future<void> startTrackingMain(String key) async {
+  var db = await databaseFuture;
+  await _mainTrackSubscriptions[key]?.cancel();
+  _mainTrackSubscriptions[key] = db.trackValue(key).listen((snapshot) {
+    write('main track: ${snapshot?.value}');
+  });
+}
+
+Future<void> stopTrackingMain(String key) async {
+  await _mainTrackSubscriptions[key]?.cancel();
+  _mainTrackSubscriptions.remove(key);
+}
+
+Future<void> startTrackingWorker(String key) async {
+  var channel = web.MessageChannel();
+  var zone = Zone.current;
+  channel.port1.onmessage = (web.MessageEvent event) {
+    zone.run(() {
+      var data = event.data.dartify();
+      if (data is Map) {
+        write('worker track: ${data["value"]}');
+      }
+    });
+  }.toJS;
+  _workerTrackChannels[key] = channel;
+
+  worker.postMessage(
+    [
+      commandTrackStart,
+      {'key': key},
+    ].jsify(),
+    messagePortToPortMessageOption(channel.port2),
+  );
+}
+
+Future<void> stopTrackingWorker(String key) async {
+  if (_workerTrackChannels.containsKey(key)) {
+    var messageChannel = web.MessageChannel();
+    worker.postMessage(
+      [
+        commandTrackStop,
+        {'key': key},
+      ].jsify(),
+      messagePortToPortMessageOption(messageChannel.port2),
+    );
+    _workerTrackChannels.remove(key);
+  }
+}
+
 void initUi() {
   addButton('increment var in worker', () async {
     await incrementVarInWorker();
@@ -113,5 +163,17 @@ void initUi() {
     await db.setTestValue(null);
     var value = await db.getTestValue();
     write('var after $value');
+  });
+  addButton('track worker', () async {
+    await startTrackingWorker(storeKey);
+  });
+  addButton('stop tracking worker', () async {
+    await stopTrackingWorker(storeKey);
+  });
+  addButton('track main', () async {
+    await startTrackingMain(storeKey);
+  });
+  addButton('stop tracking main', () async {
+    await stopTrackingMain(storeKey);
   });
 }

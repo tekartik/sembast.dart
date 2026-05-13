@@ -5,6 +5,8 @@ const commandVarSet = 'varSet';
 // key: value: integer
 /// Counter simple test
 const commandVarGet = 'varGet';
+const commandTrackStart = 'varTrackStart';
+const commandTrackStop = 'varTrackStop';
 
 const databasePath = 'web_worker_exp_test.db';
 const storeKey = 'value';
@@ -15,6 +17,11 @@ extension SharedWorkerExp on Database {
   /// Get a value from the store
   Future<int?> getValue(String key) async {
     return await store.record(key).get(this);
+  }
+
+  /// Track a value in the store
+  Stream<RecordSnapshot<String, int>?> trackValue(String key) {
+    return store.record(key).onSnapshot(this);
   }
 
   /// Set a value in the store
