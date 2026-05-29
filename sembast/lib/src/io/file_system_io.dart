@@ -30,7 +30,7 @@ io.FileMode _fileMode(fs.FileMode fsFileMode) {
     case fs.FileMode.append:
       return fileModeAppendIo;
     default:
-      throw fsFileMode;
+      throw ArgumentError('invalid file mode $fsFileMode');
   }
 }
 
@@ -44,14 +44,13 @@ fs.FileSystemEntityType fsFileType(io.FileSystemEntityType type) {
     case fileSystemEntityTypeNotFoundIo:
       return fs.FileSystemEntityType.notFound;
     default:
-      throw type;
+      throw ArgumentError('invalid file type $type');
   }
 }
 
 class _IoIOSink implements fs.IOSink {
-  final io.IOSink ioSink;
-
   _IoIOSink(this.ioSink);
+  final io.IOSink ioSink;
 
   @override
   void writeln([Object obj = '']) => ioSink.writeln(obj);
@@ -66,9 +65,8 @@ class _IoIOSink implements fs.IOSink {
 }
 
 class _IoOSError implements fs.OSError {
-  io.OSError ioOSError;
-
   _IoOSError(this.ioOSError);
+  io.OSError ioOSError;
 
   @override
   int get errorCode => ioOSError.errorCode;
@@ -81,10 +79,9 @@ class _IoOSError implements fs.OSError {
 }
 
 class _IoFileSystemException implements fs.FileSystemException {
-  io.FileSystemException ioFse;
-
   _IoFileSystemException(this.ioFse)
     : osError = _IoOSError(ioFse.osError ?? io.OSError(ioFse.message));
+  io.FileSystemException ioFse;
 
   @override
   final _IoOSError osError;
@@ -146,6 +143,9 @@ T _wrapSync<T>(T Function() action) {
 
 /// File system io implementation.
 class FileSystemIo implements fs.FileSystem {
+  /// File system io implementation.
+  FileSystemIo({this.rootPath});
+
   /// Root path.
   final String? rootPath;
 
@@ -165,9 +165,6 @@ class FileSystemIo implements fs.FileSystem {
       return normalize(path);
     }
   }
-
-  /// File system io implementation.
-  FileSystemIo({this.rootPath});
 
   @override
   fs.File file(String path) {
@@ -214,6 +211,8 @@ class FileSystemIo implements fs.FileSystem {
 
 /// File system entity io implementation.
 abstract class FileSystemEntityIo implements fs.FileSystemEntity {
+  /// File system entity io implementation.
+  FileSystemEntityIo(this._fs, this.path);
   final FileSystemIo _fs;
 
   @override
@@ -221,9 +220,6 @@ abstract class FileSystemEntityIo implements fs.FileSystemEntity {
 
   /// The native entity.
   late io.FileSystemEntity ioFileSystemEntity;
-
-  /// File system entity io implementation.
-  FileSystemEntityIo(this._fs, this.path);
 
   @override
   Future<bool> exists() async =>
@@ -247,9 +243,6 @@ abstract class FileSystemEntityIo implements fs.FileSystemEntity {
 
 /// Directory io implementation.
 class DirectoryIo extends FileSystemEntityIo implements fs.Directory {
-  /// native directory.
-  io.Directory get ioDir => ioFileSystemEntity as io.Directory;
-
   /// Creates a [DirectoryIo] object.
   ///
   /// If [path] is a relative path, it will be interpreted relative to the
@@ -260,6 +253,9 @@ class DirectoryIo extends FileSystemEntityIo implements fs.Directory {
   DirectoryIo(FileSystemIo fs, String path) : super(fs, path) {
     ioFileSystemEntity = io.Directory(fileSystemIo._normalizeWithRoot(path));
   }
+
+  /// native directory.
+  io.Directory get ioDir => ioFileSystemEntity as io.Directory;
 
   @override
   Future<DirectoryIo> create({bool recursive = false}) //
@@ -281,9 +277,6 @@ class DirectoryIo extends FileSystemEntityIo implements fs.Directory {
 
 /// File io implementation.
 class FileIo extends FileSystemEntityIo implements fs.File {
-  /// native io file.
-  io.File get ioFile => ioFileSystemEntity as io.File;
-
   /// Creates a [FileIo] object.
   ///
   /// If [path] is a relative path, it will be interpreted relative to the
@@ -294,6 +287,9 @@ class FileIo extends FileSystemEntityIo implements fs.File {
   FileIo(FileSystemIo fs, String path) : super(fs, path) {
     ioFileSystemEntity = io.File(fileSystemIo._normalizeWithRoot(path));
   }
+
+  /// native io file.
+  io.File get ioFile => ioFileSystemEntity as io.File;
 
   @override
   Future<fs.File> create({bool recursive = false}) //

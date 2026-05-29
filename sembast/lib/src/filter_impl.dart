@@ -35,11 +35,11 @@ abstract class SembastFilterBase implements SembastFilter {
 
 /// Custom filter
 class SembastCustomFilter extends SembastFilterBase {
-  /// matches custom filter.
-  final bool Function(RecordSnapshot record) matches;
-
   /// Custom filter.
   SembastCustomFilter(this.matches);
+
+  /// matches custom filter.
+  final bool Function(RecordSnapshot record) matches;
 
   @override
   bool matchesRecord(RecordSnapshot record) {
@@ -179,17 +179,17 @@ enum SembastListFilterOptions {
 /// Equals filter.
 class SembastListFilter extends SembastFilterBase
     with FilterValueMixin, FilterFieldMixin {
-  /// The list filter options.
-  final SembastListFilterOptions options;
-
-  /// The list of values for any and all
-  List get values => (value as List);
-
   /// Equals filter.
   SembastListFilter(String field, Object value, this.options) {
     this.field = field;
     this.value = value;
   }
+
+  /// The list filter options.
+  final SembastListFilterOptions options;
+
+  /// The list of values for any and all
+  List get values => (value as List);
 
   @override
   bool matchesRecord(RecordSnapshot record) {
@@ -230,14 +230,14 @@ class SembastNotEqualsFilter extends SembastEqualsFilter {
 /// Matches filter.
 class SembastMatchesFilter extends SembastFilterBase
     with FilterAnyInListMixin, FilterFieldMixin, _FilterSmartMatchMixin {
-  /// The regular expression.
-  final RegExp regExp;
-
   /// Matches filter.
   SembastMatchesFilter(String field, this.regExp, bool? anyInList) {
     this.field = field;
     this.anyInList = anyInList;
   }
+
+  /// The regular expression.
+  final RegExp regExp;
 
   @override
   bool matchesRecord(RecordSnapshot record) {
@@ -260,18 +260,17 @@ class SembastMatchesFilter extends SembastFilterBase
 /// Composite filter
 class SembastCompositeFilter extends SembastFilterBase {
   // ignore: public_member_api_docs
+  SembastCompositeFilter.or(this.filters) : isAnd = false;
+
+  // ignore: public_member_api_docs
+  SembastCompositeFilter.and(this.filters) : isAnd = true;
+  // ignore: public_member_api_docs
   bool isAnd; // if false it is OR
   // ignore: public_member_api_docs
   bool get isOr => !isAnd;
 
   // ignore: public_member_api_docs
   List<Filter> filters;
-
-  // ignore: public_member_api_docs
-  SembastCompositeFilter.or(this.filters) : isAnd = false;
-
-  // ignore: public_member_api_docs
-  SembastCompositeFilter.and(this.filters) : isAnd = true;
 
   @override
   bool matchesRecord(RecordSnapshot record) {
@@ -299,10 +298,9 @@ class SembastCompositeFilter extends SembastFilterBase {
 /// Opposite filter
 class SembastOppositeFilter extends SembastFilterBase {
   // ignore: public_member_api_docs
-  Filter filter;
-
-  // ignore: public_member_api_docs
   SembastOppositeFilter(this.filter);
+  // ignore: public_member_api_docs
+  Filter filter;
 
   @override
   bool matchesRecord(RecordSnapshot record) {
@@ -318,14 +316,14 @@ class SembastOppositeFilter extends SembastFilterBase {
 /// Filter predicate implementation.
 class SembastFilterPredicate extends SembastFilterBase
     with FilterValueMixin, FilterFieldMixin {
-  /// The operation.
-  FilterOperation operation;
-
   /// Filter predicate implementation.
   SembastFilterPredicate(String field, this.operation, dynamic value) {
     this.field = field;
     this.value = value;
   }
+
+  /// The operation.
+  FilterOperation operation;
 
   @override
   bool matchesRecord(RecordSnapshot record) {
@@ -371,7 +369,7 @@ class SembastFilterPredicate extends SembastFilterBase
       case FilterOperation.inList:
         return (value as List).contains(record[field]);
       default:
-        throw '$this not supported';
+        throw UnsupportedError('Operation $this not supported');
     }
   }
 
@@ -383,10 +381,10 @@ class SembastFilterPredicate extends SembastFilterBase
 
 /// Filter operation
 class FilterOperation {
+  const FilterOperation._(this.value);
+
   /// Value to compare
   final int value;
-
-  const FilterOperation._(this.value);
 
   /// equal filter
   static const FilterOperation equals = FilterOperation._(1);
@@ -432,7 +430,7 @@ class FilterOperation {
       case FilterOperation.matches:
         return 'MATCHES';
       default:
-        throw '$this not supported';
+        throw UnsupportedError('Operation $this not supported');
     }
   }
 }

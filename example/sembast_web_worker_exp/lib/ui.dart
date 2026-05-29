@@ -6,6 +6,7 @@ var countLineMax = 100;
 var _output = web.document.querySelector('#output')!;
 var _input = web.document.querySelector('#input')!;
 void write(String message) {
+  // ignore: avoid_print
   print(message);
   lines.add(message);
   if (lines.length > countLineMax + 10) {

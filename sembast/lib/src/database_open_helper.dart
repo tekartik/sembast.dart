@@ -8,6 +8,12 @@ import 'database_factory_mixin.dart';
 
 /// Open helper. not public.
 class DatabaseOpenHelper {
+  /// Open helper.
+  DatabaseOpenHelper(this.factory, this.path, this.options) {
+    /// Always set an open mode
+    openMode ??= options.mode ?? DatabaseMode.defaultMode;
+  }
+
   /// The factory.
   final SembastDatabaseFactory factory;
 
@@ -30,12 +36,6 @@ class DatabaseOpenHelper {
 
   /// The database.
   SembastDatabase? database;
-
-  /// Open helper.
-  DatabaseOpenHelper(this.factory, this.path, this.options) {
-    /// Always set an open mode
-    openMode ??= options.mode ?? DatabaseMode.defaultMode;
-  }
 
   final _closeCompleter = Completer<void>();
 

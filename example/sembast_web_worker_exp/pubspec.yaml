@@ -4,7 +4,7 @@ version: 1.0.0
 publish_to: none
 
 environment:
-  sdk: ^3.11.0
+  sdk: ^3.12.0
 
 # Add regular dependencies here.
 dependencies:
@@ -18,15 +18,15 @@ dependencies:
       path: js_utils_interop
     version: '>=0.1.0'
 dev_dependencies:
-  dev_build: ">=1.1.2"
+  dev_build: ">=1.1.7+3"
   tekartik_lints:
     git:
       url: https://github.com/tekartik/common.dart
       path: packages/lints
     version: '>=0.1.0'
-  build_runner: ">=2.4.13"
-  build_web_compilers: ">=4.0.11"
-  lints: ">=5.0.0"
+  build_runner: ">=2.15.0"
+  build_web_compilers: ">=4.4.19"
+  lints: ">=6.1.0"
   process_run: ">=1.2.1+1"
   tekartik_app_web_build:
     git:

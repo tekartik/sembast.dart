@@ -96,11 +96,10 @@ abstract class JdbWriteEntryBase implements JdbWriteEntry {
 
 /// Write entry.
 class JdbWriteEntryImpl extends JdbWriteEntryBase {
-  @override
-  late int id;
-
   /// Write entry, typically from a txn record.
   JdbWriteEntryImpl({required this.txnRecord});
+  @override
+  late int id;
 
   /// Record
   TxnRecord? txnRecord;
@@ -138,6 +137,17 @@ class JdbWriteEntryImpl extends JdbWriteEntryBase {
 /// Raw entry that allow creating entry for testing
 @visibleForTesting
 class JdbRawWriteEntry extends JdbWriteEntryBase {
+  /// Raw entry.
+  JdbRawWriteEntry({
+    int? id,
+    required Value? value,
+    this.deleted = false,
+    required this.record,
+    this.revision,
+  }) {
+    valueOrNull = value;
+    _id = id;
+  }
   @override
   late final Value? valueOrNull;
   @override
@@ -155,18 +165,6 @@ class JdbRawWriteEntry extends JdbWriteEntryBase {
 
   /// testing only
   int? get idOrNull => _id;
-
-  /// Raw entry.
-  JdbRawWriteEntry({
-    int? id,
-    required Value? value,
-    this.deleted = false,
-    required this.record,
-    this.revision,
-  }) {
-    valueOrNull = value;
-    _id = id;
-  }
 
   /// The revision can be set later
   @override

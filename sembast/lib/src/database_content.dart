@@ -4,14 +4,14 @@ import 'import_common.dart';
 
 /// Store content.
 class StoreContent {
+  /// Store content.
+  StoreContent(this.store);
+
   /// Store ref.
   final StoreRef<Key?, Value?> store;
 
   /// Record with key.
   final _map = <Object?, ImmutableSembastRecord>{};
-
-  /// Store content.
-  StoreContent(this.store);
 
   /// All records.
   Iterable<ImmutableSembastRecord> get records => _map.values;

@@ -10,12 +10,6 @@ import 'import_common.dart';
 
 /// A query is unique
 class SembastQueryRef<K, V> implements QueryRef<K, V> {
-  /// The store.
-  final StoreRef<K, V> store;
-
-  /// The finder.
-  final SembastFinder? finder;
-
   /// Query ref implementation.
 
   SembastQueryRef(
@@ -23,6 +17,12 @@ class SembastQueryRef<K, V> implements QueryRef<K, V> {
     // ignore: deprecated_member_use_from_same_package
     SembastFinder? finder,
   ) : finder = finder?.clone();
+
+  /// The store.
+  final StoreRef<K, V> store;
+
+  /// The finder.
+  final SembastFinder? finder;
 
   @override
   String toString() => '$store $finder)';

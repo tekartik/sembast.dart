@@ -51,6 +51,13 @@ bool _isMainStore(String? name) => name == null || name == dbMainStore;
 
 /// In memory entry.
 class JdbEntryMemory implements jdb.JdbReadEntryEncoded {
+  /// In memory entry.
+  JdbEntryMemory({
+    required this.id,
+    required this.valueEncoded,
+    required this.record,
+    required this.deleted,
+  });
   @override
   final int id;
 
@@ -62,14 +69,6 @@ class JdbEntryMemory implements jdb.JdbReadEntryEncoded {
 
   @override
   final bool deleted;
-
-  /// In memory entry.
-  JdbEntryMemory({
-    required this.id,
-    required this.valueEncoded,
-    required this.record,
-    required this.deleted,
-  });
 
   /// Debug map.
   Map<String, Object?> exportToMap() {
@@ -100,6 +99,8 @@ class JdbEntryMemory implements jdb.JdbReadEntryEncoded {
 
 /// In memory database.
 class JdbDatabaseMemory implements jdb.JdbDatabase {
+  /// New in memory database.
+  JdbDatabaseMemory(this._factory, this._path, this.openOptions);
   @override
   late DatabaseOpenOptions openOptions;
   int _lastId = 0;
@@ -134,9 +135,6 @@ class JdbDatabaseMemory implements jdb.JdbDatabase {
   }
 
   int _revision = 0;
-
-  /// New in memory database.
-  JdbDatabaseMemory(this._factory, this._path, this.openOptions);
 
   @override
   void close() {

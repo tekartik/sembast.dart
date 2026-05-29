@@ -2,6 +2,20 @@
 /// Database exception.
 ///
 class DatabaseException implements Exception {
+  /// Creates a bad param exception.
+  DatabaseException.badParam(this._message) : _code = errBadParam;
+
+  /// Creates a database not found exception.
+  DatabaseException.databaseNotFound(this._message)
+    : _code = errDatabaseNotFound;
+
+  /// Creates an invalid codec exception.
+  DatabaseException.invalidCodec(this._message) : _code = errInvalidCodec;
+
+  /// Creates a database closed exception.
+  DatabaseException.closed([this._message = 'database is closed'])
+    : _code = errDatabaseClosed;
+
   /// Bad parameters
   static const int errBadParam = 0;
 
@@ -22,20 +36,6 @@ class DatabaseException implements Exception {
 
   /// Database exception message.
   String get message => _message;
-
-  /// Creates a bad param exception.
-  DatabaseException.badParam(this._message) : _code = errBadParam;
-
-  /// Creates a database not found exception.
-  DatabaseException.databaseNotFound(this._message)
-    : _code = errDatabaseNotFound;
-
-  /// Creates an invalid codec exception.
-  DatabaseException.invalidCodec(this._message) : _code = errInvalidCodec;
-
-  /// Creates a database closed exception.
-  DatabaseException.closed([this._message = 'database is closed'])
-    : _code = errDatabaseClosed;
 
   @override
   String toString() => '[$_code] $_message';

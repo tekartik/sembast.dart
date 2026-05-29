@@ -4,14 +4,14 @@ import 'package:sembast/src/utils.dart' as utils;
 
 /// Base sort order implementation.
 abstract class SembastSortOrderBase<T extends Object?> implements SortOrder<T> {
+  /// Base sort order implementation.
+  SembastSortOrderBase(this.ascending, this.nullLast);
+
   /// ascending.
   final bool ascending; // default true
 
   /// null last.
-  final bool nullLast;
-
-  /// Base sort order implementation.
-  SembastSortOrderBase(this.ascending, this.nullLast); // default false
+  final bool nullLast; // default false
 
   /// Compare 2 records in ascending order.
   int compareAscending(RecordSnapshot record1, RecordSnapshot record2);
@@ -64,15 +64,15 @@ abstract class SembastSortOrderBase<T extends Object?> implements SortOrder<T> {
 
 /// Sort order implementation.
 class SembastSortOrder<T extends Object?> extends SembastSortOrderBase<T> {
-  /// field (key) name.
-  final String field;
-
   ///
   /// default is [ascending] = true, [nullLast] = false
   ///
   /// user withParam
   SembastSortOrder(this.field, [bool? ascending, bool? nullLast])
     : super(ascending ?? true, nullLast ?? false);
+
+  /// field (key) name.
+  final String field;
 
   /// Compare a record to a snapshot.
   int compareToSnapshotAscending(
@@ -129,8 +129,6 @@ typedef SembastCustomSortOrderCompareFunction<T> =
 
 /// Custom sort order compare function.
 class SembastCustomSortOrder<T extends Object?> extends SembastSortOrder<T> {
-  final SembastCustomSortOrderCompareFunction<T> _compare;
-
   /// Custom sort order compare function.
   SembastCustomSortOrder(
     super.field,
@@ -138,6 +136,7 @@ class SembastCustomSortOrder<T extends Object?> extends SembastSortOrder<T> {
     super.ascending,
     super.nullLast,
   ]) : _compare = compare;
+  final SembastCustomSortOrderCompareFunction<T> _compare;
 
   @override
   int compareValue(Object? value1, Object? value2) {

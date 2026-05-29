@@ -16,9 +16,8 @@ import 'file_system.dart';
 class _FsDatabaseStorageSink
     with DatabaseStorageSinkMixin
     implements DatabaseStorageSink {
-  final IOSink sink;
-
   _FsDatabaseStorageSink(this.sink);
+  final IOSink sink;
 
   @override
   Future<void> appendLines(List<String> lines) async {
@@ -35,6 +34,9 @@ class _FsDatabaseStorageSink
 
 /// File system storage.
 class FsDatabaseStorage extends DatabaseStorage {
+  /// File system storage constructor.
+  FsDatabaseStorage(this.fs, String path) : file = fs.file(path);
+
   /// File system
   final FileSystem fs;
 
@@ -46,9 +48,6 @@ class FsDatabaseStorage extends DatabaseStorage {
 
   /// log level
   final bool logV = databaseStorageLogLevel == SembastLogLevel.verbose;
-
-  /// File system storage constructor.
-  FsDatabaseStorage(this.fs, String path) : file = fs.file(path);
 
   @override
   bool get supported => true;
@@ -235,11 +234,11 @@ class FsDatabaseStorage extends DatabaseStorage {
 class DatabaseFactoryFs extends SembastDatabaseFactory
     with SembastDatabaseFactoryMixin
     implements DatabaseFactory {
-  /// File system used.
-  final FileSystem fs;
-
   /// Constructor.
   DatabaseFactoryFs(this.fs);
+
+  /// File system used.
+  final FileSystem fs;
 
   @override
   SembastDatabase newDatabase(DatabaseOpenHelper openHelper) =>

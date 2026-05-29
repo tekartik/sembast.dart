@@ -16,6 +16,10 @@ import 'filter_ref_impl.dart';
 import 'import_common.dart';
 
 class _ControllerBase<T> {
+  /// The stream controller.
+  _ControllerBase({required this.onListen}) {
+    _id = ++_lastId;
+  }
   late StreamController<T> _streamController;
 
   /// onListen to start or restart query.
@@ -54,11 +58,6 @@ class _ControllerBase<T> {
 
   /// Debug only
   int? _id;
-
-  /// The stream controller.
-  _ControllerBase({required this.onListen}) {
-    _id = ++_lastId;
-  }
 
   /// Add error.
   void addError(Object error, StackTrace stackTrace) {
@@ -99,12 +98,6 @@ abstract class StoreListenerController<K, V> {
 /// Query or Count base listener.
 abstract class _StoreListenerControllerBase<K, V, T> extends _ControllerBase<T>
     implements StoreListenerController<K, V> {
-  List<ImmutableSembastRecord>? _allMatching;
-
-  /// True when the first data has arrived
-  @override
-  bool get hasInitialData => _allMatching != null;
-
   /// Base store listener
   _StoreListenerControllerBase(
     DatabaseListener listener, {
@@ -131,6 +124,11 @@ abstract class _StoreListenerControllerBase<K, V, T> extends _ControllerBase<T>
       },
     );
   }
+  List<ImmutableSembastRecord>? _allMatching;
+
+  /// True when the first data has arrived
+  @override
+  bool get hasInitialData => _allMatching != null;
 }
 
 /// Query/Count key listener controller.
@@ -161,6 +159,13 @@ abstract class QueryRecordsListenerController<K, V>
 abstract class _QueryRecordsListenerControllerBase<K, V, T>
     extends _StoreListenerControllerBase<K, V, T>
     implements QueryRecordsListenerController<K, V> {
+  /// Query records listener controller.
+  _QueryRecordsListenerControllerBase(
+    super.listener, {
+    required super.onListen,
+    required this.queryRef,
+  });
+
   /// The current list
   List<T>? list;
 
@@ -172,13 +177,6 @@ abstract class _QueryRecordsListenerControllerBase<K, V, T>
 
   /// The query.
   final SembastQueryRef<K, V> queryRef;
-
-  /// Query records listener controller.
-  _QueryRecordsListenerControllerBase(
-    super.listener, {
-    required super.onListen,
-    required this.queryRef,
-  });
 
   /// The finder.
   // ignore: deprecated_member_use_from_same_package
@@ -274,15 +272,15 @@ abstract class _QueryRecordsListenerControllerBase<K, V, T>
 class QueryListenerController<K, V>
     extends
         _QueryRecordsListenerControllerBase<K, V, List<RecordSnapshot<K, V>>> {
-  /// The filter.
-  SembastFilterBase? get filter => finder?.filter as SembastFilterBase?;
-
   /// Query listener controller.
   QueryListenerController(
     super.listener, {
     required super.queryRef,
     required super.onListen,
   });
+
+  /// The filter.
+  SembastFilterBase? get filter => finder?.filter as SembastFilterBase?;
 
   @override
   void addRecords(List<ImmutableSembastRecord> list) {
@@ -298,12 +296,6 @@ class QueryListenerController<K, V>
 /// Record listener controller.
 class RecordListenerController<K, V>
     extends _ControllerBase<RecordSnapshot<K, V>?> {
-  /// The record ref.
-  final RecordRef<K, V> recordRef;
-
-  /// has initial data.
-  bool hasInitialData = false;
-
   /// Record listener controller.
   RecordListenerController(
     DatabaseListener listener,
@@ -329,6 +321,12 @@ class RecordListenerController<K, V>
       },
     );
   }
+
+  /// The record ref.
+  final RecordRef<K, V> recordRef;
+
+  /// has initial data.
+  bool hasInitialData = false;
 
   /// Add a snapshot if not deleted
   void add(RecordSnapshot? snapshot) {
@@ -362,13 +360,13 @@ class RecordListenerController<K, V>
 
 /// Store listener.
 class StoreListener {
+  /// Store listener.
+  StoreListener(this.store);
+
   /// Our store.
   final StoreRef<Key?, Value?> store;
   final _records = <Object?, List<RecordListenerController>>{};
   final _stores = <StoreListenerController>[];
-
-  /// Store listener.
-  StoreListener(this.store);
 
   /// Add a record.
   RecordListenerController<K, V> addRecord<K, V>(
@@ -629,6 +627,13 @@ class DatabaseListener {
 /// Query listener controller.
 class CountListenerController<K, V>
     extends _StoreListenerControllerBase<K, V, int> {
+  /// Count listener controller.
+  CountListenerController(
+    super.listener, {
+    required this.filterRef,
+    required super.onListen,
+  });
+
   /// The query.
 
   final SembastFilterRef<K, V> filterRef;
@@ -645,13 +650,6 @@ class CountListenerController<K, V>
 
   /// Last count
   int? lastCount;
-
-  /// Count listener controller.
-  CountListenerController(
-    super.listener, {
-    required this.filterRef,
-    required super.onListen,
-  });
 
   /// The filter.
   SembastFilterBase? get filterBase => filter as SembastFilterBase?;

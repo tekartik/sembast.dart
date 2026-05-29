@@ -10,14 +10,6 @@
 class Timestamp implements Comparable<Timestamp> {
   /// [seconds] is the number of [seconds] of UTC time since Unix epoch
   /// 1970-01-01T00:00:00Z.
-  final int seconds;
-
-  /// [nanoseconds] is the non-negative fractions of a second at nanosecond
-  /// resolution.
-  final int nanoseconds;
-
-  /// [seconds] is the number of [seconds] of UTC time since Unix epoch
-  /// 1970-01-01T00:00:00Z.
   /// Must be from 0001-01-01T00:00:00Z to 9999-12-31T23:59:59Z inclusive.
   ///
   /// [nanoseconds] is the non-negative fractions of a second at nanosecond
@@ -34,6 +26,57 @@ class Timestamp implements Comparable<Timestamp> {
       );
     }
   }
+
+  /// Creates a new [Timestamp] instance from the given date.
+  ///
+  /// Timestamp has no timezone/offset to UTC information so you don't need
+  /// to convert dateTime to UTC.
+  ///
+  /// i.e.
+  /// ```
+  /// Timestamp.fromDateTime(dateTime);
+  /// ```
+  /// and
+  /// ```
+  /// Timestamp.fromDateTime(dateTime.toUtc());
+  /// ```
+  /// gives the same result.
+  factory Timestamp.fromDateTime(DateTime dateTime) {
+    final seconds = (dateTime.millisecondsSinceEpoch / 1000).floor();
+    final nanoseconds = (dateTime.microsecondsSinceEpoch % 1000000) * 1000;
+    return Timestamp(seconds, nanoseconds);
+  }
+
+  /// Constructs a new [Timestamp] instance
+  /// with the given [millisecondsSinceEpoch].
+  factory Timestamp.fromMillisecondsSinceEpoch(int millisecondsSinceEpoch) {
+    final seconds = (millisecondsSinceEpoch / 1000).floor();
+    final nanoseconds = (millisecondsSinceEpoch % 1000) * 1000000;
+    return Timestamp(seconds, nanoseconds);
+  }
+
+  /// Constructs a new [Timestamp] instance
+  /// with the given [microsecondsSinceEpoch].
+  factory Timestamp.fromMicrosecondsSinceEpoch(int microsecondsSinceEpoch) {
+    final seconds = (microsecondsSinceEpoch / 1000000).floor();
+    final nanoseconds = (microsecondsSinceEpoch % 1000000) * 1000;
+    return Timestamp(seconds, nanoseconds);
+  }
+
+  /// Constructs a [Timestamp] instance with current date and time.
+  ///
+  /// Timestamp has no timezone/offset to UTC information. This could
+  /// have been written this way with the same result.
+  /// `Timestamp.fromDateTime(DateTime.now().toUtc())`
+  factory Timestamp.now() => Timestamp.fromDateTime(DateTime.now());
+
+  /// [seconds] is the number of [seconds] of UTC time since Unix epoch
+  /// 1970-01-01T00:00:00Z.
+  final int seconds;
+
+  /// [nanoseconds] is the non-negative fractions of a second at nanosecond
+  /// resolution.
+  final int nanoseconds;
 
   static bool _isDigit(String chr) => (chr.codeUnitAt(0) ^ 0x30) <= 9;
 
@@ -92,49 +135,6 @@ class Timestamp implements Comparable<Timestamp> {
     }
     return null;
   }
-
-  /// Creates a new [Timestamp] instance from the given date.
-  ///
-  /// Timestamp has no timezone/offset to UTC information so you don't need
-  /// to convert dateTime to UTC.
-  ///
-  /// i.e.
-  /// ```
-  /// Timestamp.fromDateTime(dateTime);
-  /// ```
-  /// and
-  /// ```
-  /// Timestamp.fromDateTime(dateTime.toUtc());
-  /// ```
-  /// gives the same result.
-  factory Timestamp.fromDateTime(DateTime dateTime) {
-    final seconds = (dateTime.millisecondsSinceEpoch / 1000).floor();
-    final nanoseconds = (dateTime.microsecondsSinceEpoch % 1000000) * 1000;
-    return Timestamp(seconds, nanoseconds);
-  }
-
-  /// Constructs a new [Timestamp] instance
-  /// with the given [millisecondsSinceEpoch].
-  factory Timestamp.fromMillisecondsSinceEpoch(int millisecondsSinceEpoch) {
-    final seconds = (millisecondsSinceEpoch / 1000).floor();
-    final nanoseconds = (millisecondsSinceEpoch % 1000) * 1000000;
-    return Timestamp(seconds, nanoseconds);
-  }
-
-  /// Constructs a new [Timestamp] instance
-  /// with the given [microsecondsSinceEpoch].
-  factory Timestamp.fromMicrosecondsSinceEpoch(int microsecondsSinceEpoch) {
-    final seconds = (microsecondsSinceEpoch / 1000000).floor();
-    final nanoseconds = (microsecondsSinceEpoch % 1000000) * 1000;
-    return Timestamp(seconds, nanoseconds);
-  }
-
-  /// Constructs a [Timestamp] instance with current date and time.
-  ///
-  /// Timestamp has no timezone/offset to UTC information. This could
-  /// have been written this way with the same result.
-  /// `Timestamp.fromDateTime(DateTime.now().toUtc())`
-  factory Timestamp.now() => Timestamp.fromDateTime(DateTime.now());
 
   @override
   bool operator ==(Object other) {

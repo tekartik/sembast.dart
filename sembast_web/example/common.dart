@@ -2,12 +2,11 @@ import 'package:web/web.dart';
 export 'package:sembast/sembast.dart';
 
 class OutBuffer {
-  late int _maxLineCount;
-  List<String> lines = [];
-
   OutBuffer(int maxLineCount) {
     _maxLineCount = maxLineCount;
   }
+  late int _maxLineCount;
+  List<String> lines = [];
 
   void add(String text) {
     lines.add(text);

@@ -20,6 +20,9 @@ class DebugSembastTransactionZoneInfo {
 /// Transaction implementation.
 class SembastTransaction extends Object
     implements Transaction, SembastDatabaseClient {
+  /// Constructor.
+  SembastTransaction(this.sembastDatabase, this._id);
+
   /// The database.
   @override
   final SembastDatabase sembastDatabase;
@@ -32,9 +35,6 @@ class SembastTransaction extends Object
   /// make the completer async as the Transaction following
   /// action is not a priority
   final completer = Completer<void>();
-
-  /// Constructor.
-  SembastTransaction(this.sembastDatabase, this._id);
 
   /// True if completed.
   bool get isCompleted => completer.isCompleted;
@@ -73,14 +73,14 @@ class SembastTransaction extends Object
 
 /// Store implementation.
 class SembastTransactionStore {
+  /// Constructor.
+  SembastTransactionStore(this.sembastTransaction, this.store);
+
   /// Transaction.
   final SembastTransaction sembastTransaction;
 
   /// Store
   final SembastStore store;
-
-  /// Constructor.
-  SembastTransactionStore(this.sembastTransaction, this.store);
 
   @override
   String toString() {

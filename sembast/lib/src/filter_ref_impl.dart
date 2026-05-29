@@ -9,18 +9,18 @@ import 'import_common.dart';
 
 /// A query is unique
 class SembastFilterRef<K, V> implements FilterRef<K, V> {
-  /// The store.
-  final SembastStoreRef<K, V> store;
-
-  /// The filter.
-  final Filter? filter;
-
   /// Query ref implementation.
   SembastFilterRef(
     this.store,
     // ignore: deprecated_member_use_from_same_package
     this.filter,
   );
+
+  /// The store.
+  final SembastStoreRef<K, V> store;
+
+  /// The filter.
+  final Filter? filter;
 
   @override
   String toString() => '$store $filter';

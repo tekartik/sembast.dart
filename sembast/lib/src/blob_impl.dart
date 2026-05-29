@@ -3,14 +3,14 @@ import 'dart:typed_data';
 
 /// Sembast blob definition
 class Blob implements Comparable<Blob> {
-  /// Blob bytes. null not supported.
-  final Uint8List bytes;
-
   /// Blob creation.
   Blob(this.bytes);
 
   /// Blob creation from int list.
   Blob.fromList(List<int> list) : bytes = Uint8List.fromList(list);
+
+  /// Blob bytes. null not supported.
+  final Uint8List bytes;
 
   /// Blob creation from base64.
   static Blob fromBase64(String base64) => Blob(base64Decode(base64));

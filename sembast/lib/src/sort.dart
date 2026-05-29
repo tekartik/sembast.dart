@@ -15,15 +15,15 @@ import 'package:sembast/src/cooperator.dart';
 ///
 /// Some improvements have been copied from Android's implementation.
 class Sort {
+  /// Constructor.
+  Sort(this.cooperator);
+
   /// Cooperator to use.
   final Cooperator cooperator;
 
   // When a list has less then [:_INSERTION_SORT_THRESHOLD:] elements it will
   // be sorted by an insertion sort.
   static const int _insertionSortThreshold = 32;
-
-  /// Constructor.
-  Sort(this.cooperator);
 
   /// Sorts all elements of the given list [:a:] according to the given
   /// [:compare:] function.

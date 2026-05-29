@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print
+
 import 'dart:async';
 import 'dart:js_interop';
 
@@ -10,7 +12,7 @@ final scope = (globalContext as web.DedicatedWorkerGlobalScope);
 var _database = databaseFactoryWebWorker.openDatabase(databasePath);
 final _workerTrackSubscriptions = <String, StreamSubscription>{};
 
-void _handleMessageEvent(web.Event event) async {
+Future<void> _handleMessageEvent(web.Event event) async {
   var messageEvent = event as web.MessageEvent;
   var rawData = messageEvent.data.dartify();
   print('sw rawData $rawData');

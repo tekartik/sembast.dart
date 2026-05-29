@@ -35,11 +35,10 @@ void main() {
 /// This should be a global or singleton
 ///
 class OpenHelper {
+  OpenHelper(this.path);
   final String path;
   Database? _db;
   Completer<Database>? _completer;
-
-  OpenHelper(this.path);
 
   /// Get the opened database
   Future<Database> getDatabase() async {

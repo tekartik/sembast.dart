@@ -6,10 +6,9 @@ import 'package:sembast/src/utils.dart';
 
 /// Encoder.
 class JsonEncodableEncoder extends Converter<Object, Object> {
-  final JsonEncodableCodec _codec;
-
   /// Encoder.
   JsonEncodableEncoder(this._codec);
+  final JsonEncodableCodec _codec;
 
   @override
   Object convert(Object input) =>
@@ -18,10 +17,9 @@ class JsonEncodableEncoder extends Converter<Object, Object> {
 
 /// Decoder.
 class JsonEncodableDecoder extends Converter<Object, Object> {
-  final JsonEncodableCodec _codec;
-
   /// Decoder.
   JsonEncodableDecoder(this._codec);
+  final JsonEncodableCodec _codec;
 
   @override
   Object convert(Object input) => fromJsonEncodable(input, _codec._adapters);
@@ -47,14 +45,13 @@ Map<String, SembastTypeAdapter> sembastTypeAdaptersToMap(
 /// Codec to/from a json encodable format, custom types being handled
 /// by the type adapters
 class JsonEncodableCodec extends Codec<Object, Object> {
-  Map<String, SembastTypeAdapter>? _adapters;
-
   /// Codec with the needed adapters
   JsonEncodableCodec({Iterable<SembastTypeAdapter>? adapters}) {
     _adapters = sembastTypeAdaptersToMap(adapters);
     _decoder = JsonEncodableDecoder(this);
     _encoder = JsonEncodableEncoder(this);
   }
+  Map<String, SembastTypeAdapter>? _adapters;
 
   late JsonEncodableDecoder _decoder;
 

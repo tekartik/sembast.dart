@@ -69,18 +69,25 @@ abstract class DatabaseStorage extends StorageBase {
 
 /// State update
 class StorageJdbStateUpdate {
+  /// State update
+  StorageJdbStateUpdate(this.revision, this.minDeltaImportRevision);
+
   /// Current revision
   final int revision;
 
   /// Minimum version for delta import
   final int minDeltaImportRevision;
-
-  /// State update
-  StorageJdbStateUpdate(this.revision, this.minDeltaImportRevision);
 }
 
 /// Increment revision operation
 class StorageJdbIncrementRevisionStatus {
+  /// Increment revision operation.
+  StorageJdbIncrementRevisionStatus(
+    this.originalRevision,
+    this.readRevision,
+    this.success,
+  );
+
   /// The original known revision
   final int originalRevision;
 
@@ -89,13 +96,6 @@ class StorageJdbIncrementRevisionStatus {
 
   /// Check if increment was a success. this means content has not changed.
   final bool success;
-
-  /// Increment revision operation.
-  StorageJdbIncrementRevisionStatus(
-    this.originalRevision,
-    this.readRevision,
-    this.success,
-  );
 
   @override
   String toString() =>

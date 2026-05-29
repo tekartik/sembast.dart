@@ -6,11 +6,11 @@ import 'package:sembast/src/api/protected/jdb.dart';
 class DatabaseFactoryJdb extends SembastDatabaseFactory
     with SembastDatabaseFactoryMixin
     implements DatabaseFactory {
-  /// File system used.
-  final JdbFactory jdbFactory;
-
   /// Constructor.
   DatabaseFactoryJdb(this.jdbFactory);
+
+  /// File system used.
+  final JdbFactory jdbFactory;
 
   @override
   SembastDatabase newDatabase(DatabaseOpenHelper openHelper) => SembastDatabase(

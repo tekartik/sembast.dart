@@ -21,13 +21,12 @@ Object? immutableValueOrNull(Object? value) {
 
 /// Immutable list.
 class ImmutableList<E> extends ListBase<E> {
+  /// Immutable list.
+  ImmutableList(Iterable<E> list) : _list = list.toList(growable: false);
   final List<E> _list;
 
   @override
   int get length => _list.length;
-
-  /// Immutable list.
-  ImmutableList(Iterable<E> list) : _list = list.toList(growable: false);
 
   @override
   E operator [](int index) => immutableValueOrNull(_list[index]) as E;
@@ -41,13 +40,12 @@ class ImmutableList<E> extends ListBase<E> {
 
 /// Immutable map.
 class ImmutableMap<K, V> extends MapBase<K, V> {
+  /// Immutable map.
+  ImmutableMap(Map map) : _map = map.cast<K, V>();
   final Map<K, V> _map;
 
   /// raw map.
   Map<K, V> get rawMap => _map;
-
-  /// Immutable map.
-  ImmutableMap(Map map) : _map = map.cast<K, V>();
 
   @override
   V? operator [](Object? key) => immutableValueOrNull(_map[key as K]) as V?;

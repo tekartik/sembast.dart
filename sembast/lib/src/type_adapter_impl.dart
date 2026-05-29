@@ -4,9 +4,8 @@ import 'package:sembast/blob.dart';
 import 'package:sembast/timestamp.dart';
 
 class _Converter<S, T> extends Converter<S, T> {
-  final T Function(S input) _convert;
-
   _Converter(this._convert);
+  final T Function(S input) _convert;
 
   @override
   T convert(S input) => _convert(input);

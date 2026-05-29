@@ -571,14 +571,14 @@ void defineTestsWithCodec(FileSystemTestContext ctx, {SembastCodec? codec}) {
         await store.record('key2').put(txn, 'value2');
       });
 
-      void checkRecords() async {
+      Future<void> checkRecords() async {
         var records = store.findSync(db);
         expect(records.keysAndValues, [('key1', 'value1'), ('key2', 'value2')]);
       }
 
       var content = await readContent(fs, dbPath);
 
-      checkRecords();
+      await checkRecords();
       await db.transaction((txn) async {
         await store.record('key1').delete(txn);
         await store.record('key2').put(txn, 'value2bis');
@@ -599,7 +599,7 @@ void defineTestsWithCodec(FileSystemTestContext ctx, {SembastCodec? codec}) {
       // Write and reload
       await writeContent(fs, dbPath, content);
       await db.reload();
-      checkRecords();
+      await checkRecords();
       await future;
     } finally {
       await db.close();

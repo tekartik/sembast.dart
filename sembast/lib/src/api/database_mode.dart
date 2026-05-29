@@ -2,6 +2,8 @@
 /// The modes in which a Database can be opened.
 ///
 class DatabaseMode {
+  const DatabaseMode._internal(this._mode);
+
   /// The database is created if not found
   static const create = DatabaseMode._internal(0);
 
@@ -25,8 +27,6 @@ class DatabaseMode {
   static const defaultMode = neverFails;
 
   final int _mode;
-
-  const DatabaseMode._internal(this._mode);
 
   @override
   int get hashCode => _mode;

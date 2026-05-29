@@ -7,12 +7,12 @@ import 'package:sembast/src/sembast_fs.dart';
 
 /// Io file system implementation
 class DatabaseFactoryIo extends DatabaseFactoryFs {
-  /// The io file system.
-  FileSystemIo get fileSystemIo => fs as FileSystemIo;
-
   /// Io file system implementation
   DatabaseFactoryIo({String? rootPath})
     : super(FileSystemIo(rootPath: rootPath));
+
+  /// The io file system.
+  FileSystemIo get fileSystemIo => fs as FileSystemIo;
 
   @override
   Future<Database> openDatabaseWithOptions(

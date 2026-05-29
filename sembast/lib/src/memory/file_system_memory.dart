@@ -19,10 +19,9 @@ FileSystemMemory get memoryFileSystem => fileSystemMemory;
 
 /// In memory file system.
 class FileSystemMemory implements fs.FileSystem {
-  final _impl = FileSystemMemoryImpl();
-
   /// In memory file system.
   FileSystemMemory();
+  final _impl = FileSystemMemoryImpl();
 
   @override
   fs.File file(String path) {
@@ -74,11 +73,10 @@ class FileSystemMemory implements fs.FileSystem {
 
 /// In memory file entity.
 abstract class FileSystemEntityMemory implements fs.FileSystemEntity {
-  @override
-  final String path;
-
   /// In memory file entity.
   FileSystemEntityMemory(this.path);
+  @override
+  final String path;
 
   @override
   Future<bool> exists() async => _fs._impl.exists(path);

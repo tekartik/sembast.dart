@@ -21,15 +21,14 @@ extension JdbEntryEncodedExtension on JdbEntryEncoded {
 
 /// Encoded write entry. prepared for being added in a transaction.
 class JdbWriteEntryEncoded implements JdbEntryEncoded {
+  /// Encoded write entry.
+  JdbWriteEntryEncoded(this._src, this.valueEncoded);
   final jdb.JdbWriteEntry _src;
 
   /// Encoded value (encoded only if a codec is specified, otherwise the raw
   /// encodable is set). Null for deleted.
   @override
   final Object? valueEncoded;
-
-  /// Encoded write entry.
-  JdbWriteEntryEncoded(this._src, this.valueEncoded);
 
   /// Store name.
   String get storeName => record.store.name;
@@ -52,6 +51,15 @@ class JdbWriteEntryEncoded implements JdbEntryEncoded {
 
 /// Encoded read entry from cursor/transaction. decoded later.
 class JdbReadEntryEncoded implements JdbEntryEncoded {
+  /// Encoded read entry from cursor. decoded later.
+  JdbReadEntryEncoded(
+    this.id,
+    this.storeName,
+    this.recordKey,
+    this.deleted,
+    this.valueEncoded,
+  );
+
   /// The entry id.
   final int id;
 
@@ -69,13 +77,4 @@ class JdbReadEntryEncoded implements JdbEntryEncoded {
   /// encodable is set). Null for deleted.
   @override
   final Object? valueEncoded;
-
-  /// Encoded read entry from cursor. decoded later.
-  JdbReadEntryEncoded(
-    this.id,
-    this.storeName,
-    this.recordKey,
-    this.deleted,
-    this.valueEncoded,
-  );
 }

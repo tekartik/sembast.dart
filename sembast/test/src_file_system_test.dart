@@ -302,6 +302,7 @@ void defineFileSystemTests(FileSystemTestContext ctx) {
               (_) {},
               onError: (Object e) {
                 // print(e);
+                // ignore: only_throw_errors
                 throw e;
               },
             )

@@ -7,14 +7,6 @@ import 'package:sembast/src/json_encodable_codec.dart';
 
 /// Sembast codec implementation.
 class SembastCodecImpl implements SembastCodec {
-  @override
-  final String? signature;
-  @override
-  final Codec<Object?, String>? codec;
-
-  @override
-  JsonEncodableCodec jsonEncodableCodec;
-
   /// Sembast codec implementation.
   SembastCodecImpl({
     required this.signature,
@@ -22,6 +14,13 @@ class SembastCodecImpl implements SembastCodec {
     required JsonEncodableCodec? jsonEncodableCodec,
   }) : jsonEncodableCodec =
            jsonEncodableCodec ?? sembastDefaultJsonEncodableCodec;
+  @override
+  final String? signature;
+  @override
+  final Codec<Object?, String>? codec;
+
+  @override
+  JsonEncodableCodec jsonEncodableCodec;
 
   @override
   String toString() => 'SembastCodec($signature)';

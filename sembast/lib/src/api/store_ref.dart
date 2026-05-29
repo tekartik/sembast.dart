@@ -49,18 +49,6 @@ This will throw an exception in the future. For now it is displayed once per sto
 /// A pointer to a store.
 ///
 abstract class StoreRef<K extends Key?, V extends Value?> {
-  /// The name of the store
-  String get name;
-
-  /// Create a record reference.
-  ///
-  /// Key cannot be null.
-  RecordRef<K, V> record(K key);
-
-  /// Create a reference to multiple records
-  ///
-  RecordsRef<K, V> records(Iterable<K> keys);
-
   /// A null name means a the main store.
   ///
   /// A name must not start with `_` (besides the main store).
@@ -78,6 +66,18 @@ abstract class StoreRef<K extends Key?, V extends Value?> {
     }
     return SembastStoreRef<K, V>(dbMainStore);
   }
+
+  /// The name of the store
+  String get name;
+
+  /// Create a record reference.
+  ///
+  /// Key cannot be null.
+  RecordRef<K, V> record(K key);
+
+  /// Create a reference to multiple records
+  ///
+  RecordsRef<K, V> records(Iterable<K> keys);
 
   /// Cast if needed
   StoreRef<RK, RV> cast<RK extends Key?, RV extends Value?>();

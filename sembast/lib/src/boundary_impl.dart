@@ -3,12 +3,6 @@ import 'package:sembast/src/record_impl.dart';
 
 /// Boundary implementation.
 class SembastBoundary implements Boundary {
-  /// The snapshot if any.
-  final RecordSnapshot? snapshot;
-
-  /// The values if any.
-  List<Object?>? values;
-
   ///
   /// default is [ascending] = true
   ///
@@ -16,6 +10,12 @@ class SembastBoundary implements Boundary {
   SembastBoundary({RecordSnapshot? record, bool? include, this.values})
     : include = include == true,
       snapshot = makeImmutableRecordSnapshot(record);
+
+  /// The snapshot if any.
+  final RecordSnapshot? snapshot;
+
+  /// The values if any.
+  List<Object?>? values;
 
   Map<String, Object?> _toDebugMap() {
     final debugMap = <String, Object?>{};

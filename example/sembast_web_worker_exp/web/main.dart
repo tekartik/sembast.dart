@@ -41,6 +41,7 @@ Future<Object?> sendRawMessage(Object message) {
   // The worker can then use the transferred port to reply via postMessage(), which
   // will in turn trigger the onmessage handler on messageChannel.port1.
   // See https://html.spec.whatwg.org/multipage/workers.html#dom-worker-postmessage
+  // ignore: avoid_print
   print('posting $message response ${messageChannel.port2}');
   worker.postMessage(
     message.jsify(),

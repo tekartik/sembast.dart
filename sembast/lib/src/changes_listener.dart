@@ -5,14 +5,13 @@ import 'import_common.dart';
 
 /// Transaction record change implementation
 class SembastTransactionRecordChange<K, V> implements RecordChange<K, V> {
+  /// Transaction record change implementation.
+  SembastTransactionRecordChange(this.oldSnapshot, this.newSnapshot);
   @override
   final RecordSnapshot<K, V>? oldSnapshot;
 
   @override
   final RecordSnapshot<K, V>? newSnapshot;
-
-  /// Transaction record change implementation.
-  SembastTransactionRecordChange(this.oldSnapshot, this.newSnapshot);
 
   @override
   RecordChange<RK, RV> cast<RK extends Key?, RV extends Value?>() {
@@ -33,11 +32,11 @@ class SembastTransactionRecordChange<K, V> implements RecordChange<K, V> {
 
 /// Store change listener.
 class StoreChangesListener<K, V> {
-  /// The listener
-  final TransactionRecordChangeListener<K, V> onChangeListener;
-
   /// Store change listener.
   StoreChangesListener(this.onChangeListener);
+
+  /// The listener
+  final TransactionRecordChangeListener<K, V> onChangeListener;
 
   /// Call on change
   FutureOr<void> onChange(Transaction transaction, List<RecordChange> changes) {
@@ -84,9 +83,9 @@ mixin _ChangeListeners {
 // ignore: public_member_api_docs
 class StoreChangesListeners with _ChangeListeners {
   // ignore: public_member_api_docs
-  final onChanges = <StoreChangesListener?>[];
-  // ignore: public_member_api_docs
   StoreChangesListeners();
+  // ignore: public_member_api_docs
+  final onChanges = <StoreChangesListener?>[];
 
   /// Get the record ref.
   RecordRef<Key?, Value?> getRecordRef(int index) =>
@@ -105,15 +104,14 @@ class StoreChangesListeners with _ChangeListeners {
 }
 
 class _AllStoresChangesListener with _ChangeListeners {
-  final TransactionRecordChangeListener onChanges;
-  final Set<String> excludedStoreNames;
-  final StoresTrackOnChangesStorePredicate? storePredicate;
-
   _AllStoresChangesListener({
     required this.onChanges,
     required this.excludedStoreNames,
     required this.storePredicate,
   });
+  final TransactionRecordChangeListener onChanges;
+  final Set<String> excludedStoreNames;
+  final StoresTrackOnChangesStorePredicate? storePredicate;
 
   Future<void> handleChanges(SembastTransaction txn) async {
     var changes = getAndClearChanges();
@@ -125,6 +123,7 @@ class _AllStoresChangesListener with _ChangeListeners {
 }
 
 class _AllStoresChangesListeners {
+  _AllStoresChangesListeners();
   final _all = <TransactionRecordChangeListener, _AllStoresChangesListener>{};
 
   void addChange(
@@ -161,7 +160,6 @@ class _AllStoresChangesListeners {
   }
 
   Iterable<_AllStoresChangesListener> get all => _all.values;
-  _AllStoresChangesListeners();
 
   void removeListener(TransactionRecordChangeListener onChanges) {
     _all.remove(onChanges);

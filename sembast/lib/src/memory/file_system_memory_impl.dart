@@ -48,12 +48,12 @@ class FileSystemExceptionMemory implements fs.FileSystemException {
 
 /// Memory implementation.
 class DirectoryMemoryImpl extends FileSystemEntityMemoryImpl {
-  /// children.
-  Map<String, FileSystemEntityMemoryImpl> children = {};
-
   /// Memory implementation.
   DirectoryMemoryImpl(DirectoryMemoryImpl? parent, String segment)
     : super(parent, fs.FileSystemEntityType.directory, segment);
+
+  /// children.
+  Map<String, FileSystemEntityMemoryImpl> children = {};
 
   /// get a file system entity.
   FileSystemEntityMemoryImpl? getEntity(List<String> segments) {
@@ -78,12 +78,12 @@ class DirectoryMemoryImpl extends FileSystemEntityMemoryImpl {
 
 /// In memory file.
 class FileMemoryImpl extends FileSystemEntityMemoryImpl {
-  /// Content.
-  List<String>? content;
-
   /// In memory file.
   FileMemoryImpl(DirectoryMemoryImpl parent, String segment)
     : super(parent, fs.FileSystemEntityType.file, segment);
+
+  /// Content.
+  List<String>? content;
 
   /// Open for read.
   Stream<Uint8List> openRead() {
@@ -128,7 +128,7 @@ class FileMemoryImpl extends FileSystemEntityMemoryImpl {
 
         break;
       case fs.FileMode.read:
-        throw 'mode READ not support for openWrite $this';
+        throw UnsupportedError('mode READ not support for openWrite $this');
       default:
         throw FileSystemExceptionMemory(path, 'invalid mode $mode');
     }
@@ -142,7 +142,7 @@ class FileMemoryImpl extends FileSystemEntityMemoryImpl {
   /// Append a line.
   void append(String line) {
     if (closed) {
-      throw '$this already closed';
+      throw StateError('$this already closed');
     }
     content!.add(line);
   }
@@ -155,6 +155,8 @@ class FileMemoryImpl extends FileSystemEntityMemoryImpl {
 
 /// File system entity.
 abstract class FileSystemEntityMemoryImpl {
+  /// File system entity.
+  FileSystemEntityMemoryImpl(this._parent, this.type, this.segment);
   // don't access it
   final DirectoryMemoryImpl? _parent;
 
@@ -163,9 +165,6 @@ abstract class FileSystemEntityMemoryImpl {
 
   /// Type.
   fs.FileSystemEntityType type;
-
-  /// File system entity.
-  FileSystemEntityMemoryImpl(this._parent, this.type, this.segment);
 
   /// Last segment
   String segment;
@@ -207,11 +206,11 @@ abstract class FileSystemEntityMemoryImpl {
 
 /// In memory io sink.
 class IOSinkMemory implements fs.IOSink {
-  /// The file.
-  FileMemoryImpl impl;
-
   /// In memory io sink.
   IOSinkMemory(this.impl);
+
+  /// The file.
+  FileMemoryImpl impl;
 
   @override
   void writeln([Object obj = '']) => impl.append(obj.toString());
@@ -230,10 +229,9 @@ class RootDirectoryMemoryImpl extends DirectoryMemoryImpl {
 }
 
 class _TmpSink implements fs.IOSink {
+  _TmpSink(this.path, this.real);
   String path;
   IOSinkMemory? real;
-
-  _TmpSink(this.path, this.real);
 
   @override
   void writeln([Object obj = '']) => real?.writeln(obj);
@@ -254,16 +252,15 @@ class _TmpSink implements fs.IOSink {
 
 /// In memory file system.
 class FileSystemMemoryImpl {
-  // Must be absolute
-  // /current by default which might not exists!
-  /// current path.
-  late String currentPath;
-
   /// In memory file system.
   FileSystemMemoryImpl() {
     //rootDir._exists = true;
     currentPath = join(rootDir.path, 'current');
   }
+  // Must be absolute
+  // /current by default which might not exists!
+  /// current path.
+  late String currentPath;
 
   /// Get the segements from a path.
   List<String> getSegments(String path) {

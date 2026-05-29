@@ -30,7 +30,7 @@ import 'package:synchronized/synchronized.dart';
 
 import 'api/protected/database.dart';
 
-final bool _debugStorage = false; // devWarning(true);
+const bool _debugStorage = false; // devWarning(true);
 
 /// Get implementation.
 SembastDatabase getDatabase(Database database) => database as SembastDatabase;
@@ -69,6 +69,14 @@ mixin SembastDatabaseMixin implements Database {}
 class SembastDatabase extends Object
     with SembastDatabaseMixin
     implements Database, SembastDatabaseClient {
+  /// Database implementation.
+  SembastDatabase(this.openHelper, [this._storageBase]) {
+    if (_storageBase is DatabaseStorage) {
+      _storageFs = _storageBase;
+    } else if (_storageBase is StorageJdb) {
+      _storageJdb = _storageBase;
+    }
+  }
   // Can be modified by openHelper for test purpose
   /// its open helper.
   DatabaseOpenHelper openHelper;
@@ -148,15 +156,6 @@ class SembastDatabase extends Object
   Iterable<String> get nonEmptyStoreNames => _stores.values
       .where((store) => !store.isEmpty)
       .map((store) => store.name);
-
-  /// Database implementation.
-  SembastDatabase(this.openHelper, [this._storageBase]) {
-    if (_storageBase is DatabaseStorage) {
-      _storageFs = _storageBase;
-    } else if (_storageBase is StorageJdb) {
-      _storageJdb = _storageBase;
-    }
-  }
 
   void _clearTxnData() {
     _txnDroppedStores.clear();
@@ -264,7 +263,7 @@ class SembastDatabase extends Object
     if (result is Map) {
       return result;
     }
-    throw 'Invalid line length ${text.length}';
+    throw StateError('Invalid line length ${text.length}');
   }
 
   /// For async codec.
@@ -275,7 +274,7 @@ class SembastDatabase extends Object
     if (result is Map) {
       return result;
     }
-    throw 'Invalid line length ${text.length}';
+    throw StateError('Invalid line length ${text.length}');
   }
 
   /// Get the list of current store that can be safely iterate even
@@ -1874,24 +1873,8 @@ StackTrace buildStackTrack() {
 
 /// Export stat.
 class DatabaseExportStat {
-  /// number of line in the export
-  int lineCount = 0;
-
-  /// number of lines that are obsolete
-  int obsoleteLineCount = 0; // line that might have
-  /// Number of time it has been compacted since being opened
-  int compactCount = 0;
-
   /// Export stat.
   DatabaseExportStat();
-
-  int _mapInt(Map map, String key) {
-    var value = map[key];
-    if (value is int) {
-      return value;
-    }
-    return 0;
-  }
 
   /// From a map.
   DatabaseExportStat.fromJson(Map map) {
@@ -1904,6 +1887,22 @@ class DatabaseExportStat {
     if (map['obsoleteLineCount'] != null) {
       obsoleteLineCount = _mapInt(map, 'obsoleteLineCount');
     }
+  }
+
+  /// number of line in the export
+  int lineCount = 0;
+
+  /// number of lines that are obsolete
+  int obsoleteLineCount = 0; // line that might have
+  /// Number of time it has been compacted since being opened
+  int compactCount = 0;
+
+  int _mapInt(Map map, String key) {
+    var value = map[key];
+    if (value is int) {
+      return value;
+    }
+    return 0;
   }
 
   /// To a map.
@@ -1922,11 +1921,11 @@ class DatabaseExportStat {
 
 /// Import result.
 class JdbImportResult {
-  /// True if delta import.
-  final bool delta;
-
   /// Import result.
   JdbImportResult({required this.delta});
+
+  /// True if delta import.
+  final bool delta;
 }
 
 /// Internal only
@@ -1942,10 +1941,9 @@ extension SembastDatabaseInternalExt on Database {
 }
 
 class _MetaAndImportResult {
+  _MetaAndImportResult(this.corrupted, this.meta);
   final bool corrupted;
   final Meta? meta;
-
-  _MetaAndImportResult(this.corrupted, this.meta);
 }
 
 /// Check whether a store should track changes

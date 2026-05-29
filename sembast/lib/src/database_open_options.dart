@@ -2,6 +2,14 @@ import 'package:sembast/sembast.dart';
 
 /// Open options.
 class DatabaseOpenOptions {
+  /// Open options.
+  DatabaseOpenOptions({
+    this.version,
+    this.onVersionChanged,
+    this.mode,
+    this.codec,
+  });
+
   /// version.
   final int? version;
 
@@ -13,14 +21,6 @@ class DatabaseOpenOptions {
 
   /// codec.
   final SembastCodec? codec;
-
-  /// Open options.
-  DatabaseOpenOptions({
-    this.version,
-    this.onVersionChanged,
-    this.mode,
-    this.codec,
-  });
 
   @override
   String toString() {

@@ -45,15 +45,6 @@ List<ImmutableSembastRecord>? recordsLimit(
 
 /// Finder implementation.
 class SembastFinder implements Finder {
-  /// Filter.
-  Filter? filter;
-
-  /// Offset.
-  int? offset;
-
-  /// Limit.
-  int? limit;
-
   /// Builder.
   SembastFinder({
     this.filter,
@@ -63,6 +54,15 @@ class SembastFinder implements Finder {
     this.start,
     this.end,
   });
+
+  /// Filter.
+  Filter? filter;
+
+  /// Offset.
+  int? offset;
+
+  /// Limit.
+  int? limit;
 
   /// Start boundary.
   Boundary? start;

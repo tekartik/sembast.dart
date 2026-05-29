@@ -75,6 +75,12 @@ extension SembastRecordSnapshotExt<K, V> on RecordSnapshot<K, V> {
 
 /// Snapshot implementation.
 class SembastRecordSnapshot<K, V> with RecordSnapshotMixin<K, V> {
+  /// Snapshot from a value.
+  SembastRecordSnapshot(RecordRef<K, V> ref, V value) {
+    this.ref = ref;
+    rawValue = value;
+  }
+
   /// Snapshot from an immutable record.
   SembastRecordSnapshot.fromRecord(
     StoreRef<K, V> store,
@@ -83,24 +89,18 @@ class SembastRecordSnapshot<K, V> with RecordSnapshotMixin<K, V> {
     ref = store.record(record.key as K);
     rawValue = record.value as V;
   }
-
-  /// Snapshot from a value.
-  SembastRecordSnapshot(RecordRef<K, V> ref, V value) {
-    this.ref = ref;
-    rawValue = value;
-  }
 }
 
 /// To use to avoid slow access to protected snapshot.
 ///
 /// Used in filter
 class SembastRecordRawSnapshot<K, V> implements RecordSnapshot<K, V> {
-  /// Internal snapshot.
-  final RecordSnapshotMixin<K, V> snapshot;
-
   /// Constructor.
   SembastRecordRawSnapshot(RecordSnapshot<K, V> snapshot)
     : snapshot = snapshot as RecordSnapshotMixin<K, V>;
+
+  /// Internal snapshot.
+  final RecordSnapshotMixin<K, V> snapshot;
 
   /// Raw access to data
   @override

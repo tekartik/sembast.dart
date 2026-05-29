@@ -12,7 +12,7 @@ Future main() async {
   var store = StoreRef<int, String>.main();
   // randomly write
 
-  final keyCount = 50;
+  const keyCount = 50;
   final random = Random();
   while (true) {
     // Put on random key

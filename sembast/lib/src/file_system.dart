@@ -7,6 +7,8 @@ import 'dart:typed_data';
 
 /// The modes in which a File can be opened.
 class FileMode {
+  const FileMode._internal(this._mode);
+
   /// The mode for opening a file only for reading.
   static const read = FileMode._internal(0);
 
@@ -23,8 +25,6 @@ class FileMode {
 
   /// internal mode.
   int get mode => _mode;
-
-  const FileMode._internal(this._mode);
 }
 
 /// OS Error.
@@ -42,7 +42,7 @@ abstract class OSError {
 }
 
 /// File system exception.
-abstract class FileSystemException {
+abstract class FileSystemException implements Exception {
   /// Message describing the error. This does not include any detailed
   /// information form the underlying OS error. Check [osError] for
   /// that information.
@@ -127,6 +127,8 @@ abstract class IOSink {
 /// to indicate the object's type.
 ///
 class FileSystemEntityType {
+  const FileSystemEntityType._internal(this._type);
+
   /// File type.
   static const file = FileSystemEntityType._internal(0);
 
@@ -140,8 +142,6 @@ class FileSystemEntityType {
   static const notFound = FileSystemEntityType._internal(3);
 
   final int _type;
-
-  const FileSystemEntityType._internal(this._type);
 
   //static FileSystemEntityType _lookup(int type) => _typeList[type];
   @override

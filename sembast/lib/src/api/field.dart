@@ -15,8 +15,8 @@ class Field {
 /// Update values
 ///
 class FieldValue {
-  final String _label;
   const FieldValue._(this._label);
+  final String _label;
 
   /// delete sentinel value
   static FieldValue delete = const FieldValue._('delete');

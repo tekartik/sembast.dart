@@ -116,21 +116,24 @@ class ImmutableSembastRecord
         SembastRecordMixin,
         SembastRecordHelperMixin,
         RecordSnapshotMixin<Key?, Value?> {
-  @override
-  set value(dynamic value) {
-    throw StateError('Record is immutable. Clone to modify it');
-  }
-
-  @override
-  Key get key => super.key as Key;
-
-  @override
-  Value get value => immutableValue(super.value as Value);
-
-  static var _lastRevision = 0;
-
-  int _makeRevision() {
-    return ++_lastRevision;
+  ///
+  /// Create a record at a given [ref] with a given [value] and
+  /// We know data has been sanitized before
+  /// an optional [key]
+  ///
+  /// value is null for deleted record only
+  ///
+  ImmutableSembastRecord(
+    RecordRef<Key?, Value?> ref,
+    Value? value, {
+    bool deleted = false,
+  }) {
+    this.ref = ref;
+    _deleted = deleted;
+    if (!deleted) {
+      super.value = value!;
+    }
+    revision = _makeRevision();
   }
 
   /// Record from row map.
@@ -156,26 +159,6 @@ class ImmutableSembastRecord
   }
 
   ///
-  /// Create a record at a given [ref] with a given [value] and
-  /// We know data has been sanitized before
-  /// an optional [key]
-  ///
-  /// value is null for deleted record only
-  ///
-  ImmutableSembastRecord(
-    RecordRef<Key?, Value?> ref,
-    Value? value, {
-    bool deleted = false,
-  }) {
-    this.ref = ref;
-    _deleted = deleted;
-    if (!deleted) {
-      super.value = value!;
-    }
-    revision = _makeRevision();
-  }
-
-  ///
   /// Create a record at a given [ref] without value (access would crash)
   ///
   /// value is null for deleted record
@@ -191,6 +174,23 @@ class ImmutableSembastRecord
     }
   }
   @override
+  set value(dynamic value) {
+    throw StateError('Record is immutable. Clone to modify it');
+  }
+
+  @override
+  Key get key => super.key as Key;
+
+  @override
+  Value get value => immutableValue(super.value as Value);
+
+  static var _lastRevision = 0;
+
+  int _makeRevision() {
+    return ++_lastRevision;
+  }
+
+  @override
   String toString() {
     var map = toDatabaseRowMap();
     if (revision != null) {
@@ -202,11 +202,11 @@ class ImmutableSembastRecord
 
 /// Transaction record.
 class TxnRecord with SembastRecordHelperMixin implements SembastRecord {
-  /// Can change overtime if modified
-  ImmutableSembastRecord record;
-
   /// Transaction record.
   TxnRecord(this.record);
+
+  /// Can change overtime if modified
+  ImmutableSembastRecord record;
 
   @override
   dynamic operator [](String? field) => record[field!];

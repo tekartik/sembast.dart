@@ -13,6 +13,15 @@ const String metaKey = 'meta';
 
 /// Jdb Storage implementation.
 class SembastStorageJdb extends StorageBase implements StorageJdb {
+  /// New storage instance. allow null options for delete only.
+  SembastStorageJdb(
+    this.jdbFactory,
+    this.path, {
+    DatabaseOpenOptions? options,
+  }) {
+    _optionsOrNull = options;
+  }
+
   /// The underlying jdb factory.
   final JdbFactory jdbFactory;
 
@@ -29,15 +38,6 @@ class SembastStorageJdb extends StorageBase implements StorageJdb {
   final String path;
 
   final bool _logV = databaseStorageLogLevel == SembastLogLevel.verbose;
-
-  /// New storage instance. allow null options for delete only.
-  SembastStorageJdb(
-    this.jdbFactory,
-    this.path, {
-    DatabaseOpenOptions? options,
-  }) {
-    _optionsOrNull = options;
-  }
 
   @override
   bool get supported => true;
@@ -156,6 +156,13 @@ class SembastStorageJdb extends StorageBase implements StorageJdb {
 
 /// Write query.
 class StorageJdbWriteQuery {
+  /// Write query.
+  StorageJdbWriteQuery({
+    required this.revision,
+    required this.infoEntries,
+    required this.entries,
+  });
+
   /// The info entries (meta)
   final List<JdbInfoEntry> infoEntries;
 
@@ -164,17 +171,13 @@ class StorageJdbWriteQuery {
 
   /// The expected revision.
   final int? revision;
-
-  /// Write query.
-  StorageJdbWriteQuery({
-    required this.revision,
-    required this.infoEntries,
-    required this.entries,
-  });
 }
 
 /// Write result.
 class StorageJdbWriteResult {
+  /// Write result.
+  StorageJdbWriteResult({required this.query, this.revision, this.success});
+
   /// The original query.
   final StorageJdbWriteQuery query;
 
@@ -183,9 +186,6 @@ class StorageJdbWriteResult {
 
   /// True on success, otherwise should reload data.
   final bool? success;
-
-  /// Write result.
-  StorageJdbWriteResult({required this.query, this.revision, this.success});
 
   @override
   String toString() =>

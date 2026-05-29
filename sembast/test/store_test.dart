@@ -45,7 +45,7 @@ void defineStoreTests(DatabaseTestContext ctx) {
           var record2 = store.record(2);
           await record2.put(txn, 'test');
           expect(await store.count(txn), 2);
-          throw 'cancel';
+          throw StateError('cancel');
         });
       } catch (_) {}
       expect(await store.count(db), 1);

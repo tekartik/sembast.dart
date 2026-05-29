@@ -14,6 +14,11 @@ import 'import_common.dart';
 
 /// Store implementation.
 class SembastStore {
+  // bool get isInTransaction => database.isInTransaction;
+  /// Store implementation.
+  SembastStore(this.database, String name)
+    : ref = SembastStoreRef<Key?, Value?>(name);
+
   /// The database.
   final SembastDatabase database;
 
@@ -55,11 +60,6 @@ class SembastStore {
   /// Check a transaction. (can be null)
   void checkTransaction(SembastTransaction? transaction) =>
       database.checkTransaction(transaction);
-
-  // bool get isInTransaction => database.isInTransaction;
-  /// Store implementation.
-  SembastStore(this.database, String name)
-    : ref = SembastStoreRef<Key?, Value?>(name);
 
   /// The current transaction.
   SembastTransaction? get currentTransaction => database.currentTransaction;
@@ -1012,6 +1012,16 @@ bool finderRecordMatchBoundaries(SembastFinder finder, RecordSnapshot result) {
 
 /// Find data helper shared between asynchronous and asynchronous read access.
 class _FinderData {
+  _FinderData(this.sembastFinder) {
+    if (usePreordered) {
+      // Preordered by key
+      preOrderedResults = SplayTreeMap<Object?, ImmutableSembastRecord>(
+        compareKey,
+      );
+    } else {
+      results = <ImmutableSembastRecord>[];
+    }
+  }
   // Two ways of storing data
   late List<ImmutableSembastRecord> results;
   late SplayTreeMap<Object?, ImmutableSembastRecord> preOrderedResults;
@@ -1024,17 +1034,6 @@ class _FinderData {
   late var hasSortOrder = sembastFinder?.sortOrders?.isNotEmpty ?? false;
   late var usePreordered = !hasSortOrder;
   var preorderedCurrentOffset = 0;
-
-  _FinderData(this.sembastFinder) {
-    if (usePreordered) {
-      // Preordered by key
-      preOrderedResults = SplayTreeMap<Object?, ImmutableSembastRecord>(
-        compareKey,
-      );
-    } else {
-      results = <ImmutableSembastRecord>[];
-    }
-  }
 
   /// get the results added
   List<ImmutableSembastRecord> get addedResults {
