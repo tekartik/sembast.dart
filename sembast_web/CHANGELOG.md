@@ -1,3 +1,7 @@
+## 2.4.5
+
+* Requires dart 3.12
+
 # 2.4.4+1
 
 * Move core jdb implementation to idb_shim
