@@ -2,7 +2,8 @@ export 'package:sembast/src/database_factory_mixin.dart'
     show
         SembastDatabaseFactory,
         DatabaseFactoryMixin,
-        SembastDatabaseFactoryMixin;
+        SembastDatabaseFactoryMixin,
+        SembastDatabaseFactoryMixinAccessExt;
 export 'package:sembast/src/database_impl.dart'
     show
         SembastDatabase,

@@ -136,3 +136,9 @@ mixin SembastDatabaseFactoryMixin implements SembastDatabaseFactory {
   Future<bool> databaseExists(String path) async =>
       throw UnimplementedError('databaseExists');
 }
+
+/// Protected extension
+extension SembastDatabaseFactoryMixinAccessExt on DatabaseFactory {
+  /// Direct mixin access
+  SembastDatabaseFactoryMixin get mixin => this as SembastDatabaseFactoryMixin;
+}

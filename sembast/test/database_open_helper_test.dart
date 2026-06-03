@@ -24,7 +24,7 @@ void defineDatabaseOpenHelperTests(DatabaseTestContext ctx) {
 
     setUp(() async {
       var database = await setupForTest(ctx, 'open_helper/open.db');
-      factoryMixin = asSembastDatabaseFactoryMixin(ctx.factory);
+      factoryMixin = ctx.factory.mixin;
       db = asSembastDatabase(database);
     });
 

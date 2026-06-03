@@ -3,6 +3,8 @@ import 'package:sembast/src/api/v2/sembast.dart';
 import 'package:sembast/src/cooperator.dart';
 
 export 'package:sembast/src/api/v2/sembast.dart';
+export 'package:sembast/src/database_factory_mixin.dart'
+    show SembastDatabaseFactoryMixinAccessExt;
 export 'package:sembast/src/dev_utils.dart';
 
 export 'src/test/test.dart';
@@ -28,10 +30,6 @@ void setDatabaseCooperator(Database db, Cooperator? cooperator) {
 }
 
 SembastDatabase asSembastDatabase(Database db) => db as SembastDatabase;
-
-SembastDatabaseFactoryMixin asSembastDatabaseFactoryMixin(
-  DatabaseFactory factory,
-) => factory as SembastDatabaseFactoryMixin;
 
 Future<Database> reOpen(Database db, {DatabaseMode? mode}) {
   return (db as SembastDatabase).reOpen(

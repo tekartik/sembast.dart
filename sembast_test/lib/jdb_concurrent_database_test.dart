@@ -19,7 +19,7 @@ void defineJdbConcurrentDatabaseTests(DatabaseTestContextJdb ctx) {
     test('add', () async {
       var dbPath = 'concurrent.db';
       var db1 = await ctx.deleteAndOpen(dbPath);
-      var factory = ctx.factory as SembastDatabaseFactoryMixin;
+      var factory = ctx.factory.mixin;
 
       /// Force opening new instance.
       factory.removeDatabaseOpenHelper(dbPath);
