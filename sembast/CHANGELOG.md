@@ -1,3 +1,9 @@
+## 3.8.9
+
+* Add `DatabaseFactory.sandbox()` extension to create a factory where every
+  database is located below a root path, working with any factory
+  implementation (io, memory, web)
+
 ## 3.8.8+1
 
 * Requires Dart 3.12
