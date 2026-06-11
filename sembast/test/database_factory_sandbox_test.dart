@@ -2,10 +2,10 @@ library;
 
 import 'package:path/path.dart' as p;
 import 'package:sembast/sembast_memory.dart';
+import 'package:sembast/src/api/protected/database.dart'
+    show SembastDatabaseMixinAccessExt;
 import 'package:sembast/src/api/protected/database.dart';
 import 'package:test/test.dart';
-import 'package:sembast/src/api/protected/database.dart'
-    show SembastDatabaseFactoryMixinAccessExt, SembastDatabaseMixinAccessExt;
 
 void main() {
   group('database_factory_sandbox', () {
@@ -41,7 +41,7 @@ void main() {
         await factory.databaseExists(p.join('sandbox', 'test.db')),
         isFalse,
       );
-    }, solo: true);
+    });
 
     test('absolute path', () async {
       var factory = newDatabaseFactoryMemory();
