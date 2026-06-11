@@ -10,7 +10,8 @@ export 'package:sembast/src/database_impl.dart'
         // ignore: deprecated_member_use_from_same_package
         SembastDatabaseMin,
         SembastDatabaseMixin,
-        SembastDatabaseInternalExt;
+        SembastDatabaseInternalExt,
+        SembastDatabaseMixinAccessExt;
 export 'package:sembast/src/database_open_helper.dart' show DatabaseOpenHelper;
 export 'package:sembast/src/database_open_options.dart'
     show DatabaseOpenOptions;

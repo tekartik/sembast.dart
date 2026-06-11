@@ -80,3 +80,7 @@ export 'package:sembast/src/database_client_impl.dart'
 /// V3.x.x
 export 'package:sembast/src/transaction_impl.dart'
     show debugSembastWarnDatabaseCallInTransaction;
+
+/// V3.8.9
+export 'package:sembast/src/database_factory_sandbox.dart'
+    show SembastDatabaseFactorySandboxExtension;

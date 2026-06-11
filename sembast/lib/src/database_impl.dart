@@ -1940,6 +1940,15 @@ extension SembastDatabaseInternalExt on Database {
   DatabaseExportStat? get exportStat => _sembastDatabase._exportStat;
 }
 
+/// Protected extension
+extension SembastDatabaseMixinAccessExt on Database {
+  /// Direct mixin access
+  SembastDatabaseMixin get mixin => this as SembastDatabaseMixin;
+
+  /// True if closed
+  bool get isClosed => (this as SembastDatabase)._closed;
+}
+
 class _MetaAndImportResult {
   _MetaAndImportResult(this.corrupted, this.meta);
   final bool corrupted;
