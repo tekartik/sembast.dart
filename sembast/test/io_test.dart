@@ -5,6 +5,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io' as io;
 
+import 'package:path/path.dart' as p;
 import 'package:path/path.dart';
 import 'package:sembast/sembast_io.dart';
 import 'package:sembast/src/database_impl.dart';
@@ -24,6 +25,7 @@ void main() {
       final fs =
           (databaseFactoryIo as impl.DatabaseFactoryIo).fs as FileSystemIo;
       expect(fs.rootPath, isNull);
+      expect(databaseFactoryIo.pathContext, p.context);
     });
 
     final ctx = fileSystemContextIo;

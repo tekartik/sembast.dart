@@ -3,6 +3,7 @@ library;
 
 import 'package:idb_shim/idb_client_native.dart';
 import 'package:idb_shim/idb_jdb.dart';
+import 'package:path/path.dart' as p;
 import 'package:sembast_test/all_jdb_test.dart' as all_jdb_test;
 import 'package:sembast_test/all_test.dart';
 import 'package:sembast_test/jdb_test_common.dart';
@@ -16,6 +17,10 @@ Future main() async {
   var testContext = DatabaseTestContextJdb()..factory = factory;
 
   group('idb_native', () {
+    test('pathContext', () {
+      expect(factory.pathContext.separator, p.url.separator);
+    });
+
     defineTests(testContext);
     all_jdb_test.defineJdbTests(testContext);
   });

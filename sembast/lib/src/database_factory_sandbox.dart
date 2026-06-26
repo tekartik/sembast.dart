@@ -43,7 +43,9 @@ class _DatabaseFactorySandbox implements DatabaseFactory {
     var relativePath = pathContext.isAbsolute(path)
         ? pathContext.relative(path, from: pathContext.rootPrefix(path))
         : path;
-    var fullPath = pathContext.normalize(pathContext.join(rootPath, relativePath));
+    var fullPath = pathContext.normalize(
+      pathContext.join(rootPath, relativePath),
+    );
     if (!pathContext.isWithin(rootPath, fullPath)) {
       throw ArgumentError.value(
         path,

@@ -8,7 +8,7 @@ environment:
 
 dependencies:
   path: '>=1.6.0'
-  sembast: '>=3.8.9'
+  sembast: '>=3.8.9+1'
   sembast_web: '>=2.4.4-1'
   test_api:
   collection:
