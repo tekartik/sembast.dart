@@ -3,6 +3,7 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart';
+import 'package:path/path.dart' as p;
 import 'package:pointycastle/export.dart';
 // ignore: implementation_imports
 import 'package:sembast/src/api/v2/sembast.dart';
@@ -161,6 +162,9 @@ SembastCodec getEncryptSembastCodec({required String password}) => SembastCodec(
 /// Wrap a factory to always use the codec
 class EncryptedDatabaseFactory implements DatabaseFactory {
   final DatabaseFactory databaseFactory;
+
+  @override
+  p.Context get pathContext => databaseFactory.pathContext;
   late final SembastCodec codec;
 
   EncryptedDatabaseFactory({

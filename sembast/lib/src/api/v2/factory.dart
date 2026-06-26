@@ -1,5 +1,5 @@
 import 'dart:async';
-
+import 'package:path/path.dart' as p;
 import 'package:sembast/src/api/v2/sembast.dart';
 
 ///
@@ -36,6 +36,9 @@ abstract class DatabaseFactory {
 
   /// Check if a database exists
   Future<bool> databaseExists(String path);
+
+  /// Path context
+  p.Context get pathContext;
 }
 
 /// Callback interface called when the existing version differs from the

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:path/path.dart' as p;
 import 'package:sembast/sembast.dart';
 import 'package:sembast/src/database_impl.dart';
 
@@ -33,6 +34,9 @@ typedef DatabaseFactoryMixin = SembastDatabaseFactoryMixin;
 
 /// Database factory mixin.
 mixin SembastDatabaseFactoryMixin implements SembastDatabaseFactory {
+  @override
+  p.Context get pathContext => p.context;
+
   // for single instances only
   final _databaseOpenHelpers = <String, DatabaseOpenHelper>{};
 

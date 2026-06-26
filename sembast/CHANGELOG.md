@@ -1,8 +1,9 @@
-## 3.8.9
+## 3.8.9+1
 
 * Add `DatabaseFactory.sandbox()` extension to create a factory where every
   database is located below a root path, working with any factory
   implementation (io, memory, web)
+* Add `DatabaseFactory.pathContext`
 
 ## 3.8.8+1
 

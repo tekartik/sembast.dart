@@ -26,7 +26,7 @@ extension SembastDatabaseFactorySandboxExtension on DatabaseFactory {
 
 class _DatabaseFactorySandbox implements DatabaseFactory {
   _DatabaseFactorySandbox({required this.delegate, required String rootPath})
-    : rootPath = p.normalize(rootPath);
+    : rootPath = delegate.pathContext.normalize(rootPath);
 
   /// The wrapped factory.
   final DatabaseFactory delegate;
@@ -34,14 +34,17 @@ class _DatabaseFactorySandbox implements DatabaseFactory {
   /// The root path of the sandbox in the delegate factory.
   final String rootPath;
 
+  @override
+  p.Context get pathContext => delegate.pathContext;
+
   /// Converts a path in the sandboxed factory to a path in the delegate
   /// factory. Throws an [ArgumentError] if the path escapes the sandbox.
   String delegatePath(String path) {
-    var relativePath = p.isAbsolute(path)
-        ? p.relative(path, from: p.rootPrefix(path))
+    var relativePath = pathContext.isAbsolute(path)
+        ? pathContext.relative(path, from: pathContext.rootPrefix(path))
         : path;
-    var fullPath = p.normalize(p.join(rootPath, relativePath));
-    if (!p.isWithin(rootPath, fullPath)) {
+    var fullPath = pathContext.normalize(pathContext.join(rootPath, relativePath));
+    if (!pathContext.isWithin(rootPath, fullPath)) {
       throw ArgumentError.value(
         path,
         'path',
