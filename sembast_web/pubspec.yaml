@@ -15,6 +15,7 @@ dependencies:
   idb_shim: '>=2.9.3 <4.0.0'
   synchronized: '>=3.4.1 <5.0.0'
 dev_dependencies:
+  path: '>=1.6.0'
   lints: '>=1.0.1'
   test: '>=1.16.2'
   process_run: '>=0.12.0'
