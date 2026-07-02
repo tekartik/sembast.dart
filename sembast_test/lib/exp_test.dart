@@ -24,7 +24,7 @@ void defineTests(DatabaseTestContext ctx) {
     test('issue8_1', () async {
       db = await setupForTest(ctx, 'exp/issue8_1');
       var store = StoreRef<int, Map>.main();
-      dynamic lastKey;
+      Object? lastKey;
       var macAddress = '00:0a:95:9d:68:16';
       await db!.transaction((txn) async {
         // put twice the same record

@@ -152,7 +152,7 @@ void defineTestsWithCodec(FileSystemTestContext ctx, {SembastCodec? codec}) {
       await db.close();
     });
 
-    dynamic decodeRecord(String line) {
+    Object? decodeRecord(String line) {
       if (codec?.codec != null) {
         return codec!.codec!.decode(line);
       } else {

@@ -70,7 +70,7 @@ class _EncryptEncoder extends Converter<Object?, String> {
   _EncryptEncoder(this.salsa20);
 
   @override
-  String convert(dynamic input) {
+  String convert(Object? input) {
     // Generate random initial value (nonce for Salsa20 is 8 bytes)
     final iv = _randBytes(8);
     final ivEncoded = base64.encode(iv);
@@ -93,7 +93,7 @@ class _EncryptDecoder extends Converter<String, Object?> {
   _EncryptDecoder(this.salsa20);
 
   @override
-  dynamic convert(String input) {
+  Object? convert(String input) {
     // Read the initial value that was prepended
     assert(input.length >= 12);
     final iv = base64.decode(input.substring(0, 12));

@@ -104,7 +104,7 @@ class SembastRecordRawSnapshot<K, V> implements RecordSnapshot<K, V> {
 
   /// Raw access to data
   @override
-  dynamic operator [](String? field) => snapshot.getRawValue(field!);
+  Object? operator [](String? field) => snapshot.getRawValue(field!);
 
   /// Raw access to data
   @override

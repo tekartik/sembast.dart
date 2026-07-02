@@ -15,7 +15,7 @@ class JdbWriteEntryMock extends JdbRawWriteEntry {
   JdbWriteEntryMock({
     required int super.id,
     required Object key,
-    dynamic super.value,
+    super.value,
     bool? deleted,
   }) : super(
          deleted: deleted ?? false,

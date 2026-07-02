@@ -75,7 +75,7 @@ class JsonEncodableCodec extends Codec<Object, Object> {
   JsonEncodableEncoder get encoder => _encoder;
 
   /// True if the value is one of the supported adapter types.
-  bool supportsType(dynamic value) {
+  bool supportsType(Object? value) {
     if (_adapters != null) {
       for (var adapter in _adapters!.values) {
         if (adapter.isType(value)) {
@@ -99,8 +99,8 @@ bool _looksLikeCustomType(Map map, String prefix) {
   return false;
 }
 
-dynamic _toJsonEncodable(
-  dynamic value,
+Object? _toJsonEncodable(
+  Object? value,
   Iterable<SembastTypeAdapter> adapters,
   String prefix,
 ) {

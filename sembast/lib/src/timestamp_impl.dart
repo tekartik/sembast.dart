@@ -232,7 +232,7 @@ class Timestamp implements Comparable<Timestamp> {
 
   /// Try to get a Timestamp from either a DateTime, a Timestamp, a text or
   /// an int (ms since epoch)
-  static Timestamp? tryAnyAsTimestamp(dynamic any) {
+  static Timestamp? tryAnyAsTimestamp(Object? any) {
     if (any is Timestamp) {
       return any;
     } else if (any is DateTime) {

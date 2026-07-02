@@ -73,7 +73,7 @@ void main() {
         ],
       ];
 
-      dynamic clone;
+      Object? clone;
       void checkValue() {
         expect(clone, const TypeMatcher<List<Object?>>());
         expect(clone, value);
@@ -90,7 +90,7 @@ void main() {
       var value = {
         't': [1, 2],
       };
-      dynamic clone;
+      Object? clone;
       void checkValue() {
         expect(clone, const TypeMatcher<Map<String, Object?>>());
         expect(clone, value);

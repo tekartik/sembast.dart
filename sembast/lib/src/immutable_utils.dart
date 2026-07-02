@@ -2,7 +2,7 @@ import 'dart:collection';
 
 /// True if the value is an array or map.
 @Deprecated('unused')
-bool isValueMutable(dynamic value) {
+bool isValueMutable(Object? value) {
   return value is Map || value is Iterable;
 }
 

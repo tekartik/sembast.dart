@@ -22,9 +22,9 @@ mixin SembastRecordHelperMixin implements SembastRecord {
   ///
   ImmutableSembastRecord sembastClone({
     SembastStore? store,
-    dynamic key,
+    Object? key,
     RecordRef<Key?, Value?>? ref,
-    dynamic value,
+    Object? value,
     required bool deleted,
   }) {
     return ImmutableSembastRecord(
@@ -174,7 +174,7 @@ class ImmutableSembastRecord
     }
   }
   @override
-  set value(dynamic value) {
+  set value(Object? value) {
     throw StateError('Record is immutable. Clone to modify it');
   }
 
@@ -209,7 +209,7 @@ class TxnRecord with SembastRecordHelperMixin implements SembastRecord {
   ImmutableSembastRecord record;
 
   @override
-  dynamic operator [](String? field) => record[field!];
+  Object? operator [](String? field) => record[field!];
 
   @override
   bool get deleted => record.deleted;

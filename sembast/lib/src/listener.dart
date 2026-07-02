@@ -421,10 +421,10 @@ class StoreListener {
   }
 
   /// True if record has a listener.
-  bool keyHasRecordListener(dynamic key) => _records.containsKey(key);
+  bool keyHasRecordListener(Object? key) => _records.containsKey(key);
 
   /// True if record has a listener.
-  bool keyHasAnyListener(dynamic key) =>
+  bool keyHasAnyListener(Object? key) =>
       hasStoreListener || keyHasRecordListener(key);
 
   /// True if there is a query listener

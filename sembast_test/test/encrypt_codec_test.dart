@@ -31,7 +31,7 @@ void main() {
         );
       });
       test('decode', () {
-        dynamic testDecode(String encrypted) {
+        void testDecode(String encrypted) {
           expect(
             getEncryptSembastCodec(password: 'test').codec!.decode(encrypted),
             {'test': 1},

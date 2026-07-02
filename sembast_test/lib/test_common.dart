@@ -33,7 +33,7 @@ class DatabaseTestContext {
   }
 }
 
-void unused(dynamic value) {}
+void unused(Object? value) {}
 
 void setDatabaseCooperator(Database db, Cooperator? cooperator) {
   (db as SembastDatabase).cooperator = cooperator;

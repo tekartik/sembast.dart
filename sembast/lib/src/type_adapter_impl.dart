@@ -102,15 +102,15 @@ abstract class SembastTypeAdapter<S, T> extends Codec<S, T> {
   String get name;
 
   /// True if the value is the proper type.
-  bool isType(dynamic value);
+  bool isType(Object? value);
 }
 
 /// Mixin for type adapters
 mixin _TypeAdapterCodecMixin<S, T> implements SembastTypeAdapter<S, T> {
-  // bool get isType(dynamic value);
+  // bool get isType(Object? value);
 
   @override
-  bool isType(dynamic value) => value is S;
+  bool isType(Object? value) => value is S;
 
   @override
   late Converter<S, T> encoder;

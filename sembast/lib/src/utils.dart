@@ -56,7 +56,7 @@ bool checkValue(Object? value) {
 }
 
 /// default sort order
-int compareKey(dynamic key1, dynamic key2) => compareValue(key1, key2);
+int compareKey(Object? key1, Object? key2) => compareValue(key1, key2);
 
 /// compare record keys.
 int compareRecordKey(
@@ -81,7 +81,7 @@ int compareRecordKey(
 /// - Blob values
 /// - List values
 /// - Map values
-int compareValue(dynamic value1, dynamic value2) {
+int compareValue(Object? value1, Object? value2) {
   try {
     if (value1 is Comparable && value2 is Comparable) {
       return Comparable.compare(value1, value2);
@@ -137,7 +137,7 @@ int compareBool(bool value1, bool value2) {
 /// - Blob values
 /// - List values
 /// - Map values
-int compareValueType(dynamic value1, dynamic value2) {
+int compareValueType(Object? value1, Object? value2) {
   // first null
   if (value1 == null) {
     if (value2 == null) {
@@ -227,7 +227,7 @@ Map<String, Object?> _fixMap(Map map) {
   return fixedMap;
 }
 
-dynamic _fixValue(dynamic value) {
+Object? _fixValue(Object? value) {
   if (value is Map) {
     return _fixMap(value);
   }
@@ -262,7 +262,7 @@ Value cloneValue(Value value) {
 }
 
 /// Clone a value.
-dynamic cloneValueOrNull(dynamic value) {
+Object? cloneValueOrNull(Object? value) {
   if (value is Map) {
     return value.map<String, Object?>(
       (key, value) => MapEntry(key as String, cloneValueOrNull(value)),
@@ -285,7 +285,7 @@ Object sanitizeValueIfMap(Object value) {
 }
 
 /// True for null, num, String, bool
-bool isBasicTypeOrNull(dynamic value) {
+bool isBasicTypeOrNull(Object? value) {
   if (value == null) {
     return true;
   } else if (value is num || value is String || value is bool) {
@@ -295,7 +295,7 @@ bool isBasicTypeOrNull(dynamic value) {
 }
 
 /// True for null, num, String, bool or FieldValue
-bool isBasicTypeFieldValueOrNull(dynamic value) {
+bool isBasicTypeFieldValueOrNull(Object? value) {
   if (isBasicTypeOrNull(value)) {
     return true;
   } else if (value is FieldValue) {
@@ -395,7 +395,7 @@ T? getPartsMapRawValue<T>(Map map, Iterable<String> parts) {
 void setPartsMapValue<T>(Map map, List<String> parts, T value) {
   for (var i = 0; i < parts.length - 1; i++) {
     final part = parts[i];
-    dynamic sub = map[part];
+    Object? sub = map[part];
     if (sub is! Map) {
       sub = <String, Object?>{};
       map[part] = sub;
@@ -508,7 +508,7 @@ Object mergeValue(
       if (value == FieldValue.delete) {
         var map = currentMap;
         for (var part in keyParts.sublist(0, keyParts.length - 1)) {
-          dynamic sub = map![part];
+          Object? sub = map![part];
           if (sub is Map) {
             map = sub;
           } else {
@@ -522,7 +522,7 @@ Object mergeValue(
       } else {
         var map = currentMap;
         for (final part in keyParts.sublist(0, keyParts.length - 1)) {
-          dynamic sub = map![part];
+          Object? sub = map![part];
           if (sub is Map) {
             map = sub;
           } else {

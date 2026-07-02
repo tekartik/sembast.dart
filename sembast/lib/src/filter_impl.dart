@@ -5,7 +5,7 @@ import 'import_common.dart';
 import 'utils.dart';
 
 /// We can match if record is a map or if we are accessing the key or value
-bool canMatch(String? field, dynamic recordValue) =>
+bool canMatch(String? field, Object? recordValue) =>
     (recordValue is Map) || (field == Field.value) || (field == Field.key);
 
 /// Check if a [record] match a [filter]
@@ -142,7 +142,7 @@ class SembastEqualsFilter extends SembastFilterBase
         FilterFieldMixin,
         _FilterSmartMatchMixin {
   /// Equals filter.
-  SembastEqualsFilter(String field, dynamic value, bool? anyInList) {
+  SembastEqualsFilter(String field, Object? value, bool? anyInList) {
     this.field = field;
     this.value = value;
     this.anyInList = anyInList;
@@ -216,7 +216,7 @@ class SembastListFilter extends SembastFilterBase
 /// Not equals filter.
 class SembastNotEqualsFilter extends SembastEqualsFilter {
   /// Not equals filter.
-  SembastNotEqualsFilter(super.field, Value? super.value, super.anyInList);
+  SembastNotEqualsFilter(super.field, super.value, super.anyInList);
 
   @override
   bool matchesRecord(RecordSnapshot record) => !super.matchesRecord(record);
@@ -317,7 +317,7 @@ class SembastOppositeFilter extends SembastFilterBase {
 class SembastFilterPredicate extends SembastFilterBase
     with FilterValueMixin, FilterFieldMixin {
   /// Filter predicate implementation.
-  SembastFilterPredicate(String field, this.operation, dynamic value) {
+  SembastFilterPredicate(String field, this.operation, Object? value) {
     this.field = field;
     this.value = value;
   }
@@ -327,7 +327,7 @@ class SembastFilterPredicate extends SembastFilterBase
 
   @override
   bool matchesRecord(RecordSnapshot record) {
-    int? safeCompare(dynamic value1, dynamic value2) {
+    int? safeCompare(Object? value1, Object? value2) {
       try {
         if (value1 is Comparable && value2 is Comparable) {
           return Comparable.compare(value1, value2);
@@ -336,12 +336,12 @@ class SembastFilterPredicate extends SembastFilterBase
       return null;
     }
 
-    bool lessThan(dynamic value1, dynamic value2) {
+    bool lessThan(Object? value1, Object? value2) {
       var cmp = safeCompare(value1, value2);
       return cmp != null && cmp < 0;
     }
 
-    bool greaterThan(dynamic value1, dynamic value2) {
+    bool greaterThan(Object? value1, Object? value2) {
       var cmp = safeCompare(value1, value2);
       return cmp != null && cmp > 0;
     }
