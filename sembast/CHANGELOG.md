@@ -1,3 +1,7 @@
+## 3.8.10-1
+
+* Add prefix option to `toJsonEncodable` and `JsonEncodableCodec`.
+
 ## 3.8.9+1
 
 * Add `DatabaseFactory.sandbox()` extension to create a factory where every
