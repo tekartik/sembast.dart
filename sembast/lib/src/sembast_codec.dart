@@ -21,6 +21,19 @@ SembastCodec sembastCodecDefault = sembastCodecWithAdapters([
   sembastTimestampAdapter,
 ]);
 
+/// Json codec with support for DateTime and Blobs (UInt8List), using a `$`
+/// prefix and camelCase names (`$timestamp`, `$blob`, `$dateTime`) instead
+/// of the legacy `@` prefix and PascalCase names (`@Timestamp`, `@Blob`,
+/// `@DateTime`).
+SembastCodec sembastCodecDefaultV2 = SembastCodec(
+  codec: null,
+  signature: null,
+  jsonEncodableCodec: JsonEncodableCodec(
+    adapters: sembastDefaultTypeAdaptersV2,
+    prefix: r'$',
+  ),
+);
+
 /// Get content codec.
 Codec<Object?, String> sembastCodecContentCodec(SembastCodec? sembastCodec) =>
     sembastCodecContentCodecOrNull(sembastCodec) ?? json;

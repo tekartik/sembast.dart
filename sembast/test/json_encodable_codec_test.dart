@@ -224,6 +224,31 @@ void main() {
       }
     });
   });
+  group('json_encodable_codec prefix', () {
+    var v2Adapters = [sembastTimestampAdapterV2, sembastBlobAdapterV2];
+    var codec = JsonEncodableCodec(adapters: v2Adapters, prefix: r'$');
+
+    test('encodes with \$ prefix and camelCase name', () {
+      expect(codec.encode(Timestamp(1, 2)), {
+        r'$timestamp': '1970-01-01T00:00:01.000000002Z',
+      });
+      expect(codec.encode(Blob.fromList([1, 2, 3])), {r'$blob': 'AQID'});
+    });
+
+    test('decodes its own \$ format', () {
+      expect(
+        codec.decode({r'$timestamp': '1970-01-01T00:00:01.000000002Z'}),
+        Timestamp(1, 2),
+      );
+      expect(codec.decode({r'$blob': 'AQID'}), Blob.fromList([1, 2, 3]));
+    });
+
+    test('leaves the legacy @ format untouched', () {
+      expect(codec.decode({'@Timestamp': '1970-01-01T00:00:01.000000002Z'}), {
+        '@Timestamp': '1970-01-01T00:00:01.000000002Z',
+      });
+    });
+  });
   group('json_encodable', () {
     var adapters = sembastDefaultTypeAdapters;
     var adaptersMap = sembastTypeAdaptersToMap(adapters);

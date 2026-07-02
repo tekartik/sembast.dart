@@ -12,7 +12,7 @@ class JsonEncodableEncoder extends Converter<Object, Object> {
 
   @override
   Object convert(Object input) =>
-      toJsonEncodable(input, _codec._adapters!.values);
+      toJsonEncodable(input, _codec._adapters!.values, prefix: _codec.prefix);
 }
 
 /// Decoder.
@@ -22,7 +22,8 @@ class JsonEncodableDecoder extends Converter<Object, Object> {
   final JsonEncodableCodec _codec;
 
   @override
-  Object convert(Object input) => fromJsonEncodable(input, _codec._adapters);
+  Object convert(Object input) =>
+      fromJsonEncodable(input, _codec._adapters, prefix: _codec.prefix);
 }
 
 /// Never null, convert a list to a map.
@@ -43,14 +44,24 @@ Map<String, SembastTypeAdapter> sembastTypeAdaptersToMap(
 }
 
 /// Codec to/from a json encodable format, custom types being handled
-/// by the type adapters
+/// by the type adapters.
+///
+/// [prefix] marks the encoded custom type keys (e.g. `@Timestamp` or
+/// `$timestamp`) both when encoding and decoding, it defaults to `@`.
 class JsonEncodableCodec extends Codec<Object, Object> {
   /// Codec with the needed adapters
-  JsonEncodableCodec({Iterable<SembastTypeAdapter>? adapters}) {
+  JsonEncodableCodec({
+    Iterable<SembastTypeAdapter>? adapters,
+    this.prefix = '@',
+  }) {
     _adapters = sembastTypeAdaptersToMap(adapters);
     _decoder = JsonEncodableDecoder(this);
     _encoder = JsonEncodableEncoder(this);
   }
+
+  /// Prefix used to mark encoded custom type keys (e.g. `@` or `$`).
+  final String prefix;
+
   Map<String, SembastTypeAdapter>? _adapters;
 
   late JsonEncodableDecoder _decoder;
@@ -77,39 +88,43 @@ class JsonEncodableCodec extends Codec<Object, Object> {
 }
 
 // Look like custom?
-bool _looksLikeCustomType(Map map) {
+bool _looksLikeCustomType(Map map, String prefix) {
   if (map.length == 1) {
     var key = map.keys.first;
     if (key is String) {
-      return key.startsWith('@');
+      return key.startsWith(prefix);
     }
     throw ArgumentError.value(key);
   }
   return false;
 }
 
-dynamic _toJsonEncodable(dynamic value, Iterable<SembastTypeAdapter> adapters) {
+dynamic _toJsonEncodable(
+  dynamic value,
+  Iterable<SembastTypeAdapter> adapters,
+  String prefix,
+) {
   if (isBasicTypeOrNull(value)) {
     return value;
   }
   // handle adapters
   for (var adapter in adapters) {
     if (adapter.isType(value)) {
-      return <String, Object?>{'@${adapter.name}': adapter.encode(value)};
+      return <String, Object?>{'$prefix${adapter.name}': adapter.encode(value)};
     }
   }
 
   if (value is Map) {
     var map = value;
-    if (_looksLikeCustomType(map)) {
-      return <String, Object?>{'@': map};
+    if (_looksLikeCustomType(map, prefix)) {
+      return <String, Object?>{prefix: map};
     }
     Map<String, Object?>? clone;
     map.forEach((key, item) {
       if (key is! String) {
         throw ArgumentError.value(key);
       }
-      var converted = _toJsonEncodable(item, adapters);
+      var converted = _toJsonEncodable(item, adapters, prefix);
       if (!identical(converted, item)) {
         clone ??= Map<String, Object?>.from(map);
         clone![key] = converted;
@@ -121,7 +136,7 @@ dynamic _toJsonEncodable(dynamic value, Iterable<SembastTypeAdapter> adapters) {
     List? clone;
     for (var i = 0; i < list.length; i++) {
       var item = list[i];
-      var converted = _toJsonEncodable(item, adapters);
+      var converted = _toJsonEncodable(item, adapters, prefix);
       if (!identical(converted, item)) {
         clone ??= List.from(list);
         clone[i] = converted;
@@ -133,11 +148,17 @@ dynamic _toJsonEncodable(dynamic value, Iterable<SembastTypeAdapter> adapters) {
   }
 }
 
-/// Convert a sembast value to a json encodable value
-Object toJsonEncodable(Object value, Iterable<SembastTypeAdapter> adapters) {
+/// Convert a sembast value to a json encodable value.
+///
+/// [prefix] marks the encoded custom type keys, it defaults to `@`.
+Object toJsonEncodable(
+  Object value,
+  Iterable<SembastTypeAdapter> adapters, {
+  String prefix = '@',
+}) {
   Object? converted;
   try {
-    converted = _toJsonEncodable(value, adapters);
+    converted = _toJsonEncodable(value, adapters, prefix);
   } on ArgumentError catch (e) {
     throw ArgumentError.value(
       e.invalidValue,
@@ -156,13 +177,14 @@ Object toJsonEncodable(Object value, Iterable<SembastTypeAdapter> adapters) {
 Object? _fromEncodable(
   Object? value,
   Map<String, SembastTypeAdapter>? adapters,
+  String prefix,
 ) {
   if (isBasicTypeOrNull(value)) {
     return value;
   } else if (value is Map) {
     var map = value;
-    if (_looksLikeCustomType(map)) {
-      var type = (map.keys.first as String).substring(1);
+    if (_looksLikeCustomType(map, prefix)) {
+      var type = (map.keys.first as String).substring(prefix.length);
       if (type == '') {
         return map.values.first as Object;
       }
@@ -182,7 +204,7 @@ Object? _fromEncodable(
 
     Map<String, Object?>? clone;
     map.forEach((key, item) {
-      var converted = _fromEncodable(item as Object?, adapters);
+      var converted = _fromEncodable(item as Object?, adapters, prefix);
       if (!identical(converted, item)) {
         clone ??= Map<String, Object?>.from(map);
         clone![key.toString()] = converted;
@@ -194,7 +216,7 @@ Object? _fromEncodable(
     List? clone;
     for (var i = 0; i < list.length; i++) {
       var item = list[i];
-      var converted = _fromEncodable(item as Object?, adapters);
+      var converted = _fromEncodable(item as Object?, adapters, prefix);
       if (!identical(converted, item)) {
         clone ??= List.from(list);
         clone[i] = converted;
@@ -206,14 +228,17 @@ Object? _fromEncodable(
   }
 }
 
-/// Convert a value from a Sqflite value
+/// Convert a value from a Sqflite value.
+///
+/// [prefix] marks the encoded custom type keys, it defaults to `@`.
 Object fromJsonEncodable(
   Object value,
-  Map<String, SembastTypeAdapter>? adapters,
-) {
+  Map<String, SembastTypeAdapter>? adapters, {
+  String prefix = '@',
+}) {
   Object converted;
   try {
-    converted = _fromEncodable(value, adapters)!;
+    converted = _fromEncodable(value, adapters, prefix)!;
   } on ArgumentError catch (e) {
     throw ArgumentError.value(
       e.invalidValue,

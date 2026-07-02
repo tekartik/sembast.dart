@@ -7,4 +7,10 @@ export 'package:sembast/src/sembast_codec.dart'
         sembastCodecContentCodec,
         sembastCodecJsonEncodableCodec,
         sembastCodecToJsonEncodable,
-        sembastCodecFromJsonEncodable;
+        sembastCodecFromJsonEncodable,
+        sembastCodecDefaultV2;
+export 'package:sembast/src/type_adapter_impl.dart'
+    show
+        sembastTimestampAdapterV2,
+        sembastBlobAdapterV2,
+        sembastDefaultTypeAdaptersV2;
