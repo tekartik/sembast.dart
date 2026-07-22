@@ -1,6 +1,4 @@
-///
 /// Database exception.
-///
 class DatabaseException implements Exception {
   /// Creates a bad param exception.
   DatabaseException.badParam(this._message) : _code = errBadParam;

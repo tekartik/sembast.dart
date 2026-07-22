@@ -47,7 +47,6 @@ This will throw an exception in the future. For now it is displayed once per sto
 }
 
 /// A pointer to a store.
-///
 abstract class StoreRef<K extends Key?, V extends Value?> {
   /// A null name means a the main store.
   ///
@@ -76,7 +75,6 @@ abstract class StoreRef<K extends Key?, V extends Value?> {
   RecordRef<K, V> record(K key);
 
   /// Create a reference to multiple records
-  ///
   RecordsRef<K, V> records(Iterable<K> keys);
 
   /// Cast if needed

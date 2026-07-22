@@ -6,9 +6,7 @@ import 'package:sembast/src/common_import.dart';
 import 'package:sembast/utils/sembast_import_export.dart';
 export 'package:sembast/sembast.dart';
 
-///
 /// Write the export in a file (currently in .jsonl format)
-///
 Future<void> exportDatabaseToJsonlFile(
   Database db,
   String path, {
@@ -23,9 +21,7 @@ Future<void> exportDatabaseToJsonlFile(
   );
 }
 
-///
 /// Import database from a file (currently in .jsonl format)
-///
 Future<Database> importDatabaseFromFile(
   String path,
   DatabaseFactory dstFactory,

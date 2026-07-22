@@ -1,9 +1,7 @@
 import 'package:sembast/sembast.dart';
 import 'package:sembast/src/boundary_impl.dart';
 
-///
 /// Sort order boundary, lower or upper to use in a [Finder]
-///
 abstract class Boundary {
   /// Create a boundary from a set of [values] or a given [record]
   ///
@@ -11,7 +9,6 @@ abstract class Boundary {
   /// Number of values should match the number or sort orders
   ///
   /// [values] superseeds record
-  ///
   factory Boundary({
     RecordSnapshot? record,
     bool? include,

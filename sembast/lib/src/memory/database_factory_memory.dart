@@ -72,9 +72,7 @@ class DatabaseFactoryMemory extends SembastDatabaseFactory
   Future<bool> databaseExists(String path) async => _exists[path] == true;
 }
 
-///
 /// Open a new database in memory
-///
 Future<Database> openMemoryDatabase() {
   return databaseFactoryMemory.openDatabase(sembastInMemoryDatabasePath);
 }

@@ -48,10 +48,8 @@ abstract class FileSystemException implements Exception {
   /// that information.
   String get message;
 
-  ///
   /// The file system path on which the error occurred. Can be `null`
   /// if the exception does not relate directly to a file system path.
-  ///
   String? get path;
 
   /// The underlying OS error. Can be `null` if the exception is not
@@ -97,14 +95,10 @@ abstract class FileSystem {
   /// Checks if type(path) returns FileSystemEntityType.DIRECTORY.
   Future<bool> isDirectory(String path);
 
-  ///
   /// Current directory if any
-  ///
   Directory get currentDirectory;
 
-  ///
   /// Current running script file if any
-  ///
   File? get scriptFile;
 }
 
@@ -125,7 +119,6 @@ abstract class IOSink {
 ///
 /// These constants are used by the [FileSystemEntity] class
 /// to indicate the object's type.
-///
 class FileSystemEntityType {
   const FileSystemEntityType._internal(this._type);
 
@@ -161,7 +154,6 @@ abstract class FileSystemEntity {
   /// or link).  To check whether a path points to an object on the
   /// file system, regardless of the object's type, use the [type]
   /// static method.
-  ///
   Future<bool> exists();
 
   /// Get the path of the file.

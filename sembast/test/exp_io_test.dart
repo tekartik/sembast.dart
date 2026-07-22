@@ -30,10 +30,8 @@ void main() {
   });
 }
 
-///
 /// Helper to open a single instance of a database
 /// This should be a global or singleton
-///
 class OpenHelper {
   OpenHelper(this.path);
   final String path;

@@ -13,9 +13,7 @@ import 'package:sembast/src/utils.dart';
 
 import 'file_mode_io.dart';
 
-///
 /// the io file system global object
-///
 //final _IoFileSystem _fs = _IoFileSystem();
 //_IoFileSystem get ioFileSystem => _fs;
 

@@ -30,6 +30,7 @@ class SembastQueryRef<K, V> implements QueryRef<K, V> {
 
 /// Internal access
 @protected
+/// Extension representing [SembastQueryRefExtensionPrv].
 extension SembastQueryRefExtensionPrv<K, V> on QueryRef<K, V> {
   /// Sembast query ref. implementation.
   SembastQueryRef<K, V> get sembastQueryRef => this as SembastQueryRef<K, V>;

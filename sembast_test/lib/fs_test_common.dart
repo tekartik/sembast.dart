@@ -14,9 +14,7 @@ class DatabaseTestContextFs extends DatabaseTestContext {
 DatabaseTestContextFs get memoryFsDatabaseContext =>
     DatabaseTestContextFs()..factory = databaseFactoryMemoryFs;
 
-///
 /// helper to read a list of string (lines)
-///
 Future<List<Map<String, Object?>?>> fsExportToMapList(
   FileSystem fs,
   String filePath,
@@ -24,9 +22,7 @@ Future<List<Map<String, Object?>?>> fsExportToMapList(
     .map((line) => (jsonDecode(line) as Map?)?.cast<String, Object?>())
     .toList(growable: false);
 
-///
 /// helper to read a list of string (lines)
-///
 Future fsImportFromMapList(
   FileSystem fs,
   String filePath,
@@ -40,9 +36,7 @@ Future fsImportFromMapList(
   await sink.close();
 }
 
-///
 /// helper to read a list of string (lines)
-///
 Future<List<String>> fsExportToStringList(FileSystem fs, String filePath) {
   final content = <String>[];
   return utf8.decoder

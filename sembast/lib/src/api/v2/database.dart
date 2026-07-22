@@ -16,17 +16,13 @@ abstract class Database implements DatabaseClient {
   /// Database  path
   String get path;
 
-  ///
   /// execute the action in a transaction
   /// use the current if any
-  ///
   Future<T> transaction<T>(
     FutureOr<T> Function(Transaction transaction) action,
   );
 
-  ///
   /// Close the database
-  ///
   Future close();
 }
 

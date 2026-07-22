@@ -1,8 +1,6 @@
 import 'package:sembast/src/utils.dart';
 
-///
 /// Special field access
-///
 class Field {
   /// Our value field
   static String value = '_value';
@@ -11,9 +9,7 @@ class Field {
   static String key = '_key';
 }
 
-///
 /// Update values
-///
 class FieldValue {
   const FieldValue._(this._label);
   final String _label;
@@ -25,9 +21,7 @@ class FieldValue {
   String toString() => 'FieldValue.$_label';
 }
 
-///
 /// Field Key utilities
-///
 class FieldKey {
   const FieldKey._();
 

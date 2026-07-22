@@ -3,9 +3,7 @@ import 'package:sembast/src/api/filter.dart';
 import 'package:sembast/src/api/sort_order.dart';
 import 'package:sembast/src/finder_impl.dart';
 
-///
 /// Finder helper for searching a given store
-///
 abstract class Finder {
   /// Specify a [filter].
   ///

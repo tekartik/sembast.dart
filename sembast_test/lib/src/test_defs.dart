@@ -53,9 +53,7 @@ Future<String> deleteForTest(DatabaseTestContext ctx, String name) async {
   return dbPath;
 }
 
-///
 /// helper to read a list of string (lines)
-///
 Future<List<String>> readContent(FileSystem fs, String filePath) {
   final content = <String>[];
   return utf8.decoder

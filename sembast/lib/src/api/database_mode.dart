@@ -1,6 +1,4 @@
-///
 /// The modes in which a Database can be opened.
-///
 class DatabaseMode {
   const DatabaseMode._internal(this._mode);
 

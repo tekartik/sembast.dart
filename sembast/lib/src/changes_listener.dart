@@ -81,6 +81,7 @@ mixin _ChangeListeners {
 }
 
 // ignore: public_member_api_docs
+/// Class representing [StoreChangesListeners].
 class StoreChangesListeners with _ChangeListeners {
   // ignore: public_member_api_docs
   StoreChangesListeners();

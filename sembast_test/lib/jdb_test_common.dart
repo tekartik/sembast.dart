@@ -12,9 +12,7 @@ class DatabaseTestContextJdb extends DatabaseTestContext {
 DatabaseTestContextJdb get databaseTestContextJdbMemory =>
     DatabaseTestContextJdb()..factory = databaseFactoryMemoryJdb;
 
-///
 /// helper to read a list of string (lines). unsafe
-///
 Future<void> jdbImportFromMap(
   JdbFactory jdbFactory,
   String name,

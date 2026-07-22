@@ -37,9 +37,7 @@ Future<Database> setupForTest(DatabaseTestContext ctx, String name) {
   return ctx.open(dbPathFromName(name));
 }
 
-///
 /// helper to read a list of string (lines)
-///
 Future<List<String>> readContent(FileSystem fs, String filePath) {
   final content = <String>[];
   return utf8.decoder

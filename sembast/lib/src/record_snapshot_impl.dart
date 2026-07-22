@@ -26,9 +26,7 @@ mixin RecordSnapshotMixin<K, V>
   @override
   String toString() => '$ref $rawValue';
 
-  ///
   /// get the value of the specified [field]
-  ///
   @override
   Object? operator [](String field) => getValue(field);
 
@@ -67,6 +65,7 @@ mixin RecordSnapshotMixin<K, V>
 
 /// Internal helper.
 @protected
+/// Extension representing [SembastRecordSnapshotExt].
 extension SembastRecordSnapshotExt<K, V> on RecordSnapshot<K, V> {
   // Temp Internal helper.
   // @Deprecated('User key')

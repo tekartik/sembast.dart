@@ -39,11 +39,9 @@ mixin DatabaseStorageSinkMixin implements DatabaseStorageSink {
   Future<void> appendLine(String line) => appendLines([line]);
 }
 
-///
 /// Storage io implementation
 ///
 /// where the database is read/written to if needed
-///
 abstract class DatabaseStorage extends StorageBase {
   /// Tmp storage used.
   DatabaseStorage? get tmpStorage;

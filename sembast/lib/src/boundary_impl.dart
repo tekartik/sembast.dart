@@ -3,7 +3,6 @@ import 'package:sembast/src/record_impl.dart';
 
 /// Boundary implementation.
 class SembastBoundary implements Boundary {
-  ///
   /// default is [ascending] = true
   ///
   /// user withParam

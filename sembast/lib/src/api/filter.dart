@@ -1,7 +1,6 @@
 import 'package:sembast/sembast.dart';
 import 'package:sembast/src/filter_impl.dart';
 
-///
 /// Filter for searching into the database
 ///
 /// Don't subclass

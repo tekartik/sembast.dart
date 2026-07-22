@@ -60,6 +60,7 @@ class CommitData extends CommitEntries {
 
 /// Mixin to help on evolution
 @Deprecated('use SembastDatabaseMixin')
+/// Typedef representing [SembastDatabaseMin].
 typedef SembastDatabaseMin = SembastDatabaseMixin;
 
 /// Mixin to help on evolution (renamed from SembastDatabaseMin
@@ -313,9 +314,7 @@ class SembastDatabase extends Object
     return null;
   }
 
-  ///
   /// Compact the database
-  ///
   Future txnCompact() async {
     // Don't compact read only database
     if (isReadOnly) {
@@ -693,9 +692,7 @@ class SembastDatabase extends Object
     }
   }
 
-  ///
   /// find existing store
-  ///
   SembastStore? findStore(String storeName) {
     SembastStore? store;
     store = _stores[storeName];
@@ -718,10 +715,8 @@ class SembastDatabase extends Object
     }
   }
 
-  ///
   /// get or create a store
   /// an empty store will not be persistent
-  ///
   SembastStore getStore(String storeName) {
     _checkOpen();
     var store = findStore(storeName);
@@ -730,10 +725,8 @@ class SembastDatabase extends Object
     return store;
   }
 
-  ///
   /// get or create a store
   /// an empty store will not be persistent
-  ///
   @override
   SembastStore getSembastStore(StoreRef<Key?, Value?> ref) {
     _checkOpen();
@@ -752,9 +745,7 @@ class SembastDatabase extends Object
     return txn.toExecutor(store);
   }
 
-  ///
   /// clear and delete a store
-  ///
   Future deleteStore(String storeName) {
     return transaction((txn) {
       return txnDeleteStore(txn as SembastTransaction, storeName);
@@ -938,9 +929,7 @@ class SembastDatabase extends Object
     return _MetaAndImportResult(false, meta);
   }
 
-  ///
   /// open a database
-  ///
   Future<Database> open(DatabaseOpenOptions options) async {
     // Default mode
     // Open is overriden in openHelper
@@ -1930,6 +1919,7 @@ class JdbImportResult {
 
 /// Internal only
 @protected
+/// Extension representing [SembastDatabaseInternalExt].
 extension SembastDatabaseInternalExt on Database {
   SembastDatabase get _sembastDatabase => this as SembastDatabase;
 

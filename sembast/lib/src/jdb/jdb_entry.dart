@@ -136,6 +136,7 @@ class JdbWriteEntryImpl extends JdbWriteEntryBase {
 
 /// Raw entry that allow creating entry for testing
 @visibleForTesting
+/// Class representing [JdbRawWriteEntry].
 class JdbRawWriteEntry extends JdbWriteEntryBase {
   /// Raw entry.
   JdbRawWriteEntry({
