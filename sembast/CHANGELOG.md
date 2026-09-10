@@ -1,4 +1,4 @@
-## 3.8.10-2
+## 3.8.10
 
 * Add `sembast-crud`, `sembast-database-setup` and `sembast-query` agent skills in `skills/`, installable with `dart run skills@ get`
 
