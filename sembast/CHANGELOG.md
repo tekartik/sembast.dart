@@ -1,3 +1,7 @@
+## 3.8.10-2
+
+* Add `sembast-crud`, `sembast-database-setup` and `sembast-query` agent skills in `skills/`, installable with `dart run skills@ get`
+
 ## 3.8.10-1
 
 * Add prefix option to `toJsonEncodable` and `JsonEncodableCodec`.
