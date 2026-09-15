@@ -41,5 +41,3 @@ Future<Database> reOpen(Database db, {DatabaseMode? mode}) {
     ),
   );
 }
-
-bool get isWeb => identical(1, 1.0);

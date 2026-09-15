@@ -6,3 +6,7 @@ compilers:
   - dart2js
   - dart2wasm
 concurrency: 1
+override_platforms:
+  node:
+    settings:
+      compilers: [dart2js]

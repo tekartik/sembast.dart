@@ -1,3 +1,4 @@
+import 'package:sembast/src/env_utils.dart';
 import 'package:sembast/timestamp.dart';
 
 import 'test_common.dart';
@@ -313,7 +314,7 @@ void main() {
         '0001-01-01T00:00:00.000Z',
         '0001-01-01T00:00:00.000Z',
       );
-      if (!isWeb) {
+      if (!isRunningAsJavascript) {
         checkParseToIso(
           '9999-12-31T23:59:59.999999999Z',
           '9999-12-31T23:59:59.999999999Z',
@@ -341,7 +342,7 @@ void main() {
 
       // Limit
       checkParseSecondsNanos('0001-01-01T00:00:00Z', -62135596800, 0);
-      if (!isWeb) {
+      if (!isRunningAsJavascript) {
         checkParseSecondsNanos(
           '9999-12-31T23:59:59.999999999Z',
           253402300799,
