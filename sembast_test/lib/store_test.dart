@@ -586,6 +586,49 @@ void defineTests(DatabaseTestContext ctx) {
         ]);
       });
 
+      test('update with finder and null value', () async {
+        final store = intMapStoreFactory.store('animals');
+        late int key1, key2;
+        await db!.transaction((txn) async {
+          key1 = await store.add(txn, {
+            'name': 'fish',
+            'age': 4,
+            'address': {'city': 'Paris'},
+          });
+          key2 = await store.add(txn, {'name': 'cat', 'age': 3});
+        });
+        var finder = Finder(filter: Filter.equals('name', 'fish'));
+        // Same semantics as RecordRef.update: a null value sets the field to
+        // null (the key is kept), including through a dotted path.
+        expect(
+          await store.update(db!, {
+            'age': null,
+            'address.city': null,
+          }, finder: finder),
+          1,
+        );
+        expect(await store.records([key1, key2]).get(db!), [
+          {
+            'name': 'fish',
+            'age': null,
+            'address': {'city': null},
+          },
+          {'name': 'cat', 'age': 3},
+        ]);
+        // Compare with FieldValue.delete that removes the field.
+        expect(
+          await store.update(db!, {
+            'age': FieldValue.delete,
+            'address.city': FieldValue.delete,
+          }, finder: finder),
+          1,
+        );
+        expect(await store.record(key1).get(db!), {
+          'name': 'fish',
+          'address': <String, Object?>{},
+        });
+      });
+
       test('updateRecords', () async {
         final store = intMapStoreFactory.store('animals');
         // Store some objects

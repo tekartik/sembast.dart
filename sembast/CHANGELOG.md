@@ -1,4 +1,4 @@
-## 3.8.11-1
+## 3.8.11
 
 * Fix bulk update documentation: the removed `updateRecords` utility is replaced by
   `StoreRef.update` with a finder (#410)
