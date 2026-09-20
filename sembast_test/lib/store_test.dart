@@ -554,6 +554,38 @@ void defineTests(DatabaseTestContext ctx) {
         });
       });
 
+      test('update with finder, dotted path and FieldValue.delete', () async {
+        final store = intMapStoreFactory.store('animals');
+        late int key1, key2;
+        await db!.transaction((txn) async {
+          key1 = await store.add(txn, {
+            'name': 'fish',
+            'color': 'red',
+            'address': {'city': 'Paris'},
+          });
+          key2 = await store.add(txn, {'name': 'cat'});
+        });
+        var finder = Finder(filter: Filter.equals('name', 'fish'));
+        // Same semantics as RecordRef.update: dots are path separators
+        // unless escaped and FieldValue.delete removes a field.
+        expect(
+          await store.update(db!, {
+            'color': FieldValue.delete,
+            'address.city': 'Lyon',
+            FieldKey.escape('my.key'): 1,
+          }, finder: finder),
+          1,
+        );
+        expect(await store.records([key1, key2]).get(db!), [
+          {
+            'name': 'fish',
+            'address': {'city': 'Lyon'},
+            'my.key': 1,
+          },
+          {'name': 'cat'},
+        ]);
+      });
+
       test('updateRecords', () async {
         final store = intMapStoreFactory.store('animals');
         // Store some objects

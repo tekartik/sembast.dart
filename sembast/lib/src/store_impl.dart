@@ -969,7 +969,8 @@ class SembastStore {
     var keys = await txnFindKeys(txn, finder);
     try {
       for (var key in keys) {
-        txnPutSync(txn, value, key as Object, merge: true);
+        // Same semantics as RecordRef.update (dots in keys are paths)
+        txnUpdateSync(txn, value, key as Object);
         if (needCooperate) {
           await cooperate();
         }

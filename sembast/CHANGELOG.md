@@ -1,3 +1,10 @@
+## 3.8.11-1
+
+* Fix bulk update documentation: the removed `updateRecords` utility is replaced by
+  `StoreRef.update` with a finder (#410)
+* `StoreRef.update` with a finder now has the same semantics as `RecordRef.update`
+  (dots in keys are treated as paths unless escaped with `FieldKey.escape`)
+
 ## 3.8.10
 
 * Add `sembast-crud`, `sembast-database-setup` and `sembast-query` agent skills in `skills/`, installable with `dart run skills@ get`

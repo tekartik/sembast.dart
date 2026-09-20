@@ -157,22 +157,29 @@ await store.record(lampKey).update(db, {'price': 12});
 
 ## Bulk update
 
-`updateRecords` is a utility function that can work with or without transaction to update fields in multiple records
+`StoreRef.update` with a `finder` updates the fields of all the records
+matching the finder. The update is done in a single transaction and the number
+of records updated is returned. It replaces the former `updateRecords` utility
+function that is no longer available.
 
 ```dart
+var store = intMapStoreFactory.store('animals');
+
 // Filter for updating records
 var finder = Finder(filter: Filter.greaterThan('name', 'cat'));
 
-// Update without transaction
-var store = db.getStore('animals');
-await updateRecords(store, {'age': 4}, where: finder);
+// Update without transaction (update is atomic, it runs in its own transaction)
+var count = await store.update(db, {'age': 4}, finder: finder);
 
-// Update within transaction
+// Update within an existing transaction
 await db.transaction((txn) async {
-  var store = txn.getStore('animals');
-  await updateRecords(store, {'age': 5}, where: finder);
+  await store.update(txn, {'age': 5}, finder: finder);
 });
 ```
+
+Fields are merged into each matching record like `RecordRef.update` (see
+[Updating fields](#updating-fields)), so `FieldValue.delete` and dotted paths
+are supported.
 
 ## Add or update example
 
