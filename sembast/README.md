@@ -281,3 +281,10 @@ Third party examples and tutorials available are listed [here](https://github.co
 ## Build status
 
 Travis: [![Build Status](https://travis-ci.org/tekartik/sembast.dart.svg?branch=master)](https://travis-ci.org/tekartik/sembast.dart)
+
+## Sponsor or hire
+
+sembast is maintained by Alexandre Roux ([Tekartik](https://tekartik.com/)).
+
+* [Sponsor its maintenance](https://github.com/sponsors/alextekartik) on GitHub Sponsors.
+* [Hire me](https://tekartik.com/work-with-me/) for help on your app: local databases, offline-first apps and sync, Flutter and Dart apps and backends.
