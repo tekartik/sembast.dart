@@ -1,4 +1,4 @@
-## 2.4.6
+## 2.4.6+1
 
 * Add `sembast-web-setup` agent skill in `skills/`, installable with `dart run skills@ get`
 
