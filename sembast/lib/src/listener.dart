@@ -593,8 +593,8 @@ class DatabaseListener {
   List<RecordListenerController<K, V>>? getRecord<K, V>(
     RecordRef<K, V> recordRef,
   ) {
-    return _stores[recordRef as StoreRef<Object?, Object?>]!
-        .getRecordControllers(recordRef)
+    return _stores[recordRef.store]
+        ?.getRecordControllers(recordRef)
         ?.cast<RecordListenerController<K, V>>();
   }
 
@@ -681,14 +681,6 @@ class CountListenerController<K, V>
     }
     await lock.synchronized(() async {
       var keys = Set<Object>.from(list!);
-
-      for (var record in records) {
-        if (!record.deleted && filterMatchesRecord(filter, record)) {
-          keys.add(record.key);
-        } else {
-          keys.remove(record.key);
-        }
-      }
 
       for (var txnRecord in records) {
         var key = txnRecord.key;

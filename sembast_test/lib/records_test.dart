@@ -26,6 +26,48 @@ void defineTests(DatabaseTestContext ctx) {
       expect(await records.getSnapshots(db), isEmpty);
     });
 
+    test('length', () {
+      expect(store.records([1, 2]).length, 2);
+    });
+
+    test('invalid values throw like RecordRef', () async {
+      var mapStore = intMapStoreFactory.store('invalid');
+      var records = mapStore.records([1, 2]);
+      var invalid = <String, Object?>{'date': DateTime(2020)};
+      var valid = <String, Object?>{'ok': 1};
+      await expectLater(
+        mapStore.record(1).put(db, invalid),
+        throwsArgumentError,
+      );
+      await expectLater(records.put(db, [invalid, valid]), throwsArgumentError);
+      await expectLater(records.add(db, [invalid, valid]), throwsArgumentError);
+      await expectLater(
+        records.update(db, [invalid, valid]),
+        throwsArgumentError,
+      );
+      // FieldValue.delete is only valid when merging or updating
+      await expectLater(
+        records.put(db, [
+          {'a': FieldValue.delete},
+          valid,
+        ]),
+        throwsArgumentError,
+      );
+      expect(await records.get(db), [null, null]);
+      await records.put(db, [
+        {'a': 1, 'b': 2},
+        valid,
+      ]);
+      await records.put(db, [
+        {'a': FieldValue.delete},
+        {'ok': 2},
+      ], merge: true);
+      expect(await records.get(db), [
+        {'b': 2},
+        {'ok': 2},
+      ]);
+    });
+
     test('one', () async {
       var records = store.records([1]);
       expect(records[0].key, 1);

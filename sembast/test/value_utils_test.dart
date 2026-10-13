@@ -142,6 +142,10 @@ void main() {
       expect(compareValueType([1, 2, 3], 'test'), 1);
       expect(compareValueType([1, 2, 3], <String, Object>{}), -1);
       expect(compareValueType(<String, Object>{}, [1, 2, 3]), 1);
+      expect(
+        compareValueType(<String, Object>{'a': 1}, <String, Object>{'b': 2}),
+        0,
+      );
       expect(compareValueType(<String, Object>{}, _Dummy1()), -1);
       expect(compareValueType(_Dummy1(), _Dummy2()), -1);
     });
@@ -157,6 +161,14 @@ void main() {
           ],
         }),
         '{"sub":[{"inner":{"a":1,"b":2}}]}',
+      );
+      // Sorted inner map in an unsorted map.
+      expect(
+        jsonEncodeSorted({
+          'b': {'d': 1, 'c': 2},
+          'a': 1,
+        }),
+        '{"a":1,"b":{"c":2,"d":1}}',
       );
     });
   });

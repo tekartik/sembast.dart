@@ -1153,8 +1153,17 @@ class SembastDatabase extends Object
 
   /// Full import - must be in transaction
   Future jdbFullImport() async {
+    for (var record in await _jdbReadAllRecords()) {
+      loadRecord(record);
+    }
+  }
+
+  /// Read all the jdb records, updating [_jdbRevision] (read before the
+  /// entries) and the export stat.
+  Future<List<ImmutableSembastRecordJdb>> _jdbReadAllRecords() async {
     /// read revision before.
     _jdbRevision = await _storageJdb!.getRevision();
+    var records = <ImmutableSembastRecordJdb>[];
     await for (var entry in _storageJdb!.entries) {
       var record = ImmutableSembastRecordJdb(
         entry.record,
@@ -1167,8 +1176,9 @@ class SembastDatabase extends Object
       if (entry.deleted) {
         _exportStat!.obsoleteLineCount++;
       }
-      loadRecord(record);
+      records.add(record);
     }
+    return records;
   }
 
   /// notify imported result
@@ -1228,21 +1238,9 @@ class SembastDatabase extends Object
     } else {
       delta = false;
       _exportStat = DatabaseExportStat();
-      var records = <ImmutableSembastRecordJdb>[];
-      await for (var entry in _storageJdb!.entries) {
-        var record = ImmutableSembastRecordJdb(
-          entry.record,
-          entry.deleted ? null : entry.value,
-          deleted: entry.deleted,
-          revision: entry.id,
-        );
-        _exportStat!.lineCount++;
-        // Make it fast
-        if (entry.deleted) {
-          _exportStat!.obsoleteLineCount++;
-        }
-        records.add(record);
-      }
+      // Also updates the known revision, otherwise the next commit would see
+      // a revision change and reload again forever.
+      var records = await _jdbReadAllRecords();
 
       // Synchronous reload
       for (var store in stores) {

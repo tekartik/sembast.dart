@@ -1,3 +1,15 @@
+## 3.9.0
+
+* `RecordsRef` `put`, `add` and `update` now validate the values like `RecordRef`: an invalid value
+  (i.e. a `DateTime`, or a `FieldValue.delete` when not merging) now throws an `ArgumentError`
+  instead of being accepted (and lost or failing silently on reopen for a file based database)
+* Fix jdb (sembast_web) endless write retry after another instance compacted the database: a full
+  reload now updates the known revision
+* Fix sort and boundaries on `Map` values: equal maps are now sorted by key like any other equal values
+* Fix `jsonEncodableSort` (and `exportLinesToJsonl` sorted output) not sorting inner maps of an
+  unsorted map
+* Fix ambiguous `RecordsRef.length` (`store.records(keys).length` did not compile)
+
 ## 3.8.11
 
 * Fix bulk update documentation: the removed `updateRecords` utility is replaced by

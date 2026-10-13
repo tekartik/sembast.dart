@@ -24,9 +24,6 @@ extension SembastRecordsRefCommonExtension<K, V> on RecordsRef<K, V> {
 ///
 /// Provides access helper to data on the store using a given [DatabaseClient].
 extension SembastRecordsRefExtension<K, V> on RecordsRef<K, V> {
-  /// The number of records referenced.
-  int get length => keys.length;
-
   /// Delete records
   Future<List<K?>> delete(DatabaseClient databaseClient) async {
     var client = getClient(databaseClient);
@@ -62,7 +59,7 @@ extension SembastRecordsRefExtension<K, V> on RecordsRef<K, V> {
     return client.inTransaction((txn) async {
       return await client
           .getSembastStore(store)
-          .txnAddAll<K, V>(txn, values, keys);
+          .txnAddAll<K, V>(txn, _sanitizeValues(client, values), keys);
     });
   }
 
@@ -85,7 +82,12 @@ extension SembastRecordsRefExtension<K, V> on RecordsRef<K, V> {
     return client.inTransaction((txn) async {
       return (await client
               .getSembastStore(store)
-              .txnPutAll<K, V>(txn, values, keys, merge: merge))
+              .txnPutAll<K, V>(
+                txn,
+                _sanitizeValues(client, values, update: merge),
+                keys,
+                merge: merge,
+              ))
           .cast<V>();
     });
   }
@@ -107,10 +109,27 @@ extension SembastRecordsRefExtension<K, V> on RecordsRef<K, V> {
     return client.inTransaction((txn) async {
       return (await client
               .getSembastStore(store)
-              .txnUpdateAll(txn, values, keys))
+              .txnUpdateAll(
+                txn,
+                _sanitizeValues(client, values, update: true),
+                keys,
+              ))
           .cast<V?>();
     });
   }
+
+  /// Sanitize the input values like [RecordRef] does (invalid values throw).
+  List<V> _sanitizeValues(
+    SembastDatabaseClient client,
+    List<V> values, {
+    bool? update,
+  }) => [
+    for (var value in values)
+      client.sembastDatabase.sanitizeInputValue<V>(
+        value as Value,
+        update: update,
+      ),
+  ];
 
   /// Get all records values.
   Future<List<V?>> get(DatabaseClient client) async => (await getSnapshots(

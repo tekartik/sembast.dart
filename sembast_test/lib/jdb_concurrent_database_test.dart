@@ -37,6 +37,35 @@ void defineJdbConcurrentDatabaseTests(DatabaseTestContextJdb ctx) {
       await db1.close();
       await db2.close();
     });
+    test('write after another instance compacted', () async {
+      var dbPath = 'concurrent_compacted.db';
+      var db1 = await ctx.deleteAndOpen(dbPath);
+      var factory = ctx.factory.mixin;
+
+      /// Force opening new instance.
+      factory.removeDatabaseOpenHelper(dbPath);
+      var db2 = await ctx.open(dbPath);
+
+      await intStore.record(1).put(db1, 'a');
+      await intStore.record(1).delete(db1);
+      await intStore.record(3).put(db1, 'c');
+      // The compacted entries are no longer available for a delta import.
+      await db1.compact();
+      // Full (non delta) reload
+      await db2.checkForChanges();
+      expect(await intStore.record(3).get(db2), 'c');
+      // The full reload must update the known revision, otherwise each commit
+      // sees a revision change and reloads again, forever.
+      await intStore
+          .record(2)
+          .put(db2, 'b')
+          .timeout(const Duration(seconds: 10));
+      expect(await intStore.findKeys(db2), [2, 3]);
+      await db1.checkForChanges();
+      expect(await intStore.findKeys(db1), [2, 3]);
+      await db1.close();
+      await db2.close();
+    });
     test('listener', () async {
       var dbPath = 'concurrent.db';
       var db1 = await ctx.deleteAndOpen(dbPath);

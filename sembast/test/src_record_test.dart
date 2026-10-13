@@ -39,7 +39,7 @@ void main() {
         'value': 'val',
       });
     });
-    test('toDatabaseRowMap', () {
+    test('fromDatabaseRowMap', () {
       var map = {'key': 1, 'deleted': true};
       var record = ImmutableSembastRecord.fromDatabaseRowMap(map);
       expect(record.key, 1);

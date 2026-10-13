@@ -327,6 +327,33 @@ void defineTests(DatabaseTestContext ctx) {
         expect((await store.find(db, finder: finder)).keys, [2]);
       });
     });
+    test('sort_map_values', () async {
+      var db = await setupForTest(ctx, 'find/sort_map_values.db');
+      var store = intMapStoreFactory.store();
+      var keys = List.generate(40, (i) => i + 1);
+      await store.records(keys.reversed.toList()).put(db, [
+        for (var _ in keys)
+          {
+            'map': {'x': 1},
+          },
+      ]);
+      // Equal map values are sorted by key, like any other equal values.
+      expect(
+        await store.findKeys(
+          db,
+          finder: Finder(sortOrders: [SortOrder('map')]),
+        ),
+        keys,
+      );
+      expect(
+        await store.findKeys(
+          db,
+          finder: Finder(sortOrders: [SortOrder('map', false)]),
+        ),
+        keys,
+      );
+      await db.close();
+    });
     group('map_values', () {
       late Database db;
 
@@ -362,7 +389,6 @@ void defineTests(DatabaseTestContext ctx) {
       });
 
       test('offset', () async {
-        print(await store.find(db));
         var finder = Finder(offset: 1);
         var snapshots = await store.find(db, finder: finder);
         expect(snapshotsRefs(snapshots), [record2, record3]);

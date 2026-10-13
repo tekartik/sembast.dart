@@ -204,7 +204,7 @@ int compareValueType(Object? value1, Object? value2) {
     return 1;
   } else if (value1 is Map) {
     // then timestamp
-    if (value2 is List) {
+    if (value2 is Map) {
       return 0;
     } else {
       return -1;

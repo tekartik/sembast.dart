@@ -50,6 +50,20 @@ void defineTests() {
       expect((await ioFile.readAsLines()).first, 'test');
     });
 
+    test('directory rename', () async {
+      var path = join('.dart_tool', 'sembast', 'test', 'file_system_io_dir');
+      var dir = fileSystem.directory(join(path, 'a'));
+      var newPath = join(path, 'b');
+      if (io.Directory(path).existsSync()) {
+        io.Directory(path).deleteSync(recursive: true);
+      }
+      await dir.create(recursive: true);
+      var renamed = await dir.rename(newPath);
+      expect(renamed.path, newPath);
+      expect(io.Directory(dir.path).existsSync(), isFalse);
+      expect(io.Directory(newPath).existsSync(), isTrue);
+    });
+
     test('isFile', () async {
       expect(await fileSystem.isFile('test'), isFalse);
       expect(await fileSystem.isDirectory('test'), isTrue);

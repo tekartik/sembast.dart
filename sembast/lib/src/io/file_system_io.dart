@@ -263,7 +263,7 @@ class DirectoryIo extends FileSystemEntityIo implements fs.Directory {
 
   @override
   Future<fs.FileSystemEntity> rename(String newPath) //
-  => _wrap(ioFileSystemEntity.rename(fileSystemIo._normalizeWithRoot(path)))
+  => _wrap(ioFileSystemEntity.rename(fileSystemIo._normalizeWithRoot(newPath)))
       .then(
         (io.FileSystemEntity ioFileSystemEntity) =>
             DirectoryIo(fileSystemIo, newPath),

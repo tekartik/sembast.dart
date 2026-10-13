@@ -39,8 +39,9 @@ Map _jsonEncodableSortMap(Map map) {
   });
   var result = clone ?? map;
   if (!result.isSorted()) {
+    // From result, to keep the sorted inner maps.
     result = Map.fromEntries(
-      map.entries.toList()
+      result.entries.toList()
         ..sort((a, b) => (a.key as String).compareTo(b.key as String)),
     );
   }
