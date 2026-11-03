@@ -258,3 +258,8 @@ Object fromJsonEncodable(
 final sembastDefaultJsonEncodableCodec = JsonEncodableCodec(
   adapters: sembastDefaultTypeAdapters,
 );
+
+/// The adapters of [codec] (internal, used by the export type encodings).
+Iterable<SembastTypeAdapter> jsonEncodableCodecAdapters(
+  JsonEncodableCodec codec,
+) => codec._adapters?.values ?? const <SembastTypeAdapter>[];

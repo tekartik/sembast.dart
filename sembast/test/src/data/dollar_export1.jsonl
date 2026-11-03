@@ -1,0 +1,10 @@
+{"sembast_export":1,"type_prefix":"$","version":1}
+{"store":"_main"}
+[1,"hi"]
+{"store":"type"}
+["blob",{"$Blob":"AQID"}]
+["escaped",{"@Timestamp":"not a timestamp"}]
+["escaped_at",{"@":1}]
+["escaped_dollar",{"$":{"$blob":"not a blob"}}]
+["map",{"blob":{"$Blob":"/w=="},"bool":true,"double":4.5,"int":1,"list":[1,"two",{"$Timestamp":"1970-01-01T00:00:00.000Z"}],"nested":{"blob":{"$Blob":""}},"null":null,"string":"text","timestamp":{"$Timestamp":"2026-11-02T12:30:00.000Z"}}]
+["timestamp",{"$Timestamp":"2026-11-02T12:30:00.123456Z"}]

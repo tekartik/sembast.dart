@@ -6,12 +6,19 @@ import 'package:sembast/src/api/protected/database.dart';
 import 'package:sembast/src/api/sembast.dart';
 import 'package:sembast/src/common_import.dart';
 import 'package:sembast/src/env_utils.dart';
+import 'package:sembast/src/export_type_encoding.dart';
+import 'package:sembast/src/import_export_options.dart';
+import 'package:sembast/src/json_encodable_codec.dart';
 import 'package:sembast/src/json_utils.dart';
 import 'package:sembast/src/model.dart';
 import 'package:sembast/src/store_impl.dart';
 import 'package:sembast/src/store_ref_impl.dart';
 import 'package:sembast/src/transaction_impl.dart';
 export 'package:sembast/sembast.dart';
+export 'package:sembast/src/export_type_encoding.dart'
+    show SembastExportTypeEncoding;
+export 'package:sembast/src/import_export_options.dart'
+    show SembastExportOptions, SembastImportOptions;
 
 const String _dbVersion = 'version';
 const String _exportSignatureKey = 'sembast_export';
@@ -28,21 +35,24 @@ const int _exportSignatureVersion = 1;
 /// An optional [storeNames] can specify the list of stores to export. If null
 /// All stores are exported.
 ///
+/// See [exportDatabaseLines] for [options].
 Future<Map<String, Object?>> exportDatabase(
   Database db, {
   List<String>? storeNames,
+  SembastExportOptions? options,
 }) async {
   var export = newModel();
   final storesExport = <Map<String, Object?>>[];
   await _exportDatabase(
     db,
+    typeEncoding: options?.typeEncoding,
     exportMeta: (Model map) {
       export.addAll(map);
     },
     exportStore: (Model map) {
       storesExport.add(map);
     },
-    storeNames: storeNames,
+    storeNames: options?.storeNames ?? storeNames,
   );
 
   if (storesExport.isNotEmpty) {
@@ -59,15 +69,25 @@ Future<Map<String, Object?>> exportDatabase(
 /// An optional [storeNames] can specify the list of stores to export. If null
 /// All stores are exported.
 ///
+/// [options] can give the stores to export (overriding [storeNames]) and the
+/// encoding of the custom types. Without a type encoding (the legacy export),
+/// the custom types are encoded by the database codec (`@Timestamp`, `@Blob`
+/// by default). With one, they are encoded in it (`$Timestamp`, `$Blob` for
+/// [SembastExportTypeEncoding.dollar]) and the header gives it
+/// (`{"sembast_export": 1, "version": 1, "type_prefix": "$"}`, the import
+/// reads it). [SembastExportTypeEncoding.at] from a database whose codec uses
+/// `@` is the legacy export.
 Future<List<Object>> exportDatabaseLines(
   Database db, {
   List<String>? storeNames,
+  SembastExportOptions? options,
 }) async {
   var lines = <Object>[];
 
   await _exportDatabase(
     db,
-    storeNames: storeNames,
+    typeEncoding: options?.typeEncoding,
+    storeNames: options?.storeNames ?? storeNames,
     exportMeta: (Model map) {
       lines.add(map);
     },
@@ -93,22 +113,37 @@ Future<List<Object>> exportDatabaseLines(
 Future<void> _exportDatabase(
   Database db, {
   List<String>? storeNames,
+  SembastExportTypeEncoding? typeEncoding,
   required void Function(Map<String, Object?>) exportMeta,
   required void Function(Map<String, Object?>) exportStore,
 }) {
   return db.transaction((txn) async {
+    // Make it safe to iterate in an async way
+    var sembastDatabase = (txn as SembastTransaction).database;
+
     var metaExport = <String, Object?>{
       // our export signature
       _exportSignatureKey: _exportSignatureVersion,
       // the db version
       _dbVersion: db.version,
     };
+    var toJsonEncodable = sembastDatabase.toJsonEncodable;
+    if (typeEncoding != null) {
+      var dbCodec = _databaseJsonEncodableCodec(sembastDatabase);
+      // An @ export of an @ database is the legacy one.
+      if (typeEncoding != SembastExportTypeEncoding.at ||
+          dbCodec.prefix != SembastExportTypeEncoding.at.prefix) {
+        metaExport[sembastExportTypePrefixKey] = typeEncoding.prefix;
+        toJsonEncodable = sembastExportTypeEncodingCodec(
+          typeEncoding,
+          jsonEncodableCodecAdapters(dbCodec),
+        ).encode;
+      }
+    }
     exportMeta(metaExport);
 
     // export all records from each store
 
-    // Make it safe to iterate in an async way
-    var sembastDatabase = (txn as SembastTransaction).database;
     var stores = List<SembastStore>.from(sembastDatabase.getCurrentStores());
     // Filter stores
     if (storeNames != null) {
@@ -129,7 +164,7 @@ Future<void> _exportDatabase(
       var currentRecords = store.currentRecords;
       for (var record in currentRecords) {
         keys.add(record.key);
-        values.add(sembastDatabase.toJsonEncodable(record.value));
+        values.add(toJsonEncodable(record.value));
         if (sembastDatabase.cooperator?.needCooperate ?? false) {
           await sembastDatabase.cooperator!.cooperate();
         }
@@ -155,6 +190,7 @@ Future<Database> importDatabaseLines(
   String dstPath, {
   SembastCodec? codec,
   List<String>? storeNames,
+  SembastImportOptions? options,
 }) async {
   if (srcData.isEmpty) {
     throw const FormatException('invalid export format (empty)');
@@ -220,8 +256,14 @@ Future<Database> importDatabaseLines(
     dstPath,
     codec: codec,
     storeNames: storeNames,
+    options: options,
   );
 }
+
+/// The json encodable codec of [db], the default one if none.
+JsonEncodableCodec _databaseJsonEncodableCodec(SembastDatabase db) =>
+    db.openOptions.codec?.jsonEncodableCodec ??
+    sembastDefaultJsonEncodableCodec;
 
 void _checkMeta(Map meta) {
   // check signature
@@ -237,13 +279,27 @@ void _checkMeta(Map meta) {
 /// All stores are exported.
 ///
 /// If a codec was used, you must specify the same codec for import.
+///
+/// The custom types are decoded in the encoding given by the export header
+/// (`type_prefix`, see [exportDatabaseLines]), a legacy export (no
+/// `type_prefix`) by the database [codec]. [options] can give the stores to
+/// import (overriding [storeNames]) and restrict the accepted type encodings
+/// (a legacy export being [SembastExportTypeEncoding.at]), all are accepted
+/// by default; another one throws a [FormatException].
 Future<Database> importDatabase(
   Map srcData,
   DatabaseFactory dstFactory,
   String dstPath, {
   SembastCodec? codec,
   List<String>? storeNames,
+  SembastImportOptions? options,
 }) async {
+  storeNames = options?.storeNames ?? storeNames;
+  // Checked before deleting the destination.
+  var typeEncoding = sembastExportHeaderTypeEncoding(
+    srcData,
+    allowed: options?.allowedTypeEncodings,
+  );
   await dstFactory.deleteDatabase(dstPath);
 
   // check signature
@@ -258,6 +314,14 @@ Future<Database> importDatabase(
     codec: codec,
   );
   var sembastDatabase = db as SembastDatabase;
+  var fromJsonEncodable = typeEncoding == null
+      ? sembastDatabase.fromJsonEncodable
+      : sembastExportTypeEncodingCodec(
+          typeEncoding,
+          jsonEncodableCodecAdapters(
+            _databaseJsonEncodableCodec(sembastDatabase),
+          ),
+        ).decode;
   await db.transaction((txn) async {
     final storesExport = (srcData[_stores] as Iterable?)
         ?.toList(growable: false)
@@ -281,11 +345,7 @@ Future<Database> importDatabase(
         );
         for (var i = 0; i < keys.length; i++) {
           var key = keys[i] as Object;
-          await store.txnPut(
-            txn,
-            sembastDatabase.fromJsonEncodable(values[i]),
-            key,
-          );
+          await store.txnPut(txn, fromJsonEncodable(values[i]), key);
         }
       }
     }
@@ -305,6 +365,7 @@ Future<Database> importDatabaseAny(
   String dstPath, {
   SembastCodec? codec,
   List<String>? storeNames,
+  SembastImportOptions? options,
 }) {
   Future<Database> mapImport(Map map) {
     return importDatabase(
@@ -313,6 +374,7 @@ Future<Database> importDatabaseAny(
       dstPath,
       codec: codec,
       storeNames: storeNames,
+      options: options,
     );
   }
 
@@ -323,6 +385,7 @@ Future<Database> importDatabaseAny(
       dstPath,
       codec: codec,
       storeNames: storeNames,
+      options: options,
     );
   }
 
