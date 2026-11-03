@@ -1,3 +1,13 @@
+## 3.10.0-1
+
+* Export and import options (`SembastExportOptions`, `SembastImportOptions`): `storeNames` (overriding
+  the `storeNames` argument) and the custom type encoding, `$` (`{"$Timestamp": ...}`, header
+  `"type_prefix": "$"`) or the legacy `@`; the import reads the encoding from the header, an export
+  without options is unchanged
+* `exportDatabase`, `exportDatabaseLines` and `exportDatabaseToJsonlFile` accept a `DatabaseClient`:
+  in a transaction, the export includes its changes
+* Fix `databaseFactoryMemoryFs` losing the records holding non-ASCII text when the database is reopened
+
 ## 3.9.0
 
 * `RecordsRef` `put`, `add` and `update` now validate the values like `RecordRef`: an invalid value
