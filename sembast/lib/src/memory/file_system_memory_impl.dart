@@ -1,6 +1,7 @@
 library;
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:path/path.dart';
@@ -94,8 +95,9 @@ class FileMemoryImpl extends FileSystemEntityMemoryImpl {
         openCount++;
         if (content != null) {
           for (var line in content!) {
-            ctlr.add(Uint8List.fromList(line.codeUnits));
-            ctlr.add(Uint8List.fromList('\n'.codeUnits));
+            // utf8, as read (codeUnits would truncate the non ascii chars).
+            ctlr.add(utf8.encode(line));
+            ctlr.add(utf8.encode('\n'));
           }
         }
         try {
