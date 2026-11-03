@@ -1,4 +1,4 @@
-## 3.10.0-1
+## 3.10.0
 
 * Export and import options (`SembastExportOptions`, `SembastImportOptions`): `storeNames` (overriding
   the `storeNames` argument) and the custom type encoding, `$` (`{"$Timestamp": ...}`, header
