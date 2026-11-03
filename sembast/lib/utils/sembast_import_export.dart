@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'package:sembast/src/api/protected/database.dart';
 import 'package:sembast/src/api/sembast.dart';
 import 'package:sembast/src/common_import.dart';
+import 'package:sembast/src/database_client_impl.dart';
 import 'package:sembast/src/env_utils.dart';
 import 'package:sembast/src/export_type_encoding.dart';
 import 'package:sembast/src/import_export_options.dart';
@@ -35,16 +36,16 @@ const int _exportSignatureVersion = 1;
 /// An optional [storeNames] can specify the list of stores to export. If null
 /// All stores are exported.
 ///
-/// See [exportDatabaseLines] for [options].
+/// See [exportDatabaseLines] for [client] and [options].
 Future<Map<String, Object?>> exportDatabase(
-  Database db, {
+  DatabaseClient client, {
   List<String>? storeNames,
   SembastExportOptions? options,
 }) async {
   var export = newModel();
   final storesExport = <Map<String, Object?>>[];
   await _exportDatabase(
-    db,
+    client,
     typeEncoding: options?.typeEncoding,
     exportMeta: (Model map) {
       export.addAll(map);
@@ -77,15 +78,19 @@ Future<Map<String, Object?>> exportDatabase(
 /// (`{"sembast_export": 1, "version": 1, "type_prefix": "$"}`, the import
 /// reads it). [SembastExportTypeEncoding.at] from a database whose codec uses
 /// `@` is the legacy export.
+///
+/// [client] is a database or a transaction. In a transaction, the export
+/// runs in it and includes its changes: writing and exporting can happen in
+/// the same transaction.
 Future<List<Object>> exportDatabaseLines(
-  Database db, {
+  DatabaseClient client, {
   List<String>? storeNames,
   SembastExportOptions? options,
 }) async {
   var lines = <Object>[];
 
   await _exportDatabase(
-    db,
+    client,
     typeEncoding: options?.typeEncoding,
     storeNames: options?.storeNames ?? storeNames,
     exportMeta: (Model map) {
@@ -111,21 +116,22 @@ Future<List<Object>> exportDatabaseLines(
 /// All stores are exported.
 ///
 Future<void> _exportDatabase(
-  Database db, {
+  DatabaseClient client, {
   List<String>? storeNames,
   SembastExportTypeEncoding? typeEncoding,
   required void Function(Map<String, Object?>) exportMeta,
   required void Function(Map<String, Object?>) exportStore,
 }) {
-  return db.transaction((txn) async {
+  // In the transaction of the client, a new one for a database.
+  return getClient(client).inTransaction((txn) async {
     // Make it safe to iterate in an async way
-    var sembastDatabase = (txn as SembastTransaction).database;
+    var sembastDatabase = txn.database;
 
     var metaExport = <String, Object?>{
       // our export signature
       _exportSignatureKey: _exportSignatureVersion,
       // the db version
-      _dbVersion: db.version,
+      _dbVersion: sembastDatabase.version,
     };
     var toJsonEncodable = sembastDatabase.toJsonEncodable;
     if (typeEncoding != null) {
@@ -161,7 +167,9 @@ Future<void> _exportDatabase(
         _values: values,
       };
 
-      var currentRecords = store.currentRecords;
+      // The records seen by the transaction (its changes included), sorted
+      // by key.
+      var currentRecords = await store.txnFindRecords(txn, null);
       for (var record in currentRecords) {
         keys.add(record.key);
         values.add(toJsonEncodable(record.value));

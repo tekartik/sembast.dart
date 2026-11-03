@@ -8,9 +8,9 @@ export 'package:sembast/sembast.dart';
 
 /// Write the export in a file (currently in .jsonl format)
 ///
-/// See [exportDatabaseLines] for [options].
+/// See [exportDatabaseLines] for [client] and [options].
 Future<void> exportDatabaseToJsonlFile(
-  Database db,
+  DatabaseClient client,
   String path, {
   List<String>? storeNames,
   SembastExportOptions? options,
@@ -19,7 +19,11 @@ Future<void> exportDatabaseToJsonlFile(
   await file.parent.create(recursive: true);
   await file.writeAsString(
     exportLinesToJsonlString(
-      await exportDatabaseLines(db, storeNames: storeNames, options: options),
+      await exportDatabaseLines(
+        client,
+        storeNames: storeNames,
+        options: options,
+      ),
     ),
   );
 }
