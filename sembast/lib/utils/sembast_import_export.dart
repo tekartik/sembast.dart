@@ -304,14 +304,13 @@ Future<Database> importDatabase(
 }) async {
   storeNames = options?.storeNames ?? storeNames;
   // Checked before deleting the destination.
+  // check signature
+  _checkMeta(srcData);
   var typeEncoding = sembastExportHeaderTypeEncoding(
     srcData,
     allowed: options?.allowedTypeEncodings,
   );
   await dstFactory.deleteDatabase(dstPath);
-
-  // check signature
-  _checkMeta(srcData);
 
   final version = srcData[_dbVersion] as int?;
 

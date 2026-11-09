@@ -231,9 +231,8 @@ class SembastDatabase extends Object
       var revision = await _storageJdb!.getRevision();
       // print('checkForChanges $revision vs existing $_jdbRevision');
       if (revision != _jdbRevision) {
-        await transaction((txn) {
-          return txnJdbDeltaImport(revision);
-        });
+        // Also restart the listeners after a full import
+        await jdbDeltaImport(revision);
       }
     }
   }
@@ -259,23 +258,26 @@ class SembastDatabase extends Object
   Map? decodeRecordLineString(String text) => decodeRecordLineStringSync(text);
 
   /// For sync codec.
-  Map decodeRecordLineStringSync(String text) {
-    var result = fromJsonEncodable(_contentCodec.decodeContentSync(text));
-    if (result is Map) {
-      return result;
-    }
-    throw StateError('Invalid line length ${text.length}');
-  }
+  Map decodeRecordLineStringSync(String text) =>
+      _decodedRecordLineToMap(text, _contentCodec.decode(text));
 
   /// For async codec.
-  Future<Map> decodeRecordLineStringAsync(String text) async {
-    var result = fromJsonEncodable(
-      await _contentCodec.decodeContentAsync(text),
-    );
-    if (result is Map) {
-      return result;
+  Future<Map> decodeRecordLineStringAsync(String text) async =>
+      _decodedRecordLineToMap(
+        text,
+        await (_contentCodec as AsyncCodec<Object?, String>).decodeAsync(text),
+      );
+
+  /// A decoded line that is not a map (null included) is an invalid line:
+  /// throw a FormatException (an Exception, not an Error).
+  Map _decodedRecordLineToMap(String text, Object? decoded) {
+    if (decoded != null) {
+      var result = fromJsonEncodable(decoded);
+      if (result is Map) {
+        return result;
+      }
     }
-    throw StateError('Invalid line length ${text.length}');
+    throw FormatException('Invalid line length ${text.length}');
   }
 
   /// Get the list of current store that can be safely iterate even
@@ -817,7 +819,11 @@ class SembastDatabase extends Object
         // Read the meta first
         // The first line is always json
         try {
-          map = (json.decode(line) as Map?)?.cast<String, Object?>();
+          var decoded = json.decode(line);
+          // Valid json but not a map is not a meta either
+          if (decoded is Map) {
+            map = decoded.cast<String, Object?>();
+          }
         } on Exception catch (_) {}
         if (Meta.isMapMeta(map)) {
           // meta?
@@ -849,7 +855,12 @@ class SembastDatabase extends Object
       } on Exception catch (_) {
         // We can have meta here
         try {
-          map = (json.decode(line) as Map?);
+          var decoded = json.decode(line);
+          if (decoded is! Map) {
+            // Valid json but not a map, handled as an invalid line
+            throw const FormatException('Invalid line, not a map');
+          }
+          map = decoded;
         } on Exception catch (_) {
           if (openMode == DatabaseMode.neverFails) {
             corrupted = true;
@@ -865,7 +876,7 @@ class SembastDatabase extends Object
         }
       }
 
-      if (isMapRecord(map!)) {
+      if (isMapRecord(map)) {
         // record?
         ImmutableSembastRecord record;
         try {
@@ -1059,6 +1070,9 @@ class SembastDatabase extends Object
             openHelper.openMode = DatabaseMode.defaultMode;
           } else {
             if (mode == DatabaseMode.empty) {
+              // A file left by a failed compaction would be recovered by
+              // findOrCreate
+              await _storageFs?.tmpStorage?.delete();
               await _storageBase!.delete();
 
               /// Once used, change the mode to existing to handle any re-open
@@ -1439,6 +1453,8 @@ class SembastDatabase extends Object
         });
         reloadData = false;
       }
+      // Read again on each try, the clean up of a failed try (jdb) resets it
+      upgrading = _upgrading;
       result = await transactionLock
           .synchronized(() async {
             _transaction = SembastTransaction(this, ++_txnId);

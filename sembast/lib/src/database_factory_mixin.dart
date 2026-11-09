@@ -86,16 +86,15 @@ mixin SembastDatabaseFactoryMixin implements SembastDatabaseFactory {
     }
 
     var helper = getExistingDatabaseOpenHelper(path);
-    if (helper == null) {
-      return newHelper();
-    } else {
-      /// Wait if closing and create a new one
-      if (helper.closing) {
-        await helper.closeCompleted;
-        return newHelper();
-      }
-      return helper;
+
+    /// Wait if closing and create a new one, unless another open
+    /// waiting for the same close already created it.
+    while (helper != null && helper.closing) {
+      await helper.closeCompleted;
+      var registered = getExistingDatabaseOpenHelper(path);
+      helper = identical(registered, helper) ? null : registered;
     }
+    return helper ?? newHelper();
   }
 
   /// Get existing open helper for a given path.

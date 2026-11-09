@@ -246,7 +246,10 @@ class DatabaseFactoryFs extends SembastDatabaseFactory
 
   @override
   Future doDeleteDatabase(String path) async {
-    return FsDatabaseStorage(fs, path).delete();
+    var storage = FsDatabaseStorage(fs, path);
+    // A file left by a failed compaction would be recovered on the next open
+    await storage.tmpStorage.delete();
+    return storage.delete();
   }
 
   @override

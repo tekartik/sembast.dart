@@ -469,7 +469,10 @@ class SembastStore {
     if (!cooperateOn) {
       return txnFindRecordsSync(txn, finder);
     }
-    var finderData = _FinderData(finder);
+    var finderData = _FinderData(
+      finder,
+      keyOrdered: !_hasTransactionRecords(txn),
+    );
 
     await forEachRecords(txn, finder, finderData.addRecord);
     var results = finderData.addedResults;
@@ -485,6 +488,9 @@ class SembastStore {
 
         // Apply limits
         results = recordsLimit(results, finder)!;
+      } else if (!finderData.limitsApplied) {
+        // Sorted by key, apply limits
+        results = recordsLimit(results, finder)!;
       }
     } else {
       // Already sorted by SplayTreeMap and offset and limit handled
@@ -497,7 +503,10 @@ class SembastStore {
     SembastTransaction? txn,
     SembastFinder? finder,
   ) {
-    var finderData = _FinderData(finder);
+    var finderData = _FinderData(
+      finder,
+      keyOrdered: !_hasTransactionRecords(txn),
+    );
 
     forEachRecordsSync(txn, finder, finderData.addRecord);
     var results = finderData.addedResults;
@@ -510,6 +519,9 @@ class SembastStore {
         );
 
         // Apply limits
+        results = recordsLimit(results, finder)!;
+      } else if (!finderData.limitsApplied) {
+        // Sorted by key, apply limits
         results = recordsLimit(results, finder)!;
       }
     } else {
@@ -826,7 +838,8 @@ class SembastStore {
   /// Delete and register changes.
   Object? txnDeleteSync(SembastTransaction txn, Object key) {
     var record = txnGetRawImmutableRecordSync(txn, key);
-    if (record == null) {
+    // Not found or already deleted in the transaction
+    if (record == null || record.deleted) {
       return null;
     } else {
       // Do the deletion
@@ -943,17 +956,15 @@ class SembastStore {
     SembastFinder? finder,
   }) async {
     if (finder == null) {
-      var deletedKeys = <Object?>[];
-      if (_hasTransactionRecords(txn)) {
-        deletedKeys.addAll(
-          await txnDeleteAll(txn, List.from(txnRecords!.keys, growable: false)),
-        );
-      }
-      final keys = _recordMap.keys;
-      deletedKeys.addAll(
-        await txnDeleteAll(txn, List.from(keys, growable: false)),
-      );
-      return deletedKeys;
+      // Each key once, the ones of the transaction (added, changed or
+      // deleted) then the existing ones.
+      var keys = <Object>{
+        if (_hasTransactionRecords(txn)) ...txnRecords!.keys,
+        ..._recordMap.keys,
+      };
+      var deletedKeys = await txnDeleteAll(txn, keys.toList(growable: false));
+      // Remove the ones not found or already deleted
+      return deletedKeys.where((key) => key != null).toList();
     } else {
       var keys = await txnFindKeys(txn, finder);
       return await txnDeleteAll(txn, List.from(keys, growable: false));
@@ -1013,7 +1024,7 @@ bool finderRecordMatchBoundaries(SembastFinder finder, RecordSnapshot result) {
 
 /// Find data helper shared between asynchronous and asynchronous read access.
 class _FinderData {
-  _FinderData(this.sembastFinder) {
+  _FinderData(this.sembastFinder, {required this.keyOrdered}) {
     if (usePreordered) {
       // Preordered by key
       preOrderedResults = SplayTreeMap<Object?, ImmutableSembastRecord>(
@@ -1032,8 +1043,15 @@ class _FinderData {
   // the records.
   final SembastFinder? sembastFinder;
 
+  /// True if the records are added in the key order (i.e. no transaction
+  /// records to merge with the existing ones)
+  final bool keyOrdered;
+
   late var hasSortOrder = sembastFinder?.sortOrders?.isNotEmpty ?? false;
   late var usePreordered = !hasSortOrder;
+
+  /// True if offset and limit are handled while adding records.
+  late var limitsApplied = usePreordered && keyOrdered;
   var preorderedCurrentOffset = 0;
 
   /// get the results added
@@ -1047,18 +1065,25 @@ class _FinderData {
 
   bool addRecord(ImmutableSembastRecord record) {
     if (usePreordered) {
-      // We can handle offset and limit directly too
-      if (sembastFinder?.offset != null) {
-        if (preorderedCurrentOffset++ < sembastFinder!.offset!) {
-          // Next!
-          return true;
+      // We can handle offset and limit directly too if the records come
+      // in the key order
+      if (limitsApplied) {
+        var offset = sembastFinder?.offset;
+        if (offset != null) {
+          if (preorderedCurrentOffset++ < offset) {
+            // Next!
+            return true;
+          }
         }
-      }
-      if (sembastFinder?.limit != null) {
-        if (preOrderedResults.length >= sembastFinder!.limit! - 1) {
-          // Add an stop
+        var limit = sembastFinder?.limit;
+        if (limit != null) {
+          if (preOrderedResults.length >= limit) {
+            // Limit reached (or 0), stop
+            return false;
+          }
           preOrderedResults[record.key] = record;
-          return false;
+          // Stop when the limit is reached
+          return preOrderedResults.length < limit;
         }
       }
       preOrderedResults[record.key] = record;

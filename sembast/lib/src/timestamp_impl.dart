@@ -249,19 +249,23 @@ class Timestamp implements Comparable<Timestamp> {
 }
 
 const _nanosPerSeconds = 1000000000;
+const _microsPerSeconds = 1000000;
 
 /// Timestamp extension
 extension TekartikSembastTimestampExt on Timestamp {
   Timestamp _addMicroseconds(int microseconds) {
-    var nanoseconds = this.nanoseconds;
-    var seconds = this.seconds;
-    nanoseconds += microseconds * 1000;
+    // Split in seconds and microseconds (same sign), so that the nanoseconds
+    // stay below 2^53 (precision on the web).
+    var seconds = this.seconds + microseconds ~/ _microsPerSeconds;
+    var nanoseconds =
+        this.nanoseconds + microseconds.remainder(_microsPerSeconds) * 1000;
+    // nanoseconds is in ]-1s, 2s[, carry once.
     if (nanoseconds >= _nanosPerSeconds) {
-      seconds += nanoseconds ~/ _nanosPerSeconds;
-      nanoseconds %= _nanosPerSeconds;
+      seconds++;
+      nanoseconds -= _nanosPerSeconds;
     } else if (nanoseconds < 0) {
-      seconds += (nanoseconds ~/ _nanosPerSeconds) + 1;
-      nanoseconds %= _nanosPerSeconds;
+      seconds--;
+      nanoseconds += _nanosPerSeconds;
     }
     return Timestamp(seconds, nanoseconds);
   }

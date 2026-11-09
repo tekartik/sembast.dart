@@ -78,8 +78,13 @@ class DatabaseOpenHelper {
   Future lockedCloseDatabase() async {
     assert(_closing);
     if (database != null) {
-      /// Last step remove helper to allow re-open
-      factory.removeDatabaseOpenHelper(path);
+      /// Last step remove helper to allow re-open, unless a newer one
+      /// was registered (closing an already closed database).
+      var factory = this.factory;
+      if (factory is! SembastDatabaseFactoryMixin ||
+          factory.getExistingDatabaseOpenHelper(path) == this) {
+        factory.removeDatabaseOpenHelper(path);
+      }
       if (!_closeCompleter.isCompleted) {
         _closeCompleter.complete();
       }

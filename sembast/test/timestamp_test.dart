@@ -445,11 +445,52 @@ void main() {
         timestamp.addDuration(const Duration(seconds: 2, microseconds: 400)),
         Timestamp(5, 700000),
       );
+      // 3.0003 s - 2.0004 s
       expect(
         timestamp.substractDuration(
           const Duration(seconds: 2, microseconds: 400),
         ),
-        Timestamp(2, 999900000),
+        Timestamp(0, 999900000),
+      );
+    });
+    test('substractDuration carry', () {
+      expect(
+        Timestamp(10, 0).substractDuration(const Duration(seconds: 1)),
+        Timestamp(9, 0),
+      );
+      expect(
+        Timestamp(10, 0).substractDuration(const Duration(microseconds: 1)),
+        Timestamp(9, 999999000),
+      );
+      expect(
+        Timestamp(10, 0).addDuration(const Duration(seconds: -3)),
+        Timestamp(7, 0),
+      );
+      expect(
+        Timestamp(10, 999999000).addDuration(const Duration(microseconds: 1)),
+        Timestamp(11, 0),
+      );
+      var timestamp = Timestamp(1000000, 500000000);
+      var duration = const Duration(minutes: 3, microseconds: 7);
+      expect(
+        timestamp.difference(timestamp.substractDuration(duration)),
+        duration,
+      );
+      expect(timestamp.addDuration(duration).difference(timestamp), duration);
+      // More than 2^53 nanoseconds (about 104 days)
+      expect(
+        Timestamp(
+          1000000000,
+          1000,
+        ).addDuration(const Duration(days: 200, microseconds: 3)),
+        Timestamp(1000000000 + 200 * 24 * 3600, 4000),
+      );
+      expect(
+        Timestamp(
+          1000000000,
+          1000,
+        ).substractDuration(const Duration(days: 200, microseconds: 3)),
+        Timestamp(1000000000 - 200 * 24 * 3600 - 1, 999998000),
       );
     });
     test('difference', () {

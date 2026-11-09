@@ -231,7 +231,8 @@ Object? _fixValue(Object? value) {
   if (value is Map) {
     return _fixMap(value);
   }
-  return value;
+  // Clone lists, the input value must not be referenced by the record
+  return cloneValueOrNull(value);
 }
 
 /// Clone a key.
@@ -478,7 +479,8 @@ Object mergeValue(
     return _fixValue(newValue) as Object;
   }
   if (newValue is! Map) {
-    return newValue;
+    // Like put, don't reference the input value
+    return cloneValue(newValue);
   }
 
   final mergedMap = cloneValue(existingValue) as Map<String, Object?>;
@@ -501,8 +503,10 @@ Object mergeValue(
         currentMap!.remove(stringKey);
       } else {
         // Replace the content. We don't want to merge here since we are the
-        // last part of the path specification
-        currentMap![stringKey] = value;
+        // last part of the path specification.
+        // Like put, clone it: the input value must not be referenced by the
+        // record
+        currentMap![stringKey] = cloneValueOrNull(value);
       }
     } else {
       if (value == FieldValue.delete) {

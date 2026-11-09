@@ -46,13 +46,17 @@ class StoreChangesListener<K, V> {
     );
   }
 
+  /// The listener, untyped: reading [onChangeListener] of another instance
+  /// through `StoreChangesListener<dynamic, dynamic>` fails its type check
+  /// when K or V are not dynamic.
+  Object get _listener => onChangeListener;
+
   @override
   int get hashCode => onChangeListener.hashCode;
 
   @override
   bool operator ==(Object other) {
-    return (other is StoreChangesListener) &&
-        other.onChangeListener == onChangeListener;
+    return (other is StoreChangesListener) && other._listener == _listener;
   }
 }
 
@@ -95,7 +99,12 @@ class StoreChangesListeners with _ChangeListeners {
   /// handle changes
   Future<void> handleChanges(SembastTransaction transaction) async {
     var changes = getAndClearChanges();
-    for (var listener in onChanges) {
+    // Copy, a listener can be added or removed in a callback
+    for (var listener in List.of(onChanges)) {
+      // Skip the ones removed in the meantime
+      if (!onChanges.contains(listener)) {
+        continue;
+      }
       var result = listener!.onChange(transaction, changes);
       if (result is Future) {
         await result;
@@ -176,7 +185,12 @@ class _AllStoresChangesListeners {
   }
 
   Future<void> handleChanges(SembastTransaction txn) async {
-    for (var listener in _all.values) {
+    // Copy, a listener can be added or removed in a callback
+    for (var listener in List.of(_all.values)) {
+      // Skip the ones removed in the meantime
+      if (!identical(_all[listener.onChanges], listener)) {
+        continue;
+      }
       await listener.handleChanges(txn);
     }
   }

@@ -27,6 +27,7 @@ Stream<List<T>> streamJoinAll<T>(List<Stream<T>> streams) {
                 controller.add(List<T>.from(values));
               }
             },
+            onError: controller.addError,
             onDone: () {
               done[index] = true;
 

@@ -1,3 +1,29 @@
+## 3.10.1
+
+* Fix `find`, `findKeys` and `findFirst` with an offset or a limit and no sort order in a transaction
+  that changed records: they now return the first records by key
+* Fix `Finder(limit: 0)` without sort order returning records
+* Fix the count returned by `StoreRef.delete` in a transaction that changed records
+* Deleting a record already deleted in the same transaction returns null and reports no change (a
+  changes listener made the transaction fail)
+* `update`, `put(merge: true)` and `StoreRef.update` no longer keep a reference to the nested maps
+  and lists of the given value
+* Fix `removeOnChangesListener` throwing a `TypeError` with a typed callback
+* A changes listener (store or all stores) can remove itself or another one in its callback
+* Fix `Filter.equals` and `databaseMerge` taking `{'a': null}` and `{'b': null}` as equal
+* Fix `Timestamp.addDuration` / `substractDuration` adding 1 or 2 seconds when going back over a
+  second boundary
+* Fix two instances on the same file: closing an already closed database, or concurrent opens
+  waiting for a close, now give a single database
+* `deleteDatabase` and `DatabaseMode.empty` also delete the temporary file of a failed compaction
+  (the next open brought it back)
+* The memory factory honors `DatabaseMode.empty`
+* `importDatabase` checks the export signature before deleting the destination database
+* Opening a file (`neverFails`) holding a json line that is not a map skips it instead of throwing
+* `RecordsRef.onSnapshots` forwards the errors to the stream
+* sembast_web: `checkForChanges` restarts the listeners after a full reload, and an upgrade retried
+  because another tab wrote at the same time saves the new version
+
 ## 3.10.0
 
 * Export and import options (`SembastExportOptions`, `SembastImportOptions`): `storeNames` (overriding

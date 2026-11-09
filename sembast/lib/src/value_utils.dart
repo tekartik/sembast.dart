@@ -29,7 +29,9 @@ bool valuesAreEquals(Object? value1, Object? value2) {
         return false;
       }
       for (var key in value1.keys) {
-        if (!valuesAreEquals(value1[key], value2[key])) {
+        // A missing key is not a null value
+        if (!value2.containsKey(key) ||
+            !valuesAreEquals(value1[key], value2[key])) {
           return false;
         }
       }

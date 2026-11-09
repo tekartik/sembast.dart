@@ -43,6 +43,10 @@ class DatabaseFactoryMemory extends SembastDatabaseFactory
     var path = openHelper.path;
     // For null path we always create a new database
 
+    // Empty mode, forget the previous content (the storage delete is a no-op)
+    if (openHelper.openMode == DatabaseMode.empty) {
+      _databases.remove(path);
+    }
     db = _databases[path];
 
     if (db == null) {
