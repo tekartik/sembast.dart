@@ -1,6 +1,8 @@
 name: Run CI Downgrade analyze
 on:
   push:
+    branches: ['**'] # Not on tag pushes
+    paths-ignore: ['**.md'] # Not on doc only changes
   pull_request:
   workflow_dispatch:
   schedule:
