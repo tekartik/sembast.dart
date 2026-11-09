@@ -252,7 +252,7 @@ void main() {
 
     test('neverFails skips the json lines that are not maps', () async {
       var factory = DatabaseFactoryMemoryFs();
-      var path = '/review_regression/not_map.db';
+      var path = 'review_regression/not_map.db';
       await _writeMemoryFile(path, [
         _metaLine,
         '{"key":1,"store":"test","value":"a"}',
@@ -268,7 +268,7 @@ void main() {
 
     test('neverFails first line not a map', () async {
       var factory = DatabaseFactoryMemoryFs();
-      var path = '/review_regression/first_not_map.db';
+      var path = 'review_regression/first_not_map.db';
       await _writeMemoryFile(path, ['[1]', '{"key":1,"value":"a"}']);
       var db = await factory.openDatabase(path);
       expect(await store.count(db), 0);
@@ -338,7 +338,7 @@ void main() {
 
     test('second close after a reopen keeps a single instance', () async {
       var factory = DatabaseFactoryMemoryFs();
-      var path = '/review_regression/double_close.db';
+      var path = 'review_regression/double_close.db';
       await factory.deleteDatabase(path);
       var db1 = await factory.openDatabase(path);
       await db1.close();
@@ -352,7 +352,7 @@ void main() {
 
     test('two opens waiting for a close get the same instance', () async {
       var factory = DatabaseFactoryMemoryFs();
-      var path = '/review_regression/concurrent_open.db';
+      var path = 'review_regression/concurrent_open.db';
       await factory.deleteDatabase(path);
       var db1 = await factory.openDatabase(path);
       var closeFuture = db1.close();
@@ -375,7 +375,7 @@ void main() {
 
     test('deleteDatabase deletes a leftover compaction file', () async {
       var factory = DatabaseFactoryMemoryFs();
-      var path = '/review_regression/tmp_delete/t.db';
+      var path = 'review_regression/tmp_delete/t.db';
       var db = await factory.openDatabase(path);
       await store.record(1).put(db, 'current');
       await db.close();
@@ -388,7 +388,7 @@ void main() {
 
     test('mode empty deletes a leftover compaction file', () async {
       var factory = DatabaseFactoryMemoryFs();
-      var path = '/review_regression/tmp_empty/t.db';
+      var path = 'review_regression/tmp_empty/t.db';
       var db = await factory.openDatabase(path);
       await store.record(1).put(db, 'current');
       await db.close();
