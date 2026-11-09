@@ -1,5 +1,8 @@
 ## 3.10.1
 
+* Documentation: getting started per platform (factory, database folder, one code base for
+  mobile/desktop/web), old 1.x API to current API table, common pitfalls, troubleshooting by error
+  message, working pub.dev example, dartdoc of the main entry points, skills updated
 * Fix `find`, `findKeys` and `findFirst` with an offset or a limit and no sort order in a transaction
   that changed records: they now return the first records by key
 * Fix `Finder(limit: 0)` without sort order returning records

@@ -88,7 +88,7 @@ You can get the list of non-empty store names using `getNonEmptyStoreNames(db)` 
 import 'package:sembast/utils/database_utils.dart';
 ...
 // Get the list of non-empty store names
-var names = await getNonEmptyStoreNames(db);
+var names = getNonEmptyStoreNames(db);
 ```
 
 ## Convert int keys to String keys

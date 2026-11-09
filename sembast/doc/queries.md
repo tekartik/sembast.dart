@@ -77,7 +77,7 @@ You can use the `Filter` class to filter records. Simple filter are available:
 * `Filter.equals`
 * `Filter.notEquals`
 * `Filter.isNull`
-* `Filter.noNull`
+* `Filter.notNull`
 * `Filter.lessThan`
 * `Filter.lessThanOrEquals`
 * `Filter.greaterThan`
@@ -85,6 +85,8 @@ You can use the `Filter` class to filter records. Simple filter are available:
 * `Filter.inList`
 * `Filter.matches`
 * `Filter.matchesRegExp`
+* `Filter.arrayContains`, `Filter.arrayContainsAny`, `Filter.arrayContainsAll` (list fields)
+* `Filter.byKey`
 * `Filter.custom` (Custom filter, use with caution and do not modify record data as it
   provides a raw access to the record internal value for efficiency.)
 

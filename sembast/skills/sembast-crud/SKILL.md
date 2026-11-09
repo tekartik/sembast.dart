@@ -7,7 +7,9 @@ description: >-
   merge and FieldValue.delete, dotted field paths, db.transaction and the
   Transaction/DatabaseClient parameter, supported value types (Timestamp, Blob,
   immutable read values, cloneMap) and store change triggers
-  (addOnChangesListener). Opening databases and queries have their own skills.
+  (addOnChangesListener), also to rewrite removed 1.x calls (db.put,
+  db.getStore, Store, Record). Opening databases and queries have their own
+  skills.
 ---
 
 # sembast: stores, records, writes and transactions
@@ -55,6 +57,11 @@ Future<void> demo(Database db) async {
   database.
 * Declare stores and fixed records as top-level `final` variables and reuse
   them; `store.record(key)` and `store.records(keys)` are cheap.
+* Code calling `db.put(value, key)`, `db.get(key)`, `db.getStore(name)` or
+  using the `Store`/`Record` classes is the 1.x API, removed: write
+  `store.record(key).put(db, value)`, `store.record(key).get(db)`,
+  `intMapStoreFactory.store(name)` (full table in the
+  `sembast-database-setup` skill).
 * `RecordsRef` (from `store.records([k1, k2])` or
   `store.recordsFromRefs(refs)`) batches operations on known keys: `get`,
   `getSnapshots`, `add`, `put`, `update`, `delete`, `onSnapshots`, plus
@@ -90,10 +97,12 @@ Future<void> demo(Database db) async {
 * Supported value types: `String`, `int`, `double`, `bool`, `null` (inside
   maps and lists only), `Map<String, Object?>`, `List<Object?>`, `Timestamp`
   (`package:sembast/timestamp.dart`) and `Blob`
-  (`package:sembast/blob.dart`). Anything else (`DateTime`, `Uint8List`,
-  `Iterable`, enums, custom classes) throws `ArgumentError` on write. Convert
-  with `Timestamp.fromDateTime(dt)` / `timestamp.toDateTime()`,
-  `Blob(bytes)` / `blob.bytes`, `iterable.toList()`, `myEnum.name`.
+  (`package:sembast/blob.dart`). Anything else (`DateTime`, `Iterable`,
+  enums, custom classes) throws `ArgumentError` on write. A `Uint8List` is
+  accepted but stored as a plain list of ints: wrap it in a `Blob`. Convert
+  with `Timestamp.fromDateTime(dt)` / `timestamp.toDateTime()` (or store
+  `millisecondsSinceEpoch`), `Blob(bytes)` / `blob.bytes`,
+  `iterable.toList()`, `myEnum.name`.
 * A record's root value cannot be `null`; `put(db, null)` throws.
 * Maps are cast to `Map<String, Object?>` and lists to `List<Object?>` on
   write. Typed maps such as `Map<String, int>` work; `Map<int, ...>` does not.
@@ -109,10 +118,13 @@ Future<void> demo(Database db) async {
 * Group more than one write in `db.transaction((txn) async { ... })`. It is
   atomic (an exception rolls back every change and is rethrown) and much
   faster than separate writes: each standalone write is its own transaction.
-* Inside the callback use only `txn`. Calling any method with `db` inside
-  a transaction deadlocks (the call waits for the transaction that waits for
-  it). Set `debugSembastWarnDatabaseCallInTransaction = true` during
+* Inside the callback use only `txn`. A write with `db` inside a
+  transaction deadlocks (the call waits for the transaction that waits for
+  it); a read with `db` does not see the pending changes of the
+  transaction. Set `debugSembastWarnDatabaseCallInTransaction = true` during
   development to get a printed diagnosis after 10 s.
+* `await` every call. An unawaited write is not done when the next line
+  runs and its error escapes the surrounding `try`/`catch`.
 * The callback may return a value: `var key = await db.transaction((txn)
   => store.add(txn, value));`.
 * Write helpers that take a `DatabaseClient client` parameter so they work
@@ -344,11 +356,13 @@ void setupTriggers(Database db) {
 
 ## Common mistakes
 
-* Using `db` instead of `txn` inside `db.transaction`: deadlock.
+* Using `db` instead of `txn` inside `db.transaction`: a write deadlocks, a
+  read misses the transaction changes.
 * Expecting `record.update` to create the record. It returns `null` and
   writes nothing; use `put` for upsert.
-* Storing `DateTime`, `Uint8List`, an enum or a model object directly.
-  Convert to `Timestamp`, `Blob`, `String` or `Map<String, Object?>` first.
+* Storing `DateTime`, an enum or a model object directly (`ArgumentError`),
+  or raw `Uint8List` bytes. Convert to `Timestamp`, `Blob`, `String` or
+  `Map<String, Object?>` first.
 * Mutating a map returned by `get`/`find` (`StateError('read only')`).
   `cloneMap` it.
 * Passing dotted keys to `add`/`put` expecting nesting. Only `update` and

@@ -1,8 +1,7 @@
 # sembast
 
 [![pub package](https://img.shields.io/pub/v/sembast.svg)](https://pub.dev/packages/sembast)
-[![Build Status](https://travis-ci.org/tekartik/sembast.dart.svg?branch=master)](https://travis-ci.org/tekartik/sembast.dart)
-[![codecov](https://codecov.io/gh/tekartik/sembast.dart/branch/master/graph/badge.svg)](https://codecov.io/gh/tekartik/sembast.dart)
+[![Run CI](https://github.com/tekartik/sembast.dart/actions/workflows/run_ci.yml/badge.svg)](https://github.com/tekartik/sembast.dart/actions/workflows/run_ci.yml)
 
 NoSQL persistent embedded file system document-based database for Dart VM and Flutter with encryption support.
 
@@ -30,4 +29,6 @@ Follow the [guide](https://github.com/tekartik/sembast.dart/blob/master/sembast/
 
 ## Documentation
 
-* [Documentation](https://github.com/tekartik/sembast.dart/blob/master/sembast/README.md)
+* [Documentation](https://github.com/tekartik/sembast.dart/blob/master/sembast/README.md), starting with
+  [Getting started](https://github.com/tekartik/sembast.dart/blob/master/sembast/README.md#getting-started)
+* Web: [sembast_web](https://github.com/tekartik/sembast.dart/blob/master/sembast_web/README.md)

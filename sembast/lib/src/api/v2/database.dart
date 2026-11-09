@@ -9,6 +9,11 @@ export 'package:sembast/src/api/field.dart' show Field, FieldValue, FieldKey;
 /// Database.
 ///
 /// The database object and client for the store and record operations
+///
+/// Get it from [DatabaseFactory.openDatabase], once, and keep it for the
+/// lifetime of the app. Pass it as the first argument of the store and record
+/// methods (`store.add(db, value)`, `store.record(key).get(db)`). Inside
+/// [transaction], pass the transaction instead.
 abstract class Database implements DatabaseClient {
   /// Version of the database
   int get version;
@@ -18,6 +23,18 @@ abstract class Database implements DatabaseClient {
 
   /// execute the action in a transaction
   /// use the current if any
+  ///
+  /// The changes are all committed when [action] completes, or none of them
+  /// if it throws. Use the [Transaction] given to [action] for every call
+  /// inside it: a write with this database waits for the transaction to end
+  /// (deadlock).
+  ///
+  /// ```dart
+  /// await db.transaction((txn) async {
+  ///   await store.add(txn, {'name': 'cat'});
+  ///   await store.add(txn, {'name': 'dog'});
+  /// });
+  /// ```
   Future<T> transaction<T>(
     FutureOr<T> Function(Transaction transaction) action,
   );

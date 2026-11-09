@@ -1,15 +1,20 @@
 ---
 name: sembast-database-setup
 description: >-
-  Use when opening, configuring, migrating, testing or exporting a
-  package:sembast database: DatabaseFactory, databaseFactoryIo
-  (sembast_io.dart), databaseFactoryMemory / newDatabaseFactoryMemory /
-  openNewInMemoryDatabase (sembast_memory.dart), openDatabase path, version and
-  onVersionChanged migrations, DatabaseMode, close, deleteDatabase, the
-  factory.sandbox() extension, SembastCodec encryption and async codecs,
-  exportDatabase / importDatabase, databaseMerge, choosing sembast_web or
-  sembast_sqflite per platform, Flutter path_provider setup, unit tests and
-  disableSembastCooperator.
+  Use when starting with, opening, configuring, migrating, testing or
+  exporting a package:sembast database, or fixing old sembast code: which
+  factory per platform (databaseFactoryIo from sembast_io.dart for Dart VM
+  and Flutter mobile/desktop, databaseFactoryWeb from sembast_web,
+  newDatabaseFactoryMemory / databaseFactoryMemory for tests,
+  sembast_sqflite), the database folder (path_provider
+  getApplicationSupportDirectory vs getApplicationDocumentsDirectory), one
+  Flutter code base for mobile, desktop and web (kIsWeb or conditional
+  import), opening once and keeping the Database, version/onVersionChanged
+  migrations, DatabaseMode, close, deleteDatabase, sandbox(), SembastCodec
+  encryption, exportDatabase / importDatabase, databaseMerge, the removed
+  1.x API (db.put, db.get, db.getStore, Store, Record, findRecords,
+  Filter.equal), common pitfalls (opening twice, DateTime, read only maps,
+  db in a transaction), unit tests and disableSembastCooperator.
 ---
 
 # sembast: opening, migrating and managing a database
@@ -20,11 +25,12 @@ so open it once at startup and keep a single `Database` instance for the
 application lifetime.
 
 ```dart
+import 'package:path/path.dart';
 import 'package:sembast/sembast_io.dart';
 
 Future<Database> openAppDatabase(String dir) async {
   // sembast_io.dart re-exports sembast.dart and provides databaseFactoryIo.
-  return databaseFactoryIo.openDatabase('$dir/app.db', version: 1);
+  return databaseFactoryIo.openDatabase(join(dir, 'app.db'), version: 1);
 }
 ```
 
@@ -32,18 +38,26 @@ Future<Database> openAppDatabase(String dir) async {
 
 ### Choosing the factory (platform)
 
-* Dart VM and Flutter mobile/desktop: `databaseFactoryIo` from
-  `package:sembast/sembast_io.dart`. One JSON-lines file per database, pure
-  Dart, no plugin. Not cross-process and not cross-isolate safe: use it from
-  the main isolate only.
-* Web and Flutter web: `databaseFactoryWeb` from `package:sembast_web`
-  (IndexedDB, cross-tab safe). `databaseFactoryIo` compiles on the web but
-  throws `UnimplementedError` at runtime. Select the factory with a
-  conditional import (`sembast-web-setup` skill).
-* Cross-process safety on VM/Flutter (several processes on the same file):
-  `sembast_sqflite` (`getDatabaseFactorySqflite`). The Flutter package
-  `tekartik_app_flutter_sembast` bundles a `getDatabaseFactory()` that picks
-  the right one per platform.
+| Platform | Package, import | Factory |
+|---|---|---|
+| Dart VM (CLI, server), Flutter Android, iOS, macOS, Windows, Linux | `sembast`, `package:sembast/sembast_io.dart` | `databaseFactoryIo` |
+| Web, Flutter web (JS and WASM) | `sembast_web`, `package:sembast_web/sembast_web.dart` | `databaseFactoryWeb` |
+| Unit tests (nothing saved) | `sembast`, `package:sembast/sembast_memory.dart` | `newDatabaseFactoryMemory()`, `databaseFactoryMemory` |
+| Flutter, stored in SQLite, cross process safe | `sembast_sqflite` + `sqflite` | `getDatabaseFactorySqflite(sqflite.databaseFactory)` |
+
+* The rest of the API (stores, records, queries, transactions, listeners)
+  is the same with every factory.
+* `databaseFactoryIo`: one JSON-lines file per database, pure Dart, no
+  plugin. Not cross-process and not cross-isolate safe: use it from the main
+  isolate only.
+* `databaseFactoryWeb`: IndexedDB, cross-tab safe (`sembast-web-setup`
+  skill). `databaseFactoryIo` compiles on the web but throws
+  `UnimplementedError` when used; `databaseFactoryWeb` compiles on io and
+  throws there.
+* `sembast_sqflite` (`sembast-sqflite-setup` skill): several processes on
+  the same file. The git package `tekartik_app_flutter_sembast` (not on
+  pub.dev) has a `getDatabaseFactory()` that picks sembast_web on the web
+  and sembast_sqflite elsewhere.
 * Tests and mocks: `newDatabaseFactoryMemory()` (a fresh isolated factory)
   or `openNewInMemoryDatabase()` (an always-empty database) from
   `package:sembast/sembast_memory.dart`. `databaseFactoryMemory` is a shared
@@ -56,28 +70,66 @@ Future<Database> openAppDatabase(String dir) async {
   gives the `path.Context` used and `factory.hasStorage` is false for
   memory.
 
-### Opening
+### Dependencies
 
-* `factory.openDatabase(path, {version, onVersionChanged, mode, codec})`.
-  On io `path` is a file path (create the parent directory first, see the
-  Flutter example). Opening an already open database returns the same
-  instance.
+* Dart: `dart pub add sembast`. Flutter: `flutter pub add sembast
+  path_provider path`, plus `sembast_web` when the app targets the web.
+  Avoid copying version numbers from old tutorials; `pub add` takes the
+  latest.
+
+### Opening once
+
+* `factory.openDatabase(path, {version, onVersionChanged, mode, codec})`
+  loads everything in memory: open once at startup (in `main()` before
+  `runApp`, or lazily behind a single cached `Future<Database>`) and pass
+  the same `Database` everywhere. Never open/close around each operation.
+* Opening a path already open (same factory) returns the same instance; its
+  `version` and `onVersionChanged` are ignored and a `close()` anywhere
+  closes it for every user. Two processes, two isolates or two io factories
+  writing one file lose data.
 * `mode` defaults to `DatabaseMode.neverFails` (create if missing, delete
   and recreate when corrupted). Others: `create` (create if missing, fail on
   corruption), `existing` (fail when missing), `empty` (wipe content),
   `readOnly` (fail when missing, no writes).
 * `db.version`, `db.path`, `await db.close()`. Close before deleting:
   `factory.deleteDatabase(path)`; `factory.databaseExists(path)` checks.
-* In Flutter, build the path with `path_provider`
-  (`getApplicationDocumentsDirectory()`) and `package:path` `join`. Never
-  hard-code a directory. Open in `main()` before `runApp`, or lazily behind a
-  single cached `Future<Database>`.
 * On Flutter, wrap the open in `disableSembastCooperator()` /
   `enableSembastCooperator()` if the splash screen should not yield, and call
   `disableSembastCooperator()` once in `flutter_test` files (the cooperator's
   `Future.delayed` can hang there).
 * Size guidance: io below ~100K records / 100 MB, web below ~30K records.
   Open time grows with record count.
+
+### Database folder
+
+* Dart VM: any path, absolute or relative to the current directory. Missing
+  parent folders are created by the io factory.
+* Flutter: never a relative path. Use `path_provider`
+  `getApplicationSupportDirectory()` joined with `package:path` `join`
+  (`await dir.create(recursive: true)` is harmless). It is a private app
+  folder everywhere: Android `files`, iOS `Library/Application Support`
+  (backed up, hidden), macOS `~/Library/Application Support/<bundle id>`
+  (inside the container when sandboxed, no entitlement needed), Windows
+  `%APPDATA%\<company>\<product>` (from `windows/runner/Runner.rc`), Linux
+  `~/.local/share/<application id>`.
+* Avoid `getApplicationDocumentsDirectory()` for new apps: on Windows, Linux
+  and macOS it is the user's Documents folder; on iOS it is visible in the
+  Files app when file sharing is enabled. An existing app that already uses
+  it must keep it (or move the file): a new path is a new, empty database.
+* Call `WidgetsFlutterBinding.ensureInitialized()` before `path_provider`
+  in `main()`. `path_provider` is not available in `flutter test`: use the
+  memory factory there.
+* Web: no folder, the path is the IndexedDB database name.
+
+### One code base for mobile, desktop and web
+
+* Both `package:sembast/sembast_io.dart` and
+  `package:sembast_web/sembast_web.dart` import on every platform, so in
+  Flutter a `kIsWeb` test picks the factory; resolve the folder only on io
+  (example below).
+* Without Flutter, or to keep `path_provider` out of the web build, use a
+  conditional import: `export 'open_db_io.dart' if (dart.library.js_interop)
+  'open_db_web.dart';` (example in the `sembast-web-setup` skill).
 
 ### Versioning and migrations
 
@@ -141,6 +193,33 @@ Future<Database> openAppDatabase(String dir) async {
 * `DatabaseException.code` values: `errBadParam`, `errDatabaseNotFound`,
   `errInvalidCodec`, `errDatabaseClosed` (using a closed database).
 
+### The removed 1.x API
+
+The 1.x API (removed in 2.3.0) is still in old tutorials and generated code;
+it does not compile. Stores and records are now references holding no data,
+and every call takes the `Database` (or the `Transaction`) first.
+
+| Old 1.x code | Current code |
+|---|---|
+| `db.put(value, key)`, `db.get(key)` | `StoreRef.main().record(key).put(db, value)`, `.get(db)` |
+| `Store store = db.getStore('pets')` | `final store = intMapStoreFactory.store('pets')` (or `stringMapStoreFactory`, `StoreRef<K, V>('pets')`) |
+| `store.put(value)` (generated key) | `store.add(db, value)` |
+| `store.put(value, key)`, `store.get(key)` | `store.record(key).put(db, value)`, `store.record(key).get(db)` |
+| `store.update(value, key)`, `store.delete(key)` | `store.record(key).update(db, value)`, `store.record(key).delete(db)` |
+| `db.putRecord(Record(store, value, key))` | `store.record(key).put(db, value)` |
+| `store.getRecord(key)` (`Record`) | `store.record(key).getSnapshot(db)` (`RecordSnapshot`) |
+| `store.findRecords(finder)`, `store.findRecord(finder)` | `store.find(db, finder: finder)`, `store.findFirst(db, finder: finder)` |
+| `store.count(filter)`, `store.containsKey(key)` | `store.count(db, filter: filter)`, `store.record(key).exists(db)` |
+| `store.clear()`, `db.deleteStore('pets')` | `store.delete(db)`, `store.drop(db)` |
+| `db.storeNames` | `getNonEmptyStoreNames(db)` (`utils/database_utils.dart`) |
+| `txn.put(...)`, `txn.getStore(...)` | the calls above with `txn` instead of `db` |
+| `Filter.equal`, `Filter.notEqual` | `Filter.equals`, `Filter.notEquals` |
+| `record['f'] = v` on a read record | `cloneMap(snapshot.value)`, modify, `put` it |
+| `ioDatabaseFactory`, `memoryDatabaseFactory` | `databaseFactoryIo`, `databaseFactoryMemory` |
+
+`Finder`, `SortOrder`, `Boundary` and the other `Filter` constructors are
+unchanged. Full table: `doc/new_api.md` in the package repository.
+
 ## Examples
 
 ### Flutter: single global database opened at startup
@@ -150,17 +229,43 @@ import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sembast/sembast_io.dart';
 
-Database? _db;
+Future<Database>? _db;
 
-Future<Database> getDatabase() async {
-  if (_db != null) return _db!;
-  var dir = await getApplicationDocumentsDirectory();
+/// The app database, opened on the first call only.
+Future<Database> getDatabase() => _db ??= _openDatabase();
+
+Future<Database> _openDatabase() async {
+  // Private app folder (not the user's Documents folder on desktop).
+  var dir = await getApplicationSupportDirectory();
   await dir.create(recursive: true);
   var dbPath = join(dir.path, 'my_app.db');
-  _db = await databaseFactoryIo.openDatabase(dbPath, version: 1);
-  return _db!;
+  return databaseFactoryIo.openDatabase(dbPath, version: 1);
 }
 ```
+
+### Flutter: one code base for mobile, desktop and web
+
+```dart
+import 'package:flutter/foundation.dart';
+import 'package:path/path.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:sembast/sembast_io.dart';
+import 'package:sembast_web/sembast_web.dart';
+
+/// Opens the app database on mobile, desktop and web.
+Future<Database> openAppDatabase() async {
+  if (kIsWeb) {
+    // On the web the path is the IndexedDB database name.
+    return databaseFactoryWeb.openDatabase('my_app.db');
+  }
+  final dir = await getApplicationSupportDirectory();
+  await dir.create(recursive: true);
+  return databaseFactoryIo.openDatabase(join(dir.path, 'my_app.db'));
+}
+```
+
+Call it once from `main()` after `WidgetsFlutterBinding.ensureInitialized()`
+and keep the result (a global, a provider, a service locator).
 
 ### Dart VM script with a sandboxed factory
 
@@ -336,12 +441,24 @@ Future<Database> restore() =>
 
 ## Common mistakes
 
-* Opening the database in several places or on every screen. Keep one
-  instance; opening is the expensive operation.
+* Opening the database in several places, on every screen or around each
+  call. Keep one instance; opening is the expensive operation, and a second
+  open of the same path silently ignores its `version`.
 * Using `databaseFactoryIo` in a Flutter web build (runtime
   `UnimplementedError`), or `databaseFactoryMemory` in production.
-* Forgetting `dir.create(recursive: true)` on Flutter, or using a relative
-  path such as `'app.db'` on mobile.
+* A relative path such as `'app.db'` in a Flutter app, or
+  `getApplicationDocumentsDirectory()` on desktop (the user's Documents
+  folder). Use `getApplicationSupportDirectory()`.
+* Changing the folder of an existing app: the users get an empty database.
+* Calling `path_provider` in `main()` before
+  `WidgetsFlutterBinding.ensureInitialized()`.
+* Writing 1.x code (`db.put(value, key)`, `db.getStore`, `Store`, `Record`,
+  `findRecords`, `Filter.equal`): see the table above.
+* Not awaiting writes, or using `db` instead of `txn` inside a transaction
+  (a write deadlocks, a read misses the pending changes).
+* Storing a `DateTime` (`ArgumentError`): use `Timestamp`, an `int` or an
+  ISO 8601 `String`. Modifying a map read from the database
+  (`StateError: read only`): `cloneMap` it first.
 * Opening without `version` then adding one later: the existing database is
   already at version 1, so creation logic guarded by `oldVersion == 0` never
   runs for old installs. Handle `oldVersion == 1` too.

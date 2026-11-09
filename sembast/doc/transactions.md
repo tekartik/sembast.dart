@@ -145,7 +145,7 @@ Future<void> updateProducts(
   await db.transaction((transaction) async {
     var productIds =
     products.map((map) => map['id'] as String).toList();
-    var map = await getProductsByIds(db, productIds);
+    var map = await getProductsByIds(transaction, productIds);
     // Watch for deleted item
     var keysToDelete = (await store.findKeys(transaction)).toList();
     for (var product in products) {

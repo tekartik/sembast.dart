@@ -3,8 +3,9 @@ name: sembast-web-setup
 description: >-
   Use when a sembast database must work in a browser or Flutter web app:
   package:sembast_web, databaseFactoryWeb, databaseFactoryWebWorker,
-  IndexedDB database names, choosing the factory per platform with a
-  conditional import next to sembast_io / sembast_sqflite, cross-tab
+  IndexedDB database names (no path_provider, no folder), one code base for
+  web, mobile and desktop (kIsWeb or a conditional import choosing
+  databaseFactoryWeb or sembast_io / sembast_sqflite), cross-tab
   synchronization, re-run (idempotent) transactions, checkForChanges, web
   limitations (int/String keys, JavaScript number range, size, codecs) and
   testing web code on the VM with the memory jdb factory.
@@ -42,9 +43,12 @@ Future<void> demo() async {
   `databaseFactoryWebWorker` (inside a web worker). `sembast_web_html.dart`
   only holds a deprecated `databaseFactoryWeb` alias; do not use it.
 * The import compiles on the VM and in Flutter mobile/desktop builds, but
-  the getters throw `UnimplementedError` there. Select the factory with a
-  conditional import when the app also targets io (example below), or use
-  `tekartik_app_flutter_sembast`'s `getDatabaseFactory()` which does it.
+  the getters throw `UnimplementedError` there. `package:sembast/sembast_io.dart`
+  also compiles on the web (its `databaseFactoryIo` throws there). So in
+  Flutter, `kIsWeb` is enough to pick the factory; without Flutter, or to
+  keep `path_provider` out of the web build, use a conditional import
+  (examples below). The git package `tekartik_app_flutter_sembast` (not on
+  pub.dev) has a `getDatabaseFactory()` doing it with sembast_sqflite.
 
 ### Database name and location
 
@@ -54,6 +58,8 @@ Future<void> demo() async {
 * Directory-like names (`'data/my.db'`) are allowed; they are just names.
   `factory.sandbox(path: 'prefix')` from sembast prefixes them. There is no
   file, no `path_provider`, no directory creation.
+* Open the database once at startup and keep the `Database`; opening is
+  the slow part (the whole database is loaded in memory).
 * `deleteDatabase(name)` and `databaseExists(name)` work. Close the database
   before deleting it.
 * Storage is per browser profile and subject to the browser's IndexedDB
@@ -82,7 +88,8 @@ Future<void> demo() async {
   generated string keys work.
 * Values: the sembast types (`String`, `num`, `bool`, `null`,
   `Map<String, Object?>`, `List<Object?>`, `Timestamp`, `Blob`). `DateTime`
-  and `Uint8List` are still rejected: use `Timestamp` and `Blob`.
+  is still rejected (`ArgumentError`) and a `Uint8List` is stored as a plain
+  list of ints: use `Timestamp` and `Blob`.
 * When compiled to JavaScript (not WASM) an `int` is a JS number: values and
   keys above 2^53 lose precision. Store 64-bit ids as `String`.
 * `Timestamp` round-trips at microsecond precision on the VM but the
@@ -106,75 +113,88 @@ Future<void> demo() async {
 
 ## Examples
 
-### Factory selection with a conditional import
-
-`lib/db/db_factory.dart`:
+### Flutter: pick the factory with kIsWeb
 
 ```dart
-import 'package:sembast/sembast.dart';
-
-import 'db_factory_stub.dart'
-    if (dart.library.js_interop) 'db_factory_web.dart'
-    if (dart.library.io) 'db_factory_io.dart' as impl;
-
-/// The database factory for the current platform.
-DatabaseFactory get appDatabaseFactory => impl.appDatabaseFactory;
-
-/// Resolves the database path or name for the current platform.
-Future<String> appDatabasePath(String name) => impl.appDatabasePath(name);
-```
-
-`lib/db/db_factory_web.dart`:
-
-```dart
+import 'package:flutter/foundation.dart';
+import 'package:path/path.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:sembast/sembast_io.dart';
 import 'package:sembast_web/sembast_web.dart';
 
-DatabaseFactory get appDatabaseFactory => databaseFactoryWeb;
-
-// IndexedDB name: nothing to resolve.
-Future<String> appDatabasePath(String name) async => name;
+/// Opens the app database on mobile, desktop and web.
+Future<Database> openAppDatabase() async {
+  if (kIsWeb) {
+    // On the web the path is the IndexedDB database name.
+    return databaseFactoryWeb.openDatabase('my_app.db');
+  }
+  // Private app folder (not the user's Documents folder on desktop).
+  final dir = await getApplicationSupportDirectory();
+  await dir.create(recursive: true);
+  return databaseFactoryIo.openDatabase(join(dir.path, 'my_app.db'));
+}
 ```
 
-`lib/db/db_factory_io.dart` (Flutter, with `path_provider`):
+### Factory selection with a conditional import
+
+The io file is the default, the web file is used when `dart:js_interop`
+exists (JavaScript and WASM builds), so `path_provider` and `dart:io` stay
+out of the web build.
+
+`lib/db/open_db.dart`:
+
+```dart
+export 'open_db_io.dart' if (dart.library.js_interop) 'open_db_web.dart';
+```
+
+`lib/db/open_db_io.dart` (Flutter, with `path_provider`; a Dart program
+uses a folder of its choice):
 
 ```dart
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sembast/sembast_io.dart';
 
-DatabaseFactory get appDatabaseFactory => databaseFactoryIo;
-
-Future<String> appDatabasePath(String name) async {
-  var dir = await getApplicationDocumentsDirectory();
+/// Opens the app database on Android, iOS, macOS, Windows and Linux.
+Future<Database> openAppDatabase(String name) async {
+  final dir = await getApplicationSupportDirectory();
   await dir.create(recursive: true);
-  return join(dir.path, name);
+  return databaseFactoryIo.openDatabase(join(dir.path, name));
 }
 ```
 
-`lib/db/db_factory_stub.dart`:
+`lib/db/open_db_web.dart`:
 
 ```dart
-import 'package:sembast/sembast.dart';
+import 'package:sembast_web/sembast_web.dart';
 
-DatabaseFactory get appDatabaseFactory =>
-    throw UnsupportedError('No sembast factory for this platform');
-
-Future<String> appDatabasePath(String name) =>
-    throw UnsupportedError('No sembast factory for this platform');
+/// Opens the app database on the web, [name] is the IndexedDB database name.
+Future<Database> openAppDatabase(String name) =>
+    databaseFactoryWeb.openDatabase(name);
 ```
 
 Usage, identical on every platform:
 
 ```dart
+import 'package:flutter/material.dart';
 import 'package:sembast/sembast.dart';
 
-import 'db/db_factory.dart';
+import 'db/open_db.dart';
 
-Future<Database> openAppDatabase() async {
-  var path = await appDatabasePath('my_app.db');
-  return appDatabaseFactory.openDatabase(path, version: 1);
+/// The app database, opened once in main().
+late final Database db;
+
+Future<void> main() async {
+  // Needed before calling path_provider in main().
+  WidgetsFlutterBinding.ensureInitialized();
+  db = await openAppDatabase('my_app.db');
+  runApp(const MyApp());
 }
 ```
+
+To use `sembast_sqflite` on mobile, open the database in the io file with a
+top-level `final factory = getDatabaseFactorySqflite(sqflite.databaseFactory);`
+instead of `databaseFactoryIo` (`sembast-sqflite-setup` skill).
 
 ### Idempotent transaction (safe when re-run after a concurrent write)
 
@@ -239,11 +259,14 @@ void main() {
 
 * Using `databaseFactoryIo` in a web build (`UnimplementedError`) or
   `databaseFactoryWeb` in a mobile build; use the conditional import.
-* Treating the database name as a file path (`getApplicationDocumentsDirectory`
-  does not exist on the web).
+* Treating the database name as a file path (`path_provider` does not work
+  on the web).
+* Opening the database in each widget or call instead of once at startup.
 * Running non-idempotent code inside `db.transaction` (network calls,
   counters in closures): it can execute twice on the web.
 * Debugging Flutter web on a random port and losing the IndexedDB data.
 * Storing 64-bit integers or `DateTime` values; use `String` ids and
   `Timestamp`.
+* Copying old 1.x code (`db.put(value, key)`, `db.getStore`, `Store`,
+  `Record`): rewrite it with `StoreRef` (`sembast-database-setup` skill).
 * Relying on browser storage as the only copy of important data.

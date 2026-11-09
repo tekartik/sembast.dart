@@ -1,6 +1,6 @@
 # sembast CRUD API reference
 
-All from `package:sembast/sembast.dart` (version 3.8.x). `client` is a
+All from `package:sembast/sembast.dart` (version 3.10.x). `client` is a
 `DatabaseClient`: a `Database` or a `Transaction`. `db` must be a `Database`.
 
 ## StoreRef<K, V>

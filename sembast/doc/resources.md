@@ -5,7 +5,7 @@ if you find good information, application or tutorial.
 
 ## Tutorial
 
-* [demosembast](https://github.com/alextekartik/flutter_app_example/tree/master/demosembast): Bare minimum flutter application working on all platforms (iOS/Android/Mac/Web) (+ Linux/Windows with some additionnal setup)
+* [demo_sembast](https://github.com/alextekartik/flutter_app_example/tree/master/demo_sembast): Bare minimum flutter application working on all platforms (iOS/Android/Mac/Web) (+ Linux/Windows with some additionnal setup)
 * [notepad_sembast](https://github.com/alextekartik/flutter_app_example/tree/master/notepad_sembast): Simple notepad on all platforms
   ([online demo](https://alextekartik.github.io/flutter_app_example/notepad_sembast/))
 * [Reso Coder tutorial](https://www.youtube.com/watch?v=LcaOULash7s): Flutter NoSQL Database – SEMBAST Tutorial (w/ BLoC), 2019-04-06

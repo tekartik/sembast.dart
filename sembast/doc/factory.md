@@ -14,11 +14,21 @@ database, you might loose data).
 Obviously this does not work with persistence on the web, so the package `sembast_web` exposes
 `databaseFactoryWeb` that works on top of indexed_db and that is cross-tab safe.
 
-On IO application (flutter web/mobile, DartVM), my recommendation is to use `sembast_sqflite`
+On IO application (Flutter mobile/desktop, DartVM), my recommendation is to use `sembast_sqflite`
 which implements sembast on top of sqflite which is cross process safe (i.e. no corruption).
 
-The flutter git project [tekartik_app_sembast](https://github.com/tekartik/app_flutter_utils.dart/tree/master/app_sembast) 
-proposes any opiniated implementation for a getting the proper factory on all platforms
+The flutter git project [tekartik_app_flutter_sembast](https://github.com/tekartik/app_flutter_utils.dart/tree/master/app_sembast)
+(not published on pub.dev) proposes an opinionated implementation for getting the proper factory on all platforms
 using a `getDatabaseFactory()` exported method (i.e. it will use `sembast_web` on the web, and `sembast_sqflite` for Mobile/Desktop).
 The implementation is available as an example, you might decide for a different database location on the desktop using
 `path_provider` package.
+
+| Platform | Package | Factory |
+|---|---|---|
+| Dart VM, Flutter Android, iOS, macOS, Windows, Linux | `sembast` (`sembast_io.dart`) | `databaseFactoryIo` |
+| Web, Flutter web | `sembast_web` | `databaseFactoryWeb` |
+| Unit tests | `sembast` (`sembast_memory.dart`) | `newDatabaseFactoryMemory()`, `databaseFactoryMemory` |
+| Flutter, stored in SQLite (cross process safe) | `sembast_sqflite` | `getDatabaseFactorySqflite(sqflite.databaseFactory)` |
+
+See [Opening a database](open.md) for the database location on each platform and for using one code base on all
+platforms.
