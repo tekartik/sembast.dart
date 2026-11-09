@@ -248,44 +248,58 @@ void defineTests(DatabaseTestContext ctx) {
         }
       });
 
+      /// Opens [dbPath] at [version], returns the upgrades run ('old->new').
+      Future<List<String>> reopenUpgrades(int version) async {
+        var upgrades = <String>[];
+        var db = await factory.openDatabase(
+          dbPath,
+          version: version,
+          onVersionChanged: (db, oldVersion, newVersion) {
+            upgrades.add('$oldVersion->$newVersion');
+          },
+        );
+        try {
+          expect(db.version, version);
+          // Not written by the failed upgrade.
+          expect(await store.record(2).get(db), isNull);
+        } finally {
+          await db.close();
+        }
+        return upgrades;
+      }
+
+      // A failed upgrade is not committed: the next open runs it again
+      // (both checks were disabled, the second test had no fail(), review of
+      // 2026-11-09; every factory passes them).
       test('throw during first onVersionChanged', () async {
         try {
           await factory.openDatabase(
             dbPath,
             version: 1,
             onVersionChanged: (db, _, _) async {
+              await store.record(2).put(db, 'upgrade');
               throw TestException();
             },
           );
           fail('should fail');
         } on TestException catch (_) {}
-        // This fails on idb...
-        // ignore: dead_code
-        if (false) {
-          if (hasStorage(factory)) {
-            expect(await getExistingDatabaseVersion(factory, dbPath), 0);
-          }
-        }
+        expect(await reopenUpgrades(1), ['0->1']);
       });
 
       test('throw during second onVersionChanged', () async {
         await (await factory.openDatabase(dbPath)).close();
-        if (hasStorage(factory)) {
-          try {
-            await factory.openDatabase(
-              dbPath,
-              version: 2,
-              onVersionChanged: (db, _, _) async {
-                throw TestException();
-              },
-            );
-          } on TestException catch (_) {}
-          // This fails on sqflite...
-          // ignore: dead_code
-          if (false) {
-            expect(await getExistingDatabaseVersion(factory, dbPath), 1);
-          }
-        }
+        try {
+          await factory.openDatabase(
+            dbPath,
+            version: 2,
+            onVersionChanged: (db, _, _) async {
+              await store.record(2).put(db, 'upgrade');
+              throw TestException();
+            },
+          );
+          fail('should fail');
+        } on TestException catch (_) {}
+        expect(await reopenUpgrades(2), ['1->2']);
       });
     });
   });

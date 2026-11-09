@@ -35,9 +35,14 @@ codec / import-export suite for free.
         path: sembast_test
     test:
   ```
-  The README still shows `ref: dart2_3`; that is a legacy branch. Real
-  consumers (`sembast_sqflite_common_test`, `tekartik_sembast_flutter`) depend
-  on the default branch with no `ref:`.
+  Use the default branch, no `ref:` (`dart2_3` is a legacy branch), as the
+  real consumers do (`sembast_sqflite_common_test`,
+  `sembast_web_html_compat`).
+* Who runs the suites: memory, memory fs, memory jdb, io and jdb on idb_shim
+  (memory, io, native IndexedDB in Chrome dart2js + dart2wasm) in this
+  package's `test/`; sembast_sqflite in `sembast_sqflite_common_test`; jdb on
+  `idb_shim_html_compat` in `idb_shim_more` (`sembast_web_html_compat`). A
+  behaviour shared by the factories gets its test here.
 * It is a test-only package: never import it from `lib/` of a shipped package.
   The one exception is a `*_test` helper package that re-exports contexts for
   its own consumers (see `sembast_sqflite_common_test`).
@@ -154,6 +159,13 @@ codec / import-export suite for free.
   package; do not copy the pattern into application code.
 * Expect the suites to create files under `.dart_tool/sembast/test/`; clean
   that directory when a format test misbehaves.
+* Writing a shared test: it must be able to fail (`fail('should fail')` after
+  a call that must throw, catch only the expected type, no check disabled
+  with `if (false)` because one factory fails it: skip the test there with the
+  reason instead), and a broken factory must fail fast (bounded loops, a
+  `timeout:`, wait for the event rather than a fixed delay). Example: the
+  `onVersionChanged` tests check that a failed upgrade is rolled back (the
+  next open runs it again, its writes are gone) on every factory.
 
 ## Examples
 
