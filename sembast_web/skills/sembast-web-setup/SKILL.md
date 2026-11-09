@@ -61,7 +61,9 @@ Future<void> demo() async {
 * Open the database once at startup and keep the `Database`; opening is
   the slow part (the whole database is loaded in memory).
 * `deleteDatabase(name)` and `databaseExists(name)` work. Close the database
-  before deleting it.
+  in every tab before deleting it: the IndexedDB delete waits for every
+  connection to close, it does not complete while another tab has it open.
+  `databaseExists` creates an empty IndexedDB database when there is none.
 * Storage is per browser profile and subject to the browser's IndexedDB
   quota and eviction; treat it as a cache unless persistence is granted.
   Keep it small (guideline: below ~30K records).
@@ -80,7 +82,8 @@ Future<void> demo() async {
   inside the callback.
 * `await db.checkForChanges()` forces an immediate refresh from IndexedDB
   (normally not needed; notifications handle it).
-* `db.compact()` purges the journal history.
+* `db.compact()` removes the journal entries of deleted records (also done
+  at open); a tab behind a compaction reloads the whole database.
 
 ### Data and API limitations
 
@@ -90,15 +93,16 @@ Future<void> demo() async {
   `Map<String, Object?>`, `List<Object?>`, `Timestamp`, `Blob`). `DateTime`
   is still rejected (`ArgumentError`) and a `Uint8List` is stored as a plain
   list of ints: use `Timestamp` and `Blob`.
-* When compiled to JavaScript (not WASM) an `int` is a JS number: values and
-  keys above 2^53 lose precision. Store 64-bit ids as `String`.
+* IndexedDB stores numbers as JavaScript doubles, with WASM builds too:
+  values and keys above 2^53 come back rounded once read from IndexedDB
+  (another tab, the next open). Store 64-bit ids as `String`.
 * `Timestamp` round-trips at microsecond precision on the VM but the
   platform `DateTime` only has millisecond precision on JavaScript; do not
   rely on sub-millisecond values in web code.
-* `codec:` is accepted (sync codecs and `AsyncContentCodecBase`) and the
-  signature is checked, but the README states codecs are not supported on
-  the web and browser-side encryption gives no real protection: keep secrets
-  off the client or encrypt individual fields yourself.
+* `codec:` works (sync codecs and `AsyncContentCodecBase`): the records are
+  stored encoded and the signature is checked at open. The codec ships with
+  the app, so browser-side encryption gives no real protection: keep secrets
+  off the client.
 * Everything else (queries, listeners, triggers, import/export,
   `onVersionChanged` migrations) behaves as in sembast.
 

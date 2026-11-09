@@ -98,5 +98,78 @@ void defineJdbConcurrentDatabaseTests(DatabaseTestContextJdb ctx) {
       await db2.close();
       await db1Subscription.cancel();
     });
+
+    // Regression tests of the 2026-11-09 reviews (sembast 3.10.1, needed by
+    // sembast_web).
+    test('listener after a full reload by checkForChanges', () async {
+      var dbPath = 'concurrent_full_reload_listener.db';
+      var db1 = await ctx.deleteAndOpen(dbPath);
+      var factory = ctx.factory.mixin;
+
+      /// Force opening new instance.
+      factory.removeDatabaseOpenHelper(dbPath);
+      var db2 = await ctx.open(dbPath);
+      var events = <List<int>>[];
+      var subscription = intStore.query().onKeys(db2).listen(events.add);
+      try {
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+        expect(events, [<int>[]]);
+        await intStore.record(1).put(db1, 'a');
+        await intStore.record(1).delete(db1);
+        await intStore.record(3).put(db1, 'c');
+        // The compacted entries are no longer available for a delta import.
+        await db1.compact();
+        await db2.checkForChanges();
+        expect(await intStore.findKeys(db2), [3]);
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+        expect(events.last, [3]);
+      } finally {
+        await subscription.cancel();
+        await db1.close();
+        await db2.close();
+      }
+    });
+
+    test(
+      'upgrade retried after a concurrent write saves the version',
+      () async {
+        var dbPath = 'concurrent_upgrade_retry.db';
+        var db1 = await ctx.deleteAndOpen(dbPath, version: 1);
+        var factory = ctx.factory.mixin;
+
+        /// Force opening new instance.
+        factory.removeDatabaseOpenHelper(dbPath);
+        var calls = 0;
+        var db2 = await factory.openDatabase(
+          dbPath,
+          version: 2,
+          onVersionChanged: (db, oldVersion, newVersion) async {
+            calls++;
+            if (calls == 1) {
+              // Another instance writes during the upgrade
+              await intStore.record(10).put(db1, 'other');
+            }
+            await intStore.record(1).put(db, 'v$newVersion');
+          },
+        );
+        // Retried once
+        expect(calls, 2);
+        expect(db2.version, 2);
+        await db2.close();
+        await db1.close();
+        factory.removeDatabaseOpenHelper(dbPath);
+        var upgrades = <String>[];
+        var db3 = await factory.openDatabase(
+          dbPath,
+          version: 2,
+          onVersionChanged: (db, oldVersion, newVersion) {
+            upgrades.add('$oldVersion->$newVersion');
+          },
+        );
+        expect(upgrades, isEmpty);
+        expect(await intStore.record(1).get(db3), 'v2');
+        await db3.close();
+      },
+    );
   });
 }

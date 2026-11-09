@@ -1,5 +1,7 @@
 # Sembast for the web
 
+[![pub package](https://img.shields.io/pub/v/sembast_web.svg)](https://pub.dev/packages/sembast_web)
+
 [sembast](https://pub.dev/packages/sembast) for the Web, NoSQL persistent embedded database for the Web on top of IndexedDB.
 
 Works on browser applications and flutter web applications (js/wasm). 
@@ -11,13 +13,16 @@ Works on browser applications and flutter web applications (js/wasm).
 `sembast_web` only provides the database factory for the web, `databaseFactoryWeb`. The API to read and write data
 is the [sembast](https://pub.dev/packages/sembast) API, the same on every platform.
 
+## Getting started
+
 | Platform | Factory |
 |---|---|
-| Web, Flutter web | `databaseFactoryWeb` (this package) |
+| Web, Flutter web (JavaScript and WebAssembly builds) | `databaseFactoryWeb` (this package) |
+| Web worker | `databaseFactoryWebWorker` (this package) |
 | Dart VM, Flutter Android, iOS, macOS, Windows, Linux | `databaseFactoryIo` (`package:sembast/sembast_io.dart`) |
 | Unit tests | `newDatabaseFactoryMemory()` (`package:sembast/sembast_memory.dart`) |
 
-## Setup
+Add the dependencies:
 
 ```sh
 dart pub add sembast sembast_web
@@ -25,7 +30,7 @@ dart pub add sembast sembast_web
 flutter pub add sembast sembast_web
 ```
 
-## Usage
+Open the database, then use the sembast API (`package:sembast_web/sembast_web.dart` exports it):
 
 ```dart
 import 'package:sembast_web/sembast_web.dart';
@@ -86,12 +91,24 @@ A conditional import (`if (dart.library.js_interop)`) works without Flutter, see
 
 ## Features and limitations
 
-* Use int or key string only
-* Content is synchronized across all open tabs
-* Transactions are cross-tab safe (since 0.1.0+4)
-* Codec are not supported. Web is not safe anyway. Encrypt fields as needed.
+* Keys are `int` or `String`, as in sembast.
+* Content is synchronized across all open tabs (and web workers) of the same origin.
+* Transactions are cross-tab safe (since 0.1.0+4).
 * Transactions must be idempotent (i.e. they must produce the same result if run twice) as they might run again in case of concurrent access.
-* WASM support as of 2.3.0 (legacy html version available through `sembast_web_html.dart` import)
+* Codecs (`openDatabase(codec: ...)`, sync or async) are supported: the records are stored encoded and the codec
+  signature is checked at open. The codec and its key ship with the web app, so this is no strong protection: keep
+  secrets off the client.
+* JavaScript and WebAssembly builds (`dart:js_interop`, since 2.3.0). `sembast_web_html.dart` only holds a deprecated
+  alias of the same `databaseFactoryWeb`: import `sembast_web.dart`.
+
+### Pitfalls
+
+* IndexedDB stores numbers as JavaScript doubles, on WebAssembly too: an `int` above 2^53 comes back rounded from
+  IndexedDB (in another tab, or at the next open). Store such ids as a `String`.
+* A `DateTime` value throws an `ArgumentError` and a `Uint8List` is read back as a list of ints: use the sembast
+  `Timestamp` (`package:sembast/timestamp.dart`) and `Blob` (`package:sembast/blob.dart`) types.
+* `deleteDatabase(name)` waits until every connection to that IndexedDB database is closed: it does not complete while
+  another tab still has the database open. Close it everywhere first.
 
 ### Use the same web port when debugging
 
@@ -105,8 +122,9 @@ Like sembast the whole database is loaded into memory from indexedDB. It notifie
 using `BroadcastChannel`. data is incrementally updated from indexedDB. If a transaction is ran after
 some changes happens, new data is loaded and transaction is ran again.
 
-The only exported API is `databaseFactoryWeb` (and `databaseFactoryWebWorker` for web workers). For more information
-on the API see [sembast](https://pub.dev/packages/sembast) documentation.
+The only API of its own is `databaseFactoryWeb` (and `databaseFactoryWebWorker` for web workers), the rest is the
+sembast API that `sembast_web.dart` exports. For more information on the API see
+[sembast](https://pub.dev/packages/sembast) documentation.
 
 ### More information
 

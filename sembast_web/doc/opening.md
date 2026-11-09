@@ -23,7 +23,8 @@ Future main() async {
 
 Open the database once at startup and keep the `Database` object for the lifetime of the app.
 
-If you have a flutter app with an already used database factory (`databaseFactoryIo`, `databaseFactorySqflite`) and 
+If you have a flutter app with an already used database factory (`databaseFactoryIo`, or
+`getDatabaseFactorySqflite(...)` from `sembast_sqflite`) and 
 you want to add web support, the easiest is with conditional imports and initialization (factory, path)
  on each platform (Web, Mobile).
 

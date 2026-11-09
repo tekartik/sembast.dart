@@ -1,3 +1,11 @@
+## 2.4.7
+
+* Requires sembast 3.10.1 (cross tab fixes: listeners after a full reload by
+  `checkForChanges`, an upgrade retried after another tab wrote saves its
+  version)
+* Documentation: codecs are supported, pitfalls (ints above 2^53, delete
+  while another tab has the database open), implementation details fixed
+
 ## 2.4.6+2
 
 * Documentation: setup with `pub add`, one code base with sembast io (`kIsWeb` or conditional
